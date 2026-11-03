@@ -35,3 +35,13 @@ _Avoid_: Level, stage, era
 **Wallet upgrade**:
 A purchase that permanently raises the cash earned per tap.
 _Avoid_: Card upgrade, tap upgrade
+
+## Markets
+
+**Blue chip**:
+A high-priced fictional stock that pays a dividend every simulation hour.
+_Avoid_: Premium stock, dividend stock
+
+**Penny stock**:
+A fictional stock priced under $1 that swings more than other stocks and pays no dividend.
+_Avoid_: Cheap stock, micro-cap
