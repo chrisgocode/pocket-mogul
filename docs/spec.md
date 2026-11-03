@@ -206,7 +206,7 @@ UX01: Distinguish spendable cash, owned asset value, and total net worth. Show b
 
 UX02: Net worth is cash plus business carrying value, estimated property value, current stock and crypto position value, and pending earned dividends. Use integer cents. Display the valuation convention in an expandable explanation. Peak net worth only increases and drives permanent unlocks. Update the peak and unlocks after financial commands and each settled market or dividend boundary, including during offline processing.
 
-UX03: Include goals for the first wallet upgrade, first business, first rental, first stock purchase, first crypto purchase, first dividend, and peak wealth of $1,000, $10,000, $100,000, $1,000,000, and $10,000,000. Goals award badges and feedback, with no extra cash rewards in version one. Players can pin one purchase goal.
+UX03: Include goals for the first wallet upgrade, first business, first rental, first stock purchase, first crypto purchase, first dividend, and peak wealth of $1,000, $10,000, $100,000, $1,000,000, $10,000,000, $100,000,000, and $1,000,000,000. Goals award badges and feedback, with no extra cash rewards in version one. Players can pin one purchase goal.
 
 UX04: Show a readable activity history for purchases, sales, upgrades, trades, dividends, and offline settlement. Aggregate tap batches and ordinary income accrual rather than displaying every tap or second. Preserve lifetime totals separately from a bounded history.
 
@@ -554,3 +554,4 @@ Owner decisions that changed this specification. Each entry links the planning t
 - 2026-11-03, [Expand the stock list with blue chips and penny stocks](https://github.com/chrisgocode/pocket-mogul/issues/17): twenty-four stocks with a volatility class; two high-end properties. (Sections 1, 6, 8, 11.)
 - 2026-11-03, [Set progression targets and rebalance the economy](https://github.com/chrisgocode/pocket-mogul/issues/15): wallet upgrades start at $100 and grow by 1.45 per level; pacing targets updated. (Sections 4, 12, 17, 18.)
 - 2026-11-03, [Approve the stack, ad-consent and store-disclosure spec changes](https://github.com/chrisgocode/pocket-mogul/issues/11): Expo SDK 58, JavaScript tabs, no Expo Go, ad startup order with ATT through UMP, SQLite and BigInt rules, Jest 30, and the owner release checklist. (Sections 2, 14, 15, 19, 21.)
+- 2026-11-03, [Review docs/spec.md for consistency before handoff](https://github.com/chrisgocode/pocket-mogul/issues/18): consistency checks pass; wealth goals extended to $100M and $1B. The goal list will be revisited after the MVP. (Sections 1, 9, 20.)
