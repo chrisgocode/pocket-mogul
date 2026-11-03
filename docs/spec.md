@@ -1,6 +1,6 @@
 # Pocket Mogul Game Design and Implementation Specification
 
-Version 1.0 | November 2, 2026 | Prepared for Christian Gonzalez and the implementing agent
+Version 1.1 | November 3, 2026 (owner-approved) | Prepared for Christian Gonzalez and the implementing agent
 
 Build a portrait mobile idle wealth game in React Native. Players tap for startup cash, improve their earnings per tap, buy and upgrade businesses across four tiers, trade fictional stocks and cryptocurrencies, and improve properties to earn rent. Deliver a playable local game with reliable persistence and explicit economy rules.
 
@@ -21,7 +21,7 @@ This document is the implementation contract for the first version. This Markdow
 
 ### Implementation defaults
 
-The following decisions fill gaps so implementation can proceed. They are proposed defaults, not claims that the owner explicitly approved every detail: Expo and TypeScript; iOS and Android; local single-player saves; an eight-hour offline cap; 60 seconds of eligible foreground play for the ad boost; twelve business types (three per tier), twenty-four stocks, six coins, and eight properties; one owned instance of each business and property template; and the balance values in this document.
+The following decisions fill gaps so implementation can proceed. The owner approved them on November 3, 2026, with the changes listed in Section 22: Expo and TypeScript; iOS and Android; local single-player saves; an eight-hour offline cap; 60 seconds of eligible foreground play for the ad boost; twelve business types (three per tier), twenty-four stocks, six coins, and eight properties; one owned instance of each business and property template; and the balance values in this document.
 
 Use these defaults unless the owner changes them. Keep balance values in versioned content configuration. Numeric values are initial playtest settings, not validated retention or monetization targets.
 
@@ -518,7 +518,7 @@ Before public distribution, the owner supplies the final app identity, signing a
 
 Implement this specification phase by phase. Start by inspecting the target repository and its instructions. Preserve existing user work. If no project exists, scaffold a single Expo React Native application and record the selected dependency versions.
 
-Treat confirmed requirements as fixed. Use the documented implementation defaults and balance values without asking about routine choices. Keep a short decision log for necessary clarifications or changes. If a new owner instruction conflicts with this document, follow that instruction and update the affected requirements and tests together.
+Treat confirmed requirements as fixed. Use the documented implementation defaults and balance values without asking about routine choices. Append necessary clarifications or changes to the decision log in Section 22. If a new owner instruction conflicts with this document, follow that instruction and update the affected requirements and tests together.
 
 Build the domain and persistence before adding visual polish to the full asset catalog. Use one set of quote functions for previews and mutations. Keep money out of component state as an independent authority. Test failure and recovery paths with injected clocks, random seeds, ad events, and database errors.
 
