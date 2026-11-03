@@ -4,7 +4,7 @@ Version 1.0 | November 2, 2026 | Prepared for Christian Gonzalez and the impleme
 
 Build a portrait mobile idle wealth game in React Native. Players tap for startup cash, improve their earnings per tap, buy and upgrade businesses across four tiers, trade fictional stocks and cryptocurrencies, and improve properties to earn rent. Deliver a playable local game with reliable persistence and explicit economy rules.
 
-This document is the implementation contract for the first version. The Markdown file is the canonical agent handoff; the Word document contains the same specification for review. The working name is Pocket Mogul (formerly Idle Wealth). Final branding is undecided.
+This document is the implementation contract for the first version. This Markdown file is the canonical agent handoff. It started as the v1.0 Word document and now includes the owner decisions listed in Section 22. The working name is Pocket Mogul (formerly Idle Wealth). Final branding is undecided.
 
 ## 1 Product decisions and scope
 
@@ -12,7 +12,8 @@ This document is the implementation contract for the first version. The Markdown
 
 - React Native is the application framework.
 - Tapping earns money. Wallet or card upgrades add small amounts to earnings per tap, and later upgrades cost more.
-- An optional rewarded ad doubles tap earnings for approximately one minute.
+- An optional rewarded ad, started only from its own Tap Boost button, multiplies tap earnings by 5 for one minute of active play. It never appears automatically.
+- Automatic ads also run: interstitials at natural breaks, banners on every tab except Home, and app open ads on warm resume (Section 15).
 - Players buy businesses, upgrade them, and receive passive income. There are exactly four business tiers.
 - A fictional stock market uses playful company names and original parody-inspired visual identities.
 - A separate fictional cryptocurrency market provides tradable coins.
@@ -20,13 +21,13 @@ This document is the implementation contract for the first version. The Markdown
 
 ### Implementation defaults
 
-The following decisions fill gaps so implementation can proceed. They are proposed defaults, not claims that the owner explicitly approved every detail: Expo and TypeScript; iOS and Android; local single-player saves; an eight-hour offline cap; 60 seconds of eligible foreground play for the ad boost; eight business types, twelve stocks, six coins, and six properties; one owned instance of each business and property template; and the balance values in this document.
+The following decisions fill gaps so implementation can proceed. They are proposed defaults, not claims that the owner explicitly approved every detail: Expo and TypeScript; iOS and Android; local single-player saves; an eight-hour offline cap; 60 seconds of eligible foreground play for the ad boost; twelve business types (three per tier), twenty-four stocks, six coins, and eight properties; one owned instance of each business and property template; and the balance values in this document.
 
 Use these defaults unless the owner changes them. Keep balance values in versioned content configuration. Numeric values are initial playtest settings, not validated retention or monetization targets.
 
 ### First version boundaries
 
-Include the complete tap, business, stock, crypto, property, offline, save, tutorial, goal, and optional rewarded-ad loops. All gameplay uses fictional money. Core play works without a network connection; ads depend on availability.
+Include the complete tap, business, stock, crypto, property, offline, save, tutorial, goal, optional rewarded-ad, and automatic-ad loops. All gameplay uses fictional money. Core play works without a network connection; ads depend on availability.
 
 Defer accounts, cloud synchronization, a backend, shared markets, multiplayer, leaderboards, loans, short selling, leverage, limit orders, company IPOs, prestige resets, subscriptions, paid currency, push notifications, daily streaks, and detailed tenant negotiations. Managers are a one-time business upgrade, not a staffing simulation. Additional business locations are represented by upgrades rather than unlimited duplicate purchases.
 
@@ -44,9 +45,9 @@ Defer accounts, cloud synchronization, a backend, shared markets, multiplayer, l
 | Money | Native BigInt cents and separate price units | Exact balances, fractional quotes, and integer rounding |
 | Charts and logos | react-native-svg | Small line charts, icons, original fictional identities [3] |
 | Animation and feedback | React Native Animated and expo-haptics | Tap feedback, transitions, optional haptics [4] |
-| Rewarded ads | react-native-google-mobile-ads behind an adapter | AdMob integration, test ads, reward lifecycle [5] |
+| Ads | react-native-google-mobile-ads behind an adapter | AdMob rewarded, interstitial, banner, and app open placements, test ads, reward lifecycle [5] |
 | Unit and UI tests | Jest with jest-expo and React Native Testing Library | Economy invariants, commands, critical interactions [6] |
-| Native smoke tests | Maestro or equivalent native automation | Cross-screen journeys on actual native builds |
+| Native smoke tests | Agent-driven journeys on the iOS Simulator and Android Emulator on the owner's MacBook (T3 Code device tools; Maestro optional), plus manual checks on the owner's iPhone | Cross-screen journeys on actual native builds |
 | Build and checks | Expo CLI, TypeScript, ESLint, one lockfile | Repeatable development and release builds |
 
 At setup, select the current stable Expo SDK and its supported React Native and React versions. Install Expo-compatible native dependencies through Expo tooling, verify the ad package compatibility matrix, and commit exact resolved versions in the lockfile. Record the resulting matrix in the project README. Do not independently upgrade React Native beyond the selected Expo SDK. Expo Router provides the navigation foundation [7].
@@ -59,7 +60,7 @@ Expo Go may support early UI work, but acceptance testing uses development or re
 
 | Surface | Primary content | Main actions |
 |---|---|---|
-| Home | Cash, tap card, per-tap income, boost timer, passive income, pinned goal | Tap, upgrade card, watch optional ad |
+| Home | Cash, tap card, per-tap income, boost timer, passive income, pinned goal | Tap, upgrade card, press the Tap Boost button (optional rewarded ad) |
 | Businesses | Owned companies, four-tier catalog, locked tier previews | Buy, open details, upgrade, hire manager, sell |
 | Markets | Stocks and Crypto segments, price changes, watchlist | Open asset, buy, sell |
 | Properties | Owned properties and available listings | Buy, renovate, rent, upgrade, sell |
@@ -67,7 +68,7 @@ Expo Go may support early UI work, but acceptance testing uses development or re
 
 Goals and Settings open from the header. Use a shared purchase confirmation sheet for businesses, upgrades, properties, and sales. Market orders have a specialized quote sheet. Every confirmation shows the cash change and resulting ownership or income. Disable repeated submissions while the command is pending.
 
-The first session starts with zero cash, tap level zero, no assets, and Tier 1 available. A short tutorial highlights tapping, the first wallet upgrade, and the first business purchase. Tutorial steps observe completed actions and persist across restarts. Players can skip explanations; this does not change unlock rules. Ads are optional during the tutorial.
+The first session starts with zero cash, tap level zero, no assets, and Tier 1 available. A short tutorial highlights tapping, the first wallet upgrade, and the first business purchase. Tutorial steps observe completed actions and persist across restarts. Players can skip explanations; this does not change unlock rules. No automatic ads appear during the tutorial, and the Tap Boost button is optional.
 
 All main tabs are visible from the start. Markets are readable immediately and become tradable after the first business purchase. Property listings are always readable and can be bought when affordable. Empty states explain the next available action.
 
@@ -76,28 +77,32 @@ All main tabs are visible from the start. Markets are readable immediately and b
 Requirement IDs TAP01 through TAP06.
 
 - TAP01: Each completed press on the tap card earns the currently quoted amount once. Press-and-hold does not auto-repeat. The domain computes the payout from the committed wallet and boost state for the accepted batch, not a value supplied by a UI label.
-- TAP02: Level zero earns $1 per tap. Each wallet level adds $0.50. The initial level cap is 100. Upgrade price starts at $25 and grows by 1.35 for each level already owned. Use the exact integer calculation in Section 12.
+- TAP02: Level zero earns $1 per tap. Each wallet level adds $0.50. The initial level cap is 100. Upgrade price starts at $100 and grows by 1.45 for each level already owned. Use the exact integer calculation in Section 12.
 - TAP03: The upgrade control shows current earnings, next earnings, price, and affordability. A successful purchase updates all four together.
 - TAP04: Card artwork changes at levels 0, 10, 25, 50, and 100. Artwork changes are cosmetic; the displayed payout includes every economic modifier.
-- TAP05: A completed rewarded ad grants 2x tap income for 60 seconds of eligible foreground game time. Time pauses while the app is inactive or backgrounded, or while a full-screen ad covers it. Time runs across all game tabs. Only one boost can be active; duration and multiplier do not stack.
+- TAP05: The player starts a rewarded ad only by pressing the Tap Boost button on Home; it is never offered automatically. A completed rewarded ad grants 5x tap income for 60 seconds of eligible foreground game time. Time pauses while the app is inactive or backgrounded, or while a full-screen ad covers it. Time runs across all game tabs. Only one boost can be active; duration and multiplier do not stack.
 - TAP06: Tap animations respond immediately. Optional haptics are throttled so rapid tapping does not create a backlog. Animations and sound never determine the actual balance.
 
-Example: level 2 pays $2 per tap; while boosted it pays $4. The boost affects tapping only. Businesses, rent, dividends, market prices, and resale values use their normal rules.
+Example: level 2 pays $2 per tap; while boosted it pays $10. The boost affects tapping only. Businesses, rent, dividends, market prices, and resale values use their normal rules.
 
 ## 5 Businesses and four tiers
 
-Requirement IDs BUS01 through BUS07. Each row is one purchasable business template; the player can eventually own all eight. Rates below are dollars per real minute of eligible simulation time, before upgrades.
+Requirement IDs BUS01 through BUS07. Each row is one purchasable business template; the player can eventually own all twelve, three per tier. Rates below are dollars per real minute of eligible simulation time, before upgrades.
 
 | Tier | Business ID and name | Price | Revenue per minute | Costs per minute |
 |---|---|---|---|---|
 | 1 | vending Vending Machine | $250 | $14 | $4 |
 | 1 | food_cart Food Cart | $1,250 | $72 | $22 |
+| 1 | coffee_kiosk Coffee Kiosk | $4,000 | $230 | $70 |
 | 2 | laundromat Laundromat | $7,500 | $350 | $100 |
 | 2 | car_wash Car Wash | $30,000 | $1,300 | $400 |
+| 2 | bakery Bakery | $100,000 | $4,000 | $1,200 |
 | 3 | delivery Delivery Company | $250,000 | $9,500 | $3,500 |
 | 3 | gym_chain Gym Chain | $1,000,000 | $30,000 | $10,000 |
-| 4 | hotel_group Hotel Group | $10,000,000 | $200,000 | $80,000 |
+| 3 | hotel_group Hotel Group | $10,000,000 | $200,000 | $80,000 |
 | 4 | manufacturer Manufacturing Company | $50,000,000 | $800,000 | $300,000 |
+| 4 | airline Airline | $250,000,000 | $3,600,000 | $1,400,000 |
+| 4 | space_launch Space Launch Company | $750,000,000 | $10,000,000 | $4,000,000 |
 
 - BUS01: Buying a business spends cash and creates one owned record atomically. It starts earning immediately. Ownership requires no manager or manual collection.
 - BUS02: Every business has Capacity, Quality, and Efficiency levels from 0 to 20. Capacity increases revenue and operating costs; Quality increases revenue; Efficiency lowers operating costs. Section 12 defines the calculations.
@@ -118,24 +123,38 @@ Requirement IDs STK01 through STK06. The market belongs to the local save. Price
 - STK03: Support buy and sell market orders with up to six decimal places of quantity. Presets are 25, 50, and 100 percent of affordable cash or owned quantity. A dollar input may be converted to quantity with the same quote function.
 - STK04: Show notional, trading fee, total cash change, quantity, and quote timestamp before confirmation. A changed market tick invalidates the quote and requires review of the refreshed amount.
 - STK05: Company, sector, and market events affect prices. A compact news feed explains the event and duration without claiming to predict the next price.
-- STK06: Three launch stocks pay dividends. Entitlement accrues in proportion to quantity and eligible holding time, and is paid at each simulation-hour boundary. Buying just before a payout earns only the time actually held.
+- STK06: Nine launch stocks pay dividends: three original payers and six blue chips. Entitlement accrues in proportion to quantity and eligible holding time, and is paid at each simulation-hour boundary. Buying just before a payout earns only the time actually held.
 
-| ID and ticker | Fictional company | Sector | Initial price | Dividend per whole share per simulation hour |
-|---|---|---|---|---|
-| pear PEAR | Pear Technologies | Technology | $25 | $0.02 |
-| macro MCR | Macrosoft | Technology | $40 | $0 |
-| jungle JGL | JungleCart | Commerce | $35 | $0 |
-| cart CBR | CartBarn | Commerce | $12 | $0 |
-| volt VLT | Voltara Motors | Mobility | $50 | $0 |
-| loop LPR | LoopRide | Mobility | $8 | $0 |
-| brick BRK | Brickbank | Finance | $20 | $0.03 |
-| vault VCR | VaultCard | Finance | $30 | $0 |
-| sun SGR | SunGrid | Energy | $15 | $0 |
-| barrel BRL | BarrelWorks | Energy | $18 | $0.02 |
-| brew BRW | BrewBucks | Food | $10 | $0 |
-| bun GBN | Golden Bun | Food | $6 | $0 |
+| ID and ticker | Fictional company | Sector | Class | Initial price | Dividend per whole share per simulation hour |
+|---|---|---|---|---|---|
+| prism PRZM | Prism Labs | Technology | Standard | $25 | $0.02 |
+| kilobyte KBYT | Kilobyte Systems | Technology | Standard | $40 | $0 |
+| parcelvine PVN | ParcelVine | Commerce | Standard | $35 | $0 |
+| cart CBR | CartBarn | Commerce | Standard | $12 | $0 |
+| volt VLT | Voltara Motors | Mobility | Standard | $50 | $0 |
+| loop LPR | LoopRide | Mobility | Standard | $8 | $0 |
+| brick BRIK | Brickbank | Finance | Standard | $20 | $0.03 |
+| vault VCR | VaultCard | Finance | Standard | $30 | $0 |
+| sun SGR | SunGrid | Energy | Standard | $15 | $0 |
+| barrel BRL | BarrelWorks | Energy | Standard | $18 | $0.02 |
+| beanstreet BNST | Bean Street | Food | Standard | $10 | $0 |
+| bunvoyage BUNV | Bun Voyage | Food | Standard | $6 | $0 |
+| summit SMHD | Summit Holdings | Finance | Blue chip | $850 | $0.85 |
+| atlas ATIN | Atlas Insurance | Finance | Blue chip | $560 | $0.50 |
+| ironclad IRCL | Ironclad Industries | Industrials | Blue chip | $410 | $0.41 |
+| willowbrook WLBH | Willowbrook Health | Health | Blue chip | $320 | $0.32 |
+| clearwave CLWV | Clearwave Telecom | Telecom | Blue chip | $180 | $0.27 |
+| evergreen EVGU | Evergreen Utilities | Energy | Blue chip | $150 | $0.21 |
+| fizzwater FZWB | Fizzwater Beverages | Food | Penny | $0.65 | $0 |
+| glowbug GLBG | Glowbug Gadgets | Technology | Penny | $0.42 | $0 |
+| moonshot MSBT | Moonshot Biotech | Health | Penny | $0.33 | $0 |
+| couchpotato CPMD | Couch Potato Media | Media | Penny | $0.27 | $0 |
+| rocketrex RRXM | Rocket Rex Mining | Mining | Penny | $0.18 | $0 |
+| zapcar ZPCR | Zapcar Rentals | Mobility | Penny | $0.09 | $0 |
 
-These are working fictional identities. Create original vector marks from simple shapes, such as a geometric pear, a parcel with a vine, or a lightning road. Keep them visibly part of the game's own visual system. Runtime assets must not depend on remote company logo services.
+These are working fictional identities. Create original vector marks from simple shapes, such as a prism, a parcel with a vine, or a lightning road. Keep them visibly part of the game's own visual system. Runtime assets must not depend on remote company logo services.
+
+Naming rule: each name nods at its sector, never at a real brand. A name carries at most one recognizable signal, ideally the sector: no shared distinctive syllables, one-letter swaps, or sound-alikes of real marks, and no copied logo shapes, motifs, or house colors. Parody names appear only inside the game, never in the app name, icon, store listing, keywords, or ads. Tickers avoid live NYSE and Nasdaq symbols. News never names real people, products, or events. Before content IDs freeze, search every name and ticker in the USPTO trademark database (classes 9, 28, and 41) and on the exchanges.
 
 ## 7 Fictional cryptocurrencies
 
@@ -152,7 +171,7 @@ Requirement IDs CRY01 through CRY04. Reuse stock portfolio and trade components 
 | ether EMB | Ember Chain | Application network | $80 |
 | moss MOS | Moss Network | Utility project | $5 |
 | spark SPK | Spark Token | Payments project | $1 |
-| bark BRKX | Bark Coin | Meme coin | $0.10 |
+| wag WAGX | Wag Coin | Meme coin | $0.10 |
 | moon MBN | Moon Bean | Speculative community | $0.25 |
 
 ## 8 Properties and rental income
@@ -167,6 +186,8 @@ Requirement IDs RE01 through RE06. Each property is a unique listing, purchasabl
 | apartments Apartment Building | $1,000,000 | $4,800 | $800 | Yes |
 | retail Retail Building | $5,000,000 | $20,000 | $3,000 | Yes |
 | offices Office Building | $20,000,000 | $70,000 | $12,000 | Yes |
+| skyline Skyline Tower | $150,000,000 | $450,000 | $75,000 | Yes |
+| seaside Seaside Resort | $400,000,000 | $1,100,000 | $200,000 | Yes |
 
 - RE01: A purchase creates an unrented property. Its details offer Rent Out immediately; upgrading first is optional.
 - RE02: Rent Out fills the property immediately. A rented property produces rent minus upkeep automatically. Version one has full occupancy, fixed net-positive operating rates, and no tenant negotiation.
@@ -207,6 +228,8 @@ For business and rent income, maintain a remainder per income stream. A constant
 
 On app inactivity, flush pending tap batches and checkpoint. Also checkpoint during foreground play at least every five seconds and after each financial action. A forced kill may lose only an uncommitted tap batch of at most 250 milliseconds; committed purchases, trades, ownership, and grants must survive. Passive elapsed time is reconstructed from the durable checkpoint.
 
+A full-screen ad (rewarded, interstitial, or app open) is not an absence. On Android, closing one reports a background-to-foreground transition; that transition must not trigger offline settlement, a return summary, or an app open ad. Boost time still pauses while the ad covers the game.
+
 ## 11 Market simulation rules
 
 A quote changes every 60,000 simulation milliseconds. Each save has a random market seed created once. Generate random draws from stable keys containing the seed, tick index, scope ID, and stream name. Use a specified integer hash or PRNG with golden fixtures. Viewing a chart, restarting, or trading must not consume different random draws or change the price path.
@@ -223,11 +246,13 @@ All calculations below are proposed game rules. Quote prices use BigInt milliont
 | Event duration | 10 ticks | 6 ticks |
 | Trading fee | 25 basis points of notional | 50 basis points of notional |
 
+Each stock has a volatility class. Standard and blue-chip stocks use the stock column above. Penny stocks use the same values except the asset shock, which is an integer from -80 to +80 basis points.
+
 Choose a shared bear, neutral, or bull regime every 30 ticks with probabilities 25, 50, and 25 percent. Use separate shock streams for stocks and crypto. Once every 30 ticks per asset class, select exactly one event: company or coin event 50 percent, sector event 25 percent, market event 25 percent. For crypto, replace the sector choice with a coin event. Select direction equally. Events do not directly change business rates or property rent in version one.
 
 Add a weak anchor pull to each asset: calculate five basis points times the relative difference between its initial price and current price, rounded toward zero and clamped to -25 through +25 basis points. Sum the common, sector, asset, regime, event, and anchor contributions. Clamp total return to -2,000 through +2,000 basis points. Apply that return to the previous price, round to the nearest microdollar with half upward, and enforce a one-microdollar minimum. Use integer arithmetic for the ratios. A $0.10 coin with a +100-basis-point return becomes $0.101, rather than remaining frozen at ten cents.
 
-Store 480 one-minute observations and 720 hourly OHLC observations per asset, with a partially built hourly candle. Keep completed history in a separate SQLite table so tapping does not rewrite thousands of chart points. Trim older observations deterministically. Offer 1 hour, 8 hours, and 30 market days when history exists; show the available range for new saves. Record explicit opening and closing prices for period-change calculations.
+Store 480 one-minute observations and 720 hourly OHLC observations per asset, with a partially built hourly candle. With 30 assets this is about 36,000 history rows. Keep completed history in a separate SQLite table so tapping does not rewrite thousands of chart points. Trim older observations deterministically. Offer 1 hour, 8 hours, and 30 market days when history exists; show the available range for new saves. Record explicit opening and closing prices for period-change calculations.
 
 Stock dividends use the fixed configured cents per whole share per simulation hour, not current price times a yield. Accrue pro rata before every trade and boundary. Keep fractional entitlement in an integer numerator with denominator 1,000,000 quantity units times 3,600,000 milliseconds. At hourly boundaries transfer whole accrued cents to cash and retain the remainder. Selling a holding retains previously accrued entitlement until payout. Avoid retroactive dividends on newly bought shares.
 
@@ -241,11 +266,11 @@ Use integer powers so the price and purchase agree exactly. L is the current wal
 
 ```text
 tapCents(L) = 100 + 50 * L
-upgradeCents(L) = ceil(2500 * 135^L / 100^L)
-boostedTapCents = tapCents(L) * 2
+upgradeCents(L) = ceil(10000 * 145^L / 100^L)
+boostedTapCents = tapCents(L) * 5
 ```
 
-Level zero costs $25 to upgrade. Level one costs $33.75. Level two costs $45.57. Retain these as rounding fixtures. Show Max level once L equals 100.
+Level zero costs $100 to upgrade. Level one costs $145. Level two costs $210.25. Level three costs $304.87. Retain these as rounding fixtures. Show Max level once L equals 100.
 
 ### Business rates and upgrades
 
@@ -347,6 +372,7 @@ Use one validated state snapshot as the authoritative representation of ownershi
 | IncomeState | business and rent remainders, earned totals by source |
 | ProgressState | unlocked tiers, tutorial progress, completed goals, pinned goal, watchlist |
 | RewardState | ad grant ID, pending activation, active boost, processed reward references |
+| AdScheduleState | foreground milliseconds since the last automatic full-screen ad, interstitial count and local day key, last rewarded view time, session count, last app open ad time |
 | ReturnSummary | credited interval, earnings by source, cap flag, acknowledged status |
 | Settings | sound, haptics, reduced motion preference, number formatting preference |
 
@@ -372,7 +398,7 @@ Process every command through one serialized queue:
 
 The actual implementation must preserve this single-transaction guarantee across reads and writes. With expo-sqlite, use the transaction-scoped handle from withExclusiveTransactionAsync and parameterized queries. Its documented transaction scope avoids unrelated async queries joining a transaction [2].
 
-Batch taps for at most 250 milliseconds to limit write load. Flush a batch before a wallet upgrade, trade, other financial action, lifecycle checkpoint, or boost boundary. Keep batches homogeneous by payout and boost state. UI may animate pending taps, but any provisional number must roll back on a failed commit and pending cash must not fund a purchase before it commits.
+Batch taps for at most 250 milliseconds to limit write load. Flush a batch before a wallet upgrade, trade, other financial action, lifecycle checkpoint, boost boundary, or any full-screen ad. Keep batches homogeneous by payout and boost state. UI may animate pending taps, but any provisional number must roll back on a failed commit and pending cash must not fund a purchase before it commits.
 
 Store backup checkpoints after verified successful saves at a bounded cadence, including before migrations. Backups in the same database help with logical snapshot damage, not complete database or device loss. A corrupt latest snapshot may restore the latest valid backup with a visible recovery notice. A future schema version must fail safely without overwriting the save. Never silently reset a damaged save. Local play does not promise reinstall or cross-device recovery.
 
@@ -380,13 +406,25 @@ Keep save schema version and economy configuration version separate. On an econo
 
 ## 15 Ad integration and failure behavior
 
-Ads are the only monetization in version one. Present one optional rewarded placement on Home with the exact reward and duration. Use test unit IDs during development [5]. Initialize the real SDK through its documented consent and privacy sequence; keep this concern inside the platform adapter. Production IDs and store declarations are owner-provided release configuration.
+Ads are the only monetization in version one. There are four placements: one opt-in rewarded placement (the Tap Boost button on Home, showing the exact reward and duration) and three automatic placements described below. Use test unit IDs during development [5]. Initialize the real SDK through its documented consent and privacy sequence; keep this concern inside the platform adapter. Production IDs and store declarations are owner-provided release configuration.
 
 The ad adapter exposes availability, load, show, earned-reward, closed, and failed events. The application creates a unique presentation ID before showing an ad. Persist a reward grant only when the SDK emits its earned-reward event. Closing an ad alone grants nothing. Duplicate or reordered callbacks for the same presentation must resolve to a single reward.
 
 Persist an earned grant as pending activation until the game is interactive again. Then activate one 60-second boost atomically. If the process dies after the reward is saved but before activation, activate the pending grant on the next launch. Do not replay the ad. If the SDK never reports a reward before a process kill, the local app cannot prove completion; log the case without fabricating a grant.
 
 Disable starting an ad while another presentation, pending grant, or boost exists. If an ad is unavailable, fails, or the device is offline, display the status and keep ordinary tapping usable. Use a mock adapter with deterministic success, close-without-reward, duplicate reward, no-fill, and crash-recovery cases.
+
+### Automatic ads
+
+Automatic ads appear without the player choosing them. A pure AdScheduler with injected clocks decides eligibility; the platform adapter only loads and shows. All numbers below are content configuration, tuned with telemetry.
+
+- Gate: no automatic ads until the tutorial is complete and the player has 5 minutes of cumulative foreground play.
+- Natural-break interstitials: a foreground timer makes an interstitial eligible at most once every 3 minutes, with at most 12 per local day. An eligible interstitial shows only at the next natural break: leaving Home for another tab, closing a confirmation or trade sheet, or completing a goal. It also requires at least 2.5 seconds since the last tap. A 1-second "Ad break" card that ignores input comes first. Interstitials never appear on Home mid-tap, on app launch or exit, or back to back.
+- Banners: an anchored adaptive banner on Businesses, Markets, Properties, and Portfolio, never on Home, with clear space from the tab bar and buy buttons.
+- App open ads: warm resume only, from the third session, after at least 30 minutes away, at most once every 4 hours, never on cold start. On resume the order is offline settlement, then the app open ad, then the return summary.
+- Suppression: no automatic full-screen ad during the tutorial, while a boost or pending grant exists, within 2 minutes after a rewarded view, without ad consent, or while offline.
+- Backstop: configure AdMob server-side frequency caps slightly looser than the client rules (interstitial unit: 1 per 2.5 minutes, 15 per day).
+- No rewarded interstitials: the Tap Boost is never offered automatically.
 
 The local save is not an authoritative anti-cheat service. Do not add a backend merely to imply that client-side rewards or device time are tamper-proof. A future shared economy requires server-owned balances and validated grants as a separate project decision.
 
@@ -398,17 +436,17 @@ Use a consistent spacing scale, reusable typography, comfortable touch targets o
 
 Use compact amounts in summaries with exact amounts available in details and confirmations. Display cash and transaction totals to two decimal places. Quote prices and quantities use the needed precision up to six places. Use string-based formatting for values beyond Number safe integer precision. Show the units on every income rate.
 
-Definitions are stable-ID data, separate from the save and screens. Include economyVersion, unlock thresholds, formulas or named formula versions, caps, fees, prices, rates, multipliers, and asset metadata in content configuration. Validate unique IDs, positive prices, legal tiers, required icons, referenced IDs, and level caps at startup and in tests. Never reuse a retired ID for a different asset.
+Definitions are stable-ID data, separate from the save and screens. Include economyVersion, unlock thresholds, formulas or named formula versions, caps, fees, prices, rates, multipliers, and asset metadata in content configuration. Validate unique IDs, positive prices, legal tiers, required icons, referenced IDs, and level caps at startup and in tests. Never reuse a retired ID for a different asset. Show "All companies and coins are fictional" on the Markets screen and in About.
 
 ## 17 Balance validation and instrumentation
 
 Build a small headless simulation script around the same domain functions. It must accept a seed, starting state, action policy, tap rate, and session schedule, then output cash, asset allocation, net worth, unlock times, and upgrade payback. Keep the seed tables editable without changing screen code.
 
-Initial playtest targets are a first wallet upgrade within 15 to 30 seconds at approximately two taps per second, a first business within 1 to 3 minutes, and a meaningful choice between reinvesting and buying another asset in the first session. These are hypotheses. Record actual results before changing values.
+Initial playtest targets are a first wallet upgrade within 45 to 60 seconds at approximately two taps per second, a first business within about 2 minutes when saving for it, the first $1,000,000 after about 3.5 hours of active play, and a meaningful choice between reinvesting and buying another asset in the first session. The planning simulation reached the first wallet upgrade in about 50 seconds, wallet level 10 in about 1.8 hours, $1,000,000 in about 3.4 hours, $10,000,000 in about 6.9 hours, and $1,000,000,000 in about 22 hours of active play; heavy Tap Boost use reached $1,000,000 about 35 to 40 percent sooner. If casual play with offline earnings feels too fast, lower the offline earnings rate before changing prices. These are hypotheses. Record actual results before changing values.
 
 Compare at least three policies: buying the cheapest next upgrade, choosing the shortest incremental payback, and saving for the next business. Include an ad-free run and sessions separated by capped offline intervals. Flag permanently dominant choices, unaffordable progression stalls, and profit from repeatedly buying and selling an unchanged asset. Tune configuration rather than adding unexplained cash grants.
 
-Define a TelemetryPort with a no-op production default and a local development event sink. Events include tutorial_step, first_business, wallet_upgrade, business_upgrade, rental_started, trade_executed, offline_settled, ad_requested, ad_rewarded, boost_activated, save_failed, and migration_completed. Include configuration version and relevant non-identifying game state. Aggregate taps. An external analytics provider is a later integration decision.
+Define a TelemetryPort with a no-op production default and a local development event sink. Events include tutorial_step, first_business, wallet_upgrade, business_upgrade, rental_started, trade_executed, offline_settled, ad_requested, ad_rewarded, boost_activated, ad_interstitial_shown, ad_interstitial_suppressed, ad_app_open_shown, ad_banner_loaded, ad_clicked, save_failed, and migration_completed. Include configuration version and relevant non-identifying game state. Aggregate taps. An external analytics provider is a later integration decision.
 
 ## 18 Acceptance criteria and critical tests
 
@@ -416,7 +454,7 @@ Define a TelemetryPort with a no-op production default and a local development e
 |---|---|---|
 | AC01 | Fresh save | $0, level zero, no assets, Tier 1 available, tutorial starts |
 | AC02 | Ten unboosted level-zero taps | Exactly $10 committed cash |
-| AC03 | Wallet upgrade from level zero | Spend $25 once; payout becomes $1.50; next cost $33.75 |
+| AC03 | Wallet upgrade from level zero | Spend $100 once; payout becomes $1.50; next cost $145 |
 | AC04 | Repeat a command ID | Same recorded result; no additional cash or ownership change |
 | AC05 | Insufficient cash purchase | No partial spending, ownership, or upgrade |
 | AC06 | Base Vending Machine runs 60 seconds | Exactly $10 income |
@@ -432,22 +470,27 @@ Define a TelemetryPort with a no-op production default and a local development e
 | AC16 | Quote crosses a tick | Require a refreshed confirmation; no silent repricing |
 | AC17 | Restart or change chart frequency | Same seed and simulated time produce the same prices |
 | AC18 | Earn dividend then sell | Preserve accrued entitlement; newly purchased units receive no retroactive amount |
-| AC19 | Reward callback delivered twice | Exactly one 60-second boost |
+| AC19 | Reward callback delivered twice | Exactly one 60-second 5x boost |
 | AC20 | Ad closes without earned callback | No boost; ordinary play remains available |
 | AC21 | Background during boost | Remaining eligible boost time pauses and survives restart |
-| AC22 | Upgrade at boost expiration | No mixed-rate tap batch or extra doubled tap |
+| AC22 | Upgrade at boost expiration | No mixed-rate tap batch or extra boosted tap |
 | AC23 | Save corruption or future schema | Recover visibly or stop safely; preserve original data |
 | AC24 | Very large money values | Exact arithmetic and formatting beyond Number safe integer range |
 | AC25 | Migration fixture from previous schema | Preserve balances, assets, cost basis, time, and grant IDs |
 | AC26 | Airplane-mode journey | Taps, upgrades, rent, trades, settlement, and saves work; ads show unavailable |
 | AC27 | Write failure during purchase | Entire transaction rolls back and UI shows a recoverable error |
-| AC28 | Native application journey | Complete tap, business, rental, trade, return, and test-ad flows on iOS and Android |
+| AC28 | Native application journey | Complete tap, business, rental, trade, return, and test-ad flows on the iOS Simulator and Android Emulator (agent-driven) and on the owner's iPhone (manual) |
 | AC29 | Ten-cent coin moves by 100 basis points | Quote becomes $0.101; sub-cent moves are preserved |
 | AC30 | Economy configuration changes while away | Settle old rates first; new rates apply only after migration |
+| AC31 | Tapping continuously past the interstitial cooldown | No interstitial appears on Home; it waits for the next natural break with 2.5 seconds of tap idle |
+| AC32 | Tutorial, active boost, or pending grant | No automatic full-screen ad appears |
+| AC33 | Cooldown and daily cap | No two interstitials within 3 minutes of foreground time; at most 12 per local day |
+| AC34 | Full-screen ad closes on Android | No offline settlement, return summary, or app open ad results |
+| AC35 | Tap Boost source | A boost starts only after the player presses the Tap Boost button and a reward is earned |
 
 Add invariant tests for nonnegative cash and quantities; no sell beyond holdings; identical results from segmented time advances; valid quote rounding; and conservation of cash changes against ledger entries. UI tests should cover consequential interactions rather than snapshot every screen.
 
-Measure a maximum capped resume with all assets and chart histories on a representative physical device in a release build. Target settlement under one second and responsive foreground interaction. If simulation work blocks input, process it in bounded chunks behind a restoring-state screen and commit the final result atomically. Do not reduce economic accuracy to meet the target.
+Measure a maximum capped resume with all assets and chart histories on a representative physical device in a release build (the owner's iPhone now; a physical Android device before the Play release). Target settlement under one second and responsive foreground interaction. If simulation work blocks input, process it in bounded chunks behind a restoring-state screen and commit the final result atomically. Do not reduce economic accuracy to meet the target.
 
 ## 19 Implementation phases and completion gates
 
@@ -458,7 +501,7 @@ Measure a maximum capped resume with all assets and chart histories on a represe
 | 3 Tapping and businesses | Wallet upgrades, four tiers, business upgrades, managers, sales, goals | AC02, AC03, AC06, AC07, AC11 pass; first playable loop |
 | 4 Property and offline | Rental upgrades, valuation, capped settlement, return summary | AC09, AC10, AC12, AC13 pass |
 | 5 Markets and portfolio | Stocks, crypto, seeded prices, news, dividends, quotes, activity | AC14 through AC18 and AC29 pass; balance simulation runs |
-| 6 Ads and native validation | Mock and native test ads, boost lifecycle, accessibility, performance | AC19 through AC22, AC26, AC28 pass; remaining criteria verified |
+| 6 Ads and native validation | Mock and native test ads, boost lifecycle, automatic-ad scheduling, accessibility, performance | AC19 through AC22, AC26, AC28, AC31 through AC35 pass; remaining criteria verified |
 
 Each phase leaves a runnable app and updates the README. The final handoff includes source, setup instructions, exact dependency versions, seed content, migration policy, tests, a balance report with reproducible seeds, and a list of owner-supplied release configuration. Provide evidence for each completion gate and identify any platform checks the available environment could not execute.
 
@@ -495,3 +538,12 @@ These primary documentation links support integration choices. Game formulas, se
 ## 22 Decision log
 
 Owner decisions that changed this specification. Each entry links the planning ticket that holds the detail. Planning map: https://github.com/chrisgocode/pocket-mogul/issues/1
+
+- 2026-11-03, [Decide the offline cap and ad boost design](https://github.com/chrisgocode/pocket-mogul/issues/9): 8-hour cap kept; the Tap Boost is 5x tap earnings for 60 seconds, button-only, no stacking; no double-offline ad. (Sections 1, 4, 12, 18.)
+- 2026-11-03, [Decide the naming approach for fictional stocks and coins](https://github.com/chrisgocode/pocket-mogul/issues/8): six renames, BRK to BRIK, the naming rule, and the fictional-companies notice. (Sections 6, 7, 16.)
+- 2026-11-03, [Decide when automatic ads appear](https://github.com/chrisgocode/pocket-mogul/issues/13): natural-break interstitials, banners off Home, warm-resume app open ads, suppression rules. (Sections 1, 3, 10, 14, 15, 17, 18, 19.)
+- 2026-11-03, [Decide the iOS and Android build-and-test path](https://github.com/chrisgocode/pocket-mogul/issues/7): agent-driven simulator journeys on the owner's MacBook plus manual iPhone checks. (Sections 2, 18, 19.)
+- 2026-11-03, [Expand the business catalog into the hundreds of millions](https://github.com/chrisgocode/pocket-mogul/issues/16): twelve businesses, three per tier; Hotel Group moves to Tier 3. (Sections 1, 5.)
+- 2026-11-03, [Expand the stock list with blue chips and penny stocks](https://github.com/chrisgocode/pocket-mogul/issues/17): twenty-four stocks with a volatility class; two high-end properties. (Sections 1, 6, 8, 11.)
+- 2026-11-03, [Set progression targets and rebalance the economy](https://github.com/chrisgocode/pocket-mogul/issues/15): wallet upgrades start at $100 and grow by 1.45 per level; pacing targets updated. (Sections 4, 12, 17, 18.)
+- Pending: [Approve the stack, ad-consent and store-disclosure spec changes](https://github.com/chrisgocode/pocket-mogul/issues/11) will update Sections 2, 14, 15, and 21.
