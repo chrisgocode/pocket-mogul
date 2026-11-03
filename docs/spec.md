@@ -36,8 +36,8 @@ Defer accounts, cloud synchronization, a backend, shared markets, multiplayer, l
 | Area | Decision | Responsibility |
 |---|---|---|
 | Application | React Native with Expo and TypeScript strict mode | Native iOS and Android screens and platform integration |
-| Navigation | Expo Router | Five main tabs and nested detail screens |
-| Native development | Expo development builds with expo-dev-client | Exercise native ads and other native modules [1] |
+| Navigation | Expo Router with JavaScript `Tabs` | Five main tabs, each with a Stack for detail screens; Goals and Settings open from the header |
+| Native development | Expo development builds with expo-dev-client from the first build; no Expo Go | Exercise native ads and other native modules; rebuild after adding native modules, changing config-plugin options, or upgrading the SDK [1] |
 | Economy | Pure TypeScript modules | Money, progression, quotes, settlement, seeded markets |
 | Persistence | expo-sqlite with explicit migrations | Canonical save, command receipts, history, recovery [2] |
 | UI state | React local state and useSyncExternalStore | Read-only subscription to committed game snapshots |
@@ -45,16 +45,16 @@ Defer accounts, cloud synchronization, a backend, shared markets, multiplayer, l
 | Money | Native BigInt cents and separate price units | Exact balances, fractional quotes, and integer rounding |
 | Charts and logos | react-native-svg | Small line charts, icons, original fictional identities [3] |
 | Animation and feedback | React Native Animated and expo-haptics | Tap feedback, transitions, optional haptics [4] |
-| Ads | react-native-google-mobile-ads behind an adapter | AdMob rewarded, interstitial, banner, and app open placements, test ads, reward lifecycle [5] |
-| Unit and UI tests | Jest with jest-expo and React Native Testing Library | Economy invariants, commands, critical interactions [6] |
+| Ads | react-native-google-mobile-ads ^17.4 via its Expo config plugin, behind an adapter | AdMob rewarded, interstitial, banner, and app open placements, test ads, reward lifecycle [5] |
+| Unit and UI tests | Jest 30 with jest-expo and React Native Testing Library (not react-test-renderer) | Economy invariants, commands, critical interactions [6] |
 | Native smoke tests | Agent-driven journeys on the iOS Simulator and Android Emulator on the owner's MacBook (T3 Code device tools; Maestro optional), plus manual checks on the owner's iPhone | Cross-screen journeys on actual native builds |
 | Build and checks | Expo CLI, TypeScript, ESLint, one lockfile | Repeatable development and release builds |
 
-At setup, select the current stable Expo SDK and its supported React Native and React versions. Install Expo-compatible native dependencies through Expo tooling, verify the ad package compatibility matrix, and commit exact resolved versions in the lockfile. Record the resulting matrix in the project README. Do not independently upgrade React Native beyond the selected Expo SDK. Expo Router provides the navigation foundation [7].
+At setup, use Expo SDK 58 (React Native 0.88, React 19.3, Node 22.13 or later; checked on November 3, 2026). react-native-google-mobile-ads ^17.4 requires React Native 0.86 or later, the New Architecture, iOS 15.1 or later, and Android minSdk 24, which SDK 58 meets. Moving to a newer SDK is a separate, deliberate upgrade. Install Expo-compatible native dependencies through Expo tooling, verify the ad package compatibility matrix, and commit exact resolved versions in the lockfile. Record the resulting matrix in the project README. Do not independently upgrade React Native beyond the selected Expo SDK. Expo Router provides the navigation foundation [7].
 
-Use the existing repository package manager if one exists; otherwise use npm. A JavaScript package manager is tooling, not the mobile runtime. Use the Expo-supported runtime configuration. Verify BigInt behavior on both native targets during the first build.
+Use the existing repository package manager if one exists; otherwise use npm. A JavaScript package manager is tooling, not the mobile runtime. Use the Expo-supported runtime configuration. Verify BigInt behavior on both native targets during the first build. Hermes supports BigInt; verify the chosen formatting path (a custom formatter over `toString()` is safest) on both platforms. `JSON.stringify` throws on BigInt, so save code converts amounts to base-ten strings explicitly.
 
-Expo Go may support early UI work, but acceptance testing uses development or release builds. Provide a mock ad adapter for tests and native test-unit integration for device validation. Keep gameplay functional when production ad credentials are absent.
+Do not use Expo Go: it cannot load the native ads library. All work, including early UI work, uses development builds; acceptance testing uses development or release builds. Provide a mock ad adapter for tests and native test-unit integration for device validation. Keep gameplay functional when production ad credentials are absent.
 
 ## 3 App structure and navigation
 
@@ -396,7 +396,7 @@ Process every command through one serialized queue:
 
 7. Publish the committed snapshot to UI subscribers, then run non-financial effects such as animation or telemetry.
 
-The actual implementation must preserve this single-transaction guarantee across reads and writes. With expo-sqlite, use the transaction-scoped handle from withExclusiveTransactionAsync and parameterized queries. Its documented transaction scope avoids unrelated async queries joining a transaction [2].
+The actual implementation must preserve this single-transaction guarantee across reads and writes. With expo-sqlite, use the transaction-scoped handle from withExclusiveTransactionAsync and parameterized queries. Every query inside the transaction uses that handle. While it holds the write lock, any other async write fails with "database is locked", so all writes, including backups, migrations, and history, go through the serialized command queue. Bind values cannot be BigInt: store money and quantities as base-ten strings in TEXT columns. Open the database with `PRAGMA journal_mode = WAL`. Its documented transaction scope avoids unrelated async queries joining a transaction [2].
 
 Batch taps for at most 250 milliseconds to limit write load. Flush a batch before a wallet upgrade, trade, other financial action, lifecycle checkpoint, boost boundary, or any full-screen ad. Keep batches homogeneous by payout and boost state. UI may animate pending taps, but any provisional number must roll back on a failed commit and pending cash must not fund a purchase before it commits.
 
@@ -406,9 +406,9 @@ Keep save schema version and economy configuration version separate. On an econo
 
 ## 15 Ad integration and failure behavior
 
-Ads are the only monetization in version one. There are four placements: one opt-in rewarded placement (the Tap Boost button on Home, showing the exact reward and duration) and three automatic placements described below. Use test unit IDs during development [5]. Initialize the real SDK through its documented consent and privacy sequence; keep this concern inside the platform adapter. Production IDs and store declarations are owner-provided release configuration.
+Ads are the only monetization in version one. There are four placements: one opt-in rewarded placement (the Tap Boost button on Home, showing the exact reward and duration) and three automatic placements described below. Use the platform-aware `TestIds` (rewarded, interstitial, banner, and app open) during development, and register hashed test device IDs before initialization on physical devices [5]. Initialize the real SDK on every launch in this order: (1) gather consent with Google's User Messaging Platform (`AdsConsent.gatherConsent()`); (2) on iOS, show the App Tracking Transparency prompt through the UMP explainer configured in AdMob, with no separate tracking library; (3) set the request configuration, including test device IDs; (4) call `mobileAds().initialize()` only when `canRequestAds` is true; (5) load ads. If consent gathering fails, still try with the previous session's consent. Do not store the consent status yourself. Keep this concern inside the platform adapter. Production IDs and store declarations are owner-provided release configuration (see the release checklist in Section 19).
 
-The ad adapter exposes availability, load, show, earned-reward, closed, and failed events. The application creates a unique presentation ID before showing an ad. Persist a reward grant only when the SDK emits its earned-reward event. Closing an ad alone grants nothing. Duplicate or reordered callbacks for the same presentation must resolve to a single reward.
+The ad adapter exposes availability, load, show, earned-reward, closed, and failed events, mapped from the SDK's loaded, earned-reward, closed, and error events. `show()` rejects when an ad is not loaded or is already showing; treat that as failed. Reload after each close. The application creates a unique presentation ID before showing an ad. Persist a reward grant only when the SDK emits its earned-reward event. Closing an ad alone grants nothing. Duplicate or reordered callbacks for the same presentation must resolve to a single reward.
 
 Persist an earned grant as pending activation until the game is interactive again. Then activate one 60-second boost atomically. If the process dies after the reward is saved but before activation, activate the pending grant on the next launch. Do not replay the ad. If the SDK never reports a reward before a process kill, the local app cannot prove completion; log the case without fabricating a grant.
 
@@ -505,7 +505,14 @@ Measure a maximum capped resume with all assets and chart histories on a represe
 
 Each phase leaves a runnable app and updates the README. The final handoff includes source, setup instructions, exact dependency versions, seed content, migration policy, tests, a balance report with reproducible seeds, and a list of owner-supplied release configuration. Provide evidence for each completion gate and identify any platform checks the available environment could not execute.
 
-Before public distribution, the owner supplies the final app identity, signing and store accounts, production ad IDs, and store-facing assets and disclosures. These do not block local gameplay or test-ad implementation. Do not label a mock integration as production complete.
+Before public distribution, the owner supplies the final app identity, signing and store accounts, production ad IDs, and store-facing assets and disclosures. Owner release checklist:
+
+- AdMob app IDs and production ad unit IDs for all four placements.
+- The iOS tracking usage description (`userTrackingUsageDescription`) and the SKAdNetwork identifiers in the config plugin.
+- Google Play Console: "App contains ads: Yes" and the Data safety form.
+- A public privacy policy URL for both stores.
+- A way for players to report an inappropriate ad (Apple guideline 2.5.18).
+- Google Play: a closed test with 12 testers for 14 days for a new personal account, and a physical Android device for the performance check. These do not block local gameplay or test-ad implementation. Do not label a mock integration as production complete.
 
 ## 20 Instructions for the implementing agent
 
@@ -519,7 +526,7 @@ Complete the first version before implementing deferred features. Report what ru
 
 ## 21 Technical references
 
-These primary documentation links support integration choices. Game formulas, seed values, and product rules above are proposed designs, not recovered competitor implementations. Documentation was checked on November 2, 2026; the implementing agent must verify compatibility again when pinning dependencies.
+These primary documentation links support integration choices. Game formulas, seed values, and product rules above are proposed designs, not recovered competitor implementations. Documentation was checked on November 3, 2026; the implementing agent must verify compatibility again when pinning dependencies.
 
 1. Expo development builds explains development builds and native integration.
 
@@ -529,7 +536,7 @@ These primary documentation links support integration choices. Game formulas, se
 
 4. Expo Haptics documents platform feedback APIs.
 
-5. React Native Google Mobile Ads and its ad format documentation document the native adapter, test ads, and consent initialization sequence.
+5. React Native Google Mobile Ads (https://docs.page/invertase/react-native-google-mobile-ads) and its ad format documentation document the native adapter, test ads, and consent initialization sequence.
 
 6. Expo testing with Jest documents jest-expo and React Native test setup.
 
@@ -546,4 +553,4 @@ Owner decisions that changed this specification. Each entry links the planning t
 - 2026-11-03, [Expand the business catalog into the hundreds of millions](https://github.com/chrisgocode/pocket-mogul/issues/16): twelve businesses, three per tier; Hotel Group moves to Tier 3. (Sections 1, 5.)
 - 2026-11-03, [Expand the stock list with blue chips and penny stocks](https://github.com/chrisgocode/pocket-mogul/issues/17): twenty-four stocks with a volatility class; two high-end properties. (Sections 1, 6, 8, 11.)
 - 2026-11-03, [Set progression targets and rebalance the economy](https://github.com/chrisgocode/pocket-mogul/issues/15): wallet upgrades start at $100 and grow by 1.45 per level; pacing targets updated. (Sections 4, 12, 17, 18.)
-- Pending: [Approve the stack, ad-consent and store-disclosure spec changes](https://github.com/chrisgocode/pocket-mogul/issues/11) will update Sections 2, 14, 15, and 21.
+- 2026-11-03, [Approve the stack, ad-consent and store-disclosure spec changes](https://github.com/chrisgocode/pocket-mogul/issues/11): Expo SDK 58, JavaScript tabs, no Expo Go, ad startup order with ATT through UMP, SQLite and BigInt rules, Jest 30, and the owner release checklist. (Sections 2, 14, 15, 19, 21.)
