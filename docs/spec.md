@@ -31,6 +31,8 @@ Include the complete tap, business, stock, crypto, property, offline, save, tuto
 
 Defer accounts, cloud synchronization, a backend, shared markets, multiplayer, leaderboards, loans, short selling, leverage, limit orders, company IPOs, prestige resets, subscriptions, paid currency, push notifications, daily streaks, and detailed tenant negotiations. Managers are a one-time business upgrade, not a staffing simulation. Additional business locations are represented by upgrades rather than unlimited duplicate purchases.
 
+Saves are local and on-device in version one. Cloud saves through the platform game services (Apple Game Center saved games on iOS and Google Play Games Services Saved Games on Android) are a planned later feature. Section 14 lists the save-model choices that keep that path open.
+
 ## 2 Technology stack
 
 | Area | Decision | Responsibility |
@@ -402,6 +404,8 @@ Batch taps for at most 250 milliseconds to limit write load. Flush a batch befor
 
 Store backup checkpoints after verified successful saves at a bounded cadence, including before migrations. Backups in the same database help with logical snapshot damage, not complete database or device loss. A corrupt latest snapshot may restore the latest valid backup with a visible recovery notice. A future schema version must fail safely without overwriting the save. Never silently reset a damaged save. Local play does not promise reinstall or cross-device recovery.
 
+Future cloud saves: version one ships no cloud code, but keeps the save portable so platform cloud saves (Game Center saved games, Google Play Games Saved Games) can be added later without a save-format rewrite. The validated GameState snapshot, with its saveId, schemaVersion, economyVersion and revision, is the unit a cloud save would upload, as one serialized blob. Keep it free of device-specific data such as absolute file paths or ad SDK state. Keep the save behind a repository interface so a cloud-sync adapter can sit beside SQLite. That later feature must decide conflict resolution between devices, how offline time is credited across devices, and how processed ad reward IDs merge, so a reward is never granted twice.
+
 Keep save schema version and economy configuration version separate. On an economy update, settle the outstanding interval with the save's old configuration before switching to the new one. Bundle the old configurations required by supported saves or provide an explicit tested migration. Apply new rates prospectively and preserve recorded purchase spending, cost basis, ownership, and grants. A migration must never retroactively pay an upgraded rate for the entire absence.
 
 ## 15 Ad integration and failure behavior
@@ -554,4 +558,5 @@ Owner decisions that changed this specification. Each entry links the planning t
 - 2026-11-03, [Expand the stock list with blue chips and penny stocks](https://github.com/chrisgocode/pocket-mogul/issues/17): twenty-four stocks with a volatility class; two high-end properties. (Sections 1, 6, 8, 11.)
 - 2026-11-03, [Set progression targets and rebalance the economy](https://github.com/chrisgocode/pocket-mogul/issues/15): wallet upgrades start at $100 and grow by 1.45 per level; pacing targets updated. (Sections 4, 12, 17, 18.)
 - 2026-11-03, [Approve the stack, ad-consent and store-disclosure spec changes](https://github.com/chrisgocode/pocket-mogul/issues/11): Expo SDK 58, JavaScript tabs, no Expo Go, ad startup order with ATT through UMP, SQLite and BigInt rules, Jest 30, and the owner release checklist. (Sections 2, 14, 15, 19, 21.)
+- 2026-11-03, owner note (no ticket): version one keeps local on-device saves only. Cloud saves through Game Center and Google Play Games are planned after the MVP, and the save model stays portable for them. (Sections 1, 14.)
 - 2026-11-03, [Review docs/spec.md for consistency before handoff](https://github.com/chrisgocode/pocket-mogul/issues/18): consistency checks pass; wealth goals extended to $100M and $1B. The goal list will be revisited after the MVP. (Sections 1, 9, 20.)
