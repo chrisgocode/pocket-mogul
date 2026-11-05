@@ -119,6 +119,17 @@ describe('passive income', () => {
     expect<bigint>(game.getSnapshot().state.cashCents).toBe(dollars('0'));
   });
 
+  it('credits whole milliseconds from a fractional device clock and keeps the rest', async () => {
+    const { game, clock } = await startWith('250');
+    await buy(game, 'vending');
+    clock.advance(1_000.75);
+    expect(await game.checkpoint()).toMatchObject({ ok: true });
+    expect(game.getSnapshot().state.clock.simulationMs).toBe(1_000);
+    clock.advance(0.5);
+    await game.checkpoint();
+    expect(game.getSnapshot().state.clock.simulationMs).toBe(1_001);
+  });
+
   it('credits nothing while paused', async () => {
     const { game, clock } = await startWith('250');
     await buy(game, 'vending');

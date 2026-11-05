@@ -18,7 +18,7 @@ function unsavedAt(tracking: Tracking, nowMs: number): number {
 export function foregroundTime(clock: Clock): ForegroundTime {
   let tracking: Tracking = { status: 'running', bankedMs: 0, sinceMs: clock.monotonicMs() };
   return {
-    unsavedMs: () => unsavedAt(tracking, clock.monotonicMs()),
+    unsavedMs: () => Math.floor(unsavedAt(tracking, clock.monotonicMs())),
     saved(elapsedMs) {
       const nowMs = clock.monotonicMs();
       const bankedMs = unsavedAt(tracking, nowMs) - elapsedMs;
