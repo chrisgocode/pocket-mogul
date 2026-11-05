@@ -1,5 +1,15 @@
 import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
+import type { Game } from '@/application/game';
+import { startTestGame } from '@/application/testGame';
+
+let mockGame: Promise<Game>;
+jest.mock('@/bootstrap/deviceGame', () => ({ loadDeviceGame: () => mockGame }));
+
+beforeEach(async () => {
+  mockGame = Promise.resolve((await startTestGame()).game);
+});
+
 const renderApp = (initialUrl = '/') => renderRouter('src/app', { initialUrl });
 
 describe('app shell', () => {
