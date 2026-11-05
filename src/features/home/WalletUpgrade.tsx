@@ -1,5 +1,5 @@
 import type { TapCardView } from '@/application/tapCardView';
-import { selectWalletUpgrade, type WalletUpgradeView } from '@/application/walletUpgradeView';
+import { selectWalletUpgrade, type AvailableWalletUpgrade } from '@/application/walletUpgradeView';
 import { getContent } from '@/content';
 import { formatMoneyExact, moneyCents } from '@/domain/money';
 import type { ConfirmationLine } from '@/ui/ConfirmationDetails';
@@ -8,9 +8,7 @@ import { ConfirmationSheet } from '@/ui/ConfirmationSheet';
 import { useWalletUpgrade } from './useWalletUpgrade';
 import { WalletUpgradeControl } from './WalletUpgradeControl';
 
-function confirmationLines(
-  upgrade: Extract<WalletUpgradeView, { status: 'available' }>,
-): ConfirmationLine[] {
+function confirmationLines(upgrade: AvailableWalletUpgrade): ConfirmationLine[] {
   return [
     { label: 'Cash change', value: formatMoneyExact(moneyCents(0n - upgrade.priceCents)) },
     {
@@ -24,19 +22,22 @@ function confirmationLines(
 export function WalletUpgrade({ tapCard }: { tapCard: TapCardView }) {
   const upgrade = selectWalletUpgrade(tapCard, getContent());
   const { confirmation, review, close, confirm } = useWalletUpgrade();
+  const reviewed = confirmation.status === 'closed' ? undefined : confirmation.subject;
   return (
     <>
-      <WalletUpgradeControl upgrade={upgrade} onPress={review} />
-      {upgrade.status === 'available' ? (
-        <ConfirmationSheet
-          confirmation={confirmation}
-          title="Upgrade wallet"
-          lines={confirmationLines(upgrade)}
-          confirmLabel={`Confirm upgrade · ${formatMoneyExact(upgrade.priceCents)}`}
-          onConfirm={() => void confirm(upgrade.level)}
-          onCancel={close}
-        />
-      ) : null}
+      <WalletUpgradeControl upgrade={upgrade} onReview={review} />
+      <ConfirmationSheet
+        confirmation={confirmation}
+        title="Upgrade wallet"
+        lines={reviewed === undefined ? [] : confirmationLines(reviewed)}
+        confirmLabel={
+          reviewed === undefined
+            ? 'Confirm upgrade'
+            : `Confirm upgrade · ${formatMoneyExact(reviewed.priceCents)}`
+        }
+        onConfirm={() => void confirm()}
+        onCancel={close}
+      />
     </>
   );
 }

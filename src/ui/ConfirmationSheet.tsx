@@ -5,7 +5,7 @@ import { ConfirmationDetails, type ConfirmationLine } from './ConfirmationDetail
 import type { Confirmation } from './state/useConfirmation';
 import { colors, radius, spacing } from './tokens';
 
-function confirmLabelFor(confirmation: Confirmation, label: string): string {
+function confirmLabelFor(confirmation: Confirmation<unknown>, label: string): string {
   if (confirmation.status === 'pending') return 'Saving…';
   return confirmation.status === 'failed' ? 'Try again' : label;
 }
@@ -18,7 +18,7 @@ export function ConfirmationSheet({
   onConfirm,
   onCancel,
 }: {
-  confirmation: Confirmation;
+  confirmation: Confirmation<unknown>;
   title: string;
   lines: readonly ConfirmationLine[];
   confirmLabel: string;

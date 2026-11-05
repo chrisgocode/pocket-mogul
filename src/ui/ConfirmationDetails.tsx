@@ -13,7 +13,7 @@ export function ConfirmationDetails({
 }: {
   title: string;
   lines: readonly ConfirmationLine[];
-  confirmation: Confirmation;
+  confirmation: Confirmation<unknown>;
 }) {
   return (
     <>

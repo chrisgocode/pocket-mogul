@@ -1,17 +1,19 @@
+import type { AvailableWalletUpgrade } from '@/application/walletUpgradeView';
 import { useGame } from '@/features/game/GameContext';
 import { gameErrorMessage } from '@/features/game/gameErrorMessage';
 import { useConfirmation } from '@/ui/state/useConfirmation';
 
 export function useWalletUpgrade() {
   const game = useGame();
-  const { confirmation, open, close, submit } = useConfirmation();
-  const confirm = (fromLevel: number) =>
-    submit(async (attemptId) => {
+  const { confirmation, open, close, submit } = useConfirmation<AvailableWalletUpgrade>();
+  const confirm = () =>
+    submit(async ({ attemptId, subject }) => {
       const outcome = await game.dispatch({
         id: attemptId,
-        command: { type: 'UpgradeWallet', fromLevel },
+        command: { type: 'UpgradeWallet', fromLevel: subject.level },
       });
       return outcome.ok ? undefined : gameErrorMessage(outcome.error);
     });
-  return { confirmation, review: () => open(game.createCommandId()), close, confirm };
+  const review = (upgrade: AvailableWalletUpgrade) => open(game.createCommandId(), upgrade);
+  return { confirmation, review, close, confirm };
 }

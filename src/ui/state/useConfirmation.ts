@@ -1,36 +1,44 @@
 import { useCallback, useRef, useState } from 'react';
 
-export type Confirmation =
+export type Confirmation<Subject> =
   | { readonly status: 'closed' }
-  | { readonly status: 'reviewing'; readonly attemptId: string }
-  | { readonly status: 'pending'; readonly attemptId: string }
-  | { readonly status: 'failed'; readonly attemptId: string; readonly message: string };
+  | { readonly status: 'reviewing'; readonly attemptId: string; readonly subject: Subject }
+  | { readonly status: 'pending'; readonly attemptId: string; readonly subject: Subject }
+  | {
+      readonly status: 'failed';
+      readonly attemptId: string;
+      readonly subject: Subject;
+      readonly message: string;
+    };
 
-export type ConfirmationAttempt = (attemptId: string) => Promise<string | undefined>;
+export type ConfirmationAttempt<Subject> = (attempt: {
+  attemptId: string;
+  subject: Subject;
+}) => Promise<string | undefined>;
 
-const CLOSED: Confirmation = { status: 'closed' };
-
-export function useConfirmation() {
-  const [confirmation, setConfirmation] = useState<Confirmation>(CLOSED);
+export function useConfirmation<Subject>() {
+  const [confirmation, setConfirmation] = useState<Confirmation<Subject>>({ status: 'closed' });
   const pending = useRef(false);
 
-  const open = useCallback((attemptId: string) => {
-    setConfirmation({ status: 'reviewing', attemptId });
+  const open = useCallback((attemptId: string, subject: Subject) => {
+    setConfirmation({ status: 'reviewing', attemptId, subject });
   }, []);
 
   const close = useCallback(() => {
-    if (!pending.current) setConfirmation(CLOSED);
+    if (!pending.current) setConfirmation({ status: 'closed' });
   }, []);
 
-  async function submit(attempt: ConfirmationAttempt): Promise<void> {
+  async function submit(attempt: ConfirmationAttempt<Subject>): Promise<void> {
     if (pending.current || confirmation.status === 'closed') return;
-    const { attemptId } = confirmation;
+    const { attemptId, subject } = confirmation;
     pending.current = true;
-    setConfirmation({ status: 'pending', attemptId });
+    setConfirmation({ status: 'pending', attemptId, subject });
     try {
-      const failure = await attempt(attemptId);
+      const failure = await attempt({ attemptId, subject });
       setConfirmation(
-        failure === undefined ? CLOSED : { status: 'failed', attemptId, message: failure },
+        failure === undefined
+          ? { status: 'closed' }
+          : { status: 'failed', attemptId, subject, message: failure },
       );
     } finally {
       pending.current = false;
