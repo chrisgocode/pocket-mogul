@@ -1,0 +1,550 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "react", "import", "jsx-a11y", "promise"],
+  "jsPlugins": [
+    "eslint-plugin-react-native",
+    "eslint-plugin-react-native-a11y",
+    "eslint-plugin-sonarjs",
+    "eslint-plugin-react-you-might-not-need-an-effect",
+    {
+      "name": "pocket-mogul",
+      "specifier": "./lint-rules/pocket-mogul.mts"
+    }
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "warn"
+  },
+  "options": {
+    "typeAware": true
+  },
+  "env": {
+    "builtin": true,
+    "es2024": true
+  },
+  "globals": {
+    "__DEV__": "readonly"
+  },
+  "ignorePatterns": ["ios/**", "android/**", ".expo/**", "dist/**", "expo-env.d.ts"],
+  "rules": {
+    "eqeqeq": ["error", "always"],
+    "no-console": "error",
+    "no-nested-ternary": "error",
+    "no-param-reassign": "error",
+    "prefer-const": "error",
+    "no-var": "error",
+    "import/no-cycle": "error",
+    "import/no-duplicates": "error",
+    "import/no-self-import": "error",
+    "import/first": "error",
+    "react/react-in-jsx-scope": "off",
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "error",
+    "react/jsx-key": "error",
+    "react/self-closing-comp": "error",
+    "react/jsx-no-useless-fragment": "error",
+    "react/no-array-index-key": "error",
+    "react/jsx-boolean-value": ["error", "never"],
+    "react/style-prop-object": [
+      "error",
+      {
+        "allow": ["StatusBar"]
+      }
+    ],
+    "react/no-unstable-nested-components": [
+      "error",
+      {
+        "allowAsProps": true
+      }
+    ],
+    "typescript/consistent-type-imports": [
+      "error",
+      {
+        "prefer": "type-imports",
+        "fixStyle": "inline-type-imports"
+      }
+    ],
+    "typescript/no-explicit-any": "error",
+    "typescript/ban-ts-comment": "error",
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error",
+    "typescript/await-thenable": "error",
+    "typescript/require-await": "error",
+    "typescript/no-unsafe-assignment": "error",
+    "typescript/no-unsafe-argument": "error",
+    "typescript/no-unsafe-call": "error",
+    "typescript/no-unsafe-member-access": "error",
+    "typescript/no-unsafe-return": "error",
+    "typescript/no-unnecessary-type-assertion": "error",
+    "typescript/restrict-template-expressions": "error",
+    "typescript/restrict-plus-operands": "error",
+    "typescript/switch-exhaustiveness-check": "error",
+    "typescript/strict-boolean-expressions": "error",
+    "typescript/only-throw-error": "error",
+    "typescript/no-deprecated": "error",
+    "react-native/no-raw-text": [
+      "error",
+      {
+        "skip": ["AppText"]
+      }
+    ],
+    "react-native/no-unused-styles": "error",
+    "react-native/no-inline-styles": "error",
+    "react-native/no-color-literals": "error",
+    "react-native/no-single-element-style-arrays": "error",
+    "react-native-a11y/has-valid-accessibility-actions": "error",
+    "react-native-a11y/has-valid-accessibility-role": "error",
+    "react-native-a11y/has-valid-accessibility-state": "error",
+    "react-native-a11y/has-valid-accessibility-value": "error",
+    "react-native-a11y/has-valid-accessibility-descriptors": "error",
+    "react-native-a11y/has-valid-accessibility-ignores-invert-colors": "off",
+    "react-native-a11y/has-valid-important-for-accessibility": "error",
+    "react-native-a11y/has-valid-accessibility-live-region": "error",
+    "react-native-a11y/no-nested-touchables": "error",
+    "pocket-mogul/no-comments": "error",
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "react",
+            "importNames": ["useEffect", "useLayoutEffect", "useInsertionEffect"],
+            "message": "Effects are banned outside src/ui/effects. Derive the value during render, act in the event handler, read the game through useSyncExternalStore, or add a named hook in src/ui/effects."
+          },
+          {
+            "name": "react",
+            "importNames": ["useState", "useReducer"],
+            "message": "Component state is banned outside src/ui/state. Game values come from the engine snapshot; UI-only state goes in a named hook in src/ui/state (for example useSegment)."
+          },
+          {
+            "name": "react",
+            "importNames": ["default"],
+            "message": "Import React APIs by name so the hook rules can see them."
+          }
+        ]
+      }
+    ],
+    "import/no-namespace": "error",
+    "import/no-relative-parent-imports": "error",
+    "max-lines-per-function": [
+      "error",
+      {
+        "max": 40,
+        "skipBlankLines": true,
+        "skipComments": true,
+        "IIFEs": true
+      }
+    ],
+    "max-lines": [
+      "error",
+      {
+        "max": 300,
+        "skipBlankLines": true,
+        "skipComments": true
+      }
+    ],
+    "complexity": ["error", 8],
+    "max-depth": ["error", 3],
+    "max-params": ["error", 3],
+    "max-nested-callbacks": ["error", 3],
+    "react/jsx-max-depth": [
+      "error",
+      {
+        "max": 5
+      }
+    ],
+    "react/no-multi-comp": "error",
+    "sonarjs/cognitive-complexity": ["error", 10],
+    "no-magic-numbers": [
+      "error",
+      {
+        "ignore": [0, 1, -1],
+        "ignoreArrayIndexes": true,
+        "ignoreDefaultValues": true,
+        "enforceConst": true,
+        "detectObjects": false
+      }
+    ],
+    "react/exhaustive-effect-dependencies": "error",
+    "react/memo-dependencies": "error",
+    "react/capitalized-calls": "error",
+    "react-you-might-not-need-an-effect/no-derived-state": "error",
+    "react-you-might-not-need-an-effect/no-chain-state-updates": "error",
+    "react-you-might-not-need-an-effect/no-event-handler": "error",
+    "react-you-might-not-need-an-effect/no-adjust-state-on-prop-change": "error",
+    "react-you-might-not-need-an-effect/no-reset-all-state-on-prop-change": "error",
+    "react-you-might-not-need-an-effect/no-pass-live-state-to-parent": "error",
+    "react-you-might-not-need-an-effect/no-pass-data-to-parent": "error",
+    "react-you-might-not-need-an-effect/no-external-store-subscription": "error",
+    "react-you-might-not-need-an-effect/no-initialize-state": "error"
+  },
+  "overrides": [
+    {
+      "files": ["**/src/domain/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "react",
+                "importNames": ["useEffect", "useLayoutEffect", "useInsertionEffect"],
+                "message": "Effects are banned outside src/ui/effects. Derive the value during render, act in the event handler, read the game through useSyncExternalStore, or add a named hook in src/ui/effects."
+              },
+              {
+                "name": "react",
+                "importNames": ["useState", "useReducer"],
+                "message": "Component state is banned outside src/ui/state. Game values come from the engine snapshot; UI-only state goes in a named hook in src/ui/state (for example useSegment)."
+              },
+              {
+                "name": "react",
+                "importNames": ["default"],
+                "message": "Import React APIs by name so the hook rules can see them."
+              }
+            ],
+            "patterns": [
+              {
+                "group": [
+                  "react",
+                  "react/**",
+                  "react-native",
+                  "react-native-*",
+                  "expo",
+                  "expo-*",
+                  "@expo/**",
+                  "@/content",
+                  "@/content/**",
+                  "@/ui/**",
+                  "@/features/**",
+                  "@/app/**",
+                  "@/application/**",
+                  "@/infrastructure/**"
+                ],
+                "message": "src/domain is pure TypeScript: no React, Expo, content or outer layers."
+              }
+            ]
+          }
+        ],
+        "pocket-mogul/no-nondeterminism": "error"
+      }
+    },
+    {
+      "files": ["**/src/content/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "react",
+                "importNames": ["useEffect", "useLayoutEffect", "useInsertionEffect"],
+                "message": "Effects are banned outside src/ui/effects. Derive the value during render, act in the event handler, read the game through useSyncExternalStore, or add a named hook in src/ui/effects."
+              },
+              {
+                "name": "react",
+                "importNames": ["useState", "useReducer"],
+                "message": "Component state is banned outside src/ui/state. Game values come from the engine snapshot; UI-only state goes in a named hook in src/ui/state (for example useSegment)."
+              },
+              {
+                "name": "react",
+                "importNames": ["default"],
+                "message": "Import React APIs by name so the hook rules can see them."
+              }
+            ],
+            "patterns": [
+              {
+                "group": [
+                  "react",
+                  "react/**",
+                  "react-native",
+                  "react-native-*",
+                  "expo",
+                  "expo-*",
+                  "@expo/**",
+                  "@/ui/**",
+                  "@/features/**",
+                  "@/app/**",
+                  "@/application/**",
+                  "@/infrastructure/**"
+                ],
+                "message": "src/content is data plus validation: it may import only src/domain."
+              }
+            ]
+          }
+        ],
+        "pocket-mogul/no-nondeterminism": "error",
+        "no-magic-numbers": "off"
+      }
+    },
+    {
+      "files": ["**/src/content/economy-*.ts"],
+      "rules": {
+        "max-lines": "off"
+      }
+    },
+    {
+      "files": ["**/src/application/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "react",
+                "importNames": ["useEffect", "useLayoutEffect", "useInsertionEffect"],
+                "message": "Effects are banned outside src/ui/effects. Derive the value during render, act in the event handler, read the game through useSyncExternalStore, or add a named hook in src/ui/effects."
+              },
+              {
+                "name": "react",
+                "importNames": ["useState", "useReducer"],
+                "message": "Component state is banned outside src/ui/state. Game values come from the engine snapshot; UI-only state goes in a named hook in src/ui/state (for example useSegment)."
+              },
+              {
+                "name": "react",
+                "importNames": ["default"],
+                "message": "Import React APIs by name so the hook rules can see them."
+              }
+            ],
+            "patterns": [
+              {
+                "group": [
+                  "react",
+                  "react/**",
+                  "react-native",
+                  "react-native-*",
+                  "@/ui/**",
+                  "@/features/**",
+                  "@/app/**"
+                ],
+                "message": "src/application is the headless engine: no React or screens."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["**/src/ui/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "react",
+                "importNames": ["useEffect", "useLayoutEffect", "useInsertionEffect"],
+                "message": "Effects are banned outside src/ui/effects. Derive the value during render, act in the event handler, read the game through useSyncExternalStore, or add a named hook in src/ui/effects."
+              },
+              {
+                "name": "react",
+                "importNames": ["useState", "useReducer"],
+                "message": "Component state is banned outside src/ui/state. Game values come from the engine snapshot; UI-only state goes in a named hook in src/ui/state (for example useSegment)."
+              },
+              {
+                "name": "react",
+                "importNames": ["default"],
+                "message": "Import React APIs by name so the hook rules can see them."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["@/features/**", "@/app/**", "@/application/**", "@/infrastructure/**"],
+                "message": "src/ui is shared building blocks: it can't reach into features, routes, the engine or adapters."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["**/src/ui/state/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "react",
+                "importNames": ["useEffect", "useLayoutEffect", "useInsertionEffect"],
+                "message": "Effects are banned outside src/ui/effects. Derive the value during render, act in the event handler, read the game through useSyncExternalStore, or add a named hook in src/ui/effects."
+              },
+              {
+                "name": "react",
+                "importNames": ["default"],
+                "message": "Import React APIs by name so the hook rules can see them."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["@/features/**", "@/app/**", "@/application/**", "@/infrastructure/**"],
+                "message": "src/ui is shared building blocks: it can't reach into features, routes, the engine or adapters."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["**/src/ui/effects/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "react",
+                "importNames": ["useState", "useReducer"],
+                "message": "Component state is banned outside src/ui/state. Game values come from the engine snapshot; UI-only state goes in a named hook in src/ui/state (for example useSegment)."
+              },
+              {
+                "name": "react",
+                "importNames": ["default"],
+                "message": "Import React APIs by name so the hook rules can see them."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["@/features/**", "@/app/**", "@/application/**", "@/infrastructure/**"],
+                "message": "src/ui is shared building blocks: it can't reach into features, routes, the engine or adapters."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["**/src/features/**", "**/src/app/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "react",
+                "importNames": ["useEffect", "useLayoutEffect", "useInsertionEffect"],
+                "message": "Effects are banned outside src/ui/effects. Derive the value during render, act in the event handler, read the game through useSyncExternalStore, or add a named hook in src/ui/effects."
+              },
+              {
+                "name": "react",
+                "importNames": ["useState", "useReducer"],
+                "message": "Component state is banned outside src/ui/state. Game values come from the engine snapshot; UI-only state goes in a named hook in src/ui/state (for example useSegment)."
+              },
+              {
+                "name": "react",
+                "importNames": ["default"],
+                "message": "Import React APIs by name so the hook rules can see them."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["@/infrastructure/**"],
+                "message": "Screens send commands to the engine and never touch the save or ad adapters directly."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["**/src/app/**"],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    },
+    {
+      "files": ["**/src/ui/tokens.ts", "**/src/ui/LogoMark.tsx", "**/src/ui/Icons.tsx"],
+      "rules": {
+        "no-magic-numbers": "off"
+      }
+    },
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      "plugins": ["jest"],
+      "rules": {
+        "jest/no-focused-tests": "error",
+        "jest/no-disabled-tests": "error",
+        "jest/no-identical-title": "error",
+        "jest/valid-expect": "error",
+        "jest/expect-expect": "error",
+        "jest/no-conditional-expect": "error",
+        "jest/no-standalone-expect": "error",
+        "typescript/no-non-null-assertion": "off",
+        "typescript/no-unsafe-type-assertion": "off",
+        "max-lines-per-function": [
+          "error",
+          {
+            "max": 80,
+            "skipBlankLines": true,
+            "skipComments": true
+          }
+        ],
+        "max-nested-callbacks": ["error", 4],
+        "no-magic-numbers": "off",
+        "pocket-mogul/no-nondeterminism": "error",
+        "jest/no-conditional-in-test": "error",
+        "jest/no-done-callback": "error",
+        "jest/max-nested-describe": [
+          "error",
+          {
+            "max": 2
+          }
+        ],
+        "jest/no-test-return-statement": "error",
+        "jest/no-restricted-matchers": [
+          "error",
+          {
+            "toMatchSnapshot": "Snapshots don't test behaviour. Assert the text, value or state that matters.",
+            "toMatchInlineSnapshot": "Snapshots don't test behaviour. Assert the text, value or state that matters.",
+            "toThrowErrorMatchingSnapshot": "Assert the error type and message instead.",
+            "toThrowErrorMatchingInlineSnapshot": "Assert the error type and message instead."
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/domain/money.ts", "src/content/schema.ts"],
+      "rules": {
+        "typescript/no-unsafe-type-assertion": "off"
+      }
+    },
+    {
+      "files": ["**/*.test.tsx"],
+      "jsPlugins": ["eslint-plugin-testing-library"],
+      "rules": {
+        "testing-library/await-async-queries": "error",
+        "testing-library/await-async-utils": "error",
+        "testing-library/await-async-events": [
+          "error",
+          {
+            "eventModule": "fireEvent"
+          }
+        ],
+        "testing-library/no-debugging-utils": "error",
+        "testing-library/no-manual-cleanup": "error",
+        "testing-library/no-unnecessary-act": "error",
+        "testing-library/prefer-find-by": "error",
+        "testing-library/prefer-presence-queries": "error",
+        "testing-library/prefer-screen-queries": "error",
+        "react-native/no-raw-text": "off",
+        "react-native/no-inline-styles": "off",
+        "react-native/no-color-literals": "off"
+      }
+    },
+    {
+      "files": ["*.config.js"],
+      "env": {
+        "node": true,
+        "commonjs": true
+      },
+      "rules": {
+        "typescript/no-require-imports": "off",
+        "no-magic-numbers": "off"
+      }
+    }
+  ],
+  "settings": {
+    "testing-library/utils-module": "expo-router/testing-library",
+    "testing-library/custom-renders": ["renderRouter", "renderApp"]
+  }
+}

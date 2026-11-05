@@ -1,0 +1,7 @@
+{
+  "*.{json,jsonc,yml,yaml,css}": ["oxfmt --no-error-on-unmatched-pattern"],
+  "*.{js,jsx,ts,tsx,mjs,mts,cjs}": [
+    "oxfmt --no-error-on-unmatched-pattern",
+    "oxlint --fix --deny-warnings --ignore-pattern 'lint-rules/fixtures/**'"
+  ]
+}
