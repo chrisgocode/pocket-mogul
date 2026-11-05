@@ -46,7 +46,7 @@ export async function createGame(ports: GamePorts): Promise<Game> {
 
   const run = (envelope: CommandEnvelope, settledTaps = 0) =>
     queue.run(async () => {
-      const committed = await commitCommand(ports, { committed: snapshots.get().state, envelope });
+      const committed = await commitCommand(ports, { current: snapshots.get().state, envelope });
       snapshots.set({
         state: committed.state ?? snapshots.get().state,
         pendingTaps: snapshots.get().pendingTaps - settledTaps,

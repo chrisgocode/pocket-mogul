@@ -9,7 +9,9 @@ export type CommandEnvelope = {
   readonly command: GameCommand;
 };
 
-export type GameErrorCode = 'INVALID_QUANTITY' | 'SAVE_FAILED';
+export const GAME_ERROR_CODES = ['INVALID_QUANTITY', 'SAVE_FAILED'] as const;
+
+export type GameErrorCode = (typeof GAME_ERROR_CODES)[number];
 
 export type CommandOutcome =
   | { readonly ok: true; readonly revision: number; readonly earnedCents: MoneyCents }

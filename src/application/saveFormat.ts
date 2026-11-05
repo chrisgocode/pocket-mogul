@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import type { CommandOutcome } from '@/domain/commands';
+import { GAME_ERROR_CODES, type CommandOutcome } from '@/domain/commands';
 import { SAVE_SCHEMA_VERSION, type GameState } from '@/domain/gameState';
 import { parseMoneyCents } from '@/domain/money';
 
@@ -28,7 +28,7 @@ const savedGameSchema = z.object({
 
 const outcomeSchema = z.discriminatedUnion('ok', [
   z.object({ ok: z.literal(true), revision: count, earnedCents: moneyText }),
-  z.object({ ok: z.literal(false), error: z.enum(['INVALID_QUANTITY', 'SAVE_FAILED']) }),
+  z.object({ ok: z.literal(false), error: z.enum(GAME_ERROR_CODES) }),
 ]);
 
 function bigintsAsText(_key: string, value: unknown): unknown {

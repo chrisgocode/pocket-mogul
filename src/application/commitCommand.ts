@@ -41,13 +41,13 @@ async function record(
 
 export async function commitCommand(
   context: CommitContext,
-  change: { committed: GameState; envelope: CommandEnvelope },
+  change: { current: GameState; envelope: CommandEnvelope },
 ): Promise<Committed> {
   try {
     return await context.store.transact(async (tx) => {
       const recorded = await tx.findOutcome(change.envelope.id);
       if (recorded !== undefined) return { outcome: recorded };
-      const applied = apply(change.committed, change.envelope, context.content);
+      const applied = apply(change.current, change.envelope, context.content);
       await record(tx, { envelope: change.envelope, applied, wallMs: context.clock.wallMs() });
       return applied;
     });
