@@ -1,18 +1,31 @@
+import type { GameState } from './gameState';
 import type { MoneyCents } from './money';
 
 export type TapBatch = { readonly type: 'TapBatch'; readonly taps: number };
 
-export type GameCommand = TapBatch;
+export type UpgradeWallet = { readonly type: 'UpgradeWallet'; readonly fromLevel: number };
+
+export type GameCommand = TapBatch | UpgradeWallet;
 
 export type CommandEnvelope = {
   readonly id: string;
   readonly command: GameCommand;
 };
 
-export const GAME_ERROR_CODES = ['INVALID_QUANTITY', 'SAVE_FAILED'] as const;
+export const GAME_ERROR_CODES = [
+  'INSUFFICIENT_CASH',
+  'MAX_LEVEL',
+  'INVALID_QUANTITY',
+  'STALE_QUOTE',
+  'SAVE_FAILED',
+] as const;
 
 export type GameErrorCode = (typeof GAME_ERROR_CODES)[number];
 
+export type CommandResult =
+  | { readonly ok: true; readonly state: GameState; readonly cashChangeCents: MoneyCents }
+  | { readonly ok: false; readonly error: GameErrorCode };
+
 export type CommandOutcome =
-  | { readonly ok: true; readonly revision: number; readonly earnedCents: MoneyCents }
+  | { readonly ok: true; readonly revision: number; readonly cashChangeCents: MoneyCents }
   | { readonly ok: false; readonly error: GameErrorCode };

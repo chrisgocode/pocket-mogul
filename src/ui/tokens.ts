@@ -13,6 +13,15 @@ export const colors = {
   gain: '#12805C',
   loss: '#C2362F',
   locked: '#8A909C',
+  scrim: 'rgba(20, 23, 31, 0.45)',
+} as const;
+
+export const walletArt = {
+  starter: '#2563EB',
+  leather: '#8A4B1F',
+  silver: '#526072',
+  gold: '#9A6A00',
+  obsidian: '#14171F',
 } as const;
 
 export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;

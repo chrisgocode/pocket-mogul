@@ -1,6 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
 
 import { getContent } from '@/content';
+import type { GameState } from '@/domain/gameState';
 import { nodeSqliteDriver } from '@/infrastructure/nodeSqliteDriver';
 import type { SqlDriver } from '@/infrastructure/sqlDriver';
 import { openSqlSaveStore } from '@/infrastructure/sqlSaveStore';
@@ -50,16 +51,35 @@ function sequentialIds(): () => string {
 
 export type WriteFaults = { failWrites: boolean };
 
-function faultyDriver(driver: SqlDriver, faults: WriteFaults): SqlDriver {
+type SaveGate = { passed: () => Promise<void>; hold: () => () => void };
+
+function saveGate(): SaveGate {
+  let held: Promise<void> = Promise.resolve();
   return {
-    exclusive: (work) =>
-      driver.exclusive((sql) =>
+    passed: () => held,
+    hold() {
+      const { promise, resolve } = Promise.withResolvers<void>();
+      held = promise;
+      return () => {
+        held = Promise.resolve();
+        resolve();
+      };
+    },
+  };
+}
+
+function faultyDriver(driver: SqlDriver, faults: WriteFaults, gate: SaveGate): SqlDriver {
+  return {
+    exclusive: async (work) => {
+      await gate.passed();
+      return driver.exclusive((sql) =>
         work({
           first: sql.first,
           run: (statement, params) =>
             faults.failWrites ? Promise.reject(new Error('disk full')) : sql.run(statement, params),
         }),
-      ),
+      );
+    },
   };
 }
 
@@ -67,6 +87,7 @@ export type TestGame = {
   game: Game;
   clock: FakeClock;
   faults: WriteFaults;
+  holdSaves: () => () => void;
   restart: () => Promise<TestGame>;
 };
 
@@ -77,13 +98,14 @@ export async function startTestGame(
 ): Promise<TestGame> {
   const clock = fakeClock();
   const faults: WriteFaults = { failWrites: false };
+  const gate = saveGate();
   const game = await createGame({
     clock,
-    store: await openSqlSaveStore(faultyDriver(nodeSqliteDriver(save.database), faults)),
+    store: await openSqlSaveStore(faultyDriver(nodeSqliteDriver(save.database), faults, gate)),
     content: getContent(),
     createId: save.createId,
   });
-  return { game, clock, faults, restart: () => startTestGame(save) };
+  return { game, clock, faults, holdSaves: gate.hold, restart: () => startTestGame(save) };
 }
 
 export function nextPublish(game: Game): Promise<void> {
@@ -93,4 +115,11 @@ export function nextPublish(game: Game): Promise<void> {
       resolve();
     });
   });
+}
+
+export async function startTestGameFrom(saved: GameState): Promise<TestGame> {
+  const database = new DatabaseSync(':memory:');
+  const store = await openSqlSaveStore(nodeSqliteDriver(database));
+  await store.transact((tx) => tx.writeState(saved));
+  return startTestGame({ database, createId: sequentialIds() });
 }

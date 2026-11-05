@@ -1,0 +1,41 @@
+import { StyleSheet, View } from 'react-native';
+
+import type { Confirmation } from './state/useConfirmation';
+import { AppText } from './Typography';
+import { colors, spacing } from './tokens';
+
+export type ConfirmationLine = { readonly label: string; readonly value: string };
+
+export function ConfirmationDetails({
+  title,
+  lines,
+  confirmation,
+}: {
+  title: string;
+  lines: readonly ConfirmationLine[];
+  confirmation: Confirmation;
+}) {
+  return (
+    <>
+      <AppText variant="title" accessibilityRole="header">
+        {title}
+      </AppText>
+      {lines.map((line) => (
+        <View key={line.label} style={styles.line}>
+          <AppText muted>{line.label}</AppText>
+          <AppText variant="number">{line.value}</AppText>
+        </View>
+      ))}
+      {confirmation.status === 'failed' ? (
+        <AppText accessibilityRole="alert" style={styles.error}>
+          {confirmation.message}
+        </AppText>
+      ) : null}
+    </>
+  );
+}
+
+const styles = StyleSheet.create({
+  line: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
+  error: { color: colors.loss },
+});
