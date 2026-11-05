@@ -36,6 +36,9 @@ const EXPECTED: [fixture: string, rule: string][] = [
   ['src/features/tangled.ts', 'eslint(max-params)'],
   ['src/domain/snapshot.test.ts', 'jest(no-restricted-matchers)'],
   ['src/domain/snapshot.test.ts', 'jest(no-focused-tests)'],
+  ['src/application/closureFlags.ts', 'pocket-mogul(no-implicit-state-machine)'],
+  ['src/features/flagFields.ts', 'pocket-mogul(no-implicit-state-machine)'],
+  ['src/ui/state/useTwoFlags.ts', 'pocket-mogul(no-implicit-state-machine)'],
 ];
 
 describe('quality gates', () => {
@@ -45,5 +48,9 @@ describe('quality gates', () => {
 
   it('allows component state inside src/ui/state', () => {
     expect(rulesByFile.has('src/ui/state/useAllowedToggle.ts')).toBe(false);
+  });
+
+  it('allows one mutable state held as a discriminated union', () => {
+    expect(rulesByFile.has('src/application/unionState.ts')).toBe(false);
   });
 });

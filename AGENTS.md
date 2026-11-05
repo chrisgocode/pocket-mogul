@@ -39,6 +39,7 @@ Expo SDK 58. Expo changes between SDKs, so check the versioned docs at `https://
   - Module boundaries from spec §13: `src/domain` imports no React, Expo or outer layers; `src/content` imports only `src/domain`; `src/ui` can't import features, routes, the engine or adapters; screens never import `src/infrastructure`. Cross-folder imports use `@/`, never `../`.
   - No `Date.now`, `new Date()`, `Math.random` or timers in `src/domain`, `src/content` or tests: use the injected clock and seeded randomness.
   - No magic numbers outside content, tokens, SVG art and tests: name them.
+  - No implicit state machines (`pocket-mogul/no-implicit-state-machine`): no closure with two or more `let`s that inner functions reassign, no type with two or more `boolean` fields, and no hook with two or more boolean `useState`s. Hold one value typed as a discriminated union instead.
   - Tests: no conditionals, snapshots, focused or skipped tests.
   - knip rejects unused files, exports and dependencies.
 - Lint is strict and type-aware (`.oxlintrc.json`): no raw text outside `<AppText>`, no inline styles or color literals (use `src/ui/tokens.ts`), no unhandled promises, no `any`, explicit checks instead of truthy strings in JSX conditions. Branded money types may only be cast in `src/domain/money.ts` and `src/content/schema.ts`. Fix the code rather than disabling a rule.

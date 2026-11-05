@@ -14,23 +14,27 @@ type ScheduledTask = { dueMs: number; task: () => void };
 
 export type FakeClock = Clock & { advance: (ms: number) => void };
 
+type Timeline = { readonly elapsedMs: number; readonly tasks: readonly ScheduledTask[] };
+
 function fakeClock(): FakeClock {
-  let elapsedMs = 0;
-  let tasks: ScheduledTask[] = [];
+  let timeline: Timeline = { elapsedMs: 0, tasks: [] };
   return {
-    monotonicMs: () => elapsedMs,
-    wallMs: () => TEST_WALL_START_MS + elapsedMs,
+    monotonicMs: () => timeline.elapsedMs,
+    wallMs: () => TEST_WALL_START_MS + timeline.elapsedMs,
     schedule(delayMs, task) {
-      const scheduled = { dueMs: elapsedMs + delayMs, task };
-      tasks.push(scheduled);
+      const scheduled = { dueMs: timeline.elapsedMs + delayMs, task };
+      timeline = { ...timeline, tasks: [...timeline.tasks, scheduled] };
       return () => {
-        tasks = tasks.filter((other) => other !== scheduled);
+        timeline = { ...timeline, tasks: timeline.tasks.filter((other) => other !== scheduled) };
       };
     },
     advance(ms) {
-      elapsedMs += ms;
-      const due = tasks.filter((scheduled) => scheduled.dueMs <= elapsedMs);
-      tasks = tasks.filter((scheduled) => scheduled.dueMs > elapsedMs);
+      const elapsedMs = timeline.elapsedMs + ms;
+      const due = timeline.tasks.filter((scheduled) => scheduled.dueMs <= elapsedMs);
+      timeline = {
+        elapsedMs,
+        tasks: timeline.tasks.filter((scheduled) => scheduled.dueMs > elapsedMs),
+      };
       for (const scheduled of due) scheduled.task();
     },
   };

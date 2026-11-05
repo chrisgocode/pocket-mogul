@@ -80,7 +80,7 @@ Native iOS and Android builds aren't in CI yet. They run on the owner's Mac for 
 | `src/bootstrap` | The composition root: builds the device Game from the real adapters. Routes reach it only through `DeviceGameProvider`, so screens never import adapters |
 | `src/content` | Versioned economy content (`economy-v1.ts`), Zod schema and validation |
 | `src/ui` | Design tokens, shared components, original SVG logo marks and icons |
-| `lint-rules` | Project oxlint rules (`no-comments`, `no-nondeterminism`), fixtures, and a test proving every gate fires |
+| `lint-rules` | Project oxlint rules (`no-comments`, `no-nondeterminism`, `no-implicit-state-machine`), fixtures, and a test proving every gate fires |
 
 Content is validated once at startup. A bad edit shows a "Game content failed to load" screen listing every issue, and `bun run test` fails on the same issues.
 

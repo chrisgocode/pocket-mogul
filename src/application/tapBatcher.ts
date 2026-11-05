@@ -1,27 +1,35 @@
 import type { CancelTimer, Clock } from './ports';
 
-export type TapBatcher = { add(): void; close(): Promise<void> };
+export type TapBatcher = { add: () => void; close: () => Promise<void> };
+
+type Batch =
+  | { readonly status: 'idle' }
+  | { readonly status: 'open'; readonly taps: number; readonly cancelTimer: CancelTimer };
 
 export function tapBatcher(options: {
   clock: Clock;
   windowMs: number;
   send: (taps: number) => Promise<unknown>;
 }): TapBatcher {
-  let openTaps = 0;
-  let cancelTimer: CancelTimer | undefined;
+  let batch: Batch = { status: 'idle' };
 
   async function close(): Promise<void> {
-    cancelTimer?.();
-    cancelTimer = undefined;
-    const taps = openTaps;
-    openTaps = 0;
-    if (taps > 0) await options.send(taps);
+    if (batch.status === 'idle') return;
+    const { taps, cancelTimer } = batch;
+    batch = { status: 'idle' };
+    cancelTimer();
+    await options.send(taps);
   }
+
+  const open = (): Batch => ({
+    status: 'open',
+    taps: 1,
+    cancelTimer: options.clock.schedule(options.windowMs, () => void close()),
+  });
 
   return {
     add() {
-      openTaps += 1;
-      cancelTimer ??= options.clock.schedule(options.windowMs, () => void close());
+      batch = batch.status === 'open' ? { ...batch, taps: batch.taps + 1 } : open();
     },
     close,
   };
