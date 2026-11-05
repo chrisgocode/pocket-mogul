@@ -21,6 +21,8 @@ export const radius = { sm: 8, md: 12, lg: 16, pill: 999 } as const;
 
 export const minimumTouchTarget = 44;
 
+export const feedback = { pressedScale: 0.97, hapticMinIntervalMs: 100 } as const;
+
 const numeric: TextStyle = { fontVariant: ['tabular-nums'] };
 
 export const type = {

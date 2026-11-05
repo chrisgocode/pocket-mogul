@@ -13,13 +13,15 @@ A portrait mobile idle wealth game for iOS and Android: tap for cash, then build
 | Phase | Issue | State |
 |---|---|---|
 | 1 Foundation | [#38](https://github.com/chrisgocode/pocket-mogul/issues/38) | Built; starts on iOS and Android |
-| 2 Economy and persistence | — | Not started |
+| 2 Economy and persistence | [#21](https://github.com/chrisgocode/pocket-mogul/issues/21) | First slice built: tapping, the Game engine and the SQLite save |
 | 3 Tapping and businesses | — | Not started |
 | 4 Property and offline | — | Not started |
 | 5 Markets and portfolio | — | Not started |
 | 6 Ads and native validation | — | Not started |
 
-Phase 1 is a runnable shell. It has five tabs, each with its own Stack, and Goals and Settings open from the header. It shows the validated v1 catalog read-only. There is no game engine or save yet, so nothing is interactive beyond navigation.
+Phase 1 is a runnable shell. It has five tabs, each with its own Stack, and Goals and Settings open from the header. It shows the validated v1 catalog read-only.
+
+#21 adds the first slice of the Game engine. Tapping the card on Home earns $1 per tap. Taps are collected into one TapBatch command for at most 250 ms (sooner when the app leaves the foreground) and committed to an on-device SQLite save, so cash survives a restart. Every command runs through one serialized queue, and each commit writes the snapshot and the command receipt in one exclusive transaction. A repeated command ID returns its recorded result. If a save fails, the unsaved taps roll back on screen.
 
 ## Setup
 
@@ -47,6 +49,8 @@ bun run knip:check    # unused files, exports and dependencies
 bun run format        # oxfmt (.oxfmtrc.json); format:check to verify only
 ```
 
+Engine tests run each Game over a fresh in-memory database from Node's built-in SQLite (`node:sqlite`, which `bun test` and Jest both load) and a fake clock. Screen tests replace `@/bootstrap/deviceGame` with the same test Game.
+
 Logic tests use `bun test`'s global `describe`/`it`/`expect`. Screen tests use Jest because `bun test` can't load React Native, so name them `*.test.tsx` and keep them out of the logic folders. Plain `bun test` from the root would also pick up the screen tests and fail; use the scripts.
 
 ## Git hooks and CI
@@ -70,10 +74,13 @@ Native iOS and Android builds aren't in CI yet. They run on the owner's Mac for 
 |---|---|
 | `src/app` | Expo Router routes and screen composition |
 | `src/features` | Home, Businesses, Markets, Properties, Portfolio, Goals, Settings |
-| `src/domain` | Pure logic. Phase 1: `money.ts`, the exact BigInt money units and formatters |
+| `src/domain` | Pure logic: `money.ts` (exact BigInt money units and formatters), the game state, commands and tapping rules |
+| `src/application` | The headless Game engine: `createGame` from injected ports (clock, SaveStore, content, IDs), the serialized command queue, tap batching, snapshot subscriptions, the save format and `testGame.ts` (fake clock plus Node SQLite) for tests |
+| `src/infrastructure` | Adapters: the SaveStore over a narrow SQL driver with migrations (`save_state`, `command_receipts`, `schema_migrations`), the expo-sqlite driver (WAL, `withExclusiveTransactionAsync`), the Node SQLite driver for tests, and the device clock |
+| `src/bootstrap` | The composition root: builds the device Game from the real adapters. Routes reach it only through `DeviceGameProvider`, so screens never import adapters |
 | `src/content` | Versioned economy content (`economy-v1.ts`), Zod schema and validation |
 | `src/ui` | Design tokens, shared components, original SVG logo marks and icons |
-| `lint-rules` | Project oxlint rules (`no-comments`, `no-nondeterminism`), fixtures, and a test proving every gate fires |
+| `lint-rules` | Project oxlint rules (`no-comments`, `no-nondeterminism`, `no-implicit-state-machine`), fixtures, and a test proving every gate fires |
 
 Content is validated once at startup. A bad edit shows a "Game content failed to load" screen listing every issue, and `bun run test` fails on the same issues.
 
@@ -95,6 +102,9 @@ Expo SDK 58, resolved on 2026-11-03. Exact versions are locked in `bun.lock`.
 | expo-font | 58.0.11 |
 | expo-status-bar | 58.0.4 |
 | expo-system-ui | 58.0.7 |
+| expo-sqlite | 58.0.15 (the save; WAL and exclusive transactions) |
+| expo-crypto | 58.0.7 (`randomUUID` for save and command IDs) |
+| expo-haptics | 58.0.7 (throttled tap haptics) |
 | react-native-safe-area-context | 5.11.1 |
 | react-native-screens | 4.30.1 |
 | react-native-svg | 15.16.0 |
@@ -114,7 +124,7 @@ Expo SDK 58, resolved on 2026-11-03. Exact versions are locked in `bun.lock`.
 | eslint-plugin-react-native-a11y | 3.5.1 (JS plugin) |
 | eslint-plugin-testing-library | 7.16.2 (JS plugin, screen tests) |
 
-Added in later phases: expo-sqlite (Phase 2) and react-native-google-mobile-ads ^17.4 (Phase 6). The ads package needs React Native 0.86+, the New Architecture, iOS 15.1+ and Android minSdk 24, all of which SDK 58 meets.
+Added in a later phase: react-native-google-mobile-ads ^17.4 (Phase 6). The ads package needs React Native 0.86+, the New Architecture, iOS 15.1+ and Android minSdk 24, all of which SDK 58 meets.
 
 ## Phase 1 completion gate
 

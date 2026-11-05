@@ -103,6 +103,7 @@
     "react-native-a11y/has-valid-accessibility-live-region": "error",
     "react-native-a11y/no-nested-touchables": "error",
     "pocket-mogul/no-comments": "error",
+    "pocket-mogul/no-implicit-state-machine": "error",
     "no-restricted-imports": [
       "error",
       {

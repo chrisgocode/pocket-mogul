@@ -20,6 +20,24 @@ _Avoid_: Random ad, forced ad, popup
 A moment between player tasks (leaving Home, closing a confirmation sheet, completing a goal) where an automatic full-screen ad may appear.
 _Avoid_: Pause, idle moment
 
+## Game engine
+
+**Game**:
+The headless engine that owns all game state: screens send it commands and render its committed snapshot.
+_Avoid_: Store, model, manager
+
+**Snapshot**:
+The committed game state the Game publishes to screens after each saved command, plus the count of taps not yet saved.
+_Avoid_: Cache, view model
+
+**Tap batch**:
+One TapBatch command carrying every tap from a window of at most 250 ms, paid at one rate and committed together.
+_Avoid_: Tap event, click batch
+
+**Command receipt**:
+The saved result of a processed command ID; repeating that ID returns the receipt instead of applying the command again.
+_Avoid_: Log entry, idempotency key
+
 ## Time
 
 **Offline cap**:
