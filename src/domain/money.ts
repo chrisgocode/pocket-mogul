@@ -5,9 +5,14 @@ export type MoneyCents = Brand<bigint, 'MoneyCents'>;
 export type PriceMicros = Brand<bigint, 'PriceMicros'>;
 export type QuantityMicrounits = Brand<bigint, 'QuantityMicrounits'>;
 
-export const CENTS_PER_DOLLAR = 100n;
+const CENTS_PER_DOLLAR = 100n;
 export const MICROS_PER_DOLLAR = 1_000_000n;
-export const MICROUNITS_PER_UNIT = 1_000_000n;
+
+const DECIMAL_RADIX = 10;
+const CENT_DIGITS = 2;
+const MICRO_DIGITS = 6;
+const DIGITS_PER_THOUSANDS_GROUP = 3;
+const COMPACT_DECIMAL_DIGITS = 2;
 
 const INTEGER_STRING = /^-?\d+$/;
 
@@ -27,7 +32,7 @@ export const quantityMicrounits = (value: bigint | number): QuantityMicrounits =
   toBigInt(value, 'QuantityMicrounits') as QuantityMicrounits;
 
 export function serializeUnits(value: MoneyCents | PriceMicros | QuantityMicrounits): string {
-  return value.toString(10);
+  return value.toString(DECIMAL_RADIX);
 }
 
 function parseIntegerString(text: string, unit: string): bigint {
@@ -60,13 +65,13 @@ function parseDecimal(text: string, scaleDigits: number, unit: string): bigint {
 }
 
 export const dollars = (amount: string): MoneyCents =>
-  parseDecimal(amount, 2, 'MoneyCents') as MoneyCents;
+  parseDecimal(amount, CENT_DIGITS, 'MoneyCents') as MoneyCents;
 
 export const dollarPrice = (amount: string): PriceMicros =>
-  parseDecimal(amount, 6, 'PriceMicros') as PriceMicros;
+  parseDecimal(amount, MICRO_DIGITS, 'PriceMicros') as PriceMicros;
 
 export const units = (count: string): QuantityMicrounits =>
-  parseDecimal(count, 6, 'QuantityMicrounits') as QuantityMicrounits;
+  parseDecimal(count, MICRO_DIGITS, 'QuantityMicrounits') as QuantityMicrounits;
 
 export function divideRoundingUp(numerator: bigint, denominator: bigint): bigint {
   if (denominator <= 0n) throw new RangeError('denominator must be positive');
@@ -85,7 +90,7 @@ function splitIntoWholeAndFraction(
   scaleDigits: number,
 ): { negative: boolean; whole: string; fraction: string } {
   const negative = value < 0n;
-  const digits = (negative ? -value : value).toString(10).padStart(scaleDigits + 1, '0');
+  const digits = (negative ? -value : value).toString(DECIMAL_RADIX).padStart(scaleDigits + 1, '0');
   return {
     negative,
     whole: digits.slice(0, digits.length - scaleDigits),
@@ -94,7 +99,7 @@ function splitIntoWholeAndFraction(
 }
 
 export function formatMoneyExact(value: MoneyCents): string {
-  const { negative, whole, fraction } = splitIntoWholeAndFraction(value, 2);
+  const { negative, whole, fraction } = splitIntoWholeAndFraction(value, CENT_DIGITS);
   return `${negative ? '-' : ''}$${groupThousands(whole)}.${fraction}`;
 }
 
@@ -120,30 +125,30 @@ export function formatMoneyCompact(value: MoneyCents): string {
   const wholeDollars = cents / CENTS_PER_DOLLAR;
   if (wholeDollars < 1000n) return sign + formatMoneyExact(cents as MoneyCents);
 
-  const digits = wholeDollars.toString(10);
-  const group = Math.floor((digits.length - 1) / 3);
-  const leadLength = digits.length - group * 3;
+  const digits = wholeDollars.toString(DECIMAL_RADIX);
+  const group = Math.floor((digits.length - 1) / DIGITS_PER_THOUSANDS_GROUP);
+  const leadLength = digits.length - group * DIGITS_PER_THOUSANDS_GROUP;
   const lead = digits.slice(0, leadLength);
-  const decimals = digits.slice(leadLength, leadLength + 2);
+  const decimals = digits.slice(leadLength, leadLength + COMPACT_DECIMAL_DIGITS);
   const suffix = COMPACT_SUFFIXES[group];
   if (suffix !== undefined) return `${sign}$${lead}.${decimals}${suffix}`;
 
-  const mantissa = `${digits[0]}.${digits.slice(1, 3)}`;
+  const mantissa = `${digits[0]}.${digits.slice(1, 1 + COMPACT_DECIMAL_DIGITS)}`;
   return `${sign}$${mantissa}e${digits.length - 1}`;
 }
 
-export function formatMoney(value: MoneyCents, style: NumberFormatting = 'compact'): string {
+function formatMoney(value: MoneyCents, style: NumberFormatting = 'compact'): string {
   return style === 'full' ? formatMoneyExact(value) : formatMoneyCompact(value);
 }
 
 export function formatPrice(value: PriceMicros): string {
-  const { negative, whole, fraction } = splitIntoWholeAndFraction(value, 6);
-  const trimmed = fraction.replace(/0+$/, '').padEnd(2, '0');
+  const { negative, whole, fraction } = splitIntoWholeAndFraction(value, MICRO_DIGITS);
+  const trimmed = fraction.replace(/0+$/, '').padEnd(CENT_DIGITS, '0');
   return `${negative ? '-' : ''}$${groupThousands(whole)}.${trimmed}`;
 }
 
 export function formatQuantity(value: QuantityMicrounits): string {
-  const { negative, whole, fraction } = splitIntoWholeAndFraction(value, 6);
+  const { negative, whole, fraction } = splitIntoWholeAndFraction(value, MICRO_DIGITS);
   const trimmed = fraction.replace(/0+$/, '');
   return `${negative ? '-' : ''}${groupThousands(whole)}${trimmed ? `.${trimmed}` : ''}`;
 }

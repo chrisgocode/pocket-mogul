@@ -29,7 +29,7 @@ const growthRatio = z
   .object({ numerator: positiveInt, denominator: positiveInt })
   .refine((r) => r.numerator >= r.denominator, 'Growth ratios must be at least 1');
 
-export const GLYPHS = [
+const GLYPHS = [
   'circle',
   'square',
   'triangle',
@@ -46,15 +46,15 @@ export const GLYPHS = [
   'arch',
 ] as const;
 
-export const logoSchema = z.object({
+const logoSchema = z.object({
   glyph: z.enum(GLYPHS),
   color: hexColor,
 });
 
 export const TIERS = [1, 2, 3, 4] as const;
-export const tierSchema = z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]);
+const tierSchema = z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]);
 
-export const SECTORS = [
+const SECTORS = [
   'technology',
   'commerce',
   'mobility',
@@ -67,9 +67,9 @@ export const SECTORS = [
   'media',
   'mining',
 ] as const;
-export const sectorSchema = z.enum(SECTORS);
+const sectorSchema = z.enum(SECTORS);
 
-export const businessSchema = z.object({
+const businessSchema = z.object({
   id,
   name: z.string().min(1),
   tier: tierSchema,
@@ -79,7 +79,7 @@ export const businessSchema = z.object({
   logo: logoSchema,
 });
 
-export const stockSchema = z.object({
+const stockSchema = z.object({
   id,
   ticker,
   name: z.string().min(1),
@@ -92,7 +92,7 @@ export const stockSchema = z.object({
   logo: logoSchema,
 });
 
-export const coinSchema = z.object({
+const coinSchema = z.object({
   id,
   ticker,
   name: z.string().min(1),
@@ -102,7 +102,7 @@ export const coinSchema = z.object({
   logo: logoSchema,
 });
 
-export const propertySchema = z.object({
+const propertySchema = z.object({
   id,
   name: z.string().min(1),
   price: positiveCents,
@@ -112,7 +112,7 @@ export const propertySchema = z.object({
   logo: logoSchema,
 });
 
-export const goalSchema = z.discriminatedUnion('kind', [
+const goalSchema = z.discriminatedUnion('kind', [
   z.object({
     id,
     kind: z.literal('first_action'),
@@ -134,7 +134,7 @@ export const goalSchema = z.discriminatedUnion('kind', [
   }),
 ]);
 
-export const eventTemplateSchema = z.object({
+const eventTemplateSchema = z.object({
   id,
   market: z.enum(['stocks', 'crypto']),
   scope: z.enum(['company', 'sector', 'market', 'coin']),
@@ -152,7 +152,7 @@ const marketParamsSchema = z.object({
   feeBps: nonNegativeBps,
 });
 
-export const economySchema = z.object({
+const economySchema = z.object({
   tap: z.object({
     baseCents: positiveCents,
     perLevelCents: positiveCents,

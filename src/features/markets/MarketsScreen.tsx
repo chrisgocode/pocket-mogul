@@ -1,72 +1,37 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
-import { FICTIONAL_NOTICE, getContent } from '@/content';
-import { formatMoneyExact, formatPrice } from '@/domain/money';
+import { FICTIONAL_NOTICE } from '@/content';
 import { Card } from '@/ui/Card';
 import { EmptyState } from '@/ui/EmptyState';
-import { ListRow } from '@/ui/ListRow';
-import { LogoMark } from '@/ui/LogoMark';
 import { Screen } from '@/ui/Screen';
+import { SegmentedControl, type SegmentOption } from '@/ui/SegmentedControl';
+import { useSegment } from '@/ui/state/useSegment';
 import { AppText } from '@/ui/Typography';
-import { colors, radius, spacing, minimumTouchTarget } from '@/ui/tokens';
 
-type Segment = 'stocks' | 'crypto';
+import { CoinRows } from './CoinRows';
+import { StockRows } from './StockRows';
 
-const CLASS_LABEL = { standard: 'Stock', blue_chip: 'Blue chip', penny: 'Penny stock' } as const;
-const titleCase = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+type Market = 'stocks' | 'crypto';
+
+const MARKET_OPTIONS: readonly SegmentOption<Market>[] = [
+  { value: 'stocks', label: 'Stocks' },
+  { value: 'crypto', label: 'Crypto' },
+];
 
 export function MarketsScreen() {
-  const [segment, setSegment] = useState<Segment>('stocks');
-  const { stocks, coins } = getContent();
-
+  const market = useSegment<Market>('stocks');
   return (
     <Screen>
-      <View style={styles.segments} accessibilityRole="tablist">
-        {(['stocks', 'crypto'] as const).map((s) => (
-          <Pressable
-            key={s}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: segment === s }}
-            onPress={() => setSegment(s)}
-            style={[styles.segment, segment === s && styles.segmentActive]}
-          >
-            <AppText variant="heading" style={segment === s ? styles.segmentTextActive : undefined}>
-              {s === 'stocks' ? 'Stocks' : 'Crypto'}
-            </AppText>
-          </Pressable>
-        ))}
-      </View>
+      <SegmentedControl
+        options={MARKET_OPTIONS}
+        selected={market.selected}
+        onSelect={market.select}
+      />
       <EmptyState
         title="Look around first"
         message="Markets become tradable after you buy your first business."
       />
-      <Card>
-        {segment === 'stocks'
-          ? stocks.map((s) => (
-              <ListRow
-                key={s.id}
-                leading={<LogoMark logo={s.logo} />}
-                title={s.name}
-                subtitle={`${s.ticker} · ${titleCase(s.sector)} · ${CLASS_LABEL[s.volatilityClass]}`}
-                value={formatPrice(s.initialPrice)}
-                detail={
-                  s.dividendCentsPerSharePerHour > 0n
-                    ? `${formatMoneyExact(s.dividendCentsPerSharePerHour)}/share/hr`
-                    : undefined
-                }
-              />
-            ))
-          : coins.map((k) => (
-              <ListRow
-                key={k.id}
-                leading={<LogoMark logo={k.logo} />}
-                title={k.name}
-                subtitle={`${k.ticker} · ${k.theme}`}
-                value={formatPrice(k.initialPrice)}
-              />
-            ))}
-      </Card>
+      <Card>{market.selected === 'stocks' ? <StockRows /> : <CoinRows />}</Card>
       <AppText variant="caption" muted style={styles.notice}>
         {FICTIONAL_NOTICE}
       </AppText>
@@ -75,20 +40,5 @@ export function MarketsScreen() {
 }
 
 const styles = StyleSheet.create({
-  segments: {
-    flexDirection: 'row',
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: radius.md,
-    padding: spacing.xs,
-  },
-  segment: {
-    flex: 1,
-    minHeight: minimumTouchTarget,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radius.sm,
-  },
-  segmentActive: { backgroundColor: colors.surface },
-  segmentTextActive: { color: colors.accent },
   notice: { textAlign: 'center' },
 });

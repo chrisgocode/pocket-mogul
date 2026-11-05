@@ -33,5 +33,13 @@ Expo SDK 58. Expo changes between SDKs, so check the versioned docs at `https://
 - Run `bun run check` (typecheck, oxlint, oxfmt check, tests) before declaring work done. Run `bun run format` to format.
 - Tests: logic and engine tests are `*.test.ts` under `src/domain`, `src/content` or `src/application`, use the global `describe`/`it`/`expect` (don't import them from `bun:test`, or oxlint's Jest rules can't see them), and run with `bun run test:logic`. Screen tests are `*.test.tsx` and run on Jest with jest-expo (`bun run test:screens`), because `bun test` can't load React Native. Use the scripts, not bare `bun test`.
 - React Native Testing Library 14 is async: `await` `render`, `renderRouter` and `fireEvent`. oxlint enforces this.
+- Quality gates (lint, `.oxlintrc.json`; each is proven by `lint-rules/rules.test.ts`):
+  - No `useEffect`/`useLayoutEffect` outside named hooks in `src/ui/effects`, and no `useState`/`useReducer` outside named hooks in `src/ui/state`. Game values come from the engine snapshot.
+  - Functions at most 40 lines (80 in tests), files 300, complexity 8, cognitive complexity 10, nesting depth 3, 3 parameters (pass an object instead), one component per file.
+  - Module boundaries from spec §13: `src/domain` imports no React, Expo or outer layers; `src/content` imports only `src/domain`; `src/ui` can't import features, routes, the engine or adapters; screens never import `src/infrastructure`. Cross-folder imports use `@/`, never `../`.
+  - No `Date.now`, `new Date()`, `Math.random` or timers in `src/domain`, `src/content` or tests: use the injected clock and seeded randomness.
+  - No magic numbers outside content, tokens, SVG art and tests: name them.
+  - Tests: no conditionals, snapshots, focused or skipped tests.
+  - knip rejects unused files, exports and dependencies.
 - Lint is strict and type-aware (`.oxlintrc.json`): no raw text outside `<AppText>`, no inline styles or color literals (use `src/ui/tokens.ts`), no unhandled promises, no `any`, explicit checks instead of truthy strings in JSX conditions. Branded money types may only be cast in `src/domain/money.ts` and `src/content/schema.ts`. Fix the code rather than disabling a rule.
 - A pre-commit hook runs lint-staged, the typecheck and all tests. Don't bypass it with `--no-verify`. CI (`.github/workflows/ci.yml`) runs the same checks, and its `Check` job is the required status. When adding a CI job, add it to `Check`'s `needs`.

@@ -31,9 +31,3 @@ export const type = {
   caption: { fontSize: 13, lineHeight: 18, fontWeight: '400' },
   number: { fontSize: 15, lineHeight: 20, fontWeight: '600', ...numeric },
 } satisfies Record<string, TextStyle>;
-
-export const gainLoss = {
-  gain: { color: colors.gain, symbol: '▲' },
-  loss: { color: colors.loss, symbol: '▼' },
-  flat: { color: colors.textMuted, symbol: '■' },
-} as const;

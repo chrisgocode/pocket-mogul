@@ -37,12 +37,13 @@ bun run start     # start Metro for an installed dev build
 ## Checks
 
 ```bash
-bun run check         # typecheck + lint + format check + all tests
+bun run check         # typecheck + lint + format check + knip + all tests
 bun run test          # both suites below
 bun run test:logic    # bun test: src/domain, src/content, src/application (*.test.ts)
 bun run test:screens  # Jest + jest-expo: screen tests (*.test.tsx)
 bun run typecheck
 bun run lint          # oxlint, strict and type-aware (.oxlintrc.json); warnings fail
+bun run knip          # unused files, exports and dependencies
 bun run format        # oxfmt (.oxfmtrc.json); format:check to verify only
 ```
 
@@ -56,7 +57,7 @@ Logic tests use `bun test`'s global `describe`/`it`/`expect`. Screen tests use J
 
 | Job | What it checks |
 |---|---|
-| typecheck, lint, format:check, test:logic, test:screens | The same scripts as `bun run check`, one runner each |
+| typecheck, lint, format:check, knip, test:logic, test:screens | The same scripts as `bun run check`, one runner each |
 | Expo doctor and bundles | `expo-doctor`, and the iOS and Android JavaScript bundles build |
 | Workflow security | zizmor audits the workflows; actions are pinned to commit SHAs |
 | Check | Passes only when every job above passes. Branch protection should require this one |
@@ -72,7 +73,7 @@ Native iOS and Android builds aren't in CI yet. They run on the owner's Mac for 
 | `src/domain` | Pure logic. Phase 1: `money.ts`, the exact BigInt money units and formatters |
 | `src/content` | Versioned economy content (`economy-v1.ts`), Zod schema and validation |
 | `src/ui` | Design tokens, shared components, original SVG logo marks and icons |
-| `lint-rules` | Project oxlint rules (`no-comments`) |
+| `lint-rules` | Project oxlint rules (`no-comments`, `no-nondeterminism`), fixtures, and a test proving every gate fires |
 
 Content is validated once at startup. A bad edit shows a "Game content failed to load" screen listing every issue, and `bun run test` fails on the same issues.
 
@@ -92,7 +93,6 @@ Expo SDK 58, resolved on 2026-11-03. Exact versions are locked in `bun.lock`.
 | expo-constants | 58.0.15 |
 | expo-linking | 58.0.16 |
 | expo-font | 58.0.11 |
-| expo-haptics | 58.0.7 |
 | expo-status-bar | 58.0.4 |
 | expo-system-ui | 58.0.7 |
 | react-native-safe-area-context | 5.11.1 |
@@ -106,6 +106,10 @@ Expo SDK 58, resolved on 2026-11-03. Exact versions are locked in `bun.lock`.
 | oxlint | 1.91.0, type-aware via oxlint-tsgolint 7.0.2005 |
 | oxfmt | 0.76.0 |
 | eslint-plugin-react-native | 5.0.0 (run by oxlint as a JS plugin) |
+| eslint-plugin-sonarjs | 4.2.2 (JS plugin, cognitive complexity only) |
+| eslint-plugin-react-you-might-not-need-an-effect | 1.1.0 (JS plugin) |
+| @oxlint/plugins | 1.91.0 (types for `lint-rules/`) |
+| knip | 6.44.1 (unused files, exports, dependencies) |
 | eslint-plugin-react-native-a11y | 3.5.1 (JS plugin) |
 | eslint-plugin-testing-library | 7.16.2 (JS plugin, screen tests) |
 

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { OptionalCaption } from './OptionalCaption';
 import { AppText } from './Typography';
 import { spacing, minimumTouchTarget } from './tokens';
 
@@ -14,9 +15,9 @@ export function ListRow({
 }: {
   leading?: ReactNode;
   title: string;
-  subtitle?: string;
-  value?: string;
-  detail?: string;
+  subtitle?: string | undefined;
+  value?: string | undefined;
+  detail?: string | undefined;
   dimmed?: boolean;
 }) {
   return (
@@ -30,19 +31,11 @@ export function ListRow({
         <AppText variant="heading" numberOfLines={2}>
           {title}
         </AppText>
-        {subtitle === undefined ? null : (
-          <AppText variant="caption" muted>
-            {subtitle}
-          </AppText>
-        )}
+        <OptionalCaption text={subtitle} />
       </View>
       <View style={styles.trailing}>
         {value === undefined ? null : <AppText variant="number">{value}</AppText>}
-        {detail === undefined ? null : (
-          <AppText variant="caption" muted>
-            {detail}
-          </AppText>
-        )}
+        <OptionalCaption text={detail} />
       </View>
     </View>
   );

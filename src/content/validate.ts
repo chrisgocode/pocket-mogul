@@ -11,7 +11,7 @@ export class ContentValidationError extends Error {
 
 export type ContentCheck = { ok: true; content: Content } | { ok: false; issues: string[] };
 
-export function checkContent(input: unknown): ContentCheck {
+function checkContent(input: unknown): ContentCheck {
   const parsed = contentSchema.safeParse(input);
   if (!parsed.success) {
     return {
@@ -22,6 +22,11 @@ export function checkContent(input: unknown): ContentCheck {
   const content = parsed.data;
   const issues = crossChecks(content);
   return issues.length ? { ok: false, issues } : { ok: true, content };
+}
+
+export function findContentIssues(input: unknown): string[] {
+  const result = checkContent(input);
+  return result.ok ? [] : result.issues;
 }
 
 export function validateContent(input: unknown): Content {
@@ -166,25 +171,39 @@ const EVENT_SCOPES_BY_MARKET = {
   crypto: ['coin', 'market'],
 } as const;
 
-const MARKETS = ['stocks', 'crypto'] as const;
+type Market = keyof typeof EVENT_SCOPES_BY_MARKET;
+
+const MARKETS: readonly Market[] = ['stocks', 'crypto'];
 const DIRECTIONS = ['up', 'down'] as const;
 
+type TemplateSlot = { market: Market; scope: string; direction: string };
+
+function hasTemplate(content: Content, slot: TemplateSlot): boolean {
+  return content.events.some(
+    (e) => e.market === slot.market && e.scope === slot.scope && e.direction === slot.direction,
+  );
+}
+
+function missingTemplates(content: Content, market: Market): string[] {
+  const scopes: readonly string[] = EVENT_SCOPES_BY_MARKET[market];
+  return scopes.flatMap((scope) =>
+    DIRECTIONS.filter((direction) => !hasTemplate(content, { market, scope, direction })).map(
+      (direction) => `No ${market} ${scope} ${direction} event template`,
+    ),
+  );
+}
+
+function unusedScopes(content: Content, market: Market): string[] {
+  const scopes: readonly string[] = EVENT_SCOPES_BY_MARKET[market];
+  return content.events
+    .filter((e) => e.market === market && !scopes.includes(e.scope))
+    .map((e) => `Event ${e.id}: scope ${e.scope} is not used by ${market}`);
+}
+
 function everyMarketEventHasATemplate(content: Content): string[] {
-  return MARKETS.flatMap((market) => {
-    const scopes: readonly string[] = EVENT_SCOPES_BY_MARKET[market];
-    const unusedScopes = content.events
-      .filter((e) => e.market === market && !scopes.includes(e.scope))
-      .map((e) => `Event ${e.id}: scope ${e.scope} is not used by ${market}`);
-    const missingTemplates = scopes.flatMap((scope) =>
-      DIRECTIONS.filter(
-        (direction) =>
-          !content.events.some(
-            (e) => e.market === market && e.scope === scope && e.direction === direction,
-          ),
-      ).map((direction) => `No ${market} ${scope} ${direction} event template`),
-    );
-    return unusedScopes.concat(missingTemplates);
-  });
+  return MARKETS.flatMap((market) =>
+    unusedScopes(content, market).concat(missingTemplates(content, market)),
+  );
 }
 
 function placeholderFitsScope(placeholder: string, scope: string): boolean {

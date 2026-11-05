@@ -1,20 +1,18 @@
 import { divideRoundingUp, formatMoneyExact, type MoneyCents } from '@/domain/money';
 
 import { economyV1 } from './economy-v1';
-import { checkContent, getContent, ContentValidationError, validateContent } from './index';
+import { findContentIssues, getContent, ContentValidationError, validateContent } from './index';
 
 const clone = () => structuredClone(economyV1);
 const issuesFor = (mutate: (c: ReturnType<typeof clone>) => void) => {
   const c = clone();
   mutate(c);
-  const result = checkContent(c);
-  return result.ok ? [] : result.issues;
+  return findContentIssues(c);
 };
 
 describe('bundled content', () => {
   it('passes validation', () => {
-    const result = checkContent(economyV1);
-    expect(result.ok ? [] : result.issues).toEqual([]);
+    expect(findContentIssues(economyV1)).toEqual([]);
   });
 
   it('has the v1 catalog sizes', () => {
@@ -84,7 +82,9 @@ describe('validation catches bad edits', () => {
 
   it('an empty tier', () => {
     const issues = issuesFor((c) => {
-      for (const b of c.businesses) if (b.tier === 4) (b as { tier: number }).tier = 3;
+      for (const tierFour of c.businesses.filter((b) => b.tier === 4)) {
+        (tierFour as { tier: number }).tier = 3;
+      }
     });
     expect(issues).toContain('Tier 4 has no businesses');
   });
