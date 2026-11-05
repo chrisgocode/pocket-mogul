@@ -44,6 +44,14 @@ _Avoid_: Log entry, idempotency key
 
 ## Time
 
+**Simulation time**:
+The clock that drives passive income; it advances only by eligible elapsed time, never by render frames.
+_Avoid_: Game time, tick count
+
+**Checkpoint**:
+An AdvanceTime commit that saves the simulation time and wall time reached so far; the Game makes one at least every five seconds in the foreground and when the app leaves it.
+_Avoid_: Autosave, sync
+
 **Offline cap**:
 The maximum away time credited to the economy on return; absence beyond it is discarded.
 _Avoid_: Idle limit, AFK cap
@@ -53,6 +61,10 @@ _Avoid_: Idle limit, AFK cap
 **Tier**:
 One of four permanent unlock levels for businesses, opened by reaching a peak net worth threshold.
 _Avoid_: Level, stage, era
+
+**Income stream**:
+One source of constant-rate passive income, such as one business, with its own sub-cent remainder that survives selling the asset.
+_Avoid_: Income source, earner
 
 **Wallet upgrade**:
 A purchase that permanently raises the cash earned per tap.
