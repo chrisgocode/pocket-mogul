@@ -67,7 +67,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Expo doctor
-        run: bunx expo-doctor
+        run: bun run doctor
 
       - name: Bundle iOS and Android
         run: bunx expo export --platform ios --platform android --output-dir "$RUNNER_TEMP/export"

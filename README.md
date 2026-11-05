@@ -51,7 +51,7 @@ Logic tests use `bun test`'s global `describe`/`it`/`expect`. Screen tests use J
 
 ## Git hooks and CI
 
-`bun install` sets up a Husky pre-commit hook. It formats and lints the staged files (lint-staged, `.lintstagedrc.json`), then runs the typecheck and every test, so a commit only lands when they pass. It takes about 7 seconds.
+`bun install` sets up a Husky pre-commit hook. It formats and lints the staged files (lint-staged, `.lintstagedrc.json`), then runs the typecheck, knip and every test, so a commit only lands when they pass. It takes about 7 seconds.
 
 `git commit --no-verify` skips the hook, so CI is the real gate. `.github/workflows/ci.yml` runs on every pull request and every push to `main`:
 
@@ -110,6 +110,7 @@ Expo SDK 58, resolved on 2026-11-03. Exact versions are locked in `bun.lock`.
 | eslint-plugin-react-you-might-not-need-an-effect | 1.1.0 (JS plugin) |
 | @oxlint/plugins | 1.91.0 (types for `lint-rules/`) |
 | knip | 6.44.1 (unused files, exports, dependencies) |
+| expo-doctor | 1.21.6 |
 | eslint-plugin-react-native-a11y | 3.5.1 (JS plugin) |
 | eslint-plugin-testing-library | 7.16.2 (JS plugin, screen tests) |
 
