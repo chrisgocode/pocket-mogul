@@ -27,7 +27,7 @@ const savedGameSchema = z.object({
 });
 
 const outcomeSchema = z.discriminatedUnion('ok', [
-  z.object({ ok: z.literal(true), revision: count, earnedCents: moneyText }),
+  z.object({ ok: z.literal(true), revision: count, cashChangeCents: moneyText }),
   z.object({ ok: z.literal(false), error: z.enum(GAME_ERROR_CODES) }),
 ]);
 

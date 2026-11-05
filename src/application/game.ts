@@ -23,6 +23,7 @@ export type Game = {
   dispatch: (envelope: CommandEnvelope) => Promise<CommandOutcome>;
   tap: () => void;
   flushTaps: () => Promise<void>;
+  createCommandId: () => string;
 };
 
 async function loadOrStart(ports: GamePorts): Promise<GameState> {
@@ -64,12 +65,16 @@ export async function createGame(ports: GamePorts): Promise<Game> {
   return {
     getSnapshot: snapshots.get,
     subscribe: snapshots.subscribe,
-    dispatch: (envelope) => run(envelope),
+    async dispatch(envelope) {
+      if (envelope.command.type !== 'TapBatch') await taps.close();
+      return run(envelope);
+    },
     tap() {
       taps.add();
       const current = snapshots.get();
       snapshots.set({ ...current, pendingTaps: current.pendingTaps + 1 });
     },
+    createCommandId: ports.createId,
     async flushTaps() {
       await taps.close();
       await queue.run(() => Promise.resolve());

@@ -23,7 +23,7 @@ describe('tapping', () => {
   it('commits exactly $10 for ten unboosted level-0 taps (AC02)', async () => {
     const { game } = await startTestGame();
     const result = await game.dispatch({ id: 'batch-1', command: { type: 'TapBatch', taps: 10 } });
-    expect(result).toEqual({ ok: true, revision: 1, earnedCents: dollars('10') });
+    expect(result).toEqual({ ok: true, revision: 1, cashChangeCents: dollars('10') });
     expect<bigint>(game.getSnapshot().state.cashCents).toBe(dollars('10'));
   });
 
@@ -90,7 +90,7 @@ describe('a failed save', () => {
     expect(await game.dispatch(fiveTaps)).toEqual({
       ok: true,
       revision: 1,
-      earnedCents: dollars('5'),
+      cashChangeCents: dollars('5'),
     });
     const restarted = await restart();
     expect<bigint>(restarted.game.getSnapshot().state.cashCents).toBe(dollars('5'));

@@ -8,6 +8,8 @@ import { AppText } from '@/ui/Typography';
 
 import { TapCard } from './TapCard';
 import { useTapHaptics } from './useTapHaptics';
+import { walletArtwork } from './walletArtwork';
+import { WalletUpgrade } from './WalletUpgrade';
 
 export function HomeScreen() {
   const game = useGame();
@@ -29,7 +31,13 @@ export function HomeScreen() {
         </AppText>
         <AppText muted>{formatMoneyExact(view.perTapCents)} per tap · $0.00/min passive</AppText>
       </Card>
-      <TapCard perTapCents={view.perTapCents} walletLevel={view.walletLevel} onTap={tap} />
+      <TapCard
+        perTapCents={view.perTapCents}
+        walletLevel={view.walletLevel}
+        artwork={walletArtwork(view.artworkStage)}
+        onTap={tap}
+      />
+      <WalletUpgrade tapCard={view} />
     </Screen>
   );
 }

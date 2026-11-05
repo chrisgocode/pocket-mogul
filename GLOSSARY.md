@@ -34,6 +34,10 @@ _Avoid_: Cache, view model
 One TapBatch command carrying every tap from a window of at most 250 ms, paid at one rate and committed together.
 _Avoid_: Tap event, click batch
 
+**Confirmation sheet**:
+The shared sheet that shows a purchase's cash change and resulting effect before the player commits it; its submit button is disabled while the command is pending.
+_Avoid_: Dialog, modal, popup
+
 **Command receipt**:
 The saved result of a processed command ID; repeating that ID returns the receipt instead of applying the command again.
 _Avoid_: Log entry, idempotency key
