@@ -37,13 +37,13 @@ bun run start     # start Metro for an installed dev build
 ## Checks
 
 ```bash
-bun run check         # typecheck + lint + format check + knip + all tests
+bun run check         # typecheck + lint + format check + knip + all tests + expo-doctor
 bun run test          # both suites below
 bun run test:logic    # bun test: src/domain, src/content, src/application (*.test.ts)
 bun run test:screens  # Jest + jest-expo: screen tests (*.test.tsx)
 bun run typecheck
 bun run lint          # oxlint, strict and type-aware (.oxlintrc.json); warnings fail
-bun run knip          # unused files, exports and dependencies
+bun run knip:check    # unused files, exports and dependencies
 bun run format        # oxfmt (.oxfmtrc.json); format:check to verify only
 ```
 
@@ -57,7 +57,7 @@ Logic tests use `bun test`'s global `describe`/`it`/`expect`. Screen tests use J
 
 | Job | What it checks |
 |---|---|
-| typecheck, lint, format:check, knip, test:logic, test:screens | The same scripts as `bun run check`, one runner each |
+| typecheck, lint, format:check, knip:check, test:logic, test:screens | The same scripts as `bun run check`, one runner each |
 | Expo doctor and bundles | `expo-doctor`, and the iOS and Android JavaScript bundles build |
 | Workflow security | zizmor audits the workflows; actions are pinned to commit SHAs |
 | Check | Passes only when every job above passes. Branch protection should require this one |
