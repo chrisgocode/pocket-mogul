@@ -5,10 +5,6 @@ import type { Glyph, Logo } from '@/content';
 
 import { radius } from './tokens';
 
-/**
- * Original logo marks built from simple shapes (spec §6). Each asset in content
- * picks a glyph and a color; nothing here depends on a remote logo service.
- */
 const GLYPH_ART: Record<Glyph, (color: string) => ReactElement> = {
   circle: (c) => <Circle cx={12} cy={12} r={7} fill={c} />,
   square: (c) => <Rect x={5} y={5} width={14} height={14} rx={2.5} fill={c} />,
@@ -39,7 +35,6 @@ const GLYPH_ART: Record<Glyph, (color: string) => ReactElement> = {
   arch: (c) => <Path d="M5 20 V11 A7 7 0 0 1 19 11 V20 H15 V12 A3 3 0 0 0 9 12 V20 Z" fill={c} />,
 };
 
-/** Mark on a soft tile tinted from the logo color. Decorative: rows carry the name. */
 export function LogoMark({ logo, size = 40 }: { logo: Logo; size?: number }) {
   return (
     <Svg

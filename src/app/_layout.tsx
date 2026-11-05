@@ -8,7 +8,6 @@ import { ContentErrorScreen } from '@/features/startup/ContentErrorScreen';
 import { colors } from '@/ui/tokens';
 
 export default function RootLayout() {
-  // Content is validated once at startup; a bad edit stops here with every issue listed.
   const [contentError] = useState<ContentValidationError | null>(() => {
     try {
       getContent();

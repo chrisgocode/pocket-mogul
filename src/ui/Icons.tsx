@@ -1,7 +1,6 @@
 import type { ColorValue } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 
-/** Line icons for tabs and header actions, drawn in the same simple-shape style as logos. */
 export type IconName =
   | 'home'
   | 'businesses'

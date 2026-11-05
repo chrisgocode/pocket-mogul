@@ -2,12 +2,6 @@ import { MICROS_PER_DOLLAR } from '@/domain/money';
 
 import { contentSchema, TIERS, type Content } from './schema';
 
-/**
- * Validates content at startup and in tests (spec §16): shape via Zod, then
- * the rules Zod can't express (unique IDs, references, caps, tier coverage).
- * A bad edit fails loudly with every problem listed, never silently.
- */
-
 export class ContentValidationError extends Error {
   constructor(readonly issues: readonly string[]) {
     super(`Content failed validation:\n- ${issues.join('\n- ')}`);
@@ -47,112 +41,164 @@ function isAscending(values: readonly bigint[] | readonly number[]): boolean {
   return values.every((v, i) => i === 0 || v > values[i - 1]!);
 }
 
-function crossChecks(c: Content): string[] {
-  const issues: string[] = [];
-  const fail = (message: string) => issues.push(message);
-  const { economy } = c;
+function crossChecks(content: Content): string[] {
+  return [
+    idsAreUniqueWithinEachCatalog,
+    retiredIdsAreNeverReused,
+    everyTierHasBusinessesAndRisingUnlocks,
+    businessesAndPropertiesEarnAtBaseLevel,
+    stockClassesFollowTheirRules,
+    artworkLevelsFitTheirCaps,
+    marketRandomnessIsConsistent,
+    wealthGoalsRise,
+    everyMarketEventHasATemplate,
+    eventPlaceholdersFitTheirScope,
+  ].flatMap((check) => check(content));
+}
 
-  // Unique IDs within each catalog. Stocks and coins share one instrument namespace.
-  const catalogs: [string, string[]][] = [
-    ['business', c.businesses.map((b) => b.id)],
-    ['property', c.properties.map((p) => p.id)],
-    ['instrument', [...c.stocks.map((s) => s.id), ...c.coins.map((k) => k.id)]],
-    ['ticker', [...c.stocks.map((s) => s.ticker), ...c.coins.map((k) => k.ticker)]],
-    ['goal', c.goals.map((g) => g.id)],
-    ['event', c.events.map((e) => e.id)],
+type Catalog = { kind: string; ids: string[]; retirable: boolean };
+
+function catalogsOf(content: Content): Catalog[] {
+  return [
+    { kind: 'business', ids: content.businesses.map((b) => b.id), retirable: true },
+    { kind: 'property', ids: content.properties.map((p) => p.id), retirable: true },
+    {
+      kind: 'instrument',
+      ids: [...content.stocks.map((s) => s.id), ...content.coins.map((k) => k.id)],
+      retirable: true,
+    },
+    {
+      kind: 'ticker',
+      ids: [...content.stocks.map((s) => s.ticker), ...content.coins.map((k) => k.ticker)],
+      retirable: false,
+    },
+    { kind: 'goal', ids: content.goals.map((g) => g.id), retirable: true },
+    { kind: 'event', ids: content.events.map((e) => e.id), retirable: true },
   ];
-  for (const [kind, ids] of catalogs) {
-    for (const dupe of duplicates(ids)) fail(`Duplicate ${kind} ID: ${dupe}`);
-  }
+}
 
-  // Retired IDs are never reused.
-  const retired = new Set(c.retiredIds);
-  for (const [kind, ids] of catalogs) {
-    if (kind === 'ticker') continue;
-    for (const used of ids) if (retired.has(used)) fail(`Retired ID reused as ${kind}: ${used}`);
-  }
+function idsAreUniqueWithinEachCatalog(content: Content): string[] {
+  return catalogsOf(content).flatMap(({ kind, ids }) =>
+    duplicates(ids).map((dupe) => `Duplicate ${kind} ID: ${dupe}`),
+  );
+}
 
-  // Four tiers, each with businesses; unlock thresholds rise with the tier.
-  for (const tier of TIERS) {
-    if (!c.businesses.some((b) => b.tier === tier)) fail(`Tier ${tier} has no businesses`);
-  }
-  const unlocks = [economy.tierUnlocks[2], economy.tierUnlocks[3], economy.tierUnlocks[4]];
-  if (!isAscending(unlocks)) fail('Tier unlock thresholds must rise from Tier 2 to Tier 4');
+function retiredIdsAreNeverReused(content: Content): string[] {
+  const retired = new Set(content.retiredIds);
+  return catalogsOf(content)
+    .filter((catalog) => catalog.retirable)
+    .flatMap(({ kind, ids }) =>
+      ids
+        .filter((used) => retired.has(used))
+        .map((used) => `Retired ID reused as ${kind}: ${used}`),
+    );
+}
 
-  // Businesses must make money at base level.
-  for (const b of c.businesses) {
-    if (b.costsPerMinute >= b.revenuePerMinute)
-      fail(`Business ${b.id} costs must be below revenue`);
-  }
+function everyTierHasBusinessesAndRisingUnlocks(content: Content): string[] {
+  const emptyTiers = TIERS.filter((tier) => !content.businesses.some((b) => b.tier === tier)).map(
+    (tier) => `Tier ${tier} has no businesses`,
+  );
+  const { tierUnlocks } = content.economy;
+  const unlocksRise = isAscending([tierUnlocks[2], tierUnlocks[3], tierUnlocks[4]]);
+  return unlocksRise
+    ? emptyTiers
+    : [...emptyTiers, 'Tier unlock thresholds must rise from Tier 2 to Tier 4'];
+}
 
-  // Properties are net-positive at base level (§8 RE02).
-  for (const p of c.properties) {
-    if (p.upkeepPerMinute >= p.rentPerMinute) fail(`Property ${p.id} upkeep must be below rent`);
-  }
+function businessesAndPropertiesEarnAtBaseLevel(content: Content): string[] {
+  return [
+    ...content.businesses
+      .filter((b) => b.costsPerMinute >= b.revenuePerMinute)
+      .map((b) => `Business ${b.id} costs must be below revenue`),
+    ...content.properties
+      .filter((p) => p.upkeepPerMinute >= p.rentPerMinute)
+      .map((p) => `Property ${p.id} upkeep must be below rent`),
+  ];
+}
 
-  // Stock classes: penny stocks are under $1 and pay nothing; blue chips pay dividends.
-  for (const s of c.stocks) {
-    if (s.volatilityClass === 'penny') {
-      if (s.initialPrice >= MICROS_PER_DOLLAR) fail(`Penny stock ${s.id} must start under $1`);
-      if (s.dividendPerShareHour > 0n) fail(`Penny stock ${s.id} must not pay a dividend`);
+function stockClassesFollowTheirRules(content: Content): string[] {
+  return content.stocks.flatMap((s) => {
+    const issues: string[] = [];
+    if (s.volatilityClass === 'penny' && s.initialPrice >= MICROS_PER_DOLLAR) {
+      issues.push(`Penny stock ${s.id} must start under $1`);
     }
-    if (s.volatilityClass === 'blue_chip' && s.dividendPerShareHour === 0n) {
-      fail(`Blue chip ${s.id} must pay a dividend`);
+    if (s.volatilityClass === 'penny' && s.dividendCentsPerSharePerHour > 0n) {
+      issues.push(`Penny stock ${s.id} must not pay a dividend`);
     }
-  }
-
-  // Level caps and the milestones that sit on them.
-  const { tap, businessRules, market } = economy;
-  if (tap.artworkLevels[0] !== 0) fail('Tap artwork must start at level 0');
-  if (!isAscending(tap.artworkLevels)) fail('Tap artwork levels must ascend');
-  if (tap.artworkLevels.some((l) => l > tap.maxLevel))
-    fail('Tap artwork level above the wallet cap');
-  if (!isAscending(businessRules.branchArtCapacityLevels)) fail('Branch art levels must ascend');
-  if (businessRules.branchArtCapacityLevels.some((l) => l > businessRules.maxTrackLevel)) {
-    fail('Branch art level above the business track cap');
-  }
-
-  // Market randomness and clamps.
-  const chances = market.regimeChancePercent;
-  if (chances.bear + chances.neutral + chances.bull !== 100) fail('Regime chances must sum to 100');
-  if (market.anchorClampBps > market.totalReturnClampBps)
-    fail('Anchor clamp exceeds total return clamp');
-
-  // Wealth goals rise and don't repeat a threshold.
-  const peaks = c.goals.flatMap((g) => (g.kind === 'peak_net_worth' ? [g.threshold] : []));
-  if (!isAscending(peaks)) fail('Peak net worth goals must ascend');
-
-  // News: each market has a template for every scope and direction it can draw,
-  // and only templates its scopes can use.
-  const scopesFor = {
-    stocks: ['company', 'sector', 'market'],
-    crypto: ['coin', 'market'],
-  } as const;
-  for (const marketName of ['stocks', 'crypto'] as const) {
-    const allowed: readonly string[] = scopesFor[marketName];
-    for (const e of c.events.filter((x) => x.market === marketName)) {
-      if (!allowed.includes(e.scope))
-        fail(`Event ${e.id}: scope ${e.scope} is not used by ${marketName}`);
+    if (s.volatilityClass === 'blue_chip' && s.dividendCentsPerSharePerHour === 0n) {
+      issues.push(`Blue chip ${s.id} must pay a dividend`);
     }
-    for (const scope of allowed) {
-      for (const direction of ['up', 'down'] as const) {
-        const found = c.events.some(
-          (e) => e.market === marketName && e.scope === scope && e.direction === direction,
-        );
-        if (!found) fail(`No ${marketName} ${scope} ${direction} event template`);
-      }
-    }
-  }
-  for (const e of c.events) {
-    const placeholders = e.headline.match(/\{(\w+)\}/g) ?? [];
-    for (const ph of placeholders) {
-      const ok =
-        ph === '{name}'
-          ? e.scope === 'company' || e.scope === 'coin'
-          : ph === '{sector}' && e.scope === 'sector';
-      if (!ok) fail(`Event ${e.id}: placeholder ${ph} does not fit scope ${e.scope}`);
-    }
-  }
+    return issues;
+  });
+}
 
-  return issues;
+function artworkLevelsFitTheirCaps(content: Content): string[] {
+  const { tap, businessRules } = content.economy;
+  const branchLevels = businessRules.branchArtCapacityLevels;
+  return [
+    tap.artworkLevels[0] !== 0 && 'Tap artwork must start at level 0',
+    !isAscending(tap.artworkLevels) && 'Tap artwork levels must ascend',
+    tap.artworkLevels.some((l) => l > tap.maxLevel) && 'Tap artwork level above the wallet cap',
+    !isAscending(branchLevels) && 'Branch art levels must ascend',
+    branchLevels.some((l) => l > businessRules.maxTrackLevel) &&
+      'Branch art level above the business track cap',
+  ].filter((issue) => issue !== false);
+}
+
+function marketRandomnessIsConsistent(content: Content): string[] {
+  const { market } = content.economy;
+  const { bear, neutral, bull } = market.regimeChancePercent;
+  return [
+    bear + neutral + bull !== 100 && 'Regime chances must sum to 100',
+    market.anchorClampBps > market.totalReturnClampBps && 'Anchor clamp exceeds total return clamp',
+  ].filter((issue) => issue !== false);
+}
+
+function wealthGoalsRise(content: Content): string[] {
+  const thresholds = content.goals.flatMap((g) =>
+    g.kind === 'peak_net_worth' ? [g.threshold] : [],
+  );
+  return isAscending(thresholds) ? [] : ['Peak net worth goals must ascend'];
+}
+
+const EVENT_SCOPES_BY_MARKET = {
+  stocks: ['company', 'sector', 'market'],
+  crypto: ['coin', 'market'],
+} as const;
+
+const MARKETS = ['stocks', 'crypto'] as const;
+const DIRECTIONS = ['up', 'down'] as const;
+
+function everyMarketEventHasATemplate(content: Content): string[] {
+  return MARKETS.flatMap((market) => {
+    const scopes: readonly string[] = EVENT_SCOPES_BY_MARKET[market];
+    const unusedScopes = content.events
+      .filter((e) => e.market === market && !scopes.includes(e.scope))
+      .map((e) => `Event ${e.id}: scope ${e.scope} is not used by ${market}`);
+    const missingTemplates = scopes.flatMap((scope) =>
+      DIRECTIONS.filter(
+        (direction) =>
+          !content.events.some(
+            (e) => e.market === market && e.scope === scope && e.direction === direction,
+          ),
+      ).map((direction) => `No ${market} ${scope} ${direction} event template`),
+    );
+    return unusedScopes.concat(missingTemplates);
+  });
+}
+
+function placeholderFitsScope(placeholder: string, scope: string): boolean {
+  if (placeholder === '{name}') return scope === 'company' || scope === 'coin';
+  if (placeholder === '{sector}') return scope === 'sector';
+  return false;
+}
+
+function eventPlaceholdersFitTheirScope(content: Content): string[] {
+  return content.events.flatMap((e) =>
+    (e.headline.match(/\{(\w+)\}/g) ?? [])
+      .filter((placeholder) => !placeholderFitsScope(placeholder, e.scope))
+      .map(
+        (placeholder) => `Event ${e.id}: placeholder ${placeholder} does not fit scope ${e.scope}`,
+      ),
+  );
 }

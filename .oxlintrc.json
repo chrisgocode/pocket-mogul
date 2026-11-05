@@ -1,7 +1,14 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["typescript", "unicorn", "oxc", "react", "import", "jsx-a11y", "promise"],
-  "jsPlugins": ["eslint-plugin-react-native", "eslint-plugin-react-native-a11y"],
+  "jsPlugins": [
+    "eslint-plugin-react-native",
+    "eslint-plugin-react-native-a11y",
+    {
+      "name": "pocket-mogul",
+      "specifier": "./lint-rules/pocket-mogul.mts"
+    }
+  ],
   "categories": {
     "correctness": "error",
     "suspicious": "error",
@@ -92,7 +99,8 @@
     "react-native-a11y/has-valid-accessibility-ignores-invert-colors": "off",
     "react-native-a11y/has-valid-important-for-accessibility": "error",
     "react-native-a11y/has-valid-accessibility-live-region": "error",
-    "react-native-a11y/no-nested-touchables": "error"
+    "react-native-a11y/no-nested-touchables": "error",
+    "pocket-mogul/no-comments": "error"
   },
   "overrides": [
     {

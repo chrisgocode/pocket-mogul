@@ -2,9 +2,8 @@ import { Link } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon } from './Icons';
-import { colors, touchTarget } from './tokens';
+import { colors, minimumTouchTarget } from './tokens';
 
-/** Goals and Settings open from every tab's header (spec §3). */
 export function HeaderActions() {
   return (
     <View style={styles.row}>
@@ -35,8 +34,8 @@ export function HeaderActions() {
 const styles = StyleSheet.create({
   row: { flexDirection: 'row' },
   button: {
-    width: touchTarget,
-    height: touchTarget,
+    width: minimumTouchTarget,
+    height: minimumTouchTarget,
     alignItems: 'center',
     justifyContent: 'center',
   },

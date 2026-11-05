@@ -1,10 +1,5 @@
 import type { TextStyle } from 'react-native';
 
-/**
- * Design tokens (spec §16): light theme, neutral surfaces, one accent,
- * semantic gain and loss colors. Gains and losses also carry a symbol,
- * so color is never the only signal.
- */
 export const colors = {
   background: '#F6F7F9',
   surface: '#FFFFFF',
@@ -24,8 +19,7 @@ export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as cons
 
 export const radius = { sm: 8, md: 12, lg: 16, pill: 999 } as const;
 
-/** Minimum touch target, in logical points. */
-export const touchTarget = 44;
+export const minimumTouchTarget = 44;
 
 const numeric: TextStyle = { fontVariant: ['tabular-nums'] };
 

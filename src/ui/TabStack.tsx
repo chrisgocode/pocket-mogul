@@ -3,7 +3,6 @@ import { Stack } from 'expo-router';
 import { HeaderActions } from './HeaderActions';
 import { colors } from './tokens';
 
-/** The Stack each main tab owns, so detail screens push inside their tab. */
 export function TabStack({ title }: { title: string }) {
   return (
     <Stack

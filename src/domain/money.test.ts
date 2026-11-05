@@ -1,5 +1,5 @@
 import {
-  ceilDiv,
+  divideRoundingUp,
   formatMoneyCompact,
   formatMoneyExact,
   formatPrice,
@@ -13,33 +13,33 @@ import {
   quantityMicrounits,
   serializeUnits,
   units,
-  usd,
-  usdPrice,
+  dollars,
+  dollarPrice,
 } from './money';
 
 describe('decimal literals', () => {
   it('converts dollars to cents exactly', () => {
-    expect<bigint>(usd('1,250')).toBe(125_000n);
-    expect<bigint>(usd('0.50')).toBe(50n);
-    expect<bigint>(usd('-3.5')).toBe(-350n);
-    expect<bigint>(usd('750,000,000')).toBe(75_000_000_000n);
+    expect<bigint>(dollars('1,250')).toBe(125_000n);
+    expect<bigint>(dollars('0.50')).toBe(50n);
+    expect<bigint>(dollars('-3.5')).toBe(-350n);
+    expect<bigint>(dollars('750,000,000')).toBe(75_000_000_000n);
   });
 
   it('converts prices and quantities to millionths', () => {
-    expect<bigint>(usdPrice('0.101')).toBe(101_000n);
-    expect<bigint>(usdPrice('0.000001')).toBe(1n);
+    expect<bigint>(dollarPrice('0.101')).toBe(101_000n);
+    expect<bigint>(dollarPrice('0.000001')).toBe(1n);
     expect<bigint>(units('1.5')).toBe(1_500_000n);
   });
 
   it('rejects amounts finer than the unit', () => {
-    expect(() => usd('0.001')).toThrow(RangeError);
-    expect(() => usdPrice('0.0000001')).toThrow(RangeError);
-    expect(() => usd('0.010')).not.toThrow();
+    expect(() => dollars('0.001')).toThrow(RangeError);
+    expect(() => dollarPrice('0.0000001')).toThrow(RangeError);
+    expect(() => dollars('0.010')).not.toThrow();
   });
 
   it('rejects malformed amounts', () => {
     for (const bad of ['', '1.', '.5', '1,25', '$5', '1e3', 'abc']) {
-      expect(() => usd(bad)).toThrow(SyntaxError);
+      expect(() => dollars(bad)).toThrow(SyntaxError);
     }
   });
 });
@@ -70,10 +70,10 @@ describe('serialization', () => {
 
 describe('formatting', () => {
   it('formats exact cash to two decimals', () => {
-    expect(formatMoneyExact(usd('0'))).toBe('$0.00');
-    expect(formatMoneyExact(usd('210.25'))).toBe('$210.25');
-    expect(formatMoneyExact(usd('4,800'))).toBe('$4,800.00');
-    expect(formatMoneyExact(usd('-0.05'))).toBe('-$0.05');
+    expect(formatMoneyExact(dollars('0'))).toBe('$0.00');
+    expect(formatMoneyExact(dollars('210.25'))).toBe('$210.25');
+    expect(formatMoneyExact(dollars('4,800'))).toBe('$4,800.00');
+    expect(formatMoneyExact(dollars('-0.05'))).toBe('-$0.05');
   });
 
   it('formats exact cash beyond Number precision (AC24)', () => {
@@ -82,26 +82,26 @@ describe('formatting', () => {
   });
 
   it('formats compact summaries, rounding toward zero', () => {
-    expect(formatMoneyCompact(usd('999.99'))).toBe('$999.99');
-    expect(formatMoneyCompact(usd('1,000'))).toBe('$1.00K');
-    expect(formatMoneyCompact(usd('1,239.99'))).toBe('$1.23K');
-    expect(formatMoneyCompact(usd('4,800,000'))).toBe('$4.80M');
-    expect(formatMoneyCompact(usd('750,000,000'))).toBe('$750.00M');
-    expect(formatMoneyCompact(usd('1,000,000,000'))).toBe('$1.00B');
-    expect(formatMoneyCompact(usd('-12,500'))).toBe('-$12.50K');
-    expect(formatMoneyCompact(usd('-12.5'))).toBe('-$12.50');
+    expect(formatMoneyCompact(dollars('999.99'))).toBe('$999.99');
+    expect(formatMoneyCompact(dollars('1,000'))).toBe('$1.00K');
+    expect(formatMoneyCompact(dollars('1,239.99'))).toBe('$1.23K');
+    expect(formatMoneyCompact(dollars('4,800,000'))).toBe('$4.80M');
+    expect(formatMoneyCompact(dollars('750,000,000'))).toBe('$750.00M');
+    expect(formatMoneyCompact(dollars('1,000,000,000'))).toBe('$1.00B');
+    expect(formatMoneyCompact(dollars('-12,500'))).toBe('-$12.50K');
+    expect(formatMoneyCompact(dollars('-12.5'))).toBe('-$12.50');
   });
 
   it('falls back to scientific notation past the named suffixes', () => {
-    const value = moneyCents(123n * 10n ** 36n); // $1.23e36
-    expect(formatMoneyCompact(value)).toBe('$1.23e36');
+    const pastTheLargestSuffix = moneyCents(123n * 10n ** 36n);
+    expect(formatMoneyCompact(pastTheLargestSuffix)).toBe('$1.23e36');
   });
 
-  it('formats prices with two to six decimals', () => {
-    expect(formatPrice(usdPrice('10'))).toBe('$10.00');
-    expect(formatPrice(usdPrice('0.101'))).toBe('$0.101'); // AC29 display
-    expect(formatPrice(usdPrice('0.000001'))).toBe('$0.000001');
-    expect(formatPrice(usdPrice('1,234.5'))).toBe('$1,234.50');
+  it('formats prices with two to six decimals, so a ten-cent coin can show $0.101 (AC29)', () => {
+    expect(formatPrice(dollarPrice('10'))).toBe('$10.00');
+    expect(formatPrice(dollarPrice('0.101'))).toBe('$0.101');
+    expect(formatPrice(dollarPrice('0.000001'))).toBe('$0.000001');
+    expect(formatPrice(dollarPrice('1,234.5'))).toBe('$1,234.50');
   });
 
   it('formats quantities without trailing zeros', () => {
@@ -111,14 +111,14 @@ describe('formatting', () => {
   });
 
   it('puts the unit on every rate', () => {
-    expect(formatRatePerMinute(usd('11.16'), 'full')).toBe('$11.16/min');
+    expect(formatRatePerMinute(dollars('11.16'), 'full')).toBe('$11.16/min');
   });
 });
 
-describe('ceilDiv', () => {
+describe('divideRoundingUp', () => {
   it('rounds up and handles exact division', () => {
-    expect(ceilDiv(10n, 3n)).toBe(4n);
-    expect(ceilDiv(9n, 3n)).toBe(3n);
-    expect(ceilDiv(0n, 7n)).toBe(0n);
+    expect(divideRoundingUp(10n, 3n)).toBe(4n);
+    expect(divideRoundingUp(9n, 3n)).toBe(3n);
+    expect(divideRoundingUp(0n, 7n)).toBe(0n);
   });
 });

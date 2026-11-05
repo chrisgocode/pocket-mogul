@@ -9,7 +9,7 @@ import { ListRow } from '@/ui/ListRow';
 import { LogoMark } from '@/ui/LogoMark';
 import { Screen } from '@/ui/Screen';
 import { AppText } from '@/ui/Typography';
-import { colors, radius, spacing, touchTarget } from '@/ui/tokens';
+import { colors, radius, spacing, minimumTouchTarget } from '@/ui/tokens';
 
 type Segment = 'stocks' | 'crypto';
 
@@ -51,8 +51,8 @@ export function MarketsScreen() {
                 subtitle={`${s.ticker} · ${titleCase(s.sector)} · ${CLASS_LABEL[s.volatilityClass]}`}
                 value={formatPrice(s.initialPrice)}
                 detail={
-                  s.dividendPerShareHour > 0n
-                    ? `${formatMoneyExact(s.dividendPerShareHour)}/share/hr`
+                  s.dividendCentsPerSharePerHour > 0n
+                    ? `${formatMoneyExact(s.dividendCentsPerSharePerHour)}/share/hr`
                     : undefined
                 }
               />
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   },
   segment: {
     flex: 1,
-    minHeight: touchTarget,
+    minHeight: minimumTouchTarget,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radius.sm,

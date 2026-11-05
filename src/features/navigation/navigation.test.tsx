@@ -1,6 +1,5 @@
 import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
-// Renders the real route tree in src/app over the real, validated content.
 const renderApp = (initialUrl = '/') => renderRouter('src/app', { initialUrl });
 
 describe('app shell', () => {

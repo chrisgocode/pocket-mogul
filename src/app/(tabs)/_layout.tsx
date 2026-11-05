@@ -11,7 +11,6 @@ const TABS: { name: string; title: string; icon: IconName }[] = [
   { name: 'portfolio', title: 'Portfolio', icon: 'portfolio' },
 ];
 
-/** Five main tabs, all visible from the start (spec §3). Each tab owns a Stack. */
 export default function TabsLayout() {
   return (
     <Tabs

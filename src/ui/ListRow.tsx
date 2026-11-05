@@ -2,9 +2,8 @@ import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AppText } from './Typography';
-import { spacing, touchTarget } from './tokens';
+import { spacing, minimumTouchTarget } from './tokens';
 
-/** A catalog row: leading mark, title and subtitle, trailing value. */
 export function ListRow({
   leading,
   title,
@@ -50,7 +49,12 @@ export function ListRow({
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: touchTarget },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    minHeight: minimumTouchTarget,
+  },
   dimmed: { opacity: 0.55 },
   main: { flex: 1, gap: 2 },
   trailing: { alignItems: 'flex-end', gap: 2, flexShrink: 0 },

@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/ui/Typography';
 import { colors, spacing } from '@/ui/tokens';
 
-/** Shown instead of the game when bundled content fails validation. */
 export function ContentErrorScreen({ issues }: { issues: readonly string[] }) {
   return (
     <SafeAreaView style={styles.safe}>

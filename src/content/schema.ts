@@ -2,12 +2,6 @@ import { z } from 'zod';
 
 import type { MoneyCents, PriceMicros } from '@/domain/money';
 
-/**
- * Zod schema for the versioned economy content (spec §16).
- * Content is stable-ID data, kept apart from the save and the screens.
- * Shape checks live here; cross-reference checks live in validate.ts.
- */
-
 const id = z.string().regex(/^[a-z][a-z0-9_]*$/, 'IDs are lowercase snake_case');
 const ticker = z.string().regex(/^[A-Z]{2,5}$/, 'Tickers are 2–5 capital letters');
 const hexColor = z.string().regex(/^#[0-9A-F]{6}$/, 'Colors are #RRGGBB uppercase');
@@ -31,12 +25,10 @@ const positiveInt = z.number().int().positive();
 const nonNegativeInt = z.number().int().nonnegative();
 const milliseconds = positiveInt;
 
-/** A growth factor as an exact ratio, e.g. 1.45 is { numerator: 145, denominator: 100 }. */
-const ratio = z
+const growthRatio = z
   .object({ numerator: positiveInt, denominator: positiveInt })
   .refine((r) => r.numerator >= r.denominator, 'Growth ratios must be at least 1');
 
-/** Simple shapes that make up the game's original logos and icons. */
 export const GLYPHS = [
   'circle',
   'square',
@@ -94,8 +86,8 @@ export const stockSchema = z.object({
   sector: sectorSchema,
   volatilityClass: z.enum(['standard', 'blue_chip', 'penny']),
   initialPrice: positivePrice,
-  /** Fixed cents per whole share per simulation hour; zero for no dividend. */
-  dividendPerShareHour: nonNegativeCents,
+
+  dividendCentsPerSharePerHour: nonNegativeCents,
   description: z.string().min(1),
   logo: logoSchema,
 });
@@ -142,7 +134,6 @@ export const goalSchema = z.discriminatedUnion('kind', [
   }),
 ]);
 
-/** News templates. `{name}` and `{sector}` are filled in when an event fires. */
 export const eventTemplateSchema = z.object({
   id,
   market: z.enum(['stocks', 'crypto']),
@@ -167,7 +158,7 @@ export const economySchema = z.object({
     perLevelCents: positiveCents,
     maxLevel: positiveInt,
     upgradeBaseCents: positiveCents,
-    upgradeGrowth: ratio,
+    upgradeGrowth: growthRatio,
     artworkLevels: z.array(nonNegativeInt).min(1),
   }),
   boost: z.object({
@@ -181,7 +172,7 @@ export const economySchema = z.object({
       quality: positiveInt,
       efficiency: positiveInt,
     }),
-    upgradeGrowth: ratio,
+    upgradeGrowth: growthRatio,
     managerPriceMultiplier: positiveInt,
     managerBonusBps: nonNegativeBps,
     milestoneEveryLevels: positiveInt,
@@ -203,7 +194,7 @@ export const economySchema = z.object({
       systems: positiveInt,
       expansion: positiveInt,
     }),
-    upgradeGrowth: ratio,
+    upgradeGrowth: growthRatio,
     valueUpgradePercent: z.number().int().min(0).max(100),
     saleValuePercent: z.number().int().min(0).max(100),
   }),
@@ -258,7 +249,7 @@ export const contentSchema = z.object({
   properties: z.array(propertySchema).min(1),
   goals: z.array(goalSchema).min(1),
   events: z.array(eventTemplateSchema).min(1),
-  /** IDs that were used once and must never be given to a different asset. */
+
   retiredIds: z.array(id),
 });
 

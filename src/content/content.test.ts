@@ -1,4 +1,4 @@
-import { ceilDiv, formatMoneyExact, type MoneyCents } from '@/domain/money';
+import { divideRoundingUp, formatMoneyExact, type MoneyCents } from '@/domain/money';
 
 import { economyV1 } from './economy-v1';
 import { checkContent, getContent, ContentValidationError, validateContent } from './index';
@@ -34,7 +34,7 @@ describe('bundled content', () => {
   });
 
   it('has nine dividend payers: three standard and six blue chips', () => {
-    const payers = getContent().stocks.filter((s) => s.dividendPerShareHour > 0n);
+    const payers = getContent().stocks.filter((s) => s.dividendCentsPerSharePerHour > 0n);
     expect(payers.map((s) => s.ticker).toSorted()).toEqual(
       ['ATIN', 'BRIK', 'BRL', 'CLWV', 'EVGU', 'IRCL', 'PRZM', 'SMHD', 'WLBH'].toSorted(),
     );
@@ -46,7 +46,7 @@ describe('bundled content', () => {
     const price = (level: number) => {
       const n = BigInt(upgradeGrowth.numerator) ** BigInt(level);
       const d = BigInt(upgradeGrowth.denominator) ** BigInt(level);
-      return formatMoneyExact(ceilDiv(upgradeBaseCents * n, d) as MoneyCents);
+      return formatMoneyExact(divideRoundingUp(upgradeBaseCents * n, d) as MoneyCents);
     };
     expect([0, 1, 2, 3].map(price)).toEqual(['$100.00', '$145.00', '$210.25', '$304.87']);
   });

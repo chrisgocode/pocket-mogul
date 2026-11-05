@@ -3,7 +3,6 @@ import { ScrollView, StyleSheet } from 'react-native';
 
 import { colors, spacing } from './tokens';
 
-/** Scrollable screen body. Headers and the tab bar handle the safe areas. */
 export function Screen({ children }: { children: ReactNode }) {
   return (
     <ScrollView

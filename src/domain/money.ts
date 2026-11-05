@@ -1,15 +1,3 @@
-/**
- * Exact money and quantity units (spec §12).
- *
- * Three distinct BigInt units, kept apart by brand so they can't be mixed:
- * - MoneyCents: cash and transaction totals, in whole cents.
- * - PriceMicros: quote prices, in millionths of a dollar.
- * - QuantityMicrounits: share or coin quantities, in millionths of a unit.
- *
- * Values are serialized as base-ten strings (JSON.stringify throws on BigInt)
- * and formatted from their digit strings, never through floating point.
- */
-
 declare const brand: unique symbol;
 type Brand<T, B extends string> = T & { readonly [brand]: B };
 
@@ -38,9 +26,6 @@ export const priceMicros = (value: bigint | number): PriceMicros =>
 export const quantityMicrounits = (value: bigint | number): QuantityMicrounits =>
   toBigInt(value, 'QuantityMicrounits') as QuantityMicrounits;
 
-// ---------------------------------------------------------------------------
-// Serialization: base-ten integer strings in the smallest unit.
-
 export function serializeUnits(value: MoneyCents | PriceMicros | QuantityMicrounits): string {
   return value.toString(10);
 }
@@ -59,10 +44,6 @@ export const parsePriceMicros = (text: string): PriceMicros =>
 export const parseQuantityMicrounits = (text: string): QuantityMicrounits =>
   parseIntegerString(text, 'QuantityMicrounits') as QuantityMicrounits;
 
-// ---------------------------------------------------------------------------
-// Decimal literals, for content and tests: "1,250", "0.65", "-3.5".
-// Rejects values that need more precision than the unit holds.
-
 const DECIMAL_STRING = /^(-)?(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?$/;
 
 function parseDecimal(text: string, scaleDigits: number, unit: string): bigint {
@@ -78,28 +59,20 @@ function parseDecimal(text: string, scaleDigits: number, unit: string): bigint {
   return sign === '-' ? -magnitude : magnitude;
 }
 
-/** "$" amount in dollars → MoneyCents. `usd('1,250')` is 125000n. */
-export const usd = (dollars: string): MoneyCents =>
-  parseDecimal(dollars, 2, 'MoneyCents') as MoneyCents;
-/** Dollar price → PriceMicros. `usdPrice('0.101')` is 101000n. */
-export const usdPrice = (dollars: string): PriceMicros =>
-  parseDecimal(dollars, 6, 'PriceMicros') as PriceMicros;
-/** Unit count → QuantityMicrounits. `units('1.5')` is 1500000n. */
+export const dollars = (amount: string): MoneyCents =>
+  parseDecimal(amount, 2, 'MoneyCents') as MoneyCents;
+
+export const dollarPrice = (amount: string): PriceMicros =>
+  parseDecimal(amount, 6, 'PriceMicros') as PriceMicros;
+
 export const units = (count: string): QuantityMicrounits =>
   parseDecimal(count, 6, 'QuantityMicrounits') as QuantityMicrounits;
 
-// ---------------------------------------------------------------------------
-// Integer helpers.
-
-/** Ceiling division for non-negative numerator and positive denominator. */
-export function ceilDiv(numerator: bigint, denominator: bigint): bigint {
+export function divideRoundingUp(numerator: bigint, denominator: bigint): bigint {
   if (denominator <= 0n) throw new RangeError('denominator must be positive');
   if (numerator < 0n) throw new RangeError('numerator must be non-negative');
   return (numerator + denominator - 1n) / denominator;
 }
-
-// ---------------------------------------------------------------------------
-// Formatting.
 
 export type NumberFormatting = 'compact' | 'full';
 
@@ -107,8 +80,7 @@ function groupThousands(digits: string): string {
   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-/** Splits |value| into whole and fraction digit strings at `scaleDigits`. */
-function splitScaled(
+function splitIntoWholeAndFraction(
   value: bigint,
   scaleDigits: number,
 ): { negative: boolean; whole: string; fraction: string } {
@@ -121,9 +93,8 @@ function splitScaled(
   };
 }
 
-/** Exact cash: "$1,234.56", "-$0.05". Used in details and confirmations. */
 export function formatMoneyExact(value: MoneyCents): string {
-  const { negative, whole, fraction } = splitScaled(value, 2);
+  const { negative, whole, fraction } = splitIntoWholeAndFraction(value, 2);
   return `${negative ? '-' : ''}$${groupThousands(whole)}.${fraction}`;
 }
 
@@ -142,11 +113,6 @@ const COMPACT_SUFFIXES = [
   'Dc',
 ] as const;
 
-/**
- * Compact cash for summaries: "$999.99", "$1.23K", "$4.80M", "$1.50B".
- * Rounds toward zero so a summary never shows more money than exists.
- * Past the named suffixes it falls back to scientific notation ("$1.23e36").
- */
 export function formatMoneyCompact(value: MoneyCents): string {
   const negative = value < 0n;
   const cents: bigint = negative ? 0n - value : value;
@@ -166,29 +132,22 @@ export function formatMoneyCompact(value: MoneyCents): string {
   return `${sign}$${mantissa}e${digits.length - 1}`;
 }
 
-/** Cash in the player's chosen style. */
 export function formatMoney(value: MoneyCents, style: NumberFormatting = 'compact'): string {
   return style === 'full' ? formatMoneyExact(value) : formatMoneyCompact(value);
 }
 
-/**
- * Quote price with the needed precision, two to six decimals:
- * "$10.00", "$0.101", "$0.000001".
- */
 export function formatPrice(value: PriceMicros): string {
-  const { negative, whole, fraction } = splitScaled(value, 6);
+  const { negative, whole, fraction } = splitIntoWholeAndFraction(value, 6);
   const trimmed = fraction.replace(/0+$/, '').padEnd(2, '0');
   return `${negative ? '-' : ''}$${groupThousands(whole)}.${trimmed}`;
 }
 
-/** Quantity with up to six decimals and no trailing zeros: "10", "0.5", "1,234.000001". */
 export function formatQuantity(value: QuantityMicrounits): string {
-  const { negative, whole, fraction } = splitScaled(value, 6);
+  const { negative, whole, fraction } = splitIntoWholeAndFraction(value, 6);
   const trimmed = fraction.replace(/0+$/, '');
   return `${negative ? '-' : ''}${groupThousands(whole)}${trimmed ? `.${trimmed}` : ''}`;
 }
 
-/** Rate with its unit, as the spec requires on every income rate: "$10.00/min". */
 export function formatRatePerMinute(
   value: MoneyCents,
   style: NumberFormatting = 'compact',
