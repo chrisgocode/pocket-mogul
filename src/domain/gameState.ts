@@ -2,8 +2,16 @@ import { moneyCents, type MoneyCents } from './money';
 
 export const SAVE_SCHEMA_VERSION = 1;
 
-export type OwnedBusiness = { readonly definitionId: string };
+export type OwnedBusiness = {
+  readonly definitionId: string;
+  readonly capitalizedSpendCents: MoneyCents;
+};
 export type OwnedProperty = { readonly definitionId: string };
+
+export type IncomeState = {
+  readonly businessRemainders: Readonly<Record<string, number>>;
+  readonly businessEarningsCents: MoneyCents;
+};
 
 export type GameState = {
   readonly saveId: string;
@@ -17,6 +25,7 @@ export type GameState = {
   readonly tap: { readonly walletLevel: number; readonly totalAcceptedTaps: number };
   readonly businesses: readonly OwnedBusiness[];
   readonly properties: readonly OwnedProperty[];
+  readonly income: IncomeState;
   readonly unlockedTiers: readonly number[];
 };
 
@@ -37,6 +46,7 @@ export function freshGameState(start: {
     tap: { walletLevel: 0, totalAcceptedTaps: 0 },
     businesses: [],
     properties: [],
+    income: { businessRemainders: {}, businessEarningsCents: moneyCents(0) },
     unlockedTiers: [1],
   };
 }

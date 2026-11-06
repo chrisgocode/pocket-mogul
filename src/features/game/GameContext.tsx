@@ -1,13 +1,14 @@
 import { createContext, use, useCallback, useSyncExternalStore, type ReactNode } from 'react';
 
 import type { Game, GameSnapshot } from '@/application/game';
-import { useWhenAppLeavesForeground } from '@/ui/effects/useWhenAppLeavesForeground';
+import { useAppForeground } from '@/ui/effects/useAppForeground';
 
 const GameContext = createContext<Game | undefined>(undefined);
 
 export function GameProvider({ game, children }: { game: Game; children: ReactNode }) {
-  const saveUnsavedTaps = useCallback(() => void game.flushTaps(), [game]);
-  useWhenAppLeavesForeground(saveUnsavedTaps);
+  const onLeave = useCallback(() => void game.pause(), [game]);
+  const onReturn = useCallback(() => game.resume(), [game]);
+  useAppForeground({ onLeave, onReturn });
   return <GameContext value={game}>{children}</GameContext>;
 }
 

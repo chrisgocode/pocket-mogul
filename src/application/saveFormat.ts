@@ -10,6 +10,8 @@ const moneyText = z
   .transform(parseMoneyCents);
 const count = z.number().int().nonnegative();
 const definitionId = z.object({ definitionId: z.string().min(1) });
+const ownedBusiness = definitionId.extend({ capitalizedSpendCents: moneyText });
+const remainder = z.number().int().nonnegative();
 
 const savedGameSchema = z.object({
   saveId: z.string().min(1),
@@ -21,8 +23,14 @@ const savedGameSchema = z.object({
   lifetimeTapEarningsCents: moneyText,
   clock: z.object({ simulationMs: count, lastWallCheckpointMs: z.number().int() }),
   tap: z.object({ walletLevel: count, totalAcceptedTaps: count }),
-  businesses: z.array(definitionId),
+  businesses: z.array(ownedBusiness),
   properties: z.array(definitionId),
+  income: z
+    .object({
+      businessRemainders: z.record(z.string(), remainder),
+      businessEarningsCents: moneyText,
+    })
+    .prefault({ businessRemainders: {}, businessEarningsCents: '0' }),
   unlockedTiers: z.array(z.number().int().positive()),
 });
 

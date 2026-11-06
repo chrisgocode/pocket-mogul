@@ -1,6 +1,7 @@
+import { selectIncomePerMinuteCents } from '@/application/cashView';
 import { selectTapCard } from '@/application/tapCardView';
 import { getContent } from '@/content';
-import { formatMoneyExact } from '@/domain/money';
+import { formatMoneyExact, formatRatePerMinute } from '@/domain/money';
 import { useGame, useGameSnapshot } from '@/features/game/GameContext';
 import { Card } from '@/ui/Card';
 import { Screen } from '@/ui/Screen';
@@ -13,9 +14,12 @@ import { WalletUpgrade } from './WalletUpgrade';
 
 export function HomeScreen() {
   const game = useGame();
-  const view = selectTapCard(useGameSnapshot(), getContent());
+  const snapshot = useGameSnapshot();
+  const content = getContent();
+  const view = selectTapCard(snapshot, content);
   const playHaptic = useTapHaptics();
   const cash = formatMoneyExact(view.cashCents);
+  const passive = formatRatePerMinute(selectIncomePerMinuteCents(snapshot, content), 'full');
   const tap = () => {
     game.tap();
     playHaptic();
@@ -29,7 +33,9 @@ export function HomeScreen() {
         <AppText variant="display" accessibilityLabel={`Cash ${cash}`}>
           {cash}
         </AppText>
-        <AppText muted>{formatMoneyExact(view.perTapCents)} per tap · $0.00/min passive</AppText>
+        <AppText muted>
+          {formatMoneyExact(view.perTapCents)} per tap · {passive} net passive
+        </AppText>
       </Card>
       <TapCard
         perTapCents={view.perTapCents}
