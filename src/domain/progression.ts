@@ -21,6 +21,11 @@ function withPeakNetWorth(state: GameState): GameState {
   return netWorth > state.peakNetWorthCents ? { ...state, peakNetWorthCents: netWorth } : state;
 }
 
+function insertInOrder(tiers: readonly number[], tier: number): readonly number[] {
+  const index = tiers.findIndex((existing) => existing > tier);
+  return index === -1 ? [...tiers, tier] : [...tiers.slice(0, index), tier, ...tiers.slice(index)];
+}
+
 function withUnlockedTiers(state: GameState, thresholds: TierThresholds): GameState {
   const reached = Object.entries(thresholds)
     .filter(([, threshold]) => threshold <= state.peakNetWorthCents)
@@ -29,7 +34,7 @@ function withUnlockedTiers(state: GameState, thresholds: TierThresholds): GameSt
   if (reached.length === 0) return state;
   return {
     ...state,
-    unlockedTiers: [...state.unlockedTiers, ...reached].toSorted((a, b) => a - b),
+    unlockedTiers: reached.reduce(insertInOrder, state.unlockedTiers),
   };
 }
 
