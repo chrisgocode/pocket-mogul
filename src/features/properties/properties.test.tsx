@@ -1,11 +1,11 @@
 import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
-import type { Game } from '@/application/game';
+import type { OpenedGame } from '@/application/game';
 import { startTestGameFrom, type TestGame } from '@/application/testGame';
 import { freshGameState, type OwnedProperty } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 
-let mockGame: Promise<Game>;
+let mockGame: Promise<OpenedGame>;
 jest.mock('@/bootstrap/deviceGame', () => ({ loadDeviceGame: () => mockGame }));
 
 const VACANT_STUDIO: OwnedProperty = {
@@ -25,7 +25,7 @@ async function open(
     properties,
   });
   await session.game.checkpoint();
-  mockGame = Promise.resolve(session.game);
+  mockGame = Promise.resolve({ status: 'ready', game: session.game });
   await renderRouter('src/app', { initialUrl });
   return session;
 }

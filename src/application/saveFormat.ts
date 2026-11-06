@@ -2,88 +2,25 @@ import { z } from 'zod';
 
 import { GAME_ERROR_CODES, type CommandOutcome } from '@/domain/commands';
 import { SAVE_SCHEMA_VERSION, type GameState } from '@/domain/gameState';
-import { parseMoneyCents, parsePriceMicros } from '@/domain/money';
 
-const moneyText = z
-  .string()
-  .regex(/^-?\d+$/)
-  .transform(parseMoneyCents);
-const count = z.number().int().nonnegative();
-const definitionId = z.object({ definitionId: z.string().min(1) });
-const level = z.number().int().nonnegative();
-const ownedBusiness = definitionId.extend({
-  levels: z
-    .object({ capacity: level, quality: level, efficiency: level })
-    .prefault({ capacity: 0, quality: 0, efficiency: 0 }),
-  managerOwned: z.boolean().default(false),
-  capitalizedSpendCents: moneyText,
-});
-const ownedProperty = definitionId.extend({
-  levels: z
-    .object({ renovation: level, furnishings: level, systems: level, expansion: level })
-    .prefault({ renovation: 0, furnishings: 0, systems: 0, expansion: 0 }),
-  rented: z.boolean().default(false),
-  upgradeSpendCents: moneyText.prefault('0'),
-});
-const remainder = z.number().int().nonnegative();
-const remainders = z.record(z.string(), remainder);
-const returnSummary = z.discriminatedUnion('status', [
-  z.object({ status: z.literal('none') }),
-  z.object({
-    status: z.literal('pending'),
-    summary: z.object({
-      awayMs: count,
-      creditedMs: count,
-      earnings: z.object({ businesses: moneyText, rent: moneyText.prefault('0') }),
-    }),
-  }),
-]);
+import { count, moneyText, saveSchemaV1, saveSchemaV2 } from './saveSchemas';
 
-const priceText = z.string().regex(/^\d+$/).transform(parsePriceMicros);
-const candle = z.object({ open: priceText, high: priceText, low: priceText, close: priceText });
-const market = z.object({
-  seed: z.string().min(1),
-  tick: count,
-  quotes: z.record(z.string(), priceText),
-  candles: z.record(z.string(), candle),
-});
+export type DecodedSave =
+  | { readonly status: 'current'; readonly state: GameState }
+  | { readonly status: 'migrated'; readonly state: GameState; readonly fromVersion: number }
+  | { readonly status: 'newer'; readonly schemaVersion: number }
+  | { readonly status: 'corrupt' };
 
-const MARKET_TICK_MS_BEFORE_MARKETS = 60_000;
+type Migration = { readonly fromVersion: number; readonly upgrade: (raw: unknown) => GameState };
 
-const savedGameSchema = z.object({
-  saveId: z.string().min(1),
-  schemaVersion: z.literal(SAVE_SCHEMA_VERSION),
-  economyVersion: z.number().int().positive(),
-  revision: count,
-  cashCents: moneyText,
-  peakNetWorthCents: moneyText,
-  lifetimeTapEarningsCents: moneyText,
-  clock: z.object({ simulationMs: count, lastWallCheckpointMs: z.number().int() }),
-  tap: z.object({ walletLevel: count, totalAcceptedTaps: count }),
-  businesses: z.array(ownedBusiness),
-  properties: z.array(ownedProperty),
-  income: z
-    .object({
-      businessRemainders: remainders,
-      businessEarningsCents: moneyText,
-      rentRemainders: remainders.prefault({}),
-      rentEarningsCents: moneyText.prefault('0'),
-    })
-    .prefault({ businessRemainders: {}, businessEarningsCents: '0' }),
-  unlockedTiers: z.array(z.number().int().positive()),
-  returnSummary: returnSummary.prefault({ status: 'none' }),
-  market: market.optional(),
-});
-
-const savedGameWithMarket = savedGameSchema.transform((saved) => ({
-  ...saved,
-  market: saved.market ?? {
-    seed: saved.saveId,
-    tick: Math.floor(saved.clock.simulationMs / MARKET_TICK_MS_BEFORE_MARKETS),
-    quotes: {},
-    candles: {},
+const MIGRATIONS: readonly Migration[] = [
+  {
+    fromVersion: 1,
+    upgrade: (raw) => ({ ...saveSchemaV1.parse(raw), schemaVersion: SAVE_SCHEMA_VERSION }),
   },
-}));
+];
+
+const versioned = z.object({ schemaVersion: z.number().int() });
 
 const outcomeSchema = z.discriminatedUnion('ok', [
   z.object({ ok: z.literal(true), revision: count, cashChangeCents: moneyText }),
@@ -98,8 +35,36 @@ export function encodeSave(state: GameState): string {
   return JSON.stringify(state, bigintsAsText);
 }
 
-export function decodeSave(text: string): GameState {
-  return savedGameWithMarket.parse(JSON.parse(text));
+function parseJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return undefined;
+  }
+}
+
+function migrated(raw: unknown, fromVersion: number): DecodedSave {
+  const migration = MIGRATIONS.find((step) => step.fromVersion === fromVersion);
+  if (migration === undefined) return { status: 'corrupt' };
+  try {
+    return { status: 'migrated', state: migration.upgrade(raw), fromVersion };
+  } catch {
+    return { status: 'corrupt' };
+  }
+}
+
+function current(raw: unknown): DecodedSave {
+  const parsed = saveSchemaV2.safeParse(raw);
+  return parsed.success ? { status: 'current', state: parsed.data } : { status: 'corrupt' };
+}
+
+export function decodeSave(text: string): DecodedSave {
+  const raw = parseJson(text);
+  const header = versioned.safeParse(raw);
+  if (!header.success) return { status: 'corrupt' };
+  const { schemaVersion } = header.data;
+  if (schemaVersion > SAVE_SCHEMA_VERSION) return { status: 'newer', schemaVersion };
+  return schemaVersion === SAVE_SCHEMA_VERSION ? current(raw) : migrated(raw, schemaVersion);
 }
 
 export function encodeOutcome(outcome: CommandOutcome): string {

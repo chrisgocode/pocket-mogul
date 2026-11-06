@@ -7,6 +7,8 @@ import { Screen } from '@/ui/Screen';
 import { Section } from '@/ui/Section';
 import { AppText } from '@/ui/Typography';
 
+import { ResetSaveSection } from './ResetSaveSection';
+
 export function SettingsScreen() {
   return (
     <Screen>
@@ -18,6 +20,7 @@ export function SettingsScreen() {
           <ListRow title="Number formatting" detail="Compact" />
         </Card>
       </Section>
+      <ResetSaveSection />
       <Section title="About">
         <Card>
           <ListRow title="App version" detail={Constants.expoConfig?.version ?? 'unknown'} />

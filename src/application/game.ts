@@ -1,20 +1,25 @@
 import type { Content } from '@/content';
 import type { CommandEnvelope, CommandOutcome } from '@/domain/commands';
-import { freshGameState, type GameState } from '@/domain/gameState';
+import type { GameState } from '@/domain/gameState';
 
-import { commitCommand } from './commitCommand';
-import { foregroundTime } from './foregroundTime';
+import { supportsEconomy } from './economy';
+import { commitCommand, type CommandTime, type Committed } from './commitCommand';
+import { foregroundTime, type ForegroundTime } from './foregroundTime';
 import { foregroundLoops } from './foregroundLoops';
 import { marketHistoryFeeds, type HistoryFeed } from './marketHistoryFeed';
+import { openSave, type SaveNotice, type SaveStopReason } from './openSave';
 import type { AssetHistory, Clock, SaveStore } from './ports';
+import { commitReset } from './resetSave';
+import { backUpIfDue } from './saveBackups';
 import { serialQueue } from './serialQueue';
-import { snapshotStore } from './snapshotStore';
+import { snapshotStore, type SnapshotStore } from './snapshotStore';
 import { tapBatcher } from './tapBatcher';
 
 export type GamePorts = {
   clock: Clock;
   store: SaveStore;
   content: Content;
+  pastContent?: readonly Content[];
   createId: () => string;
   beforeWarmReturnSummary?: () => Promise<void>;
 };
@@ -23,6 +28,7 @@ export type GameSnapshot = {
   readonly state: GameState;
   readonly pendingTaps: number;
   readonly unsavedElapsedMs: number;
+  readonly notice: SaveNotice;
 };
 
 export type Game = {
@@ -35,27 +41,25 @@ export type Game = {
   pause: () => Promise<void>;
   resume: () => Promise<void>;
   createCommandId: () => string;
+  dismissNotice: () => void;
+  resetSave: (attemptId: string) => Promise<CommandOutcome>;
   readMarketHistory: (assetId: string) => Promise<AssetHistory>;
   marketHistory: (assetId: string) => HistoryFeed;
 };
 
-async function loadOrStart(ports: GamePorts): Promise<GameState> {
-  const saved = await ports.store.load();
-  if (saved !== undefined) return saved;
-  const fresh = freshGameState({
-    saveId: ports.createId(),
-    economyVersion: ports.content.economyVersion,
-    wallMs: ports.clock.wallMs(),
-  });
-  await ports.store.transact((tx) => tx.writeState(fresh));
-  return fresh;
-}
+export type OpenedGame =
+  | { readonly status: 'ready'; readonly game: Game }
+  | { readonly status: 'stopped'; readonly reason: SaveStopReason };
+
+type Opened = { readonly state: GameState; readonly notice: SaveNotice };
 
 type RunOptions = {
   settledTaps?: number;
   issuedAtWallMs?: number;
   beforePublish?: (() => Promise<void>) | undefined;
 };
+
+type CommitStep = (current: GameState, time: CommandTime) => Promise<Committed>;
 
 async function runBeforePublish(step: (() => Promise<void>) | undefined): Promise<void> {
   try {
@@ -65,43 +69,59 @@ async function runBeforePublish(step: (() => Promise<void>) | undefined): Promis
   }
 }
 
-function committer(ports: GamePorts, initial: GameState) {
+type PublishedChange = { state?: GameState | undefined; settledTaps: number };
+
+function publisher(snapshots: SnapshotStore<GameSnapshot>, time: ForegroundTime) {
+  return (change: PublishedChange) => {
+    const current = snapshots.get();
+    snapshots.set({
+      ...current,
+      state: change.state ?? current.state,
+      pendingTaps: current.pendingTaps - change.settledTaps,
+      unsavedElapsedMs: time.unsavedMs(),
+    });
+  };
+}
+
+function committer(ports: GamePorts, opened: Opened) {
   const snapshots = snapshotStore<GameSnapshot>({
-    state: initial,
+    ...opened,
     pendingTaps: 0,
     unsavedElapsedMs: 0,
   });
   const time = foregroundTime(ports.clock);
   const queue = serialQueue();
   const history = marketHistoryFeeds({ queue, load: ports.store.loadAssetHistory });
-  const publish = (change: { state?: GameState | undefined; settledTaps: number }) => {
-    const current = snapshots.get();
-    snapshots.set({
-      state: change.state ?? current.state,
-      pendingTaps: current.pendingTaps - change.settledTaps,
-      unsavedElapsedMs: time.unsavedMs(),
-    });
-  };
-  const run = (envelope: CommandEnvelope, options: RunOptions = {}) => {
+  const publish = publisher(snapshots, time);
+  const commit = (step: CommitStep, options: RunOptions = {}) => {
     const wallMs = options.issuedAtWallMs ?? ports.clock.wallMs();
     return queue.run(async () => {
       const elapsedMs = time.unsavedMs();
-      const current = snapshots.get().state;
-      const committed = await commitCommand(ports, {
-        current,
-        envelope,
-        time: { elapsedMs, wallMs },
-      });
+      const committed = await step(snapshots.get().state, { elapsedMs, wallMs });
       if (committed.history !== undefined) history.append(committed.history);
       if (committed.state !== undefined) {
         time.saved(elapsedMs);
+        await backUpIfDue(ports.store, { revision: committed.state.revision, wallMs });
         await runBeforePublish(options.beforePublish);
       }
       publish({ state: committed.state, settledTaps: options.settledTaps ?? 0 });
       return committed.outcome;
     });
   };
-  return { snapshots, time, queue, history, run, refresh: () => publish({ settledTaps: 0 }) };
+  const run = (envelope: CommandEnvelope, options: RunOptions = {}) =>
+    commit(
+      (current, stepTime) => commitCommand(ports, { current, envelope, time: stepTime }),
+      options,
+    );
+  return {
+    snapshots,
+    time,
+    queue,
+    history,
+    run,
+    commit,
+    refresh: () => publish({ settledTaps: 0 }),
+  };
 }
 
 type Committer = ReturnType<typeof committer>;
@@ -146,15 +166,33 @@ function offlineSettlement(ports: GamePorts, core: Committer) {
     );
   return {
     async onLaunch() {
-      const { lastWallCheckpointMs } = core.snapshots.get().state.clock;
-      if (ports.clock.wallMs() !== lastWallCheckpointMs) await settle();
+      const { clock, economyVersion } = core.snapshots.get().state;
+      const awayMs = ports.clock.wallMs() - clock.lastWallCheckpointMs;
+      if (awayMs !== 0 || economyVersion !== ports.content.economyVersion) await settle();
     },
     onWarmResume: () => settle(ports.beforeWarmReturnSummary),
   };
 }
 
-export async function createGame(ports: GamePorts): Promise<Game> {
-  const core = committer(ports, await loadOrStart(ports));
+function saveControls(ports: GamePorts, game: { core: Committer; flushTaps: () => Promise<void> }) {
+  const { core } = game;
+  return {
+    async resetSave(attemptId: string) {
+      await game.flushTaps();
+      const outcome = await core.commit((current, { wallMs }) =>
+        commitReset(ports, { attemptId, current, wallMs }),
+      );
+      if (outcome.ok) core.history.reload();
+      return outcome;
+    },
+    dismissNotice: () => core.snapshots.set({ ...core.snapshots.get(), notice: { kind: 'none' } }),
+  };
+}
+
+async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
+  const core = committer(ports, opened);
+  const wallMs = ports.clock.wallMs();
+  await core.queue.run(() => backUpIfDue(ports.store, { revision: opened.state.revision, wallMs }));
   const offline = offlineSettlement(ports, core);
   await offline.onLaunch();
   const { dispatch, tap, flushTaps } = tapBatching(ports, core);
@@ -176,6 +214,7 @@ export async function createGame(ports: GamePorts): Promise<Game> {
     tap,
     flushTaps,
     createCommandId: ports.createId,
+    ...saveControls(ports, { core, flushTaps }),
     readMarketHistory: (assetId) => core.queue.run(() => ports.store.loadAssetHistory(assetId)),
     marketHistory: (assetId) => core.history.feed(assetId),
     async pause() {
@@ -189,4 +228,16 @@ export async function createGame(ports: GamePorts): Promise<Game> {
       await offline.onWarmResume();
     },
   };
+}
+
+export async function createGame(ports: GamePorts): Promise<OpenedGame> {
+  const opened = await openSave({
+    store: ports.store,
+    wallMs: ports.clock.wallMs(),
+    createId: ports.createId,
+    currentEconomyVersion: ports.content.economyVersion,
+    supportsEconomy: supportsEconomy(ports),
+  });
+  if (opened.status === 'stopped') return opened;
+  return { status: 'ready', game: await startGame(ports, opened) };
 }

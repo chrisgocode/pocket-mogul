@@ -13,7 +13,7 @@ A portrait mobile idle wealth game for iOS and Android: tap for cash, then build
 | Phase | Issue | State |
 |---|---|---|
 | 1 Foundation | [#38](https://github.com/chrisgocode/pocket-mogul/issues/38) | Built; starts on iOS and Android |
-| 2 Economy and persistence | [#21](https://github.com/chrisgocode/pocket-mogul/issues/21) | First slice built: tapping, the Game engine and the SQLite save |
+| 2 Economy and persistence | [#21](https://github.com/chrisgocode/pocket-mogul/issues/21) | Tapping, the Game engine, the SQLite save, and save safety ([#27](https://github.com/chrisgocode/pocket-mogul/issues/27)) built |
 | 3 Tapping and businesses | [#22](https://github.com/chrisgocode/pocket-mogul/issues/22)–[#24](https://github.com/chrisgocode/pocket-mogul/issues/24) | Wallet upgrades, businesses, upgrades, managers, sales and Tier unlocks built |
 | 4 Property and offline | [#26](https://github.com/chrisgocode/pocket-mogul/issues/26) | Properties and rent built; offline earnings ([#25](https://github.com/chrisgocode/pocket-mogul/issues/25)) not started |
 | 5 Markets and portfolio | [#28](https://github.com/chrisgocode/pocket-mogul/issues/28) | Seeded market simulation built, read-only; trading not started |
@@ -22,6 +22,8 @@ A portrait mobile idle wealth game for iOS and Android: tap for cash, then build
 Phase 1 is a runnable shell. It has five tabs, each with its own Stack, and Goals and Settings open from the header. It shows the validated v1 catalog read-only.
 
 #21 adds the first slice of the Game engine. Tapping the card on Home earns $1 per tap. Taps are collected into one TapBatch command for at most 250 ms (sooner when the app leaves the foreground) and committed to an on-device SQLite save, so cash survives a restart. Every command runs through one serialized queue, and each commit writes the snapshot and the command receipt in one exclusive transaction. A repeated command ID returns its recorded result. If a save fails, the unsaved taps roll back on screen.
+
+#27 hardens the save. After a verified commit, at most once a minute, the Game copies the save into `save_backups` (two kept). A save from an older schema is backed up, then migrated explicitly (`MIGRATIONS` in `src/application/saveFormat.ts`, tested against `src/application/fixtures/save-v1.json`). A corrupt latest snapshot restores the newest valid backup and shows a "Save restored" notice; the damaged document is kept in `diagnostics`. A save from a newer schema, an economy version this build doesn't bundle, or a damaged save with no valid backup stops on an explanation screen and is never overwritten or reset. When `economyVersion` changes, the time since the last checkpoint is settled at the save's old rates before the new ones apply; old economies stay bundled in `src/content/index.ts`. Receipts older than 30 days are pruned on launch. Settings has Reset Save behind a confirmation sheet.
 
 #26 adds properties. The Properties tab lists all 8 listings, buyable whenever cash allows. A bought property starts vacant; Rent Out starts rent minus upkeep, and Unrent stops both. Renovation, Furnishings and Building Systems (0 to 10) and Expansion (0 to 4, not on City Studio or Starter House) apply at once, each previewed in the confirmation sheet with its cost, rent, upkeep and value change. Selling pays 95% of the estimated value, and estimated value counts toward net worth.
 
@@ -80,7 +82,7 @@ Native iOS and Android builds aren't in CI yet. They run on the owner's Mac for 
 | `src/features` | Home, Businesses, Markets, Properties, Portfolio, Goals, Settings |
 | `src/domain` | Pure logic: `money.ts` (exact BigInt money units and formatters), the game state, commands and tapping rules |
 | `src/application` | The headless Game engine: `createGame` from injected ports (clock, SaveStore, content, IDs), the serialized command queue, tap batching, snapshot subscriptions, the save format and `testGame.ts` (fake clock plus Node SQLite) for tests |
-| `src/infrastructure` | Adapters: the SaveStore over a narrow SQL driver with migrations (`save_state`, `command_receipts`, `schema_migrations`), the expo-sqlite driver (WAL, `withExclusiveTransactionAsync`), the Node SQLite driver for tests, and the device clock |
+| `src/infrastructure` | Adapters: the SaveStore over a narrow SQL driver with migrations (`save_state`, `command_receipts`, `diagnostics`, `save_backups`, `schema_migrations`), the expo-sqlite driver (WAL, `withExclusiveTransactionAsync`), the Node SQLite driver for tests, and the device clock |
 | `src/bootstrap` | The composition root: builds the device Game from the real adapters. Routes reach it only through `DeviceGameProvider`, so screens never import adapters |
 | `src/content` | Versioned economy content (`economy-v1.ts`), Zod schema and validation |
 | `src/ui` | Design tokens, shared components, original SVG logo marks and icons |

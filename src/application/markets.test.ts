@@ -4,8 +4,14 @@ import { advanceMarket, freshMarket } from '@/domain/market';
 import { dollarPrice } from '@/domain/money';
 
 import { marketEconomy } from './economy';
-import { decodeSave, encodeSave } from './saveFormat';
-import { startTestGame, startTestGameFrom, type TestGame } from './testGame';
+import { encodeSave } from './saveFormat';
+import {
+  currentState,
+  migratedState,
+  startTestGame,
+  startTestGameFrom,
+  type TestGame,
+} from './testGame';
 
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
@@ -127,9 +133,10 @@ describe('saves from before markets', () => {
     const fresh = freshGameState({ saveId: 'old', economyVersion: 1, wallMs: 0 });
     const { market: _market, ...legacy } = {
       ...fresh,
+      schemaVersion: 1,
       clock: { simulationMs: 3 * HOUR_MS + 30_000, lastWallCheckpointMs: 0 },
     };
-    expect(decodeSave(encodeSave(legacy as typeof fresh)).market).toEqual({
+    expect(migratedState(encodeSave(legacy as typeof fresh)).market).toEqual({
       seed: 'old',
       tick: 180,
       quotes: {},
@@ -145,7 +152,7 @@ describe('saves from before markets', () => {
       quotes: { wag: price },
       candles: { wag: { open: price, high: price, low: price, close: price } },
     };
-    expect(decodeSave(encodeSave({ ...fresh, market })).market).toEqual(market);
+    expect(currentState(encodeSave({ ...fresh, market })).market).toEqual(market);
   });
 });
 
