@@ -2,7 +2,7 @@ import {
   managerPriceCents,
   quoteBusinessUpgrade,
   saleProceedsCents,
-  unownedBusiness,
+  levelZeroBusiness,
   type BusinessCatalog,
   type BusinessDefinition,
   type BusinessRules,
@@ -70,7 +70,7 @@ export function applyBuyBusiness(state: GameState, order: BusinessOrder): Comman
     return { ok: false, error: 'ALREADY_OWNED' };
   }
   if (!state.unlockedTiers.includes(definition.tier)) return { ok: false, error: 'LOCKED_TIER' };
-  const bought = { ...unownedBusiness(definition.id), capitalizedSpendCents: definition.price };
+  const bought = { ...levelZeroBusiness(definition.id), capitalizedSpendCents: definition.price };
   return spend({ ...state, businesses: [...state.businesses, bought] }, definition.price);
 }
 
@@ -81,7 +81,11 @@ export function applyUpgradeBusiness(
   const found = lookUpOwned(state, order);
   if (!found.ok) return found;
   const { owned, definition } = found;
-  const quote = quoteBusinessUpgrade(owned, { definition, rules: order.economy.rules, ...order });
+  const quote = quoteBusinessUpgrade(owned, {
+    definition,
+    rules: order.economy.rules,
+    track: order.track,
+  });
   if (quote.level !== order.fromLevel) return { ok: false, error: 'STALE_QUOTE' };
   if (quote.status === 'max') return { ok: false, error: 'MAX_LEVEL' };
   return spend(

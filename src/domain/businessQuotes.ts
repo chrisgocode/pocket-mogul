@@ -61,7 +61,7 @@ const WHOLE_PERCENT = 100;
 const PERCENT = BigInt(WHOLE_PERCENT);
 const BASIS_POINTS = 10_000;
 
-export function unownedBusiness(definitionId: string): OwnedBusiness {
+export function levelZeroBusiness(definitionId: string): OwnedBusiness {
   return {
     definitionId,
     levels: { capacity: 0, quality: 0, efficiency: 0 },

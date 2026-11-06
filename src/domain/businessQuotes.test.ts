@@ -5,7 +5,7 @@ import {
   quoteBusinessIncome,
   quoteBusinessUpgrade,
   saleProceedsCents,
-  unownedBusiness,
+  levelZeroBusiness,
 } from './businessQuotes';
 import { dollars } from './money';
 
@@ -35,7 +35,7 @@ const vending: BusinessDefinition = {
   costsPerMinute: dollars('4'),
 };
 
-const base = unownedBusiness('vending');
+const base = levelZeroBusiness('vending');
 const owned = { definition: vending, rules };
 
 describe('business income quote', () => {

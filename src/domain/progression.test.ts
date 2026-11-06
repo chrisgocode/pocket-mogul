@@ -1,4 +1,4 @@
-import { unownedBusiness } from './businessQuotes';
+import { levelZeroBusiness } from './businessQuotes';
 import { freshGameState, type GameState } from './gameState';
 import { dollars } from './money';
 import { withProgress } from './progression';
@@ -8,7 +8,7 @@ const thresholds = { 2: dollars('5,000'), 3: dollars('200,000'), 4: dollars('8,0
 const holding = (cash: string, businessValue = '0'): GameState => ({
   ...freshGameState({ saveId: 'test', economyVersion: 1, wallMs: 0 }),
   cashCents: dollars(cash),
-  businesses: [{ ...unownedBusiness('vending'), capitalizedSpendCents: dollars(businessValue) }],
+  businesses: [{ ...levelZeroBusiness('vending'), capitalizedSpendCents: dollars(businessValue) }],
 });
 
 describe('peak net worth', () => {

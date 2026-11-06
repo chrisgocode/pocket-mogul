@@ -1,5 +1,4 @@
 import type { OwnedBusinessDetail } from '@/application/businessDetailView';
-import { getContent } from '@/content';
 
 import type { BusinessAction } from './businessAction';
 import { BusinessIncomeCard } from './BusinessIncomeCard';
@@ -16,24 +15,23 @@ export function OwnedBusinessDetails({
   onReview: (action: BusinessAction) => void;
 }) {
   const { business } = detail;
-  const rules = getContent().economy.businessRules;
   return (
     <>
       <BusinessIncomeCard detail={detail} />
       <BusinessUpgradesSection
         detail={detail}
-        milestoneEveryLevels={rules.milestoneEveryLevels}
+        milestoneEveryLevels={detail.milestoneEveryLevels}
         onReview={(upgrade) => onReview({ kind: 'upgrade', business, upgrade })}
       />
       <ManagerCard
         manager={detail.manager}
-        bonus={formatBonus(rules.managerBonusBps)}
+        bonus={formatBonus(detail.managerBonusBps)}
         onReview={(manager) => onReview({ kind: 'manager', business, manager })}
       />
       <SellCard
         name={business.name}
         sale={detail.sale}
-        returnPercent={rules.saleReturnPercent}
+        returnPercent={detail.saleReturnPercent}
         onReview={() =>
           onReview({
             kind: 'sell',

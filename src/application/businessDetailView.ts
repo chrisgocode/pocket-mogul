@@ -44,6 +44,9 @@ export type OwnedBusinessDetail = {
   readonly business: Business;
   readonly levels: BusinessLevels;
   readonly maxTrackLevel: number;
+  readonly milestoneEveryLevels: number;
+  readonly managerBonusBps: number;
+  readonly saleReturnPercent: number;
   readonly branches: number;
   readonly income: BusinessIncomeQuote;
   readonly upgrades: readonly BusinessUpgradeOption[];
@@ -85,6 +88,9 @@ function ownedDetail(business: Business, context: DetailContext): OwnedBusinessD
     business,
     levels: owned.levels,
     maxTrackLevel: pricing.rules.maxTrackLevel,
+    milestoneEveryLevels: pricing.rules.milestoneEveryLevels,
+    managerBonusBps: pricing.rules.managerBonusBps,
+    saleReturnPercent: pricing.rules.saleReturnPercent,
     branches: branchCount(owned.levels.capacity, pricing.rules),
     income,
     upgrades: UPGRADE_TRACKS.map((track) => upgradeOption(track, context)),

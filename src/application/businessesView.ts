@@ -1,5 +1,5 @@
 import { TIERS, type Business, type Content, type Tier } from '@/content';
-import { quoteBusinessIncome, unownedBusiness } from '@/domain/businessQuotes';
+import { quoteBusinessIncome, levelZeroBusiness } from '@/domain/businessQuotes';
 import { findOwnedBusiness } from '@/domain/businesses';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 
@@ -46,7 +46,7 @@ type OfferContext = {
 
 function offer(business: Business, context: OfferContext): BusinessOffer {
   const owned = findOwnedBusiness(context.snapshot.state, business.id);
-  const income = quoteBusinessIncome(owned ?? unownedBusiness(business.id), {
+  const income = quoteBusinessIncome(owned ?? levelZeroBusiness(business.id), {
     definition: business,
     rules: context.content.economy.businessRules,
   });

@@ -23,7 +23,7 @@ export function SellCard({
       <AppText variant="heading">Sell</AppText>
       <AppText muted>
         Pays {returnPercent}% of the {formatMoneyExact(sale.carryingValueCents)} spent on purchase
-        and upgrades. Manager spending is not refunded.
+        and upgrades. Manager spending is not part of the sale.
       </AppText>
       <Button
         label={label}
