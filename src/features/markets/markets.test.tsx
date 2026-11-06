@@ -75,4 +75,18 @@ describe('Asset details', () => {
       expect.stringContaining('Past 61 market minutes:'),
     );
   });
+
+  it('labels a full 8-hour chart as the past 8 market hours', async () => {
+    const left = await startTestGame();
+    const away = await left.restart({ awayMs: 9 * 60 * MINUTE_MS });
+    const back = await away.restart({ awayMs: 2 * MINUTE_MS });
+    mockGame = Promise.resolve(back.game);
+    await renderRouter('src/app', { initialUrl: '/markets/prism' });
+    await screen.findByRole('image', { name: /price chart/ });
+    await fireEvent.press(screen.getByRole('tab', { name: '8 hours' }));
+    expect(chartSummary()).toHaveProp(
+      'accessibilityLabel',
+      expect.stringContaining('Past 8 market hours:'),
+    );
+  });
 });

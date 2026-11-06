@@ -40,9 +40,9 @@ function counted(count: number, unit: string): string {
 function marketDuration(ms: number): string {
   const minutes = Math.floor(ms / MINUTE_MS);
   if (minutes < MINUTES_SHOWN_UP_TO) return counted(minutes, 'minute');
-  const hours = Math.floor(minutes / MINUTES_PER_HOUR);
+  const hours = Math.round(minutes / MINUTES_PER_HOUR);
   if (hours < HOURS_SHOWN_UP_TO) return counted(hours, 'hour');
-  return counted(Math.floor(hours / HOURS_PER_DAY), 'day');
+  return counted(Math.round(hours / HOURS_PER_DAY), 'day');
 }
 
 export function chartRangeText(chart: PriceChart): string {
