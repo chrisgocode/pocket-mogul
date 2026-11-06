@@ -1,43 +1,28 @@
-import type { ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
-import { OptionalCaption } from './OptionalCaption';
-import { AppText } from './Typography';
-import { spacing, minimumTouchTarget } from './tokens';
+import { ListRowContent, type ListRowProps } from './ListRowContent';
+import { feedback, minimumTouchTarget, spacing } from './tokens';
 
-export function ListRow({
-  leading,
-  title,
-  subtitle,
-  value,
-  detail,
-  dimmed = false,
-}: {
-  leading?: ReactNode;
-  title: string;
-  subtitle?: string | undefined;
-  value?: string | undefined;
-  detail?: string | undefined;
-  dimmed?: boolean;
-}) {
+export function ListRow(props: ListRowProps) {
+  const { title, subtitle, value, detail, dimmed = false, onPress } = props;
+  const label =
+    props.accessibilityLabel ?? [title, subtitle, value, detail].filter(Boolean).join(', ');
+  if (onPress === undefined) {
+    return (
+      <View style={[styles.row, dimmed && styles.dimmed]} accessible accessibilityLabel={label}>
+        <ListRowContent {...props} />
+      </View>
+    );
+  }
   return (
-    <View
-      style={[styles.row, dimmed && styles.dimmed]}
-      accessible
-      accessibilityLabel={[title, subtitle, value, detail].filter(Boolean).join(', ')}
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={({ pressed }) => [styles.row, dimmed && styles.dimmed, pressed && styles.pressed]}
     >
-      {leading}
-      <View style={styles.main}>
-        <AppText variant="heading" numberOfLines={2}>
-          {title}
-        </AppText>
-        <OptionalCaption text={subtitle} />
-      </View>
-      <View style={styles.trailing}>
-        {value === undefined ? null : <AppText variant="number">{value}</AppText>}
-        <OptionalCaption text={detail} />
-      </View>
-    </View>
+      <ListRowContent {...props} />
+    </Pressable>
   );
 }
 
@@ -49,6 +34,5 @@ const styles = StyleSheet.create({
     minHeight: minimumTouchTarget,
   },
   dimmed: { opacity: 0.55 },
-  main: { flex: 1, gap: 2 },
-  trailing: { alignItems: 'flex-end', gap: 2, flexShrink: 0 },
+  pressed: { transform: [{ scale: feedback.pressedScale }] },
 });

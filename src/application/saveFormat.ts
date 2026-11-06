@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { GAME_ERROR_CODES, type CommandOutcome } from '@/domain/commands';
 import { SAVE_SCHEMA_VERSION, type GameState } from '@/domain/gameState';
-import { parseMoneyCents } from '@/domain/money';
+import { parseMoneyCents, parsePriceMicros } from '@/domain/money';
 
 const moneyText = z
   .string()
@@ -39,6 +39,17 @@ const returnSummary = z.discriminatedUnion('status', [
   }),
 ]);
 
+const priceText = z.string().regex(/^\d+$/).transform(parsePriceMicros);
+const candle = z.object({ open: priceText, high: priceText, low: priceText, close: priceText });
+const market = z.object({
+  seed: z.string().min(1),
+  tick: count,
+  quotes: z.record(z.string(), priceText),
+  candles: z.record(z.string(), candle),
+});
+
+const MARKET_TICK_MS_BEFORE_MARKETS = 60_000;
+
 const savedGameSchema = z.object({
   saveId: z.string().min(1),
   schemaVersion: z.literal(SAVE_SCHEMA_VERSION),
@@ -61,7 +72,18 @@ const savedGameSchema = z.object({
     .prefault({ businessRemainders: {}, businessEarningsCents: '0' }),
   unlockedTiers: z.array(z.number().int().positive()),
   returnSummary: returnSummary.prefault({ status: 'none' }),
+  market: market.optional(),
 });
+
+const savedGameWithMarket = savedGameSchema.transform((saved) => ({
+  ...saved,
+  market: saved.market ?? {
+    seed: saved.saveId,
+    tick: Math.floor(saved.clock.simulationMs / MARKET_TICK_MS_BEFORE_MARKETS),
+    quotes: {},
+    candles: {},
+  },
+}));
 
 const outcomeSchema = z.discriminatedUnion('ok', [
   z.object({ ok: z.literal(true), revision: count, cashChangeCents: moneyText }),
@@ -77,7 +99,7 @@ export function encodeSave(state: GameState): string {
 }
 
 export function decodeSave(text: string): GameState {
-  return savedGameSchema.parse(JSON.parse(text));
+  return savedGameWithMarket.parse(JSON.parse(text));
 }
 
 export function encodeOutcome(outcome: CommandOutcome): string {

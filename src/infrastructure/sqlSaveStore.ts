@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { SaveStore, SaveTransaction } from '@/application/ports';
 import { decodeOutcome, decodeSave, encodeOutcome, encodeSave } from '@/application/saveFormat';
 
+import { appendMarketHistory, CREATE_MARKET_HISTORY, loadAssetHistory } from './sqlMarketHistory';
 import type { SqlDriver, SqlExecutor } from './sqlDriver';
 
 const MIGRATIONS: readonly (readonly string[])[] = [
@@ -13,6 +14,7 @@ const MIGRATIONS: readonly (readonly string[])[] = [
   [
     'CREATE TABLE diagnostics (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, detail TEXT NOT NULL, recorded_wall_ms INTEGER NOT NULL)',
   ],
+  [CREATE_MARKET_HISTORY],
 ];
 
 const versionRow = z.object({ version: z.number().int().nullable() });
@@ -79,6 +81,7 @@ function transactionOver(sql: SqlExecutor): SaveTransaction {
         JSON.stringify(detail),
         recordedWallMs,
       ]),
+    appendMarketHistory: (history) => appendMarketHistory(sql, history),
     writeState: (state) =>
       sql.run(
         'INSERT INTO save_state (id, document) VALUES (1, ?) ON CONFLICT (id) DO UPDATE SET document = excluded.document',
@@ -95,6 +98,7 @@ export async function openSqlSaveStore(driver: SqlDriver): Promise<SaveStore> {
         const row = await sql.first('SELECT document FROM save_state WHERE id = 1');
         return isMissing(row) ? undefined : decodeSave(documentRow.parse(row).document);
       }),
+    loadAssetHistory: (assetId) => driver.exclusive((sql) => loadAssetHistory(sql, assetId)),
     loadDiagnostics: () =>
       driver.exclusive(async (sql) =>
         diagnosticRows.parse(

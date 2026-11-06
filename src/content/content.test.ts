@@ -56,6 +56,53 @@ describe('bundled content', () => {
   });
 });
 
+const listing = (asset: { ticker: string; name: string }) => `${asset.ticker} ${asset.name}`;
+
+describe('the market content', () => {
+  it('rejects event scope chances that do not sum to 100', () => {
+    expect(issuesFor((c) => void (c.economy.market.eventChancePercent.sector = 30))).toContain(
+      'Event scope chances must sum to 100',
+    );
+  });
+
+  it('lists the stocks and coins of spec §6 and §7, in order', () => {
+    expect(getContent().stocks.map(listing)).toEqual([
+      'PRZM Prism Labs',
+      'KBYT Kilobyte Systems',
+      'PVN ParcelVine',
+      'CBR CartBarn',
+      'VLT Voltara Motors',
+      'LPR LoopRide',
+      'BRIK Brickbank',
+      'VCR VaultCard',
+      'SGR SunGrid',
+      'BRL BarrelWorks',
+      'BNST Bean Street',
+      'BUNV Bun Voyage',
+      'SMHD Summit Holdings',
+      'ATIN Atlas Insurance',
+      'IRCL Ironclad Industries',
+      'WLBH Willowbrook Health',
+      'CLWV Clearwave Telecom',
+      'EVGU Evergreen Utilities',
+      'FZWB Fizzwater Beverages',
+      'GLBG Glowbug Gadgets',
+      'MSBT Moonshot Biotech',
+      'CPMD Couch Potato Media',
+      'RRXM Rocket Rex Mining',
+      'ZPCR Zapcar Rentals',
+    ]);
+    expect(getContent().coins.map(listing)).toEqual([
+      'BKC Block Crown',
+      'EMB Ember Chain',
+      'MOS Moss Network',
+      'SPK Spark Token',
+      'WAGX Wag Coin',
+      'MBN Moon Bean',
+    ]);
+  });
+});
+
 describe('validation catches bad edits', () => {
   it('duplicate IDs', () => {
     expect(issuesFor((c) => void (c.coins[0]!.id = 'prism'))).toContain(
