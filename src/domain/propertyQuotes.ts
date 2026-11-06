@@ -1,5 +1,6 @@
 import type { OwnedProperty, PropertyLevels } from './gameState';
-import { divideRoundingUp, moneyCents, type MoneyCents } from './money';
+import { moneyCents, type MoneyCents } from './money';
+import { geometricUpgradeCents } from './pricing';
 
 export type PropertyDefinition = {
   readonly id: string;
@@ -54,13 +55,13 @@ export type PropertyUpgradeQuote =
       readonly nextUpkeepCents: MoneyCents;
       readonly netPerMinuteCents: MoneyCents;
       readonly nextNetPerMinuteCents: MoneyCents;
+      readonly rentedBenefitPerMinuteCents: MoneyCents;
       readonly valueCents: MoneyCents;
       readonly nextValueCents: MoneyCents;
     };
 
 const WHOLE_PERCENT = 100;
 const PERCENT = BigInt(WHOLE_PERCENT);
-const BASIS_POINTS = 10_000n;
 
 export function levelZeroProperty(definitionId: string): OwnedProperty {
   return {
@@ -120,14 +121,12 @@ function upgradePriceCents(
   pricing: PropertyPricing,
   upgrade: { track: PropertyTrack; level: number },
 ) {
-  const { definition, rules } = pricing;
-  const exponent = BigInt(upgrade.level);
-  const numerator =
-    definition.price *
-    BigInt(rules.upgradeWeightBps[upgrade.track]) *
-    BigInt(rules.upgradeGrowth.numerator) ** exponent;
-  const denominator = BASIS_POINTS * BigInt(rules.upgradeGrowth.denominator) ** exponent;
-  return moneyCents(divideRoundingUp(numerator, denominator));
+  return geometricUpgradeCents({
+    basePriceCents: pricing.definition.price,
+    weightBps: pricing.rules.upgradeWeightBps[upgrade.track],
+    growth: pricing.rules.upgradeGrowth,
+    level: upgrade.level,
+  });
 }
 
 export function maxTrackLevel(track: PropertyTrack, pricing: PropertyPricing): number {
@@ -162,19 +161,24 @@ export function quotePropertyUpgrade(
   if (level >= maxTrackLevel(track, upgrade)) return { status: 'max', track, level };
   const priceCents = upgradePriceCents(upgrade, { track, level });
   const next = upgradedProperty(property, { track, priceCents });
-  const now = quotePropertyIncome(property, upgrade);
-  const then = quotePropertyIncome(next, upgrade);
+  const current = quotePropertyIncome(property, upgrade);
+  const upgraded = quotePropertyIncome(next, upgrade);
+  const rentedNow = quotePropertyIncome({ ...property, rented: true }, upgrade);
+  const rentedUpgraded = quotePropertyIncome({ ...next, rented: true }, upgrade);
   return {
     status: 'available',
     track,
     level,
     priceCents,
-    rentCents: now.rentCents,
-    nextRentCents: then.rentCents,
-    upkeepCents: now.upkeepCents,
-    nextUpkeepCents: then.upkeepCents,
-    netPerMinuteCents: now.netPerMinuteCents,
-    nextNetPerMinuteCents: then.netPerMinuteCents,
+    rentCents: current.rentCents,
+    nextRentCents: upgraded.rentCents,
+    upkeepCents: current.upkeepCents,
+    nextUpkeepCents: upgraded.upkeepCents,
+    netPerMinuteCents: current.netPerMinuteCents,
+    nextNetPerMinuteCents: upgraded.netPerMinuteCents,
+    rentedBenefitPerMinuteCents: moneyCents(
+      rentedUpgraded.netPerMinuteCents - rentedNow.netPerMinuteCents,
+    ),
     valueCents: estimatedValueCents(property, upgrade),
     nextValueCents: estimatedValueCents(next, upgrade),
   };

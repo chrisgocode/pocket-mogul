@@ -1,5 +1,5 @@
 import type { Content, Property } from '@/content';
-import type { GameState } from '@/domain/gameState';
+import type { GameState, OwnedProperty } from '@/domain/gameState';
 import type { MoneyCents } from '@/domain/money';
 import { findOwnedProperty } from '@/domain/properties';
 import { levelZeroProperty, quotePropertyIncome } from '@/domain/propertyQuotes';
@@ -25,8 +25,7 @@ export type PropertiesView = {
   readonly listings: readonly PropertyListing[];
 };
 
-function listingStatus(state: GameState, property: Property): PropertyStatus {
-  const owned = findOwnedProperty(state, property.id);
+function listingStatus(owned: OwnedProperty | undefined): PropertyStatus {
   if (owned === undefined) return 'available';
   return owned.rented ? 'rented' : 'vacant';
 }
@@ -35,14 +34,14 @@ function listing(
   property: Property,
   context: { state: GameState; content: Content; cashCents: MoneyCents },
 ): PropertyListing {
-  const owned = findOwnedProperty(context.state, property.id) ?? levelZeroProperty(property.id);
+  const owned = findOwnedProperty(context.state, property.id);
   const income = quotePropertyIncome(
-    { ...owned, rented: true },
+    { ...(owned ?? levelZeroProperty(property.id)), rented: true },
     { definition: property, rules: context.content.economy.propertyRules },
   );
   return {
     property,
-    status: listingStatus(context.state, property),
+    status: listingStatus(owned),
     rentedNetPerMinuteCents: income.netPerMinuteCents,
     ...affordability(property.price, context.cashCents),
   };

@@ -1,6 +1,6 @@
 import type { Content, Property } from '@/content';
 import type { OwnedProperty, PropertyLevels } from '@/domain/gameState';
-import { moneyCents, type MoneyCents } from '@/domain/money';
+import type { MoneyCents } from '@/domain/money';
 import { findOwnedProperty } from '@/domain/properties';
 import {
   estimatedValueCents,
@@ -20,7 +20,7 @@ import { selectCashCents } from './cashView';
 import type { GameSnapshot } from './game';
 
 export type AvailablePropertyUpgrade = Extract<PropertyUpgradeQuote, { status: 'available' }> &
-  Affordability & { readonly rented: boolean; readonly rentedBenefitPerMinuteCents: MoneyCents };
+  Affordability & { readonly rented: boolean };
 
 export type PropertyUpgradeOption = (
   | Exclude<PropertyUpgradeQuote, { status: 'available' }>
@@ -58,13 +58,10 @@ function upgradeOption(track: PropertyTrack, context: DetailContext): PropertyUp
   const maxLevel = maxTrackLevel(track, pricing);
   const quote = quotePropertyUpgrade(owned, { ...pricing, track });
   if (quote.status !== 'available') return { ...quote, maxLevel };
-  const before = quote.rentCents - quote.upkeepCents;
-  const after = quote.nextRentCents - quote.nextUpkeepCents;
   return {
     ...quote,
     maxLevel,
     rented: owned.rented,
-    rentedBenefitPerMinuteCents: moneyCents(after - before),
     ...affordability(quote.priceCents, context.cashCents),
   };
 }

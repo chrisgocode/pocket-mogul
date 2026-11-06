@@ -4,19 +4,19 @@ import { selectProperties, type PropertyListing } from '@/application/properties
 import { getContent } from '@/content';
 import { ActionSheet } from '@/features/game/ActionSheet';
 import { useGameSnapshot } from '@/features/game/GameContext';
+import { useGameAction } from '@/features/game/useGameAction';
 import { Card } from '@/ui/Card';
 import { EmptyState } from '@/ui/EmptyState';
 import { Screen } from '@/ui/Screen';
 import { Section } from '@/ui/Section';
 
-import { propertyActionSheetText } from './propertyAction';
+import { propertyActionCommand, propertyActionSheetText } from './propertyAction';
 import { PropertyListingRow } from './PropertyListingRow';
 import { RentIncomeCard } from './RentIncomeCard';
-import { usePropertyAction } from './usePropertyAction';
 
 export function PropertiesScreen() {
   const view = selectProperties(useGameSnapshot(), getContent());
-  const { confirmation, review, close, confirm } = usePropertyAction();
+  const { confirmation, review, close, confirm } = useGameAction(propertyActionCommand);
   const router = useRouter();
   const manage = (listing: PropertyListing) =>
     router.push({

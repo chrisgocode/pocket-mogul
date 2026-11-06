@@ -1,6 +1,7 @@
 import type { CommandResult, GameErrorCode } from './commands';
 import type { GameState, OwnedProperty } from './gameState';
-import { moneyCents, type MoneyCents } from './money';
+import { moneyCents } from './money';
+import { spend } from './pricing';
 import {
   levelZeroProperty,
   propertySaleProceedsCents,
@@ -51,15 +52,6 @@ function withProperty(state: GameState, property: OwnedProperty): GameState {
     properties: state.properties.map((owned) =>
       owned.definitionId === property.definitionId ? property : owned,
     ),
-  };
-}
-
-function spend(state: GameState, priceCents: MoneyCents): CommandResult {
-  if (state.cashCents < priceCents) return { ok: false, error: 'INSUFFICIENT_CASH' };
-  return {
-    ok: true,
-    cashChangeCents: moneyCents(0n - priceCents),
-    state: { ...state, cashCents: moneyCents(state.cashCents - priceCents) },
   };
 }
 

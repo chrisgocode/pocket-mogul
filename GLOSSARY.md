@@ -90,7 +90,7 @@ _Avoid_: Resale value, refund
 Whether an owned property is Rented (earning rent minus upkeep) or Vacant (earning nothing and paying no upkeep); a bought property starts Vacant.
 _Avoid_: Occupied, leased, active
 
-**Property upgrade**:
+**Property upgrade track**:
 One of a property's four independent levels: Renovation and Furnishings (more rent), Building Systems (less upkeep), each 0 to 10, and Expansion (more rent and upkeep, 0 to 4, only on listings that allow it).
 _Avoid_: Improvement, renovation (for the group)
 

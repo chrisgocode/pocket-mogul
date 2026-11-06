@@ -71,6 +71,7 @@ describe('property upgrade quote', () => {
       nextUpkeepCents: dollars('20'),
       netPerMinuteCents: dollars('100'),
       nextNetPerMinuteCents: dollars('112'),
+      rentedBenefitPerMinuteCents: dollars('12'),
       valueCents: dollars('20,000'),
       nextValueCents: dollars('21,600'),
     });
