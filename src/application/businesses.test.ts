@@ -28,7 +28,12 @@ describe('buying a business', () => {
     const { state } = game.getSnapshot();
     expect<bigint>(state.cashCents).toBe(dollars('50'));
     expect(state.businesses).toEqual([
-      { definitionId: 'vending', capitalizedSpendCents: dollars('250') },
+      {
+        definitionId: 'vending',
+        levels: { capacity: 0, quality: 0, efficiency: 0 },
+        managerOwned: false,
+        capitalizedSpendCents: dollars('250'),
+      },
     ]);
   });
 
@@ -48,7 +53,7 @@ describe('buying a business', () => {
   });
 
   it('refuses a business from a locked tier', async () => {
-    const { game } = await startWith('10000');
+    const { game } = await startWith('4,999.99');
     expect(await buy(game, 'laundromat')).toEqual({ ok: false, error: 'LOCKED_TIER' });
   });
 

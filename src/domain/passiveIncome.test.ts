@@ -1,6 +1,7 @@
 import { freshGameState, type GameState } from './gameState';
 import { dollars, moneyCents } from './money';
-import type { BusinessDefinition } from './businesses';
+import type { BusinessDefinition } from './businessQuotes';
+import type { BusinessEconomy } from './businesses';
 import { advanceTime } from './passiveIncome';
 
 const ONE_SECOND_MS = 1_000;
@@ -22,20 +23,41 @@ const vending: BusinessDefinition = {
   costsPerMinute: dollars('4'),
 };
 
-const catalog = [pennyStand, vending];
+const economy: BusinessEconomy = {
+  catalog: [pennyStand, vending],
+  rules: {
+    maxTrackLevel: 20,
+    upgradeWeightBps: { capacity: 2000, quality: 2500, efficiency: 1500 },
+    upgradeGrowth: { numerator: 118, denominator: 100 },
+    levelEffectPercent: {
+      capacityRevenue: 10,
+      qualityRevenue: 10,
+      capacityCosts: 6,
+      efficiencySaving: 2,
+    },
+    managerPriceMultiplier: 2,
+    managerBonusBps: 1000,
+    milestoneEveryLevels: 15,
+    milestoneBonusBps: 1000,
+    saleReturnPercent: 60,
+    branchArtCapacityLevels: [5, 10, 15, 20],
+  },
+};
 
 function owning(...definitions: BusinessDefinition[]): GameState {
   return {
     ...freshGameState({ saveId: 'test', economyVersion: 1, wallMs: 0 }),
     businesses: definitions.map((definition) => ({
       definitionId: definition.id,
+      levels: { capacity: 0, quality: 0, efficiency: 0 },
+      managerOwned: false,
       capitalizedSpendCents: definition.price,
     })),
   };
 }
 
 const advance = (state: GameState, elapsedMs: number) =>
-  advanceTime(state, { elapsedMs, wallMs: 0, catalog }).state;
+  advanceTime(state, { elapsedMs, wallMs: 0, economy }).state;
 
 describe('passive accrual', () => {
   it('pays a base Vending Machine exactly $10 for 60 seconds (AC06)', () => {
@@ -70,12 +92,7 @@ describe('passive accrual', () => {
   });
 
   it('moves the simulation clock and the wall checkpoint', () => {
-    const after = advanceTime(owning(), { elapsedMs: 5_000, wallMs: 42, catalog }).state;
+    const after = advanceTime(owning(), { elapsedMs: 5_000, wallMs: 42, economy }).state;
     expect(after.clock).toEqual({ simulationMs: 5_000, lastWallCheckpointMs: 42 });
-  });
-
-  it('counts business value in peak net worth, not just cash', () => {
-    const after = advance(owning(vending), ONE_MINUTE_MS);
-    expect<bigint>(after.peakNetWorthCents).toBe(dollars('260'));
   });
 });

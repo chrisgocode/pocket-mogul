@@ -25,6 +25,12 @@ export const economyV1 = {
       maxTrackLevel: 20,
       upgradeWeightBps: { capacity: 2000, quality: 2500, efficiency: 1500 },
       upgradeGrowth: { numerator: 118, denominator: 100 },
+      levelEffectPercent: {
+        capacityRevenue: 10,
+        qualityRevenue: 10,
+        capacityCosts: 6,
+        efficiencySaving: 2,
+      },
       managerPriceMultiplier: 2,
       managerBonusBps: 1000,
       milestoneEveryLevels: 15,

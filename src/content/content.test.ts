@@ -142,3 +142,11 @@ describe('validation catches bad edits', () => {
     );
   });
 });
+
+describe('business rule validation rejects', () => {
+  it('Efficiency that would push costs to zero', () => {
+    expect(
+      issuesFor((c) => void (c.economy.businessRules.levelEffectPercent.efficiencySaving = 5)),
+    ).toEqual(['Efficiency at its max level must leave operating costs above zero']);
+  });
+});

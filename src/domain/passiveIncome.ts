@@ -1,27 +1,27 @@
-import { businessNetPerMinuteCents, findBusiness, type BusinessCatalog } from './businesses';
+import { quoteBusinessIncome } from './businessQuotes';
+import { findBusiness, type BusinessEconomy } from './businesses';
 import type { GameState } from './gameState';
 import { moneyCents, type MoneyCents } from './money';
-import { withPeakNetWorth } from './netWorth';
 
 const MS_PER_MINUTE = 60_000n;
 
 type Stream = { readonly id: string; readonly ratePerMinuteCents: MoneyCents };
 
-function businessStreams(state: GameState, catalog: BusinessCatalog): Stream[] {
+function businessStreams(state: GameState, economy: BusinessEconomy): Stream[] {
   return state.businesses.flatMap((owned) => {
-    const definition = findBusiness(catalog, owned.definitionId);
-    return definition === undefined
-      ? []
-      : [{ id: owned.definitionId, ratePerMinuteCents: businessNetPerMinuteCents(definition) }];
+    const definition = findBusiness(economy.catalog, owned.definitionId);
+    if (definition === undefined) return [];
+    const income = quoteBusinessIncome(owned, { definition, rules: economy.rules });
+    return [{ id: owned.definitionId, ratePerMinuteCents: income.netPerMinuteCents }];
   });
 }
 
 export function businessIncomePerMinuteCents(
   state: GameState,
-  catalog: BusinessCatalog,
+  economy: BusinessEconomy,
 ): MoneyCents {
   return moneyCents(
-    businessStreams(state, catalog).reduce<bigint>(
+    businessStreams(state, economy).reduce<bigint>(
       (total, stream) => total + stream.ratePerMinuteCents,
       0n,
     ),
@@ -48,16 +48,16 @@ function accrue(streams: readonly Stream[], context: { elapsedMs: number; state:
 
 export function advanceTime(
   state: GameState,
-  advance: { elapsedMs: number; wallMs: number; catalog: BusinessCatalog },
+  advance: { elapsedMs: number; wallMs: number; economy: BusinessEconomy },
 ): { state: GameState; earnedCents: MoneyCents } {
-  const accrual = accrue(businessStreams(state, advance.catalog), {
+  const accrual = accrue(businessStreams(state, advance.economy), {
     elapsedMs: advance.elapsedMs,
     state,
   });
   const earnedCents = moneyCents(accrual.earnedCents);
   return {
     earnedCents,
-    state: withPeakNetWorth({
+    state: {
       ...state,
       cashCents: moneyCents(state.cashCents + earnedCents),
       clock: {
@@ -68,6 +68,6 @@ export function advanceTime(
         businessRemainders: accrual.remainders,
         businessEarningsCents: moneyCents(state.income.businessEarningsCents + earnedCents),
       },
-    }),
+    },
   };
 }

@@ -173,6 +173,12 @@ const economySchema = z.object({
       efficiency: positiveInt,
     }),
     upgradeGrowth: growthRatio,
+    levelEffectPercent: z.object({
+      capacityRevenue: nonNegativeInt,
+      qualityRevenue: nonNegativeInt,
+      capacityCosts: nonNegativeInt,
+      efficiencySaving: nonNegativeInt,
+    }),
     managerPriceMultiplier: positiveInt,
     managerBonusBps: nonNegativeBps,
     milestoneEveryLevels: positiveInt,
