@@ -33,9 +33,10 @@ describe('bundled content', () => {
 
   it('has nine dividend payers: three standard and six blue chips', () => {
     const payers = getContent().stocks.filter((s) => s.dividendCentsPerSharePerHour > 0n);
-    expect(payers.map((s) => s.ticker).toSorted()).toEqual(
-      ['ATIN', 'BRIK', 'BRL', 'CLWV', 'EVGU', 'IRCL', 'PRZM', 'SMHD', 'WLBH'].toSorted(),
+    expect(new Set(payers.map((s) => s.ticker))).toEqual(
+      new Set(['ATIN', 'BRIK', 'BRL', 'CLWV', 'EVGU', 'IRCL', 'PRZM', 'SMHD', 'WLBH']),
     );
+    expect(payers).toHaveLength(9);
     expect(getContent().stocks.filter((s) => s.volatilityClass === 'penny')).toHaveLength(6);
   });
 

@@ -15,10 +15,10 @@ function lintFixtures(): Map<string, string[]> {
     { encoding: 'utf8' },
   );
   const { diagnostics } = JSON.parse(stdout) as { diagnostics: Diagnostic[] };
-  const byFile = Map.groupBy(diagnostics, (diagnostic) => fixtureName(diagnostic.filename));
-  return new Map(
-    [...byFile].map(([file, found]) => [file, found.map((diagnostic) => diagnostic.code)]),
-  );
+  return diagnostics.reduce((byFile, diagnostic) => {
+    const file = fixtureName(diagnostic.filename);
+    return byFile.set(file, [...(byFile.get(file) ?? []), diagnostic.code]);
+  }, new Map<string, string[]>());
 }
 
 const rulesByFile = lintFixtures();
