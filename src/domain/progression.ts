@@ -49,7 +49,7 @@ function withUnlockedTiers(state: GameState, thresholds: TierThresholds): GameSt
   if (reached.length === 0) return state;
   return {
     ...state,
-    unlockedTiers: [...state.unlockedTiers, ...reached].toSorted((a, b) => a - b),
+    unlockedTiers: [...state.unlockedTiers, ...reached],
   };
 }
 
