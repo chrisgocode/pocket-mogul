@@ -18,7 +18,15 @@ const ownedBusiness = definitionId.extend({
   managerOwned: z.boolean().default(false),
   capitalizedSpendCents: moneyText,
 });
+const ownedProperty = definitionId.extend({
+  levels: z
+    .object({ renovation: level, furnishings: level, systems: level, expansion: level })
+    .prefault({ renovation: 0, furnishings: 0, systems: 0, expansion: 0 }),
+  rented: z.boolean().default(false),
+  upgradeSpendCents: moneyText.prefault('0'),
+});
 const remainder = z.number().int().nonnegative();
+const remainders = z.record(z.string(), remainder);
 
 const savedGameSchema = z.object({
   saveId: z.string().min(1),
@@ -31,11 +39,13 @@ const savedGameSchema = z.object({
   clock: z.object({ simulationMs: count, lastWallCheckpointMs: z.number().int() }),
   tap: z.object({ walletLevel: count, totalAcceptedTaps: count }),
   businesses: z.array(ownedBusiness),
-  properties: z.array(definitionId),
+  properties: z.array(ownedProperty),
   income: z
     .object({
-      businessRemainders: z.record(z.string(), remainder),
+      businessRemainders: remainders,
       businessEarningsCents: moneyText,
+      rentRemainders: remainders.prefault({}),
+      rentEarningsCents: moneyText.prefault('0'),
     })
     .prefault({ businessRemainders: {}, businessEarningsCents: '0' }),
   unlockedTiers: z.array(z.number().int().positive()),

@@ -1,5 +1,6 @@
 import type { OwnedBusiness } from './gameState';
-import { divideRoundingUp, moneyCents, type MoneyCents } from './money';
+import { moneyCents, type MoneyCents } from './money';
+import { geometricUpgradeCents } from './pricing';
 
 export type BusinessDefinition = {
   readonly id: string;
@@ -112,14 +113,12 @@ function upgradePriceCents(
   pricing: BusinessPricing,
   upgrade: { track: UpgradeTrack; level: number },
 ) {
-  const { definition, rules } = pricing;
-  const exponent = BigInt(upgrade.level);
-  const numerator =
-    definition.price *
-    BigInt(rules.upgradeWeightBps[upgrade.track]) *
-    BigInt(rules.upgradeGrowth.numerator) ** exponent;
-  const denominator = BigInt(BASIS_POINTS) * BigInt(rules.upgradeGrowth.denominator) ** exponent;
-  return moneyCents(divideRoundingUp(numerator, denominator));
+  return geometricUpgradeCents({
+    basePriceCents: pricing.definition.price,
+    weightBps: pricing.rules.upgradeWeightBps[upgrade.track],
+    growth: pricing.rules.upgradeGrowth,
+    level: upgrade.level,
+  });
 }
 
 export function quoteBusinessUpgrade(

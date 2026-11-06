@@ -37,7 +37,8 @@ Expo SDK 58. Expo changes between SDKs, so check the versioned docs at `https://
   - No `useEffect`/`useLayoutEffect` outside named hooks in `src/ui/effects`, and no `useState`/`useReducer` outside named hooks in `src/ui/state`. Game values come from the engine snapshot.
   - Functions at most 40 lines (80 in tests), files 300, complexity 8, cognitive complexity 10, nesting depth 3, 3 parameters (pass an object instead), one component per file.
   - Module boundaries from spec §13: `src/domain` imports no React, Expo or outer layers; `src/content` imports only `src/domain`; `src/ui` can't import features, routes, the engine or adapters; screens never import `src/infrastructure`. Cross-folder imports use `@/`, never `../`.
-  - No `Date.now`, `new Date()`, `Math.random` or timers in `src/domain`, `src/content` or tests: use the injected clock and seeded randomness.
+  - `tsconfig.json` sets `lib` to ES2022 because the app runs on Hermes, which lacks some newer built-ins (`Array.prototype.toSorted` broke saves on device). Don't raise it, even for tests: rewrite the code instead.
+- No `Date.now`, `new Date()`, `Math.random` or timers in `src/domain`, `src/content` or tests: use the injected clock and seeded randomness.
   - No magic numbers outside content, tokens, SVG art and tests: name them.
   - No implicit state machines (`pocket-mogul/no-implicit-state-machine`): no closure with two or more `let`s that inner functions reassign, no type with two or more `boolean` fields, and no hook with two or more boolean `useState`s. Hold one value typed as a discriminated union instead.
   - Tests: no conditionals, snapshots, focused or skipped tests.

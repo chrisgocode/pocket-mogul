@@ -1,11 +1,20 @@
 import { quoteBusinessIncome } from './businessQuotes';
 import { findBusiness, type BusinessEconomy } from './businesses';
-import type { GameState } from './gameState';
+import type { GameState, IncomeState } from './gameState';
 import { moneyCents, type MoneyCents } from './money';
+import { findProperty, type PropertyEconomy } from './properties';
+import { quotePropertyIncome } from './propertyQuotes';
 
 const MS_PER_MINUTE = 60_000n;
 
+export type PassiveEconomy = {
+  readonly businesses: BusinessEconomy;
+  readonly properties: PropertyEconomy;
+};
+
 type Stream = { readonly id: string; readonly ratePerMinuteCents: MoneyCents };
+
+type Remainders = Readonly<Record<string, number>>;
 
 function businessStreams(state: GameState, economy: BusinessEconomy): Stream[] {
   return state.businesses.flatMap((owned) => {
@@ -16,45 +25,84 @@ function businessStreams(state: GameState, economy: BusinessEconomy): Stream[] {
   });
 }
 
+function rentStreams(state: GameState, economy: PropertyEconomy): Stream[] {
+  return state.properties.flatMap((owned) => {
+    const definition = findProperty(economy.catalog, owned.definitionId);
+    if (definition === undefined || !owned.rented) return [];
+    const income = quotePropertyIncome(owned, { definition, rules: economy.rules });
+    return [{ id: owned.definitionId, ratePerMinuteCents: income.netPerMinuteCents }];
+  });
+}
+
+function totalRate(streams: readonly Stream[]): MoneyCents {
+  return moneyCents(
+    streams.reduce<bigint>((total, stream) => total + stream.ratePerMinuteCents, 0n),
+  );
+}
+
 export function businessIncomePerMinuteCents(
   state: GameState,
-  economy: BusinessEconomy,
+  economy: PassiveEconomy,
 ): MoneyCents {
+  return totalRate(businessStreams(state, economy.businesses));
+}
+
+export function rentIncomePerMinuteCents(state: GameState, economy: PassiveEconomy): MoneyCents {
+  return totalRate(rentStreams(state, economy.properties));
+}
+
+export function passiveIncomePerMinuteCents(state: GameState, economy: PassiveEconomy): MoneyCents {
   return moneyCents(
-    businessStreams(state, economy).reduce<bigint>(
-      (total, stream) => total + stream.ratePerMinuteCents,
-      0n,
-    ),
+    businessIncomePerMinuteCents(state, economy) + rentIncomePerMinuteCents(state, economy),
   );
 }
 
 type Accrual = { earnedCents: bigint; remainders: Record<string, number> };
 
-function accrue(streams: readonly Stream[], context: { elapsedMs: number; state: GameState }) {
-  const { businessRemainders } = context.state.income;
+function accrue(streams: readonly Stream[], period: { elapsedMs: number; remainders: Remainders }) {
   return streams.reduce<Accrual>(
     (accrual, stream) => {
       const numerator =
-        stream.ratePerMinuteCents * BigInt(context.elapsedMs) +
-        BigInt(businessRemainders[stream.id] ?? 0);
+        stream.ratePerMinuteCents * BigInt(period.elapsedMs) +
+        BigInt(period.remainders[stream.id] ?? 0);
       return {
         earnedCents: accrual.earnedCents + numerator / MS_PER_MINUTE,
         remainders: { ...accrual.remainders, [stream.id]: Number(numerator % MS_PER_MINUTE) },
       };
     },
-    { earnedCents: 0n, remainders: { ...businessRemainders } },
+    { earnedCents: 0n, remainders: { ...period.remainders } },
   );
+}
+
+function accruedIncome(
+  state: GameState,
+  advance: { elapsedMs: number; economy: PassiveEconomy },
+): { earnedCents: MoneyCents; income: IncomeState } {
+  const { income } = state;
+  const business = accrue(businessStreams(state, advance.economy.businesses), {
+    elapsedMs: advance.elapsedMs,
+    remainders: income.businessRemainders,
+  });
+  const rent = accrue(rentStreams(state, advance.economy.properties), {
+    elapsedMs: advance.elapsedMs,
+    remainders: income.rentRemainders,
+  });
+  return {
+    earnedCents: moneyCents(business.earnedCents + rent.earnedCents),
+    income: {
+      businessRemainders: business.remainders,
+      businessEarningsCents: moneyCents(income.businessEarningsCents + business.earnedCents),
+      rentRemainders: rent.remainders,
+      rentEarningsCents: moneyCents(income.rentEarningsCents + rent.earnedCents),
+    },
+  };
 }
 
 export function advanceTime(
   state: GameState,
-  advance: { elapsedMs: number; wallMs: number; economy: BusinessEconomy },
+  advance: { elapsedMs: number; wallMs: number; economy: PassiveEconomy },
 ): { state: GameState; earnedCents: MoneyCents } {
-  const accrual = accrue(businessStreams(state, advance.economy), {
-    elapsedMs: advance.elapsedMs,
-    state,
-  });
-  const earnedCents = moneyCents(accrual.earnedCents);
+  const { earnedCents, income } = accruedIncome(state, advance);
   return {
     earnedCents,
     state: {
@@ -64,10 +112,7 @@ export function advanceTime(
         simulationMs: state.clock.simulationMs + advance.elapsedMs,
         lastWallCheckpointMs: advance.wallMs,
       },
-      income: {
-        businessRemainders: accrual.remainders,
-        businessEarningsCents: moneyCents(state.income.businessEarningsCents + earnedCents),
-      },
+      income,
     },
   };
 }

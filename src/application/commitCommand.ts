@@ -15,10 +15,16 @@ import type { GameState } from '@/domain/gameState';
 import { moneyCents } from '@/domain/money';
 import { advanceTime } from '@/domain/passiveIncome';
 import { withProgress } from '@/domain/progression';
+import {
+  applyBuyProperty,
+  applySellProperty,
+  applySetRentalStatus,
+  applyUpgradeProperty,
+} from '@/domain/properties';
 import { applyTapBatch } from '@/domain/tapping';
 import { applyWalletUpgrade } from '@/domain/wallet';
 
-import { businessEconomy } from './businessEconomy';
+import { businessEconomy, passiveEconomy, progressRules, propertyEconomy } from './economy';
 import { validCommand } from './commandSchema';
 import type { Clock, SaveStore, SaveTransaction } from './ports';
 
@@ -57,6 +63,14 @@ const COMMAND_HANDLERS: CommandHandlers = {
     applyHireManager(state, { ...command, economy: businessEconomy(content) }),
   SellBusiness: (state, command, content) =>
     applySellBusiness(state, { ...command, economy: businessEconomy(content) }),
+  BuyProperty: (state, command, content) =>
+    applyBuyProperty(state, { ...command, economy: propertyEconomy(content) }),
+  UpgradeProperty: (state, command, content) =>
+    applyUpgradeProperty(state, { ...command, economy: propertyEconomy(content) }),
+  SetRentalStatus: (state, command, content) =>
+    applySetRentalStatus(state, { ...command, economy: propertyEconomy(content) }),
+  SellProperty: (state, command, content) =>
+    applySellProperty(state, { ...command, economy: propertyEconomy(content) }),
   AdvanceTime: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),
 };
 
@@ -74,16 +88,13 @@ function apply(
 ): Committed {
   const command = validCommand(change.envelope.command);
   if (command === undefined) return { outcome: { ok: false, error: 'INVALID_QUANTITY' } };
-  const { tierUnlocks } = change.content.economy;
-  const advanced = advanceTime(state, {
-    ...change.time,
-    economy: businessEconomy(change.content),
-  });
-  const progressed = withProgress(advanced.state, tierUnlocks);
+  const progress = progressRules(change.content);
+  const advanced = advanceTime(state, { ...change.time, economy: passiveEconomy(change.content) });
+  const progressed = withProgress(advanced.state, progress);
   const result = applyCommand(progressed, { type: command.type, payload: command }, change.content);
   if (!result.ok) return { outcome: result };
   const cashChangeCents = moneyCents(advanced.earnedCents + result.cashChangeCents);
-  const next = { ...withProgress(result.state, tierUnlocks), revision: state.revision + 1 };
+  const next = { ...withProgress(result.state, progress), revision: state.revision + 1 };
   return { outcome: { ok: true, revision: next.revision, cashChangeCents }, state: next };
 }
 

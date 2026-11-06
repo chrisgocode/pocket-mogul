@@ -1,4 +1,4 @@
-import { selectIncomePerMinuteCents } from '@/application/cashView';
+import { selectPassiveIncomePerMinuteCents } from '@/application/cashView';
 import { selectTapCard } from '@/application/tapCardView';
 import { getContent } from '@/content';
 import { formatMoneyExact, formatRatePerMinute } from '@/domain/money';
@@ -19,7 +19,7 @@ export function HomeScreen() {
   const view = selectTapCard(snapshot, content);
   const playHaptic = useTapHaptics();
   const cash = formatMoneyExact(view.cashCents);
-  const passive = formatRatePerMinute(selectIncomePerMinuteCents(snapshot, content), 'full');
+  const passive = formatRatePerMinute(selectPassiveIncomePerMinuteCents(snapshot, content), 'full');
   const tap = () => {
     game.tap();
     playHaptic();

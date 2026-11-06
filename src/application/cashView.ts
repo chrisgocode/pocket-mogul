@@ -1,10 +1,15 @@
 import type { Content } from '@/content';
 import type { GameState } from '@/domain/gameState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
-import { advanceTime, businessIncomePerMinuteCents } from '@/domain/passiveIncome';
+import {
+  advanceTime,
+  businessIncomePerMinuteCents,
+  passiveIncomePerMinuteCents,
+  rentIncomePerMinuteCents,
+} from '@/domain/passiveIncome';
 import { tapPayoutCents } from '@/domain/tapping';
 
-import { businessEconomy } from './businessEconomy';
+import { passiveEconomy } from './economy';
 import type { GameSnapshot } from './game';
 
 function stateWithUnsavedIncome(snapshot: GameSnapshot, content: Content): GameState {
@@ -12,7 +17,7 @@ function stateWithUnsavedIncome(snapshot: GameSnapshot, content: Content): GameS
   return advanceTime(state, {
     elapsedMs: snapshot.unsavedElapsedMs,
     wallMs: state.clock.lastWallCheckpointMs,
-    economy: businessEconomy(content),
+    economy: passiveEconomy(content),
   }).state;
 }
 
@@ -22,6 +27,23 @@ export function selectCashCents(snapshot: GameSnapshot, content: Content): Money
   return moneyCents(settled.cashCents + perTap * BigInt(snapshot.pendingTaps));
 }
 
-export function selectIncomePerMinuteCents(snapshot: GameSnapshot, content: Content): MoneyCents {
-  return businessIncomePerMinuteCents(snapshot.state, businessEconomy(content));
+export function selectPassiveIncomePerMinuteCents(
+  snapshot: GameSnapshot,
+  content: Content,
+): MoneyCents {
+  return passiveIncomePerMinuteCents(snapshot.state, passiveEconomy(content));
+}
+
+export function selectBusinessIncomePerMinuteCents(
+  snapshot: GameSnapshot,
+  content: Content,
+): MoneyCents {
+  return businessIncomePerMinuteCents(snapshot.state, passiveEconomy(content));
+}
+
+export function selectRentIncomePerMinuteCents(
+  snapshot: GameSnapshot,
+  content: Content,
+): MoneyCents {
+  return rentIncomePerMinuteCents(snapshot.state, passiveEconomy(content));
 }

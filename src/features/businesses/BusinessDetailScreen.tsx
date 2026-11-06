@@ -2,13 +2,14 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 
 import { selectBusinessDetail, type BusinessDetailView } from '@/application/businessDetailView';
 import { getContent } from '@/content';
+import { ActionSheet } from '@/features/game/ActionSheet';
 import { useGameSnapshot } from '@/features/game/GameContext';
+import { useGameAction } from '@/features/game/useGameAction';
 import { EmptyState } from '@/ui/EmptyState';
 import { Screen } from '@/ui/Screen';
 
-import { BusinessActionSheet } from './BusinessActionSheet';
+import { businessActionCommand, businessActionSheetText } from './businessAction';
 import { OwnedBusinessDetails } from './OwnedBusinessDetails';
-import { useBusinessAction } from './useBusinessAction';
 
 function screenTitle(detail: BusinessDetailView): string {
   return detail.status === 'unknown' ? 'Business' : detail.business.name;
@@ -17,7 +18,7 @@ function screenTitle(detail: BusinessDetailView): string {
 export function BusinessDetailScreen() {
   const { businessId } = useLocalSearchParams<{ businessId: string }>();
   const detail = selectBusinessDetail(useGameSnapshot(), { businessId, content: getContent() });
-  const { confirmation, review, close, confirm } = useBusinessAction();
+  const { confirmation, review, close, confirm } = useGameAction(businessActionCommand);
   return (
     <Screen>
       <Stack.Screen options={{ title: screenTitle(detail) }} />
@@ -36,8 +37,9 @@ export function BusinessDetailScreen() {
           message="Pick a business from the Businesses list."
         />
       ) : null}
-      <BusinessActionSheet
+      <ActionSheet
         confirmation={confirmation}
+        describe={businessActionSheetText}
         onConfirm={() => void confirm()}
         onCancel={close}
       />
