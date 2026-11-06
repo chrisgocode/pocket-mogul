@@ -6,8 +6,8 @@ import { nodeSqliteDriver } from '@/infrastructure/nodeSqliteDriver';
 import type { SqlDriver } from '@/infrastructure/sqlDriver';
 import { openSqlSaveStore } from '@/infrastructure/sqlSaveStore';
 
-import { createGame, type Game } from './game';
-import type { Clock } from './ports';
+import { createGame, type Game, type GamePorts } from './game';
+import type { Clock, Diagnostic } from './ports';
 
 const TEST_WALL_START_MS = 1_800_000_000_000;
 
@@ -17,11 +17,11 @@ export type FakeClock = Clock & { advance: (ms: number) => void };
 
 type Timeline = { readonly elapsedMs: number; readonly tasks: readonly ScheduledTask[] };
 
-function fakeClock(): FakeClock {
+function fakeClock(wallStartMs: number): FakeClock {
   let timeline: Timeline = { elapsedMs: 0, tasks: [] };
   return {
     monotonicMs: () => timeline.elapsedMs,
-    wallMs: () => TEST_WALL_START_MS + timeline.elapsedMs,
+    wallMs: () => wallStartMs + timeline.elapsedMs,
     schedule(delayMs, task) {
       const scheduled = { dueMs: timeline.elapsedMs + delayMs, task };
       timeline = { ...timeline, tasks: [...timeline.tasks, scheduled] };
@@ -75,6 +75,7 @@ function faultyDriver(driver: SqlDriver, faults: WriteFaults, gate: SaveGate): S
       return driver.exclusive((sql) =>
         work({
           first: sql.first,
+          all: sql.all,
           run: (statement, params) =>
             faults.failWrites ? Promise.reject(new Error('disk full')) : sql.run(statement, params),
         }),
@@ -88,24 +89,47 @@ export type TestGame = {
   clock: FakeClock;
   faults: WriteFaults;
   holdSaves: () => () => void;
-  restart: () => Promise<TestGame>;
+  restart: (absence?: { awayMs: number }) => Promise<TestGame>;
+  diagnostics: () => Promise<readonly Diagnostic[]>;
 };
 
-type TestSave = { database: DatabaseSync; createId: () => string };
+type TestHooks = Pick<GamePorts, 'beforeWarmReturnSummary'>;
 
-export async function startTestGame(
-  save: TestSave = { database: new DatabaseSync(':memory:'), createId: sequentialIds() },
-): Promise<TestGame> {
-  const clock = fakeClock();
+type TestSave = {
+  database: DatabaseSync;
+  createId: () => string;
+  wallStartMs: number;
+  hooks: TestHooks;
+};
+
+const freshTestSave = (): TestSave => ({
+  database: new DatabaseSync(':memory:'),
+  createId: sequentialIds(),
+  wallStartMs: TEST_WALL_START_MS,
+  hooks: {},
+});
+
+export async function startTestGame(save: TestSave = freshTestSave()): Promise<TestGame> {
+  const clock = fakeClock(save.wallStartMs);
   const faults: WriteFaults = { failWrites: false };
   const gate = saveGate();
+  const store = await openSqlSaveStore(faultyDriver(nodeSqliteDriver(save.database), faults, gate));
   const game = await createGame({
+    ...save.hooks,
     clock,
-    store: await openSqlSaveStore(faultyDriver(nodeSqliteDriver(save.database), faults, gate)),
+    store,
     content: getContent(),
     createId: save.createId,
   });
-  return { game, clock, faults, holdSaves: gate.hold, restart: () => startTestGame(save) };
+  return {
+    game,
+    clock,
+    faults,
+    holdSaves: gate.hold,
+    restart: (absence = { awayMs: 0 }) =>
+      startTestGame({ ...save, wallStartMs: clock.wallMs() + absence.awayMs }),
+    diagnostics: store.loadDiagnostics,
+  };
 }
 
 export function nextPublish(game: Game): Promise<void> {
@@ -117,9 +141,12 @@ export function nextPublish(game: Game): Promise<void> {
   });
 }
 
-export async function startTestGameFrom(saved: GameState): Promise<TestGame> {
-  const database = new DatabaseSync(':memory:');
-  const store = await openSqlSaveStore(nodeSqliteDriver(database));
+export async function startTestGameFrom(
+  saved: GameState,
+  hooks: TestHooks = {},
+): Promise<TestGame> {
+  const save = { ...freshTestSave(), wallStartMs: saved.clock.lastWallCheckpointMs, hooks };
+  const store = await openSqlSaveStore(nodeSqliteDriver(save.database));
   await store.transact((tx) => tx.writeState(saved));
-  return startTestGame({ database, createId: sequentialIds() });
+  return startTestGame(save);
 }

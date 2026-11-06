@@ -12,7 +12,8 @@ import type {
   GameCommand,
 } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
-import { moneyCents } from '@/domain/money';
+import { moneyCents, type MoneyCents } from '@/domain/money';
+import { settleOffline, type WallClockReading } from '@/domain/offline';
 import { advanceTime } from '@/domain/passiveIncome';
 import { withProgress } from '@/domain/progression';
 import { applyTapBatch } from '@/domain/tapping';
@@ -22,7 +23,7 @@ import { businessEconomy } from './businessEconomy';
 import { validCommand } from './commandSchema';
 import type { Clock, SaveStore, SaveTransaction } from './ports';
 
-export type Committed = { outcome: CommandOutcome; state?: GameState };
+export type Committed = { outcome: CommandOutcome; state?: GameState; clock?: WallClockReading };
 
 type CommitContext = {
   readonly clock: Clock;
@@ -58,7 +59,31 @@ const COMMAND_HANDLERS: CommandHandlers = {
   SellBusiness: (state, command, content) =>
     applySellBusiness(state, { ...command, economy: businessEconomy(content) }),
   AdvanceTime: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),
+  SettleOffline: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),
+  AcknowledgeReturnSummary: (state) => ({
+    ok: true,
+    state: { ...state, returnSummary: { status: 'none' } },
+    cashChangeCents: moneyCents(0),
+  }),
 };
+
+type TimeStep = {
+  readonly state: GameState;
+  readonly earnedCents: MoneyCents;
+  readonly clock: WallClockReading;
+};
+
+function stepTime(
+  state: GameState,
+  step: { command: GameCommand; time: CommandTime; content: Content },
+): TimeStep {
+  const economy = businessEconomy(step.content);
+  if (step.command.type === 'SettleOffline') {
+    const capMs = step.content.economy.time.offlineCapMs;
+    return settleOffline(state, { wallMs: step.time.wallMs, capMs, economy });
+  }
+  return { ...advanceTime(state, { ...step.time, economy }), clock: { direction: 'forward' } };
+}
 
 function applyCommand<Type extends keyof CommandsByType>(
   state: GameState,
@@ -75,25 +100,31 @@ function apply(
   const command = validCommand(change.envelope.command);
   if (command === undefined) return { outcome: { ok: false, error: 'INVALID_QUANTITY' } };
   const { tierUnlocks } = change.content.economy;
-  const advanced = advanceTime(state, {
-    ...change.time,
-    economy: businessEconomy(change.content),
-  });
+  const advanced = stepTime(state, { command, time: change.time, content: change.content });
   const progressed = withProgress(advanced.state, tierUnlocks);
   const result = applyCommand(progressed, { type: command.type, payload: command }, change.content);
   if (!result.ok) return { outcome: result };
   const cashChangeCents = moneyCents(advanced.earnedCents + result.cashChangeCents);
   const next = { ...withProgress(result.state, tierUnlocks), revision: state.revision + 1 };
-  return { outcome: { ok: true, revision: next.revision, cashChangeCents }, state: next };
+  const outcome = { ok: true, revision: next.revision, cashChangeCents } as const;
+  return { outcome, state: next, clock: advanced.clock };
 }
 
 async function record(
   tx: SaveTransaction,
   change: { envelope: CommandEnvelope; applied: Committed; wallMs: number },
 ): Promise<void> {
-  const { state, outcome } = change.applied;
+  const { state, outcome, clock } = change.applied;
   if (state === undefined) return;
   await tx.writeState(state);
+  if (clock?.direction === 'backward') {
+    await tx.writeDiagnostic({
+      type: 'BACKWARD_WALL_CLOCK',
+      checkpointWallMs: clock.checkpointWallMs,
+      observedWallMs: clock.observedWallMs,
+      recordedWallMs: change.wallMs,
+    });
+  }
   await tx.writeReceipt({
     commandId: change.envelope.id,
     outcome,

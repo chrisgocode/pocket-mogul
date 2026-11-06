@@ -7,7 +7,7 @@ const GameContext = createContext<Game | undefined>(undefined);
 
 export function GameProvider({ game, children }: { game: Game; children: ReactNode }) {
   const onLeave = useCallback(() => void game.pause(), [game]);
-  const onReturn = useCallback(() => game.resume(), [game]);
+  const onReturn = useCallback(() => void game.resume(), [game]);
   useAppForeground({ onLeave, onReturn });
   return <GameContext value={game}>{children}</GameContext>;
 }

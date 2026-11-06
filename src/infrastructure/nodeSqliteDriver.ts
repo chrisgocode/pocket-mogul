@@ -9,6 +9,7 @@ export function nodeSqliteDriver(database: DatabaseSync): SqlDriver {
       return Promise.resolve();
     },
     first: (sql, params = []) => Promise.resolve(database.prepare(sql).get(...params)),
+    all: (sql, params = []) => Promise.resolve(database.prepare(sql).all(...params)),
   };
   return {
     async exclusive(work) {

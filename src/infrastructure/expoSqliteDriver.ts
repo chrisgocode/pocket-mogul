@@ -8,6 +8,7 @@ function executorFor(connection: SQLiteDatabase): SqlExecutor {
       await connection.runAsync(sql, [...params]);
     },
     first: (sql, params = []) => connection.getFirstAsync<unknown>(sql, [...params]),
+    all: (sql, params = []) => connection.getAllAsync<unknown>(sql, [...params]),
   };
 }
 

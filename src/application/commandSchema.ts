@@ -18,6 +18,8 @@ const gameCommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('HireManager'), businessId }),
   z.object({ type: z.literal('SellBusiness'), businessId }),
   z.object({ type: z.literal('AdvanceTime') }),
+  z.object({ type: z.literal('SettleOffline') }),
+  z.object({ type: z.literal('AcknowledgeReturnSummary') }),
 ]);
 
 export function validCommand(command: GameCommand): GameCommand | undefined {

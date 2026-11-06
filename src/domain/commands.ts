@@ -21,6 +21,10 @@ export type SellBusiness = { readonly type: 'SellBusiness'; readonly businessId:
 
 export type AdvanceTime = { readonly type: 'AdvanceTime' };
 
+export type SettleOffline = { readonly type: 'SettleOffline' };
+
+export type AcknowledgeReturnSummary = { readonly type: 'AcknowledgeReturnSummary' };
+
 export type GameCommand =
   | TapBatch
   | UpgradeWallet
@@ -28,7 +32,9 @@ export type GameCommand =
   | UpgradeBusiness
   | HireManager
   | SellBusiness
-  | AdvanceTime;
+  | AdvanceTime
+  | SettleOffline
+  | AcknowledgeReturnSummary;
 
 export type CommandEnvelope = {
   readonly id: string;

@@ -56,6 +56,14 @@ _Avoid_: Autosave, sync
 The maximum away time credited to the economy on return; absence beyond it is discarded.
 _Avoid_: Idle limit, AFK cap
 
+**Offline settlement**:
+The SettleOffline commit made on launch and on returning to the app: it credits the wall time since the last checkpoint, up to the Offline cap, and moves the checkpoint to now. A backward wall clock credits nothing and records a diagnostic.
+_Avoid_: Catch-up, offline sync
+
+**Return summary**:
+The sheet that reports an Offline settlement: time away, credited time, earnings by source and whether the Offline cap was reached. It is saved with the settlement, so a crash shows it again without paying again, and Continue (AcknowledgeReturnSummary) only dismisses it. It appears only after at least a minute away that earned something.
+_Avoid_: Welcome back screen, offline reward
+
 ## Economy
 
 **Tier**:
