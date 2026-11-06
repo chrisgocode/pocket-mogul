@@ -135,3 +135,18 @@ _Avoid_: Premium stock, dividend stock
 **Penny stock**:
 A fictional stock priced under $1 that swings more than other stocks and pays no dividend.
 _Avoid_: Cheap stock, micro-cap
+
+## Markets
+
+**Market tick**:
+One price move for every stock and coin, every 60,000 ms of Simulation time.
+_Avoid_: Price update, refresh
+
+**Market seed**:
+The random value fixed when a save is created; with a tick, scope and stream it keys every random draw, so prices depend only on the seed and Simulation time.
+_Avoid_: RNG state, random seed (as something that advances)
+
+**Market history**:
+Past minute observations and hourly candles kept for charts in their own table; it never decides a current price.
+_Avoid_: Price feed, chart cache
+

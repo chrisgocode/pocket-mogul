@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { SAVE_SCHEMA_VERSION } from '@/domain/gameState';
-import { parseMoneyCents } from '@/domain/money';
+import { parseMoneyCents, parsePriceMicros } from '@/domain/money';
 
 export const moneyText = z
   .string()
@@ -18,6 +18,17 @@ const propertyLevels = z.object({
   systems: level,
   expansion: level,
 });
+
+const priceText = z.string().regex(/^\d+$/).transform(parsePriceMicros);
+const candle = z.object({ open: priceText, high: priceText, low: priceText, close: priceText });
+const market = z.object({
+  seed: z.string().min(1),
+  tick: count,
+  quotes: z.record(z.string(), priceText),
+  candles: z.record(z.string(), candle),
+});
+
+const MARKET_TICK_MS_BEFORE_MARKETS = 60_000;
 
 const savedHeader = {
   saveId: z.string().min(1),
@@ -40,7 +51,7 @@ const awayReport = <Earnings extends z.ZodType>(earnings: Earnings) =>
     }),
   ]);
 
-export const saveSchemaV1 = z.object({
+const saveSchemaV1Fields = z.object({
   ...savedHeader,
   schemaVersion: z.literal(1),
   businesses: z.array(
@@ -73,7 +84,18 @@ export const saveSchemaV1 = z.object({
   returnSummary: awayReport(
     z.object({ businesses: moneyText, rent: moneyText.prefault('0') }),
   ).prefault({ status: 'none' }),
+  market: market.optional(),
 });
+
+export const saveSchemaV1 = saveSchemaV1Fields.transform((saved) => ({
+  ...saved,
+  market: saved.market ?? {
+    seed: saved.saveId,
+    tick: Math.floor(saved.clock.simulationMs / MARKET_TICK_MS_BEFORE_MARKETS),
+    quotes: {},
+    candles: {},
+  },
+}));
 
 export const saveSchemaV2 = z.object({
   ...savedHeader,
@@ -99,4 +121,5 @@ export const saveSchemaV2 = z.object({
     rentEarningsCents: moneyText,
   }),
   returnSummary: awayReport(z.object({ businesses: moneyText, rent: moneyText })),
+  market,
 });

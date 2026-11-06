@@ -62,6 +62,7 @@ export const economyV1 = {
       regimeEveryTicks: 30,
       regimeChancePercent: { bear: 25, neutral: 50, bull: 25 },
       eventEveryTicks: 30,
+      eventChancePercent: { asset: 50, sector: 25, market: 25 },
       stocks: {
         commonShockBps: 20,
         sectorShockBps: 10,

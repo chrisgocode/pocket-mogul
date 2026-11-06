@@ -16,7 +16,7 @@ A portrait mobile idle wealth game for iOS and Android: tap for cash, then build
 | 2 Economy and persistence | [#21](https://github.com/chrisgocode/pocket-mogul/issues/21) | Tapping, the Game engine, the SQLite save, and save safety ([#27](https://github.com/chrisgocode/pocket-mogul/issues/27)) built |
 | 3 Tapping and businesses | [#22](https://github.com/chrisgocode/pocket-mogul/issues/22)–[#24](https://github.com/chrisgocode/pocket-mogul/issues/24) | Wallet upgrades, businesses, upgrades, managers, sales and Tier unlocks built |
 | 4 Property and offline | [#26](https://github.com/chrisgocode/pocket-mogul/issues/26) | Properties and rent built; offline earnings ([#25](https://github.com/chrisgocode/pocket-mogul/issues/25)) not started |
-| 5 Markets and portfolio | — | Not started |
+| 5 Markets and portfolio | [#28](https://github.com/chrisgocode/pocket-mogul/issues/28) | Seeded market simulation built, read-only; trading not started |
 | 6 Ads and native validation | — | Not started |
 
 Phase 1 is a runnable shell. It has five tabs, each with its own Stack, and Goals and Settings open from the header. It shows the validated v1 catalog read-only.
@@ -26,6 +26,8 @@ Phase 1 is a runnable shell. It has five tabs, each with its own Stack, and Goal
 #27 hardens the save. After a verified commit, at most once a minute, the Game copies the save into `save_backups` (two kept). A save from an older schema is backed up, then migrated explicitly (`MIGRATIONS` in `src/application/saveFormat.ts`, tested against `src/application/fixtures/save-v1.json`). A corrupt latest snapshot restores the newest valid backup and shows a "Save restored" notice; the damaged document is kept in `diagnostics`. A save from a newer schema, an economy version this build doesn't bundle, or a damaged save with no valid backup stops on an explanation screen and is never overwritten or reset. When `economyVersion` changes, the time since the last checkpoint is settled at the save's old rates before the new ones apply; old economies stay bundled in `src/content/index.ts`. Receipts older than 30 days are pruned on launch. Settings has Reset Save behind a confirmation sheet.
 
 #26 adds properties. The Properties tab lists all 8 listings, buyable whenever cash allows. A bought property starts vacant; Rent Out starts rent minus upkeep, and Unrent stops both. Renovation, Furnishings and Building Systems (0 to 10) and Expansion (0 to 4, not on City Studio or Starter House) apply at once, each previewed in the confirmation sheet with its cost, rent, upkeep and value change. Selling pays 95% of the estimated value, and estimated value counts toward net worth.
+
+#28 adds the seeded market. Every save has its own market seed, and stock and coin prices move once per market minute of simulation time, including up to 8 hours of offline time. Each move is drawn from a stable key (seed, tick, scope, stream), so restarting or opening a chart never changes the price path. The Markets tab lists all 24 stocks and 6 coins with their change this market hour and a news feed of market events. Each asset opens to a price chart over 1 hour, 8 hours or 30 market days, with a text summary. Chart history (480 minutes and 720 hourly candles per asset) lives in its own SQLite table, written in the same transaction as the commit that closed it. Trading comes in the next ticket.
 
 ## Setup
 

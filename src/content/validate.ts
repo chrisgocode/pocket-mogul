@@ -171,8 +171,11 @@ function artworkLevelsFitTheirCaps(content: Content): string[] {
 function marketRandomnessIsConsistent(content: Content): string[] {
   const { market } = content.economy;
   const { bear, neutral, bull } = market.regimeChancePercent;
+  const events = market.eventChancePercent;
   return [
-    bear + neutral + bull !== 100 && 'Regime chances must sum to 100',
+    bear + neutral + bull !== WHOLE_PERCENT && 'Regime chances must sum to 100',
+    events.asset + events.sector + events.market !== WHOLE_PERCENT &&
+      'Event scope chances must sum to 100',
     market.anchorClampBps > market.totalReturnClampBps && 'Anchor clamp exceeds total return clamp',
   ].filter((issue) => issue !== false);
 }

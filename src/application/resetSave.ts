@@ -31,6 +31,7 @@ export async function commitReset(
       } as const;
       await tx.writeState(state);
       await tx.clearBackups();
+      await tx.clearMarketHistory();
       await tx.writeReceipt({ commandId: reset.attemptId, outcome, recordedWallMs: reset.wallMs });
       return { outcome, state };
     });

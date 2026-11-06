@@ -4,14 +4,15 @@ import type { GameState } from '@/domain/gameState';
 
 import { supportsEconomy } from './economy';
 import { commitCommand, type CommandTime, type Committed } from './commitCommand';
-import { foregroundTime } from './foregroundTime';
+import { foregroundTime, type ForegroundTime } from './foregroundTime';
 import { foregroundLoops } from './foregroundLoops';
-import { commitReset } from './resetSave';
+import { marketHistoryFeeds, type HistoryFeed } from './marketHistoryFeed';
 import { openSave, type SaveNotice, type SaveStopReason } from './openSave';
-import type { Clock, SaveStore } from './ports';
+import type { AssetHistory, Clock, SaveStore } from './ports';
+import { commitReset } from './resetSave';
 import { backUpIfDue } from './saveBackups';
 import { serialQueue } from './serialQueue';
-import { snapshotStore } from './snapshotStore';
+import { snapshotStore, type SnapshotStore } from './snapshotStore';
 import { tapBatcher } from './tapBatcher';
 
 export type GamePorts = {
@@ -42,6 +43,8 @@ export type Game = {
   createCommandId: () => string;
   dismissNotice: () => void;
   resetSave: (attemptId: string) => Promise<CommandOutcome>;
+  readMarketHistory: (assetId: string) => Promise<AssetHistory>;
+  marketHistory: (assetId: string) => HistoryFeed;
 };
 
 export type OpenedGame =
@@ -66,16 +69,10 @@ async function runBeforePublish(step: (() => Promise<void>) | undefined): Promis
   }
 }
 
-function committer(ports: GamePorts, opened: Opened) {
-  const snapshots = snapshotStore<GameSnapshot>({
-    state: opened.state,
-    pendingTaps: 0,
-    unsavedElapsedMs: 0,
-    notice: opened.notice,
-  });
-  const time = foregroundTime(ports.clock);
-  const queue = serialQueue();
-  const publish = (change: { state?: GameState | undefined; settledTaps: number }) => {
+type PublishedChange = { state?: GameState | undefined; settledTaps: number };
+
+function publisher(snapshots: SnapshotStore<GameSnapshot>, time: ForegroundTime) {
+  return (change: PublishedChange) => {
     const current = snapshots.get();
     snapshots.set({
       ...current,
@@ -84,11 +81,24 @@ function committer(ports: GamePorts, opened: Opened) {
       unsavedElapsedMs: time.unsavedMs(),
     });
   };
+}
+
+function committer(ports: GamePorts, opened: Opened) {
+  const snapshots = snapshotStore<GameSnapshot>({
+    ...opened,
+    pendingTaps: 0,
+    unsavedElapsedMs: 0,
+  });
+  const time = foregroundTime(ports.clock);
+  const queue = serialQueue();
+  const history = marketHistoryFeeds({ queue, load: ports.store.loadAssetHistory });
+  const publish = publisher(snapshots, time);
   const commit = (step: CommitStep, options: RunOptions = {}) => {
     const wallMs = options.issuedAtWallMs ?? ports.clock.wallMs();
     return queue.run(async () => {
       const elapsedMs = time.unsavedMs();
       const committed = await step(snapshots.get().state, { elapsedMs, wallMs });
+      if (committed.history !== undefined) history.append(committed.history);
       if (committed.state !== undefined) {
         time.saved(elapsedMs);
         await backUpIfDue(ports.store, { revision: committed.state.revision, wallMs });
@@ -103,7 +113,15 @@ function committer(ports: GamePorts, opened: Opened) {
       (current, stepTime) => commitCommand(ports, { current, envelope, time: stepTime }),
       options,
     );
-  return { snapshots, time, queue, run, commit, refresh: () => publish({ settledTaps: 0 }) };
+  return {
+    snapshots,
+    time,
+    queue,
+    history,
+    run,
+    commit,
+    refresh: () => publish({ settledTaps: 0 }),
+  };
 }
 
 type Committer = ReturnType<typeof committer>;
@@ -161,9 +179,11 @@ function saveControls(ports: GamePorts, game: { core: Committer; flushTaps: () =
   return {
     async resetSave(attemptId: string) {
       await game.flushTaps();
-      return core.commit((current, { wallMs }) =>
+      const outcome = await core.commit((current, { wallMs }) =>
         commitReset(ports, { attemptId, current, wallMs }),
       );
+      if (outcome.ok) core.history.reload();
+      return outcome;
     },
     dismissNotice: () => core.snapshots.set({ ...core.snapshots.get(), notice: { kind: 'none' } }),
   };
@@ -195,6 +215,8 @@ async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
     flushTaps,
     createCommandId: ports.createId,
     ...saveControls(ports, { core, flushTaps }),
+    readMarketHistory: (assetId) => core.queue.run(() => ports.store.loadAssetHistory(assetId)),
+    marketHistory: (assetId) => core.history.feed(assetId),
     async pause() {
       loops.stop();
       core.time.pause();

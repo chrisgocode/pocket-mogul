@@ -12,6 +12,7 @@ import type {
   GameCommand,
 } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
+import { advanceMarket, type MarketHistory } from '@/domain/market';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 import { settleOffline, type WallClockReading } from '@/domain/offline';
 import { advanceTime } from '@/domain/passiveIncome';
@@ -28,6 +29,7 @@ import { applyWalletUpgrade } from '@/domain/wallet';
 import {
   businessEconomy,
   contentAt,
+  marketEconomy,
   passiveEconomy,
   progressRules,
   propertyEconomy,
@@ -40,6 +42,7 @@ export type Committed = {
   outcome: CommandOutcome;
   state?: GameState;
   wallClock?: WallClockReading;
+  history?: MarketHistory;
 };
 
 type CommitContext = EconomyVersions & { readonly store: SaveStore };
@@ -94,7 +97,17 @@ type TimeStep = {
   readonly wallClock: WallClockReading;
 };
 
-function stepTime(
+function withMarket(step: TimeStep, content: Content): TimeStep & { history: MarketHistory } {
+  const { state } = step;
+  const toTick = Math.floor(state.clock.simulationMs / content.economy.market.tickMs);
+  const { market, history } = advanceMarket(state.market, {
+    toTick,
+    economy: marketEconomy(content),
+  });
+  return { ...step, state: { ...state, market }, history };
+}
+
+function passTime(
   state: GameState,
   step: { command: GameCommand; time: CommandTime; content: Content },
 ): TimeStep {
@@ -124,7 +137,10 @@ function apply(
   if (command === undefined) return { outcome: { ok: false, error: 'INVALID_QUANTITY' } };
   const { content } = change.economies;
   const settling = contentAt(change.economies, state.economyVersion);
-  const advanced = stepTime(state, { command, time: change.time, content: settling });
+  const advanced = withMarket(
+    passTime(state, { command, time: change.time, content: settling }),
+    settling,
+  );
   const progress = progressRules(content);
   const adopted = { ...advanced.state, economyVersion: content.economyVersion };
   const progressed = withProgress(adopted, progress);
@@ -133,16 +149,17 @@ function apply(
   const cashChangeCents = moneyCents(advanced.earnedCents + result.cashChangeCents);
   const next = { ...withProgress(result.state, progress), revision: state.revision + 1 };
   const outcome = { ok: true, revision: next.revision, cashChangeCents } as const;
-  return { outcome, state: next, wallClock: advanced.wallClock };
+  return { outcome, state: next, wallClock: advanced.wallClock, history: advanced.history };
 }
 
 async function record(
   tx: SaveTransaction,
   change: { envelope: CommandEnvelope; applied: Committed; wallMs: number },
 ): Promise<void> {
-  const { state, outcome, wallClock } = change.applied;
+  const { state, outcome, wallClock, history } = change.applied;
   if (state === undefined) return;
   await tx.writeState(state);
+  if (history !== undefined) await tx.appendMarketHistory(history);
   if (wallClock?.direction === 'backward') {
     const { direction: _direction, ...reading } = wallClock;
     await tx.writeDiagnostic({

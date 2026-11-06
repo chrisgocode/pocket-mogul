@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { Diagnostic, SaveStore, SaveTransaction } from '@/application/ports';
 import { decodeOutcome, encodeOutcome, encodeSave } from '@/application/saveFormat';
 
+import { appendMarketHistory, CREATE_MARKET_HISTORY, loadAssetHistory } from './sqlMarketHistory';
 import type { SqlDriver, SqlExecutor } from './sqlDriver';
 
 const BACKUPS_KEPT = 2;
@@ -15,6 +16,7 @@ const MIGRATIONS: readonly (readonly string[])[] = [
   [
     'CREATE TABLE diagnostics (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, detail TEXT NOT NULL, recorded_wall_ms INTEGER NOT NULL)',
   ],
+  [CREATE_MARKET_HISTORY],
   [
     'CREATE TABLE save_backups (id INTEGER PRIMARY KEY AUTOINCREMENT, document TEXT NOT NULL, recorded_wall_ms INTEGER NOT NULL)',
   ],
@@ -75,7 +77,7 @@ async function migrate(sql: SqlExecutor): Promise<void> {
 
 function backupsOver(
   sql: SqlExecutor,
-): Pick<SaveTransaction, 'readBackups' | 'writeBackup' | 'clearBackups'> {
+): Pick<SaveTransaction, 'readBackups' | 'writeBackup' | 'clearBackups' | 'clearMarketHistory'> {
   return {
     readBackups: async () =>
       backupRows.parse(
@@ -92,6 +94,7 @@ function backupsOver(
       );
     },
     clearBackups: () => sql.run('DELETE FROM save_backups'),
+    clearMarketHistory: () => sql.run('DELETE FROM market_history'),
   };
 }
 
@@ -129,6 +132,7 @@ function transactionOver(sql: SqlExecutor): SaveTransaction {
         JSON.stringify(detail),
         recordedWallMs,
       ]),
+    appendMarketHistory: (history) => appendMarketHistory(sql, history),
     writeState: (state) =>
       sql.run(
         'INSERT INTO save_state (id, document) VALUES (1, ?) ON CONFLICT (id) DO UPDATE SET document = excluded.document',
@@ -140,6 +144,7 @@ function transactionOver(sql: SqlExecutor): SaveTransaction {
 export async function openSqlSaveStore(driver: SqlDriver): Promise<SaveStore> {
   await driver.exclusive(migrate);
   return {
+    loadAssetHistory: (assetId) => driver.exclusive((sql) => loadAssetHistory(sql, assetId)),
     loadDiagnostics: () =>
       driver.exclusive(async (sql) =>
         diagnosticRows.parse(

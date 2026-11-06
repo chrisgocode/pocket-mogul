@@ -147,6 +147,14 @@ export function formatPrice(value: PriceMicros): string {
   return `${negative ? '-' : ''}$${groupThousands(whole)}.${trimmed}`;
 }
 
+const MICROS_PER_CENT = MICROS_PER_DOLLAR / CENTS_PER_DOLLAR;
+
+export function formatPriceCompact(value: PriceMicros): string {
+  if (value < MICROS_PER_DOLLAR) return formatPrice(value);
+  const cents = (value * 2n + MICROS_PER_CENT) / (MICROS_PER_CENT * 2n);
+  return formatMoneyExact(moneyCents(cents));
+}
+
 export function formatQuantity(value: QuantityMicrounits): string {
   const { negative, whole, fraction } = splitIntoWholeAndFraction(value, MICRO_DIGITS);
   const trimmed = fraction.replace(/0+$/, '');

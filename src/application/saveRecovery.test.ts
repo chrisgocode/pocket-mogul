@@ -138,6 +138,7 @@ describe('a save from the previous schema', () => {
           earnings: { businesses: dollars('864'), rent: dollars('0') },
         },
       },
+      market: { seed: '4f6c2a9e-legacy', tick: 1440, quotes: {}, candles: {} },
     });
   });
 
@@ -282,6 +283,15 @@ describe('resetting the save', () => {
     expect<bigint>(first.game.getSnapshot().state.cashCents).toBe(dollars('3'));
     const restarted = await first.restart();
     expect<bigint>(restarted.game.getSnapshot().state.cashCents).toBe(dollars('3'));
+  });
+
+  it("drops the old save's market history", async () => {
+    const { game, clock } = await startTestGame();
+    clock.advance(3 * 60_000);
+    await game.checkpoint();
+    expect((await game.readMarketHistory('wag')).minutes).not.toHaveLength(0);
+    await game.resetSave('reset-1');
+    expect(await game.readMarketHistory('wag')).toEqual({ minutes: [], hours: [] });
   });
 
   it('drops the old backups so a later recovery cannot bring the old save back', async () => {

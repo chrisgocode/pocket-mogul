@@ -55,6 +55,8 @@ function sequentialIds(): () => string {
 
 export type WriteFaults = { failWrites: boolean; failWritesMatching?: RegExp | undefined };
 
+export type ReadFaults = { failReads: boolean };
+
 type SaveGate = { passed: () => Promise<void>; hold: () => () => void };
 
 const doNothing = (): void => undefined;
@@ -85,16 +87,21 @@ function saveGate(): SaveGate {
 const failsOn = (faults: WriteFaults, statement: string) =>
   faults.failWrites || (faults.failWritesMatching?.test(statement) ?? false);
 
-function faultyDriver(driver: SqlDriver, faults: WriteFaults, gate: SaveGate): SqlDriver {
+type Faults = { writes: WriteFaults; reads: ReadFaults };
+
+function faultyDriver(driver: SqlDriver, faults: Faults, gate: SaveGate): SqlDriver {
   return {
     exclusive: async (work) => {
       await gate.passed();
       return driver.exclusive((sql) =>
         work({
           first: sql.first,
-          all: sql.all,
+          all: (statement, params) =>
+            faults.reads.failReads
+              ? Promise.reject(new Error('read failed'))
+              : sql.all(statement, params),
           run: (statement, params) =>
-            failsOn(faults, statement)
+            failsOn(faults.writes, statement)
               ? Promise.reject(new Error('disk full'))
               : sql.run(statement, params),
         }),
@@ -107,6 +114,7 @@ export type TestGame = {
   game: Game;
   clock: FakeClock;
   faults: WriteFaults;
+  readFaults: ReadFaults;
   holdSaves: () => () => void;
   restart: (relaunch?: Relaunch) => Promise<TestGame>;
   reopen: (relaunch?: Relaunch) => Promise<OpenedGame>;
@@ -165,6 +173,7 @@ type OpenedTestGame = {
   opened: OpenedGame;
   clock: FakeClock;
   faults: WriteFaults;
+  readFaults: ReadFaults;
   holdSaves: () => () => void;
   diagnostics: () => Promise<readonly Diagnostic[]>;
 };
@@ -172,8 +181,11 @@ type OpenedTestGame = {
 async function openTestGame(save: TestSave = freshTestSave()): Promise<OpenedTestGame> {
   const clock = fakeClock(save.wallStartMs);
   const faults: WriteFaults = { failWrites: false };
+  const readFaults: ReadFaults = { failReads: false };
   const gate = saveGate();
-  const store = await openSqlSaveStore(faultyDriver(nodeSqliteDriver(save.database), faults, gate));
+  const store = await openSqlSaveStore(
+    faultyDriver(nodeSqliteDriver(save.database), { writes: faults, reads: readFaults }, gate),
+  );
   const opened = await createGame({
     content: getContent(),
     ...save.hooks,
@@ -181,7 +193,14 @@ async function openTestGame(save: TestSave = freshTestSave()): Promise<OpenedTes
     store,
     createId: save.createId,
   });
-  return { opened, clock, faults, holdSaves: gate.hold, diagnostics: store.loadDiagnostics };
+  return {
+    opened,
+    clock,
+    faults,
+    readFaults,
+    holdSaves: gate.hold,
+    diagnostics: store.loadDiagnostics,
+  };
 }
 
 export async function startTestGame(save: TestSave = freshTestSave()): Promise<TestGame> {
@@ -250,4 +269,11 @@ export function withBusinessRevenue(
     economyVersion: change.economyVersion,
     businesses: content.businesses.map(changed),
   };
+}
+
+export function currentState(document: string): GameState {
+  const decoded = decodeSave(document);
+  if (decoded.status !== 'current')
+    throw new Error(`Expected a current save, got ${decoded.status}`);
+  return decoded.state;
 }
