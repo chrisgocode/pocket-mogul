@@ -1,25 +1,28 @@
-import { selectBusinesses, type TierView } from '@/application/businessesView';
+import { useRouter } from 'expo-router';
+
+import { selectBusinesses, type BusinessOffer } from '@/application/businessesView';
 import { getContent } from '@/content';
 import { formatMoneyExact, formatRatePerMinute } from '@/domain/money';
 import { useGameSnapshot } from '@/features/game/GameContext';
 import { Card } from '@/ui/Card';
 import { EmptyState } from '@/ui/EmptyState';
 import { Screen } from '@/ui/Screen';
-import { Section } from '@/ui/Section';
 import { AppText } from '@/ui/Typography';
 
-import { BusinessOfferRow } from './BusinessOfferRow';
+import { BusinessTierSection } from './BusinessTierSection';
 import { BuyBusinessSheet } from './BuyBusinessSheet';
+import { NextTierCard } from './NextTierCard';
 import { useBuyBusiness } from './useBuyBusiness';
-
-function tierNote(tier: TierView): string {
-  if (tier.unlocked || tier.unlockAtCents === undefined) return 'Available now';
-  return `Unlocks at ${formatMoneyExact(tier.unlockAtCents)} peak net worth`;
-}
 
 export function BusinessesScreen() {
   const view = selectBusinesses(useGameSnapshot(), getContent());
   const { confirmation, review, close, confirm } = useBuyBusiness();
+  const router = useRouter();
+  const manage = (offer: BusinessOffer) =>
+    router.push({
+      pathname: '/businesses/[businessId]',
+      params: { businessId: offer.business.id },
+    });
   const cash = formatMoneyExact(view.cashCents);
   const income = formatRatePerMinute(view.incomePerMinuteCents, 'full');
   return (
@@ -33,6 +36,7 @@ export function BusinessesScreen() {
         </AppText>
         <AppText muted>Business income {income} net</AppText>
       </Card>
+      {view.nextUnlock === undefined ? null : <NextTierCard unlock={view.nextUnlock} />}
       {view.owned.length === 0 ? (
         <EmptyState
           title="No businesses yet"
@@ -40,13 +44,7 @@ export function BusinessesScreen() {
         />
       ) : null}
       {view.tiers.map((tier) => (
-        <Section key={tier.tier} title={`Tier ${tier.tier}`} note={tierNote(tier)}>
-          <Card>
-            {tier.offers.map((offer) => (
-              <BusinessOfferRow key={offer.business.id} offer={offer} onReview={review} />
-            ))}
-          </Card>
-        </Section>
+        <BusinessTierSection key={tier.tier} tier={tier} onReview={review} onManage={manage} />
       ))}
       <BuyBusinessSheet
         confirmation={confirmation}

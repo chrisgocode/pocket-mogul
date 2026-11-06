@@ -2,8 +2,16 @@ import { moneyCents, type MoneyCents } from './money';
 
 export const SAVE_SCHEMA_VERSION = 1;
 
+export type BusinessLevels = {
+  readonly capacity: number;
+  readonly quality: number;
+  readonly efficiency: number;
+};
+
 export type OwnedBusiness = {
   readonly definitionId: string;
+  readonly levels: BusinessLevels;
+  readonly managerOwned: boolean;
   readonly capitalizedSpendCents: MoneyCents;
 };
 export type OwnedProperty = { readonly definitionId: string };

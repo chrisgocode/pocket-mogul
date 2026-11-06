@@ -66,6 +66,26 @@ _Avoid_: Level, stage, era
 One source of constant-rate passive income, such as one business, with its own sub-cent remainder that survives selling the asset.
 _Avoid_: Income source, earner
 
+**Upgrade track**:
+One of a business's three independent levels, 0 to 20: Capacity (more revenue and costs), Quality (more revenue) or Efficiency (lower costs).
+_Avoid_: Stat, skill, upgrade slot
+
+**Milestone bonus**:
+An additive 10% net profit bonus a business earns for every 15 total levels across its upgrade tracks.
+_Avoid_: Level bonus, combo
+
+**Manager**:
+A one-time hire per business that adds 10% net profit; its price is an operating expense, not part of the carrying value.
+_Avoid_: Staff, employee, automation
+
+**Carrying value**:
+What a business counts for in net worth: its purchase price plus upgrade spending, excluding the manager.
+_Avoid_: Book value, asset value
+
+**Sale quote**:
+The cash a sale pays: 60% of a business's carrying value, after its income is settled.
+_Avoid_: Resale value, refund
+
 **Wallet upgrade**:
 A purchase that permanently raises the cash earned per tap.
 _Avoid_: Card upgrade, tap upgrade

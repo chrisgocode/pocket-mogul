@@ -1,5 +1,10 @@
 import type { Content } from '@/content';
-import { applyBuyBusiness } from '@/domain/businesses';
+import {
+  applyBuyBusiness,
+  applyHireManager,
+  applySellBusiness,
+  applyUpgradeBusiness,
+} from '@/domain/businesses';
 import type {
   CommandEnvelope,
   CommandOutcome,
@@ -9,9 +14,11 @@ import type {
 import type { GameState } from '@/domain/gameState';
 import { moneyCents } from '@/domain/money';
 import { advanceTime } from '@/domain/passiveIncome';
+import { withProgress } from '@/domain/progression';
 import { applyTapBatch } from '@/domain/tapping';
 import { applyWalletUpgrade } from '@/domain/wallet';
 
+import { businessEconomy } from './businessEconomy';
 import { validCommand } from './commandSchema';
 import type { Clock, SaveStore, SaveTransaction } from './ports';
 
@@ -25,23 +32,40 @@ type CommitContext = {
 
 export type CommandTime = { readonly elapsedMs: number; readonly wallMs: number };
 
-function applyCommand(state: GameState, command: GameCommand, content: Content): CommandResult {
-  const rules = content.economy.tap;
-  switch (command.type) {
-    case 'UpgradeWallet':
-      return applyWalletUpgrade(state, { fromLevel: command.fromLevel, rules });
-    case 'BuyBusiness':
-      return applyBuyBusiness(state, {
-        businessId: command.businessId,
-        catalog: content.businesses,
-      });
-    case 'AdvanceTime':
-      return { ok: true, state, cashChangeCents: moneyCents(0) };
-    case 'TapBatch':
-      break;
-  }
-  const paid = applyTapBatch(state, { taps: command.taps, rules });
-  return { ok: true, state: paid.state, cashChangeCents: paid.earnedCents };
+type CommandsByType = { [Type in GameCommand['type']]: Extract<GameCommand, { type: Type }> };
+
+type CommandHandlers = {
+  readonly [Type in keyof CommandsByType]: (
+    state: GameState,
+    command: CommandsByType[Type],
+    content: Content,
+  ) => CommandResult;
+};
+
+const COMMAND_HANDLERS: CommandHandlers = {
+  TapBatch: (state, command, content) => {
+    const paid = applyTapBatch(state, { taps: command.taps, rules: content.economy.tap });
+    return { ok: true, state: paid.state, cashChangeCents: paid.earnedCents };
+  },
+  UpgradeWallet: (state, command, content) =>
+    applyWalletUpgrade(state, { fromLevel: command.fromLevel, rules: content.economy.tap }),
+  BuyBusiness: (state, command, content) =>
+    applyBuyBusiness(state, { ...command, economy: businessEconomy(content) }),
+  UpgradeBusiness: (state, command, content) =>
+    applyUpgradeBusiness(state, { ...command, economy: businessEconomy(content) }),
+  HireManager: (state, command, content) =>
+    applyHireManager(state, { ...command, economy: businessEconomy(content) }),
+  SellBusiness: (state, command, content) =>
+    applySellBusiness(state, { ...command, economy: businessEconomy(content) }),
+  AdvanceTime: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),
+};
+
+function applyCommand<Type extends keyof CommandsByType>(
+  state: GameState,
+  command: { type: Type; payload: CommandsByType[Type] },
+  content: Content,
+): CommandResult {
+  return COMMAND_HANDLERS[command.type](state, command.payload, content);
 }
 
 function apply(
@@ -50,11 +74,16 @@ function apply(
 ): Committed {
   const command = validCommand(change.envelope.command);
   if (command === undefined) return { outcome: { ok: false, error: 'INVALID_QUANTITY' } };
-  const advanced = advanceTime(state, { ...change.time, catalog: change.content.businesses });
-  const result = applyCommand(advanced.state, command, change.content);
+  const { tierUnlocks } = change.content.economy;
+  const advanced = advanceTime(state, {
+    ...change.time,
+    economy: businessEconomy(change.content),
+  });
+  const progressed = withProgress(advanced.state, tierUnlocks);
+  const result = applyCommand(progressed, { type: command.type, payload: command }, change.content);
   if (!result.ok) return { outcome: result };
   const cashChangeCents = moneyCents(advanced.earnedCents + result.cashChangeCents);
-  const next = { ...result.state, revision: state.revision + 1 };
+  const next = { ...withProgress(result.state, tierUnlocks), revision: state.revision + 1 };
   return { outcome: { ok: true, revision: next.revision, cashChangeCents }, state: next };
 }
 

@@ -10,7 +10,14 @@ const moneyText = z
   .transform(parseMoneyCents);
 const count = z.number().int().nonnegative();
 const definitionId = z.object({ definitionId: z.string().min(1) });
-const ownedBusiness = definitionId.extend({ capitalizedSpendCents: moneyText });
+const level = z.number().int().nonnegative();
+const ownedBusiness = definitionId.extend({
+  levels: z
+    .object({ capacity: level, quality: level, efficiency: level })
+    .prefault({ capacity: 0, quality: 0, efficiency: 0 }),
+  managerOwned: z.boolean().default(false),
+  capitalizedSpendCents: moneyText,
+});
 const remainder = z.number().int().nonnegative();
 
 const savedGameSchema = z.object({

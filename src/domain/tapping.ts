@@ -1,6 +1,5 @@
 import type { GameState } from './gameState';
 import { moneyCents, type MoneyCents } from './money';
-import { withPeakNetWorth } from './netWorth';
 
 export type TapRules = {
   readonly baseCents: MoneyCents;
@@ -21,11 +20,11 @@ export function applyTapBatch(
   const cashCents = moneyCents(state.cashCents + earnedCents);
   return {
     earnedCents,
-    state: withPeakNetWorth({
+    state: {
       ...state,
       cashCents,
       lifetimeTapEarningsCents: moneyCents(state.lifetimeTapEarningsCents + earnedCents),
       tap: { ...state.tap, totalAcceptedTaps: state.tap.totalAcceptedTaps + batch.taps },
-    }),
+    },
   };
 }

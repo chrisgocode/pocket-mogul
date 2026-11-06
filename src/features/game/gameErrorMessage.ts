@@ -3,6 +3,7 @@ import type { GameErrorCode } from '@/domain/commands';
 const MESSAGES: Record<GameErrorCode, string> = {
   INSUFFICIENT_CASH: "You don't have enough cash for this yet. Nothing was spent.",
   ALREADY_OWNED: 'You already own this.',
+  NOT_OWNED: "You don't own this any more.",
   LOCKED_TIER: 'This tier is still locked. Grow your peak net worth to open it.',
   UNKNOWN_ASSET: "That isn't available to buy.",
   MAX_LEVEL: 'This is already at its max level.',

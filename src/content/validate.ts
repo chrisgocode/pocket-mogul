@@ -52,6 +52,7 @@ function crossChecks(content: Content): string[] {
     retiredIdsAreNeverReused,
     everyTierHasBusinessesAndRisingUnlocks,
     businessesAndPropertiesEarnAtBaseLevel,
+    efficiencyKeepsCostsPositive,
     stockClassesFollowTheirRules,
     artworkLevelsFitTheirCaps,
     marketRandomnessIsConsistent,
@@ -135,6 +136,15 @@ function stockClassesFollowTheirRules(content: Content): string[] {
     }
     return issues;
   });
+}
+
+const WHOLE_PERCENT = 100;
+
+function efficiencyKeepsCostsPositive(content: Content): string[] {
+  const { maxTrackLevel, levelEffectPercent } = content.economy.businessRules;
+  return levelEffectPercent.efficiencySaving * maxTrackLevel < WHOLE_PERCENT
+    ? []
+    : ['Efficiency at its max level must leave operating costs above zero'];
 }
 
 function artworkLevelsFitTheirCaps(content: Content): string[] {

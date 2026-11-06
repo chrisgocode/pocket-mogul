@@ -16,9 +16,11 @@ function buyLabel(offer: BusinessOffer): string {
 export function BusinessOfferRow({
   offer,
   onReview,
+  onManage,
 }: {
   offer: BusinessOffer;
   onReview: (offer: BusinessOffer) => void;
+  onManage: (offer: BusinessOffer) => void;
 }) {
   const { business } = offer;
   const label = buyLabel(offer);
@@ -37,6 +39,14 @@ export function BusinessOfferRow({
           accessibilityLabel={`Buy ${business.name}, ${label}`}
           onPress={() => onReview(offer)}
           disabled={!offer.affordable}
+        />
+      ) : null}
+      {offer.status === 'owned' ? (
+        <Button
+          label="Manage"
+          accessibilityLabel={`Manage ${business.name}`}
+          variant="secondary"
+          onPress={() => onManage(offer)}
         />
       ) : null}
     </View>
