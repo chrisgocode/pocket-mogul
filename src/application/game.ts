@@ -101,6 +101,10 @@ function committer(ports: GamePorts, initial: GameState) {
 
 type Committer = ReturnType<typeof committer>;
 
+function earnsPassiveIncome(state: GameState): boolean {
+  return state.businesses.length > 0 || state.properties.some((property) => property.rented);
+}
+
 function tapBatching(ports: GamePorts, core: Committer) {
   const taps = tapBatcher({
     clock: ports.clock,
@@ -156,7 +160,7 @@ export async function createGame(ports: GamePorts): Promise<Game> {
     checkpointMs: ports.content.economy.time.foregroundCheckpointMs,
     checkpoint: () => void checkpoint(),
     refresh: () => {
-      if (core.snapshots.get().state.businesses.length > 0) core.refresh();
+      if (earnsPassiveIncome(core.snapshots.get().state)) core.refresh();
     },
   });
   return {

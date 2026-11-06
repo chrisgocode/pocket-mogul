@@ -7,6 +7,7 @@ const MINUTES_PER_HOUR = 60;
 
 const INCOME_SOURCES: readonly { source: keyof IncomeBySource; label: string }[] = [
   { source: 'businesses', label: 'Businesses' },
+  { source: 'rent', label: 'Rent' },
 ];
 
 export type EarningsLine = { readonly label: string; readonly cents: MoneyCents };
@@ -29,7 +30,9 @@ function formatDuration(ms: number): string {
 }
 
 function earningsLines(earnings: IncomeBySource): EarningsLine[] {
-  return INCOME_SOURCES.map(({ source, label }) => ({ label, cents: earnings[source] }));
+  return INCOME_SOURCES.map(({ source, label }) => ({ label, cents: earnings[source] })).filter(
+    (line) => line.cents > 0n,
+  );
 }
 
 export function selectReturnSummary(

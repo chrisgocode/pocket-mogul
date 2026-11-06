@@ -14,14 +14,28 @@ export type OwnedBusiness = {
   readonly managerOwned: boolean;
   readonly capitalizedSpendCents: MoneyCents;
 };
-export type OwnedProperty = { readonly definitionId: string };
+export type PropertyLevels = {
+  readonly renovation: number;
+  readonly furnishings: number;
+  readonly systems: number;
+  readonly expansion: number;
+};
+
+export type OwnedProperty = {
+  readonly definitionId: string;
+  readonly levels: PropertyLevels;
+  readonly rented: boolean;
+  readonly upgradeSpendCents: MoneyCents;
+};
 
 export type IncomeState = {
   readonly businessRemainders: Readonly<Record<string, number>>;
   readonly businessEarningsCents: MoneyCents;
+  readonly rentRemainders: Readonly<Record<string, number>>;
+  readonly rentEarningsCents: MoneyCents;
 };
 
-export type IncomeBySource = { readonly businesses: MoneyCents };
+export type IncomeBySource = { readonly businesses: MoneyCents; readonly rent: MoneyCents };
 
 export type ReturnSummary = {
   readonly awayMs: number;
@@ -67,7 +81,12 @@ export function freshGameState(start: {
     tap: { walletLevel: 0, totalAcceptedTaps: 0 },
     businesses: [],
     properties: [],
-    income: { businessRemainders: {}, businessEarningsCents: moneyCents(0) },
+    income: {
+      businessRemainders: {},
+      businessEarningsCents: moneyCents(0),
+      rentRemainders: {},
+      rentEarningsCents: moneyCents(0),
+    },
     unlockedTiers: [1],
     returnSummary: { status: 'none' },
   };

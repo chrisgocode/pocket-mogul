@@ -3,6 +3,8 @@ import type { BusinessEconomy } from './businesses';
 import { freshGameState, type GameState } from './gameState';
 import { dollars, moneyCents } from './money';
 import { settleOffline } from './offline';
+import type { PassiveEconomy } from './passiveIncome';
+import { propertyRules } from './testRules';
 
 const HOUR_MS = 3_600_000;
 const CAP_MS = 8 * HOUR_MS;
@@ -16,7 +18,7 @@ const vending: BusinessDefinition = {
   costsPerMinute: dollars('4'),
 };
 
-const economy: BusinessEconomy = {
+const businesses: BusinessEconomy = {
   catalog: [vending],
   rules: {
     maxTrackLevel: 20,
@@ -35,6 +37,11 @@ const economy: BusinessEconomy = {
     saleReturnPercent: 60,
     branchArtCapacityLevels: [5, 10, 15, 20],
   },
+};
+
+const economy: PassiveEconomy = {
+  businesses,
+  properties: { catalog: [], rules: propertyRules },
 };
 
 function leftWith(...definitions: BusinessDefinition[]): GameState {
@@ -81,7 +88,7 @@ describe('settling an absence', () => {
       summary: {
         awayMs: 10 * HOUR_MS,
         creditedMs: CAP_MS,
-        earnings: { businesses: dollars('4800') },
+        earnings: { businesses: dollars('4800'), rent: dollars('0') },
       },
     });
   });
@@ -105,7 +112,7 @@ describe('settling an absence', () => {
       summary: {
         awayMs: 2 * HOUR_MS + 30_000,
         creditedMs: 2 * HOUR_MS + 30_000,
-        earnings: { businesses: dollars('1205') },
+        earnings: { businesses: dollars('1205'), rent: dollars('0') },
       },
     });
   });

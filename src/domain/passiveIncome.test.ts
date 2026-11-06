@@ -2,7 +2,8 @@ import { freshGameState, type GameState } from './gameState';
 import { dollars, moneyCents } from './money';
 import type { BusinessDefinition } from './businessQuotes';
 import type { BusinessEconomy } from './businesses';
-import { advanceTime } from './passiveIncome';
+import { advanceTime, type PassiveEconomy } from './passiveIncome';
+import { propertyRules } from './testRules';
 
 const ONE_SECOND_MS = 1_000;
 const ONE_MINUTE_MS = 60_000;
@@ -23,7 +24,7 @@ const vending: BusinessDefinition = {
   costsPerMinute: dollars('4'),
 };
 
-const economy: BusinessEconomy = {
+const businesses: BusinessEconomy = {
   catalog: [pennyStand, vending],
   rules: {
     maxTrackLevel: 20,
@@ -41,6 +42,14 @@ const economy: BusinessEconomy = {
     milestoneBonusBps: 1000,
     saleReturnPercent: 60,
     branchArtCapacityLevels: [5, 10, 15, 20],
+  },
+};
+
+const economy: PassiveEconomy = {
+  businesses,
+  properties: {
+    catalog: [],
+    rules: propertyRules,
   },
 };
 

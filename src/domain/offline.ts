@@ -1,7 +1,6 @@
-import type { BusinessEconomy } from './businesses';
-import type { GameState, PendingReturnSummary, ReturnSummary } from './gameState';
+import type { GameState, IncomeBySource, PendingReturnSummary, ReturnSummary } from './gameState';
 import { moneyCents, type MoneyCents } from './money';
-import { advanceTime } from './passiveIncome';
+import { advanceTime, totalIncome, type PassiveEconomy } from './passiveIncome';
 
 const RETURN_SUMMARY_MIN_AWAY_MS = 60_000;
 
@@ -26,13 +25,18 @@ function readWallClock(state: GameState, wallMs: number): WallClockReading {
     : { direction: 'forward' };
 }
 
+function addIncome(earlier: IncomeBySource, later: IncomeBySource): IncomeBySource {
+  return {
+    businesses: moneyCents(earlier.businesses + later.businesses),
+    rent: moneyCents(earlier.rent + later.rent),
+  };
+}
+
 function combined(earlier: ReturnSummary, later: ReturnSummary): ReturnSummary {
   return {
     awayMs: earlier.awayMs + later.awayMs,
     creditedMs: earlier.creditedMs + later.creditedMs,
-    earnings: {
-      businesses: moneyCents(earlier.earnings.businesses + later.earnings.businesses),
-    },
+    earnings: addIncome(earlier.earnings, later.earnings),
   };
 }
 
@@ -41,13 +45,13 @@ function summarize(pending: PendingReturnSummary, absence: ReturnSummary): Pendi
     return { status: 'pending', summary: combined(pending.summary, absence) };
   }
   const worthShowing =
-    absence.awayMs >= RETURN_SUMMARY_MIN_AWAY_MS && absence.earnings.businesses > 0n;
+    absence.awayMs >= RETURN_SUMMARY_MIN_AWAY_MS && totalIncome(absence.earnings) > 0n;
   return worthShowing ? { status: 'pending', summary: absence } : pending;
 }
 
 export function settleOffline(
   state: GameState,
-  settle: { wallMs: number; capMs: number; economy: BusinessEconomy },
+  settle: { wallMs: number; capMs: number; economy: PassiveEconomy },
 ): OfflineSettlement {
   const clock = readWallClock(state, settle.wallMs);
   const awayMs = Math.max(0, settle.wallMs - state.clock.lastWallCheckpointMs);
@@ -57,7 +61,7 @@ export function settleOffline(
     wallMs: settle.wallMs,
     economy: settle.economy,
   });
-  const absence = { awayMs, creditedMs, earnings: { businesses: advanced.earnedCents } };
+  const absence = { awayMs, creditedMs, earnings: advanced.earnings };
   return {
     clock,
     earnedCents: advanced.earnedCents,

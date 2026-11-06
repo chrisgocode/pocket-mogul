@@ -94,6 +94,18 @@ _Avoid_: Book value, asset value
 The cash a sale pays: 60% of a business's carrying value, after its income is settled.
 _Avoid_: Resale value, refund
 
+**Rental status**:
+Whether an owned property is Rented (earning rent minus upkeep) or Vacant (earning nothing and paying no upkeep); a bought property starts Vacant.
+_Avoid_: Occupied, leased, active
+
+**Property upgrade track**:
+One of a property's four independent levels: Renovation and Furnishings (more rent), Building Systems (less upkeep), each 0 to 10, and Expansion (more rent and upkeep, 0 to 4, only on listings that allow it).
+_Avoid_: Improvement, renovation (for the group)
+
+**Estimated value**:
+What a property counts for in net worth: its catalog price plus 80% of its upgrade spending; a sale pays 95% of it.
+_Avoid_: Market value, appraisal
+
 **Wallet upgrade**:
 A purchase that permanently raises the cash earned per tap.
 _Avoid_: Card upgrade, tap upgrade

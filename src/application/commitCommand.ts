@@ -16,10 +16,16 @@ import { moneyCents, type MoneyCents } from '@/domain/money';
 import { settleOffline, type WallClockReading } from '@/domain/offline';
 import { advanceTime } from '@/domain/passiveIncome';
 import { withProgress } from '@/domain/progression';
+import {
+  applyBuyProperty,
+  applySellProperty,
+  applySetRentalStatus,
+  applyUpgradeProperty,
+} from '@/domain/properties';
 import { applyTapBatch } from '@/domain/tapping';
 import { applyWalletUpgrade } from '@/domain/wallet';
 
-import { businessEconomy } from './businessEconomy';
+import { businessEconomy, passiveEconomy, progressRules, propertyEconomy } from './economy';
 import { validCommand } from './commandSchema';
 import type { SaveStore, SaveTransaction } from './ports';
 
@@ -61,6 +67,14 @@ const COMMAND_HANDLERS: CommandHandlers = {
     applyHireManager(state, { ...command, economy: businessEconomy(content) }),
   SellBusiness: (state, command, content) =>
     applySellBusiness(state, { ...command, economy: businessEconomy(content) }),
+  BuyProperty: (state, command, content) =>
+    applyBuyProperty(state, { ...command, economy: propertyEconomy(content) }),
+  UpgradeProperty: (state, command, content) =>
+    applyUpgradeProperty(state, { ...command, economy: propertyEconomy(content) }),
+  SetRentalStatus: (state, command, content) =>
+    applySetRentalStatus(state, { ...command, economy: propertyEconomy(content) }),
+  SellProperty: (state, command, content) =>
+    applySellProperty(state, { ...command, economy: propertyEconomy(content) }),
   AdvanceTime: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),
   SettleOffline: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),
   AcknowledgeReturnSummary: (state) => ({
@@ -80,7 +94,7 @@ function stepTime(
   state: GameState,
   step: { command: GameCommand; time: CommandTime; content: Content },
 ): TimeStep {
-  const economy = businessEconomy(step.content);
+  const economy = passiveEconomy(step.content);
   if (step.command.type === 'SettleOffline') {
     const capMs = step.content.economy.time.offlineCapMs;
     const settled = settleOffline(state, { wallMs: step.time.wallMs, capMs, economy });
@@ -104,13 +118,13 @@ function apply(
 ): Committed {
   const command = validCommand(change.envelope.command);
   if (command === undefined) return { outcome: { ok: false, error: 'INVALID_QUANTITY' } };
-  const { tierUnlocks } = change.content.economy;
+  const progress = progressRules(change.content);
   const advanced = stepTime(state, { command, time: change.time, content: change.content });
-  const progressed = withProgress(advanced.state, tierUnlocks);
+  const progressed = withProgress(advanced.state, progress);
   const result = applyCommand(progressed, { type: command.type, payload: command }, change.content);
   if (!result.ok) return { outcome: result };
   const cashChangeCents = moneyCents(advanced.earnedCents + result.cashChangeCents);
-  const next = { ...withProgress(result.state, tierUnlocks), revision: state.revision + 1 };
+  const next = { ...withProgress(result.state, progress), revision: state.revision + 1 };
   const outcome = { ok: true, revision: next.revision, cashChangeCents } as const;
   return { outcome, state: next, wallClock: advanced.wallClock };
 }

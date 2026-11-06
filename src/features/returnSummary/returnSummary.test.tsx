@@ -38,6 +38,7 @@ describe('the return summary', () => {
     expect(screen.getByLabelText('Credited, 8h')).toBeOnTheScreen();
     expect(screen.getByLabelText('Businesses, $4,800.00')).toBeOnTheScreen();
     expect(screen.getByLabelText('Total earned, $4,800.00')).toBeOnTheScreen();
+    expect(screen.queryByLabelText(/^Rent/)).not.toBeOnTheScreen();
     expect(screen.getByText('You reached the 8h offline cap.')).toBeOnTheScreen();
   });
 

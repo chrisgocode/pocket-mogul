@@ -1,6 +1,7 @@
 import type { UpgradeTrack } from './businessQuotes';
 import type { GameState } from './gameState';
 import type { MoneyCents } from './money';
+import type { PropertyTrack } from './propertyQuotes';
 
 export type TapBatch = { readonly type: 'TapBatch'; readonly taps: number };
 
@@ -19,6 +20,23 @@ export type HireManager = { readonly type: 'HireManager'; readonly businessId: s
 
 export type SellBusiness = { readonly type: 'SellBusiness'; readonly businessId: string };
 
+export type BuyProperty = { readonly type: 'BuyProperty'; readonly propertyId: string };
+
+export type UpgradeProperty = {
+  readonly type: 'UpgradeProperty';
+  readonly propertyId: string;
+  readonly track: PropertyTrack;
+  readonly fromLevel: number;
+};
+
+export type SetRentalStatus = {
+  readonly type: 'SetRentalStatus';
+  readonly propertyId: string;
+  readonly rented: boolean;
+};
+
+export type SellProperty = { readonly type: 'SellProperty'; readonly propertyId: string };
+
 export type AdvanceTime = { readonly type: 'AdvanceTime' };
 
 export type SettleOffline = { readonly type: 'SettleOffline' };
@@ -32,6 +50,10 @@ export type GameCommand =
   | UpgradeBusiness
   | HireManager
   | SellBusiness
+  | BuyProperty
+  | UpgradeProperty
+  | SetRentalStatus
+  | SellProperty
   | AdvanceTime
   | SettleOffline
   | AcknowledgeReturnSummary;
@@ -48,6 +70,7 @@ export const GAME_ERROR_CODES = [
   'LOCKED_TIER',
   'UNKNOWN_ASSET',
   'MAX_LEVEL',
+  'UPGRADE_UNAVAILABLE',
   'INVALID_QUANTITY',
   'STALE_QUOTE',
   'SAVE_FAILED',

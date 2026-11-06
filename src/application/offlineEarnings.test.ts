@@ -1,7 +1,7 @@
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 
-import { startTestGame, startTestGameFrom, type TestGame } from './testGame';
+import { deferred, startTestGame, startTestGameFrom, type TestGame } from './testGame';
 
 const HOUR_MS = 3_600_000;
 const LEFT_AT_MS = 1_800_000_000_000;
@@ -37,7 +37,7 @@ describe('relaunching after time away', () => {
       summary: {
         awayMs: 10 * HOUR_MS,
         creditedMs: 8 * HOUR_MS,
-        earnings: { businesses: dollars('4800') },
+        earnings: { businesses: dollars('4800'), rent: dollars('0') },
       },
     });
   });
@@ -66,6 +66,32 @@ describe('relaunching after time away', () => {
   });
 });
 
+describe('rent while away', () => {
+  it('reports business income and rent as separate sources (UX05)', async () => {
+    const left = await startTestGameFrom({
+      ...withVending,
+      properties: [
+        {
+          definitionId: 'studio',
+          levels: { renovation: 0, furnishings: 0, systems: 0, expansion: 0 },
+          rented: true,
+          upgradeSpendCents: dollars('0'),
+        },
+      ],
+    });
+    const back = await left.restart({ awayMs: HOUR_MS });
+    expect(summary(back)).toEqual({
+      status: 'pending',
+      summary: {
+        awayMs: HOUR_MS,
+        creditedMs: HOUR_MS,
+        earnings: { businesses: dollars('600'), rent: dollars('6000') },
+      },
+    });
+    expect<bigint>(cash(back)).toBe(dollars('6600'));
+  });
+});
+
 describe('dismissing the return summary', () => {
   it('Continue only dismisses: no cash changes and it stays dismissed after a restart (UX05)', async () => {
     const left = await startTestGameFrom(withVending);
@@ -91,8 +117,8 @@ describe('returning to the running app', () => {
   });
 
   it('waits for the step before the summary, where an app open ad will go', async () => {
-    const reached = Promise.withResolvers<void>();
-    const opened = Promise.withResolvers<void>();
+    const reached = deferred();
+    const opened = deferred();
     const session = await startTestGameFrom(withVending, {
       beforeWarmReturnSummary: () => {
         reached.resolve();

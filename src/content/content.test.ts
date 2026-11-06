@@ -33,9 +33,10 @@ describe('bundled content', () => {
 
   it('has nine dividend payers: three standard and six blue chips', () => {
     const payers = getContent().stocks.filter((s) => s.dividendCentsPerSharePerHour > 0n);
-    expect(payers.map((s) => s.ticker).toSorted()).toEqual(
-      ['ATIN', 'BRIK', 'BRL', 'CLWV', 'EVGU', 'IRCL', 'PRZM', 'SMHD', 'WLBH'].toSorted(),
+    expect(new Set(payers.map((s) => s.ticker))).toEqual(
+      new Set(['ATIN', 'BRIK', 'BRL', 'CLWV', 'EVGU', 'IRCL', 'PRZM', 'SMHD', 'WLBH']),
     );
+    expect(payers).toHaveLength(9);
     expect(getContent().stocks.filter((s) => s.volatilityClass === 'penny')).toHaveLength(6);
   });
 
@@ -148,5 +149,13 @@ describe('business rule validation rejects', () => {
     expect(
       issuesFor((c) => void (c.economy.businessRules.levelEffectPercent.efficiencySaving = 5)),
     ).toEqual(['Efficiency at its max level must leave operating costs above zero']);
+  });
+});
+
+describe('property rule validation rejects', () => {
+  it('Building Systems that would push upkeep to zero', () => {
+    expect(
+      issuesFor((c) => void (c.economy.propertyRules.levelEffectPercent.systemsSaving = 10)),
+    ).toEqual(['Building Systems at its max level must leave upkeep above zero']);
   });
 });

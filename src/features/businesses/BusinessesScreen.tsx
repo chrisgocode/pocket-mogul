@@ -2,8 +2,10 @@ import { useRouter } from 'expo-router';
 
 import { selectBusinesses, type BusinessOffer } from '@/application/businessesView';
 import { getContent } from '@/content';
+import type { GameCommand } from '@/domain/commands';
 import { formatMoneyExact, formatRatePerMinute } from '@/domain/money';
 import { useGameSnapshot } from '@/features/game/GameContext';
+import { useGameAction } from '@/features/game/useGameAction';
 import { Card } from '@/ui/Card';
 import { EmptyState } from '@/ui/EmptyState';
 import { Screen } from '@/ui/Screen';
@@ -12,11 +14,15 @@ import { AppText } from '@/ui/Typography';
 import { BusinessTierSection } from './BusinessTierSection';
 import { BuyBusinessSheet } from './BuyBusinessSheet';
 import { NextTierCard } from './NextTierCard';
-import { useBuyBusiness } from './useBuyBusiness';
+
+const buyBusinessCommand = (offer: BusinessOffer): GameCommand => ({
+  type: 'BuyBusiness',
+  businessId: offer.business.id,
+});
 
 export function BusinessesScreen() {
   const view = selectBusinesses(useGameSnapshot(), getContent());
-  const { confirmation, review, close, confirm } = useBuyBusiness();
+  const { confirmation, review, close, confirm } = useGameAction(buyBusinessCommand);
   const router = useRouter();
   const manage = (offer: BusinessOffer) =>
     router.push({

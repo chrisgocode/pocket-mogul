@@ -7,6 +7,7 @@ const MESSAGES: Record<GameErrorCode, string> = {
   LOCKED_TIER: 'This tier is still locked. Grow your peak net worth to open it.',
   UNKNOWN_ASSET: "That isn't available to buy.",
   MAX_LEVEL: 'This is already at its max level.',
+  UPGRADE_UNAVAILABLE: "This upgrade isn't available here.",
   INVALID_QUANTITY: "That amount isn't valid.",
   STALE_QUOTE: 'The price changed. Check the new amount and try again.',
   SAVE_FAILED: "Your game couldn't be saved, so nothing changed. Try again.",

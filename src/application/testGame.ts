@@ -53,12 +53,22 @@ export type WriteFaults = { failWrites: boolean };
 
 type SaveGate = { passed: () => Promise<void>; hold: () => () => void };
 
+const doNothing = (): void => undefined;
+
+export function deferred(): { promise: Promise<void>; resolve: () => void } {
+  let resolve: () => void = doNothing;
+  const promise = new Promise<void>((settle) => {
+    resolve = settle;
+  });
+  return { promise, resolve };
+}
+
 function saveGate(): SaveGate {
   let held: Promise<void> = Promise.resolve();
   return {
     passed: () => held,
     hold() {
-      const { promise, resolve } = Promise.withResolvers<void>();
+      const { promise, resolve } = deferred();
       held = promise;
       return () => {
         held = Promise.resolve();

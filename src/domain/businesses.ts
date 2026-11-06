@@ -10,7 +10,8 @@ import {
 } from './businessQuotes';
 import type { CommandResult, GameErrorCode } from './commands';
 import type { GameState, OwnedBusiness } from './gameState';
-import { moneyCents, type MoneyCents } from './money';
+import { moneyCents } from './money';
+import { spend } from './pricing';
 
 export type BusinessEconomy = {
   readonly catalog: BusinessCatalog;
@@ -51,15 +52,6 @@ function withBusiness(state: GameState, business: OwnedBusiness): GameState {
     businesses: state.businesses.map((owned) =>
       owned.definitionId === business.definitionId ? business : owned,
     ),
-  };
-}
-
-function spend(state: GameState, priceCents: MoneyCents): CommandResult {
-  if (state.cashCents < priceCents) return { ok: false, error: 'INSUFFICIENT_CASH' };
-  return {
-    ok: true,
-    cashChangeCents: moneyCents(0n - priceCents),
-    state: { ...state, cashCents: moneyCents(state.cashCents - priceCents) },
   };
 }
 

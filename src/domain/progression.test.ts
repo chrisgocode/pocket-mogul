@@ -2,8 +2,24 @@ import { levelZeroBusiness } from './businessQuotes';
 import { freshGameState, type GameState } from './gameState';
 import { dollars } from './money';
 import { withProgress } from './progression';
+import { levelZeroProperty } from './propertyQuotes';
+import { propertyRules } from './testRules';
 
-const thresholds = { 2: dollars('5,000'), 3: dollars('200,000'), 4: dollars('8,000,000') };
+const thresholds = {
+  tierUnlocks: { 2: dollars('5,000'), 3: dollars('200,000'), 4: dollars('8,000,000') },
+  properties: {
+    catalog: [
+      {
+        id: 'studio',
+        price: dollars('20,000'),
+        rentPerMinute: dollars('120'),
+        upkeepPerMinute: dollars('20'),
+        expansionAllowed: false,
+      },
+    ],
+    rules: propertyRules,
+  },
+};
 
 const holding = (cash: string, businessValue = '0'): GameState => ({
   ...freshGameState({ saveId: 'test', economyVersion: 1, wallMs: 0 }),
@@ -16,6 +32,15 @@ describe('peak net worth', () => {
     expect<bigint>(withProgress(holding('10', '250'), thresholds).peakNetWorthCents).toBe(
       dollars('260'),
     );
+  });
+
+  it('adds the estimated value of each property', () => {
+    const renovated = {
+      ...levelZeroProperty('studio'),
+      upgradeSpendCents: dollars('2,000'),
+    };
+    const owning = { ...holding('10', '250'), properties: [renovated] };
+    expect<bigint>(withProgress(owning, thresholds).peakNetWorthCents).toBe(dollars('21,860'));
   });
 
   it('never falls', () => {
