@@ -110,6 +110,31 @@ describe('returning to the running app', () => {
   });
 });
 
+describe('a pause checkpoint that saves late', () => {
+  it('still credits the absence from the moment the app left, behind a tap batch', async () => {
+    const session = await startTestGameFrom(withVending);
+    const release = session.holdSaves();
+    session.game.tap();
+    const paused = session.game.pause();
+    session.clock.advance(HOUR_MS);
+    const resumed = session.game.resume();
+    release();
+    await Promise.all([paused, resumed]);
+    expect<bigint>(cash(session)).toBe(dollars('601'));
+  });
+});
+
+describe('an app open ad step that fails', () => {
+  it('still shows the settled earnings and summary', async () => {
+    const session = await startTestGameFrom(withVending, {
+      beforeWarmReturnSummary: () => Promise.reject(new Error('no fill')),
+    });
+    await awayWhileRunning(session, HOUR_MS);
+    expect<bigint>(cash(session)).toBe(dollars('600'));
+    expect(summary(session)).toMatchObject({ status: 'pending' });
+  });
+});
+
 describe('a wall clock set backward', () => {
   it('credits no offline time, records a diagnostic and resets the baseline', async () => {
     const left = await startTestGameFrom(withVending);
@@ -146,10 +171,13 @@ describe('leaving the app', () => {
       command: { type: 'UpgradeWallet', fromLevel: 0 },
     });
     session.game.tap();
+    session.clock.advance(250);
+    await session.game.flushTaps();
+    session.game.tap();
     session.game.tap();
     const relaunched = await session.restart();
     const { state } = relaunched.game.getSnapshot();
-    expect(state.tap).toEqual({ walletLevel: 1, totalAcceptedTaps: 120 });
-    expect<bigint>(state.cashCents).toBe(dollars('20'));
+    expect(state.tap).toEqual({ walletLevel: 1, totalAcceptedTaps: 121 });
+    expect<bigint>(state.cashCents).toBe(dollars('21.50'));
   });
 });

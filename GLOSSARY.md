@@ -62,7 +62,7 @@ _Avoid_: Catch-up, offline sync
 
 **Return summary**:
 The sheet that reports an Offline settlement: time away, credited time, earnings by source and whether the Offline cap was reached. It is saved with the settlement, so a crash shows it again without paying again, and Continue (AcknowledgeReturnSummary) only dismisses it. It appears only after at least a minute away that earned something.
-_Avoid_: Welcome back screen, offline reward
+_Avoid_: Offline reward, idle bonus
 
 ## Economy
 

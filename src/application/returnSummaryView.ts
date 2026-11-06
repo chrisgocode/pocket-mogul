@@ -20,7 +20,7 @@ export type ReturnSummaryView = {
   readonly totalCents: MoneyCents;
 };
 
-function formatAwayDuration(ms: number): string {
+function formatDuration(ms: number): string {
   const totalMinutes = Math.floor(ms / MS_PER_MINUTE);
   const hours = Math.floor(totalMinutes / MINUTES_PER_HOUR);
   const minutes = totalMinutes % MINUTES_PER_HOUR;
@@ -40,9 +40,9 @@ export function selectReturnSummary(
   const { summary } = state.returnSummary;
   const earnings = earningsLines(summary.earnings);
   return {
-    awayLabel: formatAwayDuration(summary.awayMs),
-    creditedLabel: formatAwayDuration(summary.creditedMs),
-    capLabel: formatAwayDuration(content.economy.time.offlineCapMs),
+    awayLabel: formatDuration(summary.awayMs),
+    creditedLabel: formatDuration(summary.creditedMs),
+    capLabel: formatDuration(content.economy.time.offlineCapMs),
     capReached: summary.awayMs > summary.creditedMs,
     earnings,
     totalCents: moneyCents(earnings.reduce<bigint>((total, line) => total + line.cents, 0n)),

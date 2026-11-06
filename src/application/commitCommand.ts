@@ -21,12 +21,15 @@ import { applyWalletUpgrade } from '@/domain/wallet';
 
 import { businessEconomy } from './businessEconomy';
 import { validCommand } from './commandSchema';
-import type { Clock, SaveStore, SaveTransaction } from './ports';
+import type { SaveStore, SaveTransaction } from './ports';
 
-export type Committed = { outcome: CommandOutcome; state?: GameState; clock?: WallClockReading };
+export type Committed = {
+  outcome: CommandOutcome;
+  state?: GameState;
+  wallClock?: WallClockReading;
+};
 
 type CommitContext = {
-  readonly clock: Clock;
   readonly store: SaveStore;
   readonly content: Content;
 };
@@ -70,7 +73,7 @@ const COMMAND_HANDLERS: CommandHandlers = {
 type TimeStep = {
   readonly state: GameState;
   readonly earnedCents: MoneyCents;
-  readonly clock: WallClockReading;
+  readonly wallClock: WallClockReading;
 };
 
 function stepTime(
@@ -80,9 +83,11 @@ function stepTime(
   const economy = businessEconomy(step.content);
   if (step.command.type === 'SettleOffline') {
     const capMs = step.content.economy.time.offlineCapMs;
-    return settleOffline(state, { wallMs: step.time.wallMs, capMs, economy });
+    const settled = settleOffline(state, { wallMs: step.time.wallMs, capMs, economy });
+    return { ...settled, wallClock: settled.clock };
   }
-  return { ...advanceTime(state, { ...step.time, economy }), clock: { direction: 'forward' } };
+  const advanced = advanceTime(state, { ...step.time, economy });
+  return { ...advanced, wallClock: { direction: 'forward' } };
 }
 
 function applyCommand<Type extends keyof CommandsByType>(
@@ -107,21 +112,21 @@ function apply(
   const cashChangeCents = moneyCents(advanced.earnedCents + result.cashChangeCents);
   const next = { ...withProgress(result.state, tierUnlocks), revision: state.revision + 1 };
   const outcome = { ok: true, revision: next.revision, cashChangeCents } as const;
-  return { outcome, state: next, clock: advanced.clock };
+  return { outcome, state: next, wallClock: advanced.wallClock };
 }
 
 async function record(
   tx: SaveTransaction,
   change: { envelope: CommandEnvelope; applied: Committed; wallMs: number },
 ): Promise<void> {
-  const { state, outcome, clock } = change.applied;
+  const { state, outcome, wallClock } = change.applied;
   if (state === undefined) return;
   await tx.writeState(state);
-  if (clock?.direction === 'backward') {
+  if (wallClock?.direction === 'backward') {
+    const { direction: _direction, ...reading } = wallClock;
     await tx.writeDiagnostic({
       type: 'BACKWARD_WALL_CLOCK',
-      checkpointWallMs: clock.checkpointWallMs,
-      observedWallMs: clock.observedWallMs,
+      ...reading,
       recordedWallMs: change.wallMs,
     });
   }
@@ -134,16 +139,16 @@ async function record(
 
 export async function commitCommand(
   context: CommitContext,
-  change: { current: GameState; envelope: CommandEnvelope; elapsedMs: number },
+  change: { current: GameState; envelope: CommandEnvelope; time: CommandTime },
 ): Promise<Committed> {
-  const wallMs = context.clock.wallMs();
+  const { wallMs } = change.time;
   try {
     return await context.store.transact(async (tx) => {
       const recorded = await tx.findOutcome(change.envelope.id);
       if (recorded !== undefined) return { outcome: recorded };
       const applied = apply(change.current, {
         envelope: change.envelope,
-        time: { elapsedMs: change.elapsedMs, wallMs },
+        time: change.time,
         content: context.content,
       });
       await record(tx, { envelope: change.envelope, applied, wallMs });

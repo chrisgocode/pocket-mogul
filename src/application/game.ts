@@ -48,7 +48,19 @@ async function loadOrStart(ports: GamePorts): Promise<GameState> {
   return fresh;
 }
 
-type RunOptions = { settledTaps?: number; beforePublish?: (() => Promise<void>) | undefined };
+type RunOptions = {
+  settledTaps?: number;
+  issuedAtWallMs?: number;
+  beforePublish?: (() => Promise<void>) | undefined;
+};
+
+async function runBeforePublish(step: (() => Promise<void>) | undefined): Promise<void> {
+  try {
+    await step?.();
+  } catch {
+    return;
+  }
+}
 
 function committer(ports: GamePorts, initial: GameState) {
   const snapshots = snapshotStore<GameSnapshot>({
@@ -66,16 +78,24 @@ function committer(ports: GamePorts, initial: GameState) {
       unsavedElapsedMs: time.unsavedMs(),
     });
   };
-  const run = (envelope: CommandEnvelope, options: RunOptions = {}) =>
-    queue.run(async () => {
+  const run = (envelope: CommandEnvelope, options: RunOptions = {}) => {
+    const wallMs = options.issuedAtWallMs ?? ports.clock.wallMs();
+    return queue.run(async () => {
       const elapsedMs = time.unsavedMs();
       const current = snapshots.get().state;
-      const committed = await commitCommand(ports, { current, envelope, elapsedMs });
-      if (committed.state !== undefined) time.saved(elapsedMs);
-      await options.beforePublish?.();
+      const committed = await commitCommand(ports, {
+        current,
+        envelope,
+        time: { elapsedMs, wallMs },
+      });
+      if (committed.state !== undefined) {
+        time.saved(elapsedMs);
+        await runBeforePublish(options.beforePublish);
+      }
       publish({ state: committed.state, settledTaps: options.settledTaps ?? 0 });
       return committed.outcome;
     });
+  };
   return { snapshots, time, queue, run, refresh: () => publish({ settledTaps: 0 }) };
 }
 
@@ -93,8 +113,9 @@ function tapBatching(ports: GamePorts, core: Committer) {
   });
   return {
     dispatch: async (envelope: CommandEnvelope) => {
+      const issuedAtWallMs = ports.clock.wallMs();
       if (envelope.command.type !== 'TapBatch') await taps.close();
-      return core.run(envelope);
+      return core.run(envelope, { issuedAtWallMs });
     },
     tap: () => {
       taps.add();

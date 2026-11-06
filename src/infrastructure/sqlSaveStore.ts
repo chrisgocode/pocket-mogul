@@ -18,6 +18,7 @@ const MIGRATIONS: readonly (readonly string[])[] = [
 const versionRow = z.object({ version: z.number().int().nullable() });
 const documentRow = z.object({ document: z.string() });
 const outcomeRow = z.object({ outcome: z.string() });
+const diagnosticDetail = z.object({ checkpointWallMs: z.number(), observedWallMs: z.number() });
 const diagnosticRows = z.array(
   z
     .object({
@@ -31,7 +32,6 @@ const diagnosticRows = z.array(
       recordedWallMs: row.recorded_wall_ms,
     })),
 );
-const diagnosticDetail = z.object({ checkpointWallMs: z.number(), observedWallMs: z.number() });
 
 const isMissing = (row: unknown) => row === undefined || row === null;
 

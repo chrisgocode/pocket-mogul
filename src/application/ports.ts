@@ -1,5 +1,6 @@
 import type { CommandOutcome } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
+import type { WallClockReading } from '@/domain/offline';
 
 export type CancelTimer = () => void;
 
@@ -9,10 +10,10 @@ export type Clock = {
   schedule: (delayMs: number, task: () => void) => CancelTimer;
 };
 
-export type Diagnostic = {
+type BackwardWallClock = Omit<Extract<WallClockReading, { direction: 'backward' }>, 'direction'>;
+
+export type Diagnostic = BackwardWallClock & {
   readonly type: 'BACKWARD_WALL_CLOCK';
-  readonly checkpointWallMs: number;
-  readonly observedWallMs: number;
   readonly recordedWallMs: number;
 };
 
