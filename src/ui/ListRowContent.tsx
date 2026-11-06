@@ -1,8 +1,19 @@
+import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import type { ListRowProps } from './ListRow';
 import { OptionalCaption } from './OptionalCaption';
 import { AppText } from './Typography';
+
+export type ListRowProps = {
+  leading?: ReactNode;
+  title: string;
+  subtitle?: string | undefined;
+  value?: string | undefined;
+  detail?: string | undefined;
+  dimmed?: boolean;
+  accessibilityLabel?: string;
+  onPress?: () => void;
+};
 
 export function ListRowContent({ leading, title, subtitle, value, detail }: ListRowProps) {
   return (

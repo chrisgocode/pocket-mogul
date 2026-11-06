@@ -1,19 +1,7 @@
-import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { ListRowContent } from './ListRowContent';
+import { ListRowContent, type ListRowProps } from './ListRowContent';
 import { feedback, minimumTouchTarget, spacing } from './tokens';
-
-export type ListRowProps = {
-  leading?: ReactNode;
-  title: string;
-  subtitle?: string | undefined;
-  value?: string | undefined;
-  detail?: string | undefined;
-  dimmed?: boolean;
-  accessibilityLabel?: string;
-  onPress?: () => void;
-};
 
 export function ListRow(props: ListRowProps) {
   const { title, subtitle, value, detail, dimmed = false, onPress } = props;

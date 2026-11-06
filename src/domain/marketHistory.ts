@@ -57,7 +57,7 @@ export function closedCandles(candles: Candles, hour: number): HourlyCandle[] {
   }));
 }
 
-export function retained(
+export function trimmedHistory(
   history: Pick<MarketHistory, 'minutes' | 'hours'>,
   at: { tick: number; rules: MarketRules },
 ): MarketHistory {

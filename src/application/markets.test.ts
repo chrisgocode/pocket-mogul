@@ -148,3 +148,14 @@ describe('saves from before markets', () => {
     expect(decodeSave(encodeSave({ ...fresh, market })).market).toEqual(market);
   });
 });
+
+describe('the content market', () => {
+  it('gives penny stocks ±80 bps asset shocks, other stocks ±40 and coins ±180', () => {
+    const shocks = Object.fromEntries(
+      marketEconomy(getContent()).instruments.map((asset) => [asset.id, asset.assetShockBps]),
+    );
+    expect([shocks['prism'], shocks['summit'], shocks['zapcar'], shocks['wag']]).toEqual([
+      40, 40, 80, 180,
+    ]);
+  });
+});

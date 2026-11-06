@@ -7,7 +7,7 @@ import {
   extendCandle,
   hourOfTick,
   openCandle,
-  retained,
+  trimmedHistory,
   type Candles,
   type HourlyCandle,
   type MarketHistory,
@@ -159,8 +159,11 @@ function candlesAfter(
   return Object.fromEntries(
     tick.economy.instruments.map((instrument) => {
       const price = tick.quotes[instrument.id] ?? instrument.initialPrice;
-      const candle = market.candles[instrument.id] ?? openCandle(quoteOf(market, instrument));
-      return [instrument.id, tick.startsHour ? openCandle(price) : extendCandle(candle, price)];
+      const previousClose = openCandle(quoteOf(market, instrument));
+      const candle = tick.startsHour
+        ? previousClose
+        : (market.candles[instrument.id] ?? previousClose);
+      return [instrument.id, extendCandle(candle, price)];
     }),
   );
 }
@@ -195,6 +198,6 @@ export function advanceMarket(
   for (let tick = market.tick + 1; tick <= advance.toTick; tick += 1) {
     current = stepTick(current, { tick, economy: advance.economy, recorded });
   }
-  const history = retained(recorded, { tick: current.tick, rules: advance.economy.rules });
+  const history = trimmedHistory(recorded, { tick: current.tick, rules: advance.economy.rules });
   return { market: current, history };
 }

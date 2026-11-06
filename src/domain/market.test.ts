@@ -151,6 +151,17 @@ const lively = economy({
   anchorPullBps: 5,
 });
 
+describe('crypto events', () => {
+  it('turn the sector share into a coin event, since coins have no sector', () => {
+    const coinOnly = economy({
+      eventChancePercent: { asset: 0, sector: 100, market: 0 },
+      crypto: { ...quiet, eventDriftBps: 100 },
+    });
+    const { market } = advanceMarket(freshMarket('seed-1'), { toTick: 1, economy: coinOnly });
+    expect([dollarPrice('0.101'), dollarPrice('0.099')]).toContain(market.quotes['dime']);
+  });
+});
+
 describe('market history', () => {
   it('gives the same prices and history whether advanced in pieces or at once', () => {
     const once = advanceMarket(freshMarket('seed-1'), { toTick: 130, economy: lively });
@@ -161,13 +172,13 @@ describe('market history', () => {
     expect([...first.history.hours, ...second.history.hours]).toEqual(once.history.hours);
   });
 
-  it('records each tick as a minute observation and closes hourly candles on the hour', () => {
+  it('records each tick as a minute observation; hourly candles open at the last close', () => {
     const { history } = advanceMarket(freshMarket('seed-1'), { toTick: 130, economy: lively });
     const minutes = history.minutes.filter((minute) => minute.assetId === 'ten');
     expect(minutes.map((minute) => minute.tick)).toEqual(
       Array.from({ length: 130 }, (_, i) => i + 1),
     );
-    const hourOne = minutes.slice(59, 119).map((minute) => minute.price);
+    const hourOne = minutes.slice(58, 119).map((minute) => minute.price);
     const candles = history.hours.filter((candle) => candle.assetId === 'ten');
     expect(candles.map((candle) => candle.hour)).toEqual([0, 1]);
     expect(candles[0]!.open).toBe(dollarPrice('10'));
@@ -177,7 +188,7 @@ describe('market history', () => {
       open: hourOne[0],
       high: BigInt(Math.max(...hourOne.map(Number))),
       low: BigInt(Math.min(...hourOne.map(Number))),
-      close: hourOne[59],
+      close: hourOne[60],
     });
   });
 

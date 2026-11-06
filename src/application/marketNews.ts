@@ -3,7 +3,7 @@ import type { GameState } from '@/domain/gameState';
 import { eventAffects, marketEventAt, type MarketEvent } from '@/domain/marketEvents';
 import { drawInt } from '@/domain/marketRandom';
 import { windowStart } from '@/domain/marketRegime';
-import type { MarketKind } from '@/domain/marketRules';
+import type { MarketEconomy, MarketKind } from '@/domain/marketRules';
 
 import { marketEconomy } from './economy';
 
@@ -26,6 +26,8 @@ type NewsRequest = {
   readonly assetId?: string;
   readonly limit: number;
 };
+
+type NewsContext = NewsRequest & { readonly economy: MarketEconomy };
 
 function templateScope(event: MarketEvent): EventTemplate['scope'] {
   if (event.target.scope !== 'asset') return event.target.scope;
@@ -62,8 +64,8 @@ function timing(event: MarketEvent, at: { tick: number; tickMs: number }): NewsT
     : { status: 'ended', agoMs: (at.tick - event.endTick) * at.tickMs };
 }
 
-function recentEvents(state: GameState, request: NewsRequest): MarketEvent[] {
-  const economy = marketEconomy(request.content);
+function recentEvents(state: GameState, request: NewsContext): MarketEvent[] {
+  const { economy } = request;
   const every = economy.rules.eventEveryTicks;
   const latest = windowStart(state.market.tick, every);
   const starts = Array.from({ length: NEWS_WINDOWS }, (_, back) => latest - back * every);
@@ -72,9 +74,9 @@ function recentEvents(state: GameState, request: NewsRequest): MarketEvent[] {
     .map((tick) => marketEventAt(state.market.seed, { market: request.market, tick, economy }));
 }
 
-function concerns(event: MarketEvent, request: NewsRequest): boolean {
+function concerns(event: MarketEvent, request: NewsContext): boolean {
   if (request.assetId === undefined) return true;
-  const instrument = marketEconomy(request.content).instruments.find(
+  const instrument = request.economy.instruments.find(
     (candidate) => candidate.id === request.assetId,
   );
   return instrument !== undefined && eventAffects(event, instrument);
@@ -83,8 +85,9 @@ function concerns(event: MarketEvent, request: NewsRequest): boolean {
 export function selectMarketNews(state: GameState, request: NewsRequest): NewsItem[] {
   const { tickMs } = request.content.economy.market;
   const seed = state.market.seed;
-  return recentEvents(state, request)
-    .filter((event) => concerns(event, request))
+  const context = { ...request, economy: marketEconomy(request.content) };
+  return recentEvents(state, context)
+    .filter((event) => concerns(event, context))
     .slice(0, request.limit)
     .map((event) => ({
       key: `${event.market}-${event.startTick}`,
