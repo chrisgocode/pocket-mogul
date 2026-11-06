@@ -1,6 +1,6 @@
 import type { NewsItem } from '@/application/marketNews';
 import type { PriceChart } from '@/application/priceChart';
-import { formatPrice } from '@/domain/money';
+import { formatPriceCompact } from '@/domain/money';
 import type { LineTrend } from '@/ui/LineChart';
 
 const BPS_PER_PERCENT = 100;
@@ -46,10 +46,10 @@ function marketDuration(ms: number): string {
 }
 
 export function chartRangeText(chart: PriceChart): string {
-  if (chart.spanMs === 0) return `No market history yet. Price ${formatPrice(chart.last)}.`;
+  if (chart.spanMs === 0) return `No market history yet. Price ${formatPriceCompact(chart.last)}.`;
   const range = marketDuration(chart.spanMs);
-  const move = `${formatPrice(chart.first)} to ${formatPrice(chart.last)}, ${changeWords(chart.changeBps)}`;
-  return `Past ${range}: ${move}. High ${formatPrice(chart.high)}, low ${formatPrice(chart.low)}.`;
+  const move = `${formatPriceCompact(chart.first)} to ${formatPriceCompact(chart.last)}, ${changeWords(chart.changeBps)}`;
+  return `Past ${range}: ${move}. High ${formatPriceCompact(chart.high)}, low ${formatPriceCompact(chart.low)}.`;
 }
 
 export function newsTiming(item: NewsItem): string {

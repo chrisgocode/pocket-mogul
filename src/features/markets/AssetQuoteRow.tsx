@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 
 import type { AssetQuote } from '@/application/marketsView';
-import { formatMoneyExact, formatPrice } from '@/domain/money';
+import { formatMoneyExact, formatPriceCompact } from '@/domain/money';
 import { ListRow } from '@/ui/ListRow';
 import { LogoMark } from '@/ui/LogoMark';
 
@@ -25,7 +25,7 @@ export function dividendLabel(quote: AssetQuote): string | undefined {
 export function AssetQuoteRow({ quote }: { quote: AssetQuote }) {
   const router = useRouter();
   const { asset } = quote;
-  const price = formatPrice(quote.price);
+  const price = formatPriceCompact(quote.price);
   return (
     <ListRow
       leading={<LogoMark logo={asset.logo} />}

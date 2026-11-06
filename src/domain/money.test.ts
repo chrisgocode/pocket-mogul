@@ -3,6 +3,7 @@ import {
   formatMoneyCompact,
   formatMoneyExact,
   formatPrice,
+  formatPriceCompact,
   formatQuantity,
   formatRatePerMinute,
   moneyCents,
@@ -120,5 +121,18 @@ describe('divideRoundingUp', () => {
     expect(divideRoundingUp(10n, 3n)).toBe(4n);
     expect(divideRoundingUp(9n, 3n)).toBe(3n);
     expect(divideRoundingUp(0n, 7n)).toBe(0n);
+  });
+});
+
+describe('compact quote prices', () => {
+  it('round prices of a dollar or more to the nearest cent, half up', () => {
+    expect(formatPriceCompact(dollarPrice('24.201984'))).toBe('$24.20');
+    expect(formatPriceCompact(dollarPrice('41.745501'))).toBe('$41.75');
+    expect(formatPriceCompact(dollarPrice('1,234.995'))).toBe('$1,235.00');
+  });
+
+  it('keep the sub-cent precision a price under a dollar needs', () => {
+    expect(formatPriceCompact(dollarPrice('0.101'))).toBe('$0.101');
+    expect(formatPriceCompact(dollarPrice('0.999999'))).toBe('$0.999999');
   });
 });
