@@ -3,7 +3,7 @@ import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { AppText } from '@/ui/Typography';
 
-import { formatRateChange, priceLabel } from './businessFormat';
+import { formatRateChange, priceLabel } from '@/features/game/priceFormat';
 
 export function ManagerCard({
   manager,

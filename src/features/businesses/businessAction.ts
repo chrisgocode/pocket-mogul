@@ -6,9 +6,10 @@ import type {
 import type { Business } from '@/content';
 import type { GameCommand } from '@/domain/commands';
 import { formatMoneyExact, formatRatePerMinute, moneyCents, type MoneyCents } from '@/domain/money';
-import type { ConfirmationLine } from '@/ui/ConfirmationDetails';
+import type { ActionSheetText } from '@/features/game/ActionSheet';
+import { formatCashChange, formatRateChange } from '@/features/game/priceFormat';
 
-import { formatCashChange, formatRateChange, TRACK_NAMES } from './businessFormat';
+import { TRACK_NAMES } from './businessFormat';
 
 export type BusinessAction =
   | {
@@ -24,12 +25,6 @@ export type BusinessAction =
       readonly netPerMinuteCents: MoneyCents;
     };
 
-export type BusinessActionSheetText = {
-  readonly title: string;
-  readonly lines: readonly ConfirmationLine[];
-  readonly confirmLabel: string;
-};
-
 const spent = (priceCents: MoneyCents) => moneyCents(0n - priceCents);
 
 export function businessActionCommand(action: BusinessAction): GameCommand {
@@ -40,7 +35,7 @@ export function businessActionCommand(action: BusinessAction): GameCommand {
   return { type: 'UpgradeBusiness', businessId, track, fromLevel: level };
 }
 
-function upgradeText(upgrade: AvailableBusinessUpgrade): BusinessActionSheetText {
+function upgradeText(upgrade: AvailableBusinessUpgrade): ActionSheetText {
   const track = TRACK_NAMES[upgrade.track];
   return {
     title: `Upgrade ${track}`,
@@ -56,7 +51,7 @@ function upgradeText(upgrade: AvailableBusinessUpgrade): BusinessActionSheetText
   };
 }
 
-function managerText(manager: AvailableManager): BusinessActionSheetText {
+function managerText(manager: AvailableManager): ActionSheetText {
   return {
     title: 'Hire manager',
     lines: [
@@ -70,7 +65,7 @@ function managerText(manager: AvailableManager): BusinessActionSheetText {
   };
 }
 
-function saleText(action: Extract<BusinessAction, { kind: 'sell' }>): BusinessActionSheetText {
+function saleText(action: Extract<BusinessAction, { kind: 'sell' }>): ActionSheetText {
   const proceeds = formatCashChange(action.sale.proceedsCents);
   return {
     title: `Sell ${action.business.name}`,
@@ -83,7 +78,7 @@ function saleText(action: Extract<BusinessAction, { kind: 'sell' }>): BusinessAc
   };
 }
 
-export function businessActionSheetText(action: BusinessAction): BusinessActionSheetText {
+export function businessActionSheetText(action: BusinessAction): ActionSheetText {
   if (action.kind === 'manager') return managerText(action.manager);
   if (action.kind === 'sell') return saleText(action);
   return upgradeText(action.upgrade);

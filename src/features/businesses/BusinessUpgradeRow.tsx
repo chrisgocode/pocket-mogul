@@ -6,10 +6,11 @@ import type {
 } from '@/application/businessDetailView';
 import { formatRatePerMinute } from '@/domain/money';
 import { Button } from '@/ui/Button';
+import { priceLabel } from '@/features/game/priceFormat';
 import { ListRow } from '@/ui/ListRow';
 import { spacing } from '@/ui/tokens';
 
-import { priceLabel, TRACK_EFFECTS, TRACK_NAMES } from './businessFormat';
+import { TRACK_EFFECTS, TRACK_NAMES } from './businessFormat';
 
 export function BusinessUpgradeRow({
   upgrade,

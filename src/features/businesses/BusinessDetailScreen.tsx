@@ -2,11 +2,12 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 
 import { selectBusinessDetail, type BusinessDetailView } from '@/application/businessDetailView';
 import { getContent } from '@/content';
+import { ActionSheet } from '@/features/game/ActionSheet';
 import { useGameSnapshot } from '@/features/game/GameContext';
 import { EmptyState } from '@/ui/EmptyState';
 import { Screen } from '@/ui/Screen';
 
-import { BusinessActionSheet } from './BusinessActionSheet';
+import { businessActionSheetText } from './businessAction';
 import { OwnedBusinessDetails } from './OwnedBusinessDetails';
 import { useBusinessAction } from './useBusinessAction';
 
@@ -36,8 +37,9 @@ export function BusinessDetailScreen() {
           message="Pick a business from the Businesses list."
         />
       ) : null}
-      <BusinessActionSheet
+      <ActionSheet
         confirmation={confirmation}
+        describe={businessActionSheetText}
         onConfirm={() => void confirm()}
         onCancel={close}
       />

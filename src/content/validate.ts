@@ -53,6 +53,7 @@ function crossChecks(content: Content): string[] {
     everyTierHasBusinessesAndRisingUnlocks,
     businessesAndPropertiesEarnAtBaseLevel,
     efficiencyKeepsCostsPositive,
+    systemsKeepUpkeepPositive,
     stockClassesFollowTheirRules,
     artworkLevelsFitTheirCaps,
     marketRandomnessIsConsistent,
@@ -145,6 +146,13 @@ function efficiencyKeepsCostsPositive(content: Content): string[] {
   return levelEffectPercent.efficiencySaving * maxTrackLevel < WHOLE_PERCENT
     ? []
     : ['Efficiency at its max level must leave operating costs above zero'];
+}
+
+function systemsKeepUpkeepPositive(content: Content): string[] {
+  const { maxUpgradeLevel, levelEffectPercent } = content.economy.propertyRules;
+  return levelEffectPercent.systemsSaving * maxUpgradeLevel < WHOLE_PERCENT
+    ? []
+    : ['Building Systems at its max level must leave upkeep above zero'];
 }
 
 function artworkLevelsFitTheirCaps(content: Content): string[] {

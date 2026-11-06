@@ -150,3 +150,11 @@ describe('business rule validation rejects', () => {
     ).toEqual(['Efficiency at its max level must leave operating costs above zero']);
   });
 });
+
+describe('property rule validation rejects', () => {
+  it('Building Systems that would push upkeep to zero', () => {
+    expect(
+      issuesFor((c) => void (c.economy.propertyRules.levelEffectPercent.systemsSaving = 10)),
+    ).toEqual(['Building Systems at its max level must leave upkeep above zero']);
+  });
+});

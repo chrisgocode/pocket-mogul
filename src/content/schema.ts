@@ -201,6 +201,12 @@ const economySchema = z.object({
       expansion: positiveInt,
     }),
     upgradeGrowth: growthRatio,
+    levelEffectPercent: z.object({
+      renovationRent: nonNegativeInt,
+      furnishingsRent: nonNegativeInt,
+      systemsSaving: nonNegativeInt,
+      expansionRentAndUpkeep: nonNegativeInt,
+    }),
     valueUpgradePercent: z.number().int().min(0).max(100),
     saleValuePercent: z.number().int().min(0).max(100),
   }),

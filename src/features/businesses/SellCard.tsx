@@ -4,7 +4,7 @@ import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { AppText } from '@/ui/Typography';
 
-import { formatCashChange } from './businessFormat';
+import { formatCashChange } from '@/features/game/priceFormat';
 
 export function SellCard({
   name,

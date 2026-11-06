@@ -4,7 +4,7 @@ import { findOwnedBusiness } from '@/domain/businesses';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 
 import { affordability } from './affordability';
-import { selectCashCents, selectIncomePerMinuteCents } from './cashView';
+import { selectCashCents, selectBusinessIncomePerMinuteCents } from './cashView';
 import type { GameSnapshot } from './game';
 
 export type BusinessOffer = {
@@ -86,7 +86,7 @@ export function selectBusinesses(snapshot: GameSnapshot, content: Content): Busi
   const { peakNetWorthCents } = snapshot.state;
   return {
     cashCents,
-    incomePerMinuteCents: selectIncomePerMinuteCents(snapshot, content),
+    incomePerMinuteCents: selectBusinessIncomePerMinuteCents(snapshot, content),
     peakNetWorthCents,
     nextUnlock: nextUnlock(tiers, peakNetWorthCents),
     owned: tiers.flatMap((tier) => tier.offers).filter((each) => each.status === 'owned'),
