@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { STARTUP_CONTENT_ISSUES } from '@/content';
 import { ContentErrorScreen } from '@/features/startup/ContentErrorScreen';
+import { ReturnSummarySheet } from '@/features/returnSummary/ReturnSummarySheet';
 import { DeviceGameProvider } from '@/features/startup/DeviceGameProvider';
 import { OpeningSaveScreen } from '@/features/startup/OpeningSaveScreen';
 import { colors } from '@/ui/tokens';
@@ -33,6 +34,7 @@ export default function RootLayout() {
                 options={{ title: 'Settings', presentation: 'modal' }}
               />
             </Stack>
+            <ReturnSummarySheet />
           </DeviceGameProvider>
         </Suspense>
       )}

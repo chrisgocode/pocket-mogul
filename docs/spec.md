@@ -351,7 +351,7 @@ Use one application, with clear module boundaries rather than an initial monorep
 | src/ui | Shared controls, typography, tokens, charts, original SVG assets |
 | tests and scripts | Fixtures, integration journeys, balance simulations, content validation |
 
-Core commands are TapBatch, UpgradeWallet, BuyBusiness, UpgradeBusiness, HireManager, SellBusiness, BuyProperty, UpgradeProperty, SetRentalStatus, SellProperty, ExecuteTrade, SetWatchlist, PinGoal, RecordAdReward, ActivateBoost, AdvanceTime, AcknowledgeReturnSummary, and UpdateSettings. ResetSave is a separate destructive settings action requiring an explicit in-app confirmation.
+Core commands are TapBatch, UpgradeWallet, BuyBusiness, UpgradeBusiness, HireManager, SellBusiness, BuyProperty, UpgradeProperty, SetRentalStatus, SellProperty, ExecuteTrade, SetWatchlist, PinGoal, RecordAdReward, ActivateBoost, AdvanceTime, SettleOffline (the capped wall-clock catch-up on launch and resume), AcknowledgeReturnSummary, and UpdateSettings. ResetSave is a separate destructive settings action requiring an explicit in-app confirmation.
 
 Each command envelope has a unique ID, expected state revision, accepted clock input, and validated payload. Quotes include their configuration version and relevant state revision; market quotes also include tick index. The domain returns a new state, ledger entries, and typed results or errors. External effects occur through adapters after transaction boundaries.
 

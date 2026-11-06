@@ -15,6 +15,7 @@ export type GamePorts = {
   store: SaveStore;
   content: Content;
   createId: () => string;
+  beforeWarmReturnSummary?: () => Promise<void>;
 };
 
 export type GameSnapshot = {
@@ -31,7 +32,7 @@ export type Game = {
   flushTaps: () => Promise<void>;
   checkpoint: () => Promise<CommandOutcome>;
   pause: () => Promise<void>;
-  resume: () => void;
+  resume: () => Promise<void>;
   createCommandId: () => string;
 };
 
@@ -45,6 +46,20 @@ async function loadOrStart(ports: GamePorts): Promise<GameState> {
   });
   await ports.store.transact((tx) => tx.writeState(fresh));
   return fresh;
+}
+
+type RunOptions = {
+  settledTaps?: number;
+  issuedAtWallMs?: number;
+  beforePublish?: (() => Promise<void>) | undefined;
+};
+
+async function runBeforePublish(step: (() => Promise<void>) | undefined): Promise<void> {
+  try {
+    await step?.();
+  } catch {
+    return;
+  }
 }
 
 function committer(ports: GamePorts, initial: GameState) {
@@ -63,15 +78,24 @@ function committer(ports: GamePorts, initial: GameState) {
       unsavedElapsedMs: time.unsavedMs(),
     });
   };
-  const run = (envelope: CommandEnvelope, settledTaps = 0) =>
-    queue.run(async () => {
+  const run = (envelope: CommandEnvelope, options: RunOptions = {}) => {
+    const wallMs = options.issuedAtWallMs ?? ports.clock.wallMs();
+    return queue.run(async () => {
       const elapsedMs = time.unsavedMs();
       const current = snapshots.get().state;
-      const committed = await commitCommand(ports, { current, envelope, elapsedMs });
-      if (committed.state !== undefined) time.saved(elapsedMs);
-      publish({ state: committed.state, settledTaps });
+      const committed = await commitCommand(ports, {
+        current,
+        envelope,
+        time: { elapsedMs, wallMs },
+      });
+      if (committed.state !== undefined) {
+        time.saved(elapsedMs);
+        await runBeforePublish(options.beforePublish);
+      }
+      publish({ state: committed.state, settledTaps: options.settledTaps ?? 0 });
       return committed.outcome;
     });
+  };
   return { snapshots, time, queue, run, refresh: () => publish({ settledTaps: 0 }) };
 }
 
@@ -88,13 +112,14 @@ function tapBatching(ports: GamePorts, core: Committer) {
     send: (count) =>
       core.run(
         { id: `tap-${ports.createId()}`, command: { type: 'TapBatch', taps: count } },
-        count,
+        { settledTaps: count },
       ),
   });
   return {
     dispatch: async (envelope: CommandEnvelope) => {
+      const issuedAtWallMs = ports.clock.wallMs();
       if (envelope.command.type !== 'TapBatch') await taps.close();
-      return core.run(envelope);
+      return core.run(envelope, { issuedAtWallMs });
     },
     tap: () => {
       taps.add();
@@ -108,8 +133,25 @@ function tapBatching(ports: GamePorts, core: Committer) {
   };
 }
 
+function offlineSettlement(ports: GamePorts, core: Committer) {
+  const settle = (beforePublish?: () => Promise<void>) =>
+    core.run(
+      { id: `settle-${ports.createId()}`, command: { type: 'SettleOffline' } },
+      { beforePublish },
+    );
+  return {
+    async onLaunch() {
+      const { lastWallCheckpointMs } = core.snapshots.get().state.clock;
+      if (ports.clock.wallMs() !== lastWallCheckpointMs) await settle();
+    },
+    onWarmResume: () => settle(ports.beforeWarmReturnSummary),
+  };
+}
+
 export async function createGame(ports: GamePorts): Promise<Game> {
   const core = committer(ports, await loadOrStart(ports));
+  const offline = offlineSettlement(ports, core);
+  await offline.onLaunch();
   const { dispatch, tap, flushTaps } = tapBatching(ports, core);
   const checkpoint = () =>
     dispatch({ id: `checkpoint-${ports.createId()}`, command: { type: 'AdvanceTime' } });
@@ -134,9 +176,10 @@ export async function createGame(ports: GamePorts): Promise<Game> {
       core.time.pause();
       await checkpoint();
     },
-    resume() {
+    async resume() {
       core.time.resume();
       loops.start();
+      await offline.onWarmResume();
     },
   };
 }

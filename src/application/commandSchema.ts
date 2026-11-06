@@ -30,6 +30,8 @@ const gameCommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('SetRentalStatus'), propertyId, rented: z.boolean() }),
   z.object({ type: z.literal('SellProperty'), propertyId }),
   z.object({ type: z.literal('AdvanceTime') }),
+  z.object({ type: z.literal('SettleOffline') }),
+  z.object({ type: z.literal('AcknowledgeReturnSummary') }),
 ]);
 
 export function validCommand(command: GameCommand): GameCommand | undefined {

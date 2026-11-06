@@ -35,6 +35,18 @@ export type IncomeState = {
   readonly rentEarningsCents: MoneyCents;
 };
 
+export type IncomeBySource = { readonly businesses: MoneyCents; readonly rent: MoneyCents };
+
+export type ReturnSummary = {
+  readonly awayMs: number;
+  readonly creditedMs: number;
+  readonly earnings: IncomeBySource;
+};
+
+export type PendingReturnSummary =
+  | { readonly status: 'none' }
+  | { readonly status: 'pending'; readonly summary: ReturnSummary };
+
 export type GameState = {
   readonly saveId: string;
   readonly schemaVersion: number;
@@ -49,6 +61,7 @@ export type GameState = {
   readonly properties: readonly OwnedProperty[];
   readonly income: IncomeState;
   readonly unlockedTiers: readonly number[];
+  readonly returnSummary: PendingReturnSummary;
 };
 
 export function freshGameState(start: {
@@ -75,5 +88,6 @@ export function freshGameState(start: {
       rentEarningsCents: moneyCents(0),
     },
     unlockedTiers: [1],
+    returnSummary: { status: 'none' },
   };
 }

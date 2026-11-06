@@ -27,6 +27,17 @@ const ownedProperty = definitionId.extend({
 });
 const remainder = z.number().int().nonnegative();
 const remainders = z.record(z.string(), remainder);
+const returnSummary = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('none') }),
+  z.object({
+    status: z.literal('pending'),
+    summary: z.object({
+      awayMs: count,
+      creditedMs: count,
+      earnings: z.object({ businesses: moneyText, rent: moneyText.prefault('0') }),
+    }),
+  }),
+]);
 
 const savedGameSchema = z.object({
   saveId: z.string().min(1),
@@ -49,6 +60,7 @@ const savedGameSchema = z.object({
     })
     .prefault({ businessRemainders: {}, businessEarningsCents: '0' }),
   unlockedTiers: z.array(z.number().int().positive()),
+  returnSummary: returnSummary.prefault({ status: 'none' }),
 });
 
 const outcomeSchema = z.discriminatedUnion('ok', [

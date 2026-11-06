@@ -135,13 +135,13 @@ describe('passive income', () => {
     expect(game.getSnapshot().state.clock.simulationMs).toBe(1_001);
   });
 
-  it('credits nothing while paused', async () => {
+  it('credits a minute in the background once, as offline time rather than foreground time', async () => {
     const { game, clock } = await startWith('250');
     await buy(game, 'vending');
     await game.pause();
     clock.advance(ONE_MINUTE_MS);
-    game.resume();
+    await game.resume();
     await game.checkpoint();
-    expect<bigint>(game.getSnapshot().state.cashCents).toBe(dollars('0'));
+    expect<bigint>(game.getSnapshot().state.cashCents).toBe(dollars('10'));
   });
 });

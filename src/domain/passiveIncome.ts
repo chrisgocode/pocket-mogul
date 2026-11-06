@@ -1,6 +1,6 @@
 import { quoteBusinessIncome } from './businessQuotes';
 import { findBusiness, type BusinessEconomy } from './businesses';
-import type { GameState, IncomeState } from './gameState';
+import type { GameState, IncomeBySource, IncomeState } from './gameState';
 import { moneyCents, type MoneyCents } from './money';
 import { findProperty, type PropertyEconomy } from './properties';
 import { quotePropertyIncome } from './propertyQuotes';
@@ -57,6 +57,10 @@ export function passiveIncomePerMinuteCents(state: GameState, economy: PassiveEc
   );
 }
 
+export function totalIncome(earnings: IncomeBySource): MoneyCents {
+  return moneyCents(earnings.businesses + earnings.rent);
+}
+
 type Accrual = { earnedCents: bigint; remainders: Record<string, number> };
 
 function accrue(streams: readonly Stream[], period: { elapsedMs: number; remainders: Remainders }) {
@@ -77,7 +81,7 @@ function accrue(streams: readonly Stream[], period: { elapsedMs: number; remaind
 function accruedIncome(
   state: GameState,
   advance: { elapsedMs: number; economy: PassiveEconomy },
-): { earnedCents: MoneyCents; income: IncomeState } {
+): { earnings: IncomeBySource; income: IncomeState } {
   const { income } = state;
   const business = accrue(businessStreams(state, advance.economy.businesses), {
     elapsedMs: advance.elapsedMs,
@@ -88,7 +92,10 @@ function accruedIncome(
     remainders: income.rentRemainders,
   });
   return {
-    earnedCents: moneyCents(business.earnedCents + rent.earnedCents),
+    earnings: {
+      businesses: moneyCents(business.earnedCents),
+      rent: moneyCents(rent.earnedCents),
+    },
     income: {
       businessRemainders: business.remainders,
       businessEarningsCents: moneyCents(income.businessEarningsCents + business.earnedCents),
@@ -101,10 +108,12 @@ function accruedIncome(
 export function advanceTime(
   state: GameState,
   advance: { elapsedMs: number; wallMs: number; economy: PassiveEconomy },
-): { state: GameState; earnedCents: MoneyCents } {
-  const { earnedCents, income } = accruedIncome(state, advance);
+): { state: GameState; earnedCents: MoneyCents; earnings: IncomeBySource } {
+  const { earnings, income } = accruedIncome(state, advance);
+  const earnedCents = totalIncome(earnings);
   return {
     earnedCents,
+    earnings,
     state: {
       ...state,
       cashCents: moneyCents(state.cashCents + earnedCents),

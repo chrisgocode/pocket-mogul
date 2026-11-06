@@ -39,6 +39,10 @@ export type SellProperty = { readonly type: 'SellProperty'; readonly propertyId:
 
 export type AdvanceTime = { readonly type: 'AdvanceTime' };
 
+export type SettleOffline = { readonly type: 'SettleOffline' };
+
+export type AcknowledgeReturnSummary = { readonly type: 'AcknowledgeReturnSummary' };
+
 export type GameCommand =
   | TapBatch
   | UpgradeWallet
@@ -50,7 +54,9 @@ export type GameCommand =
   | UpgradeProperty
   | SetRentalStatus
   | SellProperty
-  | AdvanceTime;
+  | AdvanceTime
+  | SettleOffline
+  | AcknowledgeReturnSummary;
 
 export type CommandEnvelope = {
   readonly id: string;

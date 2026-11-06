@@ -1,11 +1,7 @@
-import { DatabaseSync } from 'node:sqlite';
-
 import { freshGameState } from '@/domain/gameState';
 import { dollars, formatMoneyExact, moneyCents } from '@/domain/money';
-import { nodeSqliteDriver } from '@/infrastructure/nodeSqliteDriver';
-import { openSqlSaveStore } from '@/infrastructure/sqlSaveStore';
 
-import { startTestGame } from './testGame';
+import { startTestGame, startTestGameFrom } from './testGame';
 
 describe('a fresh save', () => {
   it('starts with $0, wallet level 0, no assets and Tier 1 available (AC01)', async () => {
@@ -99,16 +95,11 @@ describe('a failed save', () => {
 
 describe('very large money values', () => {
   it('taps, saves and reloads cash beyond Number precision exactly (AC24)', async () => {
-    const database = new DatabaseSync(':memory:');
-    const store = await openSqlSaveStore(nodeSqliteDriver(database));
     const fortune = moneyCents(2n ** 80n);
-    const saved = {
+    const first = await startTestGameFrom({
       ...freshGameState({ saveId: 'rich', economyVersion: 1, wallMs: 0 }),
       cashCents: fortune,
-    };
-    await store.transact((tx) => tx.writeState(saved));
-
-    const first = await startTestGame({ database, createId: () => 'only-id' });
+    });
     await first.game.dispatch({ id: 'batch-1', command: { type: 'TapBatch', taps: 1 } });
     const { game } = await first.restart();
     expect(formatMoneyExact(game.getSnapshot().state.cashCents)).toBe(
