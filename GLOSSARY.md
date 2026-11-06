@@ -134,3 +134,14 @@ _Avoid_: RNG state, random seed (as something that advances)
 Past minute observations and hourly candles kept for charts in their own table; it never decides a current price.
 _Avoid_: Price feed, chart cache
 
+**Trade quote**:
+The cash a market order would move at the current Market tick: notional, fee and total cash change for an exact quantity. A quote from an older tick is stale and must be reviewed again; it never reprices silently.
+_Avoid_: Estimate, preview price
+
+**Position**:
+What the player holds of one stock or coin: quantity, remaining cost basis (purchases plus buy fees, reduced proportionally on each sale) and realized result. It counts towards net worth at its sale notional before fees.
+_Avoid_: Holding (for the record), lot
+
+**Watchlist**:
+The stocks the player has marked to see at the top of Markets; it changes nothing about prices or trades.
+_Avoid_: Favorites, starred

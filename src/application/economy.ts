@@ -4,6 +4,7 @@ import type { MarketEconomy, MarketInstrument } from '@/domain/market';
 import type { PassiveEconomy } from '@/domain/passiveIncome';
 import type { ProgressRules } from '@/domain/progression';
 import type { PropertyEconomy } from '@/domain/properties';
+import type { TradeEconomy } from '@/domain/trades';
 
 export function businessEconomy(content: Content): BusinessEconomy {
   return { catalog: content.businesses, rules: content.economy.businessRules };
@@ -18,7 +19,11 @@ export function passiveEconomy(content: Content): PassiveEconomy {
 }
 
 export function progressRules(content: Content): ProgressRules {
-  return { tierUnlocks: content.economy.tierUnlocks, properties: propertyEconomy(content) };
+  return {
+    tierUnlocks: content.economy.tierUnlocks,
+    properties: propertyEconomy(content),
+    instruments: instruments(content),
+  };
 }
 
 function stockShockBps(stock: Stock, content: Content): number {
@@ -48,4 +53,13 @@ function instruments(content: Content): MarketInstrument[] {
 
 export function marketEconomy(content: Content): MarketEconomy {
   return { instruments: instruments(content), rules: content.economy.market };
+}
+
+export function tradeEconomy(content: Content): TradeEconomy {
+  const { market } = content.economy;
+  return {
+    instruments: instruments(content),
+    feeBps: { stocks: market.stocks.feeBps, crypto: market.crypto.feeBps },
+    minBuyNotionalCents: market.minBuyNotional,
+  };
 }

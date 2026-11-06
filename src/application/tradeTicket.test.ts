@@ -1,0 +1,98 @@
+import { getContent } from '@/content';
+import { freshGameState, type GameState } from '@/domain/gameState';
+import { dollars, units } from '@/domain/money';
+
+import type { GameSnapshot } from './game';
+import { presetQuantity, selectTradeTicket, type TradeEntry } from './tradeTicket';
+
+const content = getContent();
+
+function snapshotWith(overrides: Partial<GameState>): GameSnapshot {
+  const state = {
+    ...freshGameState({ saveId: 'ticket', economyVersion: 1, wallMs: 0 }),
+    tradingUnlocked: true,
+    ...overrides,
+  };
+  return { state, pendingTaps: 0, unsavedElapsedMs: 0 };
+}
+
+const holding = (quantity: string) => ({
+  positions: [
+    {
+      instrumentId: 'prism',
+      quantity: units(quantity),
+      remainingBasisCents: dollars('0'),
+      realizedProfitCents: dollars('0'),
+    },
+  ],
+});
+
+const ticket = (snapshot: GameSnapshot, entry: TradeEntry) =>
+  selectTradeTicket(snapshot, { assetId: 'prism', entry, content });
+
+describe('trade ticket', () => {
+  it('quotes an entered share count at the current tick', () => {
+    const result = ticket(snapshotWith({ cashCents: dollars('1,000') }), {
+      side: 'buy',
+      mode: 'shares',
+      text: '4',
+    });
+    expect(result).toMatchObject({
+      status: 'ready',
+      tick: 0,
+      quote: { quantity: units('4'), cashChangeCents: dollars('-100.25') },
+    });
+  });
+
+  it('converts a dollar amount to the most shares it pays for, fee included', () => {
+    const result = ticket(snapshotWith({ cashCents: dollars('1,000') }), {
+      side: 'buy',
+      mode: 'dollars',
+      text: '100.25',
+    });
+    expect(result).toMatchObject({ status: 'ready', quote: { quantity: units('4') } });
+  });
+
+  it('explains an entry it cannot read', () => {
+    const snapshot = snapshotWith({ cashCents: dollars('1,000') });
+    expect(ticket(snapshot, { side: 'buy', mode: 'shares', text: '1.0000001' })).toEqual({
+      status: 'invalid',
+      tick: 0,
+      error: 'INVALID_QUANTITY',
+    });
+    expect(ticket(snapshot, { side: 'buy', mode: 'shares', text: '' })).toEqual({
+      status: 'empty',
+      tick: 0,
+    });
+  });
+
+  it('refuses with the same errors as the trade command', () => {
+    const snapshot = snapshotWith({ cashCents: dollars('100'), ...holding('2') });
+    expect(ticket(snapshot, { side: 'buy', mode: 'shares', text: '4' })).toMatchObject({
+      status: 'refused',
+      error: 'INSUFFICIENT_CASH',
+      quote: { cashChangeCents: dollars('-100.25') },
+    });
+    expect(ticket(snapshot, { side: 'sell', mode: 'shares', text: '3' })).toMatchObject({
+      status: 'refused',
+      error: 'INSUFFICIENT_HOLDING',
+    });
+  });
+});
+
+const preset = (snapshot: GameSnapshot, side: 'buy' | 'sell', percent: number) =>
+  presetQuantity(snapshot, { assetId: 'prism', side, percent, content });
+
+describe('trade presets', () => {
+  it('buys with a share of cash, fee included', () => {
+    const snapshot = snapshotWith({ cashCents: dollars('401') });
+    expect(preset(snapshot, 'buy', 100)).toBe(units('16'));
+    expect(preset(snapshot, 'buy', 25)).toBe(units('4'));
+  });
+
+  it('sells a share of the holding, all of it at 100%', () => {
+    const snapshot = snapshotWith(holding('10.000003'));
+    expect(preset(snapshot, 'sell', 50)).toBe(units('5.000001'));
+    expect(preset(snapshot, 'sell', 100)).toBe(units('10.000003'));
+  });
+});

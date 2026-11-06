@@ -1,5 +1,6 @@
 import { freshMarket, type MarketState } from './market';
 import { moneyCents, type MoneyCents } from './money';
+import type { Position } from './trading';
 
 export const SAVE_SCHEMA_VERSION = 1;
 
@@ -64,6 +65,9 @@ export type GameState = {
   readonly unlockedTiers: readonly number[];
   readonly returnSummary: PendingReturnSummary;
   readonly market: MarketState;
+  readonly tradingUnlocked: boolean;
+  readonly positions: readonly Position[];
+  readonly watchlist: readonly string[];
 };
 
 export function freshGameState(start: {
@@ -92,5 +96,8 @@ export function freshGameState(start: {
     unlockedTiers: [1],
     returnSummary: { status: 'none' },
     market: freshMarket(start.saveId),
+    tradingUnlocked: false,
+    positions: [],
+    watchlist: [],
   };
 }

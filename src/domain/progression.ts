@@ -1,13 +1,17 @@
 import type { GameState } from './gameState';
 import { moneyCents, type MoneyCents } from './money';
 import { findProperty, type PropertyEconomy } from './properties';
+import { quoteOf } from './market';
+import type { MarketInstrument } from './marketRules';
 import { estimatedValueCents } from './propertyQuotes';
+import { markPosition } from './trading';
 
 export type TierThresholds = Readonly<Record<number, MoneyCents>>;
 
 export type ProgressRules = {
   readonly tierUnlocks: TierThresholds;
   readonly properties: PropertyEconomy;
+  readonly instruments: readonly MarketInstrument[];
 };
 
 type AssetValuation = (state: GameState, rules: ProgressRules) => bigint;
@@ -24,10 +28,18 @@ const propertyEstimatedValue: AssetValuation = (state, rules) =>
     return total + estimatedValueCents(property, { definition, rules: rules.properties.rules });
   }, 0n);
 
+const positionMarkedValue: AssetValuation = (state, rules) =>
+  state.positions.reduce<bigint>((total, position) => {
+    const instrument = rules.instruments.find((listed) => listed.id === position.instrumentId);
+    if (instrument === undefined) return total;
+    return total + markPosition(position, quoteOf(state.market, instrument)).valueCents;
+  }, 0n);
+
 const ASSET_VALUATIONS: readonly AssetValuation[] = [
   cash,
   businessCarryingValue,
   propertyEstimatedValue,
+  positionMarkedValue,
 ];
 
 function netWorthCents(state: GameState, rules: ProgressRules): MoneyCents {

@@ -4,6 +4,7 @@ import { changeBps } from '@/domain/marketPrices';
 import type { PriceMicros } from '@/domain/money';
 
 import type { GameSnapshot } from './game';
+import { selectPosition, type PositionView } from './positionView';
 
 type Quoted = {
   readonly price: PriceMicros;
@@ -17,7 +18,13 @@ export type AssetQuote = StockQuote | CoinQuote;
 
 export type AssetDetail =
   | { readonly status: 'unknown' }
-  | (AssetQuote & { readonly status: 'listed'; readonly tick: number });
+  | (AssetQuote & {
+      readonly status: 'listed';
+      readonly tick: number;
+      readonly trading: 'open' | 'locked';
+      readonly watched: boolean;
+      readonly position: PositionView | undefined;
+    });
 
 function quoted(market: MarketState, asset: Stock | Coin): Quoted {
   const price = quoteOf(market, asset);
@@ -45,5 +52,21 @@ export function selectAssetDetail(
   ];
   const found = quotes.find((quote) => quote.asset.id === request.assetId);
   if (found === undefined) return { status: 'unknown' };
-  return { ...found, status: 'listed', tick: snapshot.state.market.tick };
+  const { state } = snapshot;
+  return {
+    ...found,
+    status: 'listed',
+    tick: state.market.tick,
+    trading: state.tradingUnlocked ? 'open' : 'locked',
+    watched: state.watchlist.includes(request.assetId),
+    position: selectPosition(state, request),
+  };
+}
+
+export function selectWatchedQuotes(
+  snapshot: GameSnapshot,
+  quotes: readonly AssetQuote[],
+): AssetQuote[] {
+  const { watchlist } = snapshot.state;
+  return quotes.filter((quote) => watchlist.includes(quote.asset.id));
 }

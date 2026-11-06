@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { GAME_ERROR_CODES, type CommandOutcome } from '@/domain/commands';
 import { SAVE_SCHEMA_VERSION, type GameState } from '@/domain/gameState';
-import { parseMoneyCents, parsePriceMicros } from '@/domain/money';
+import { parseMoneyCents, parsePriceMicros, parseQuantityMicrounits } from '@/domain/money';
 
 const moneyText = z
   .string()
@@ -48,6 +48,14 @@ const market = z.object({
   candles: z.record(z.string(), candle),
 });
 
+const quantityText = z.string().regex(/^\d+$/).transform(parseQuantityMicrounits);
+const position = z.object({
+  instrumentId: z.string().min(1),
+  quantity: quantityText,
+  remainingBasisCents: moneyText,
+  realizedProfitCents: moneyText,
+});
+
 const MARKET_TICK_MS_BEFORE_MARKETS = 60_000;
 
 const savedGameSchema = z.object({
@@ -73,10 +81,14 @@ const savedGameSchema = z.object({
   unlockedTiers: z.array(z.number().int().positive()),
   returnSummary: returnSummary.prefault({ status: 'none' }),
   market: market.optional(),
+  tradingUnlocked: z.boolean().optional(),
+  positions: z.array(position).prefault([]),
+  watchlist: z.array(z.string().min(1)).prefault([]),
 });
 
 const savedGameWithMarket = savedGameSchema.transform((saved) => ({
   ...saved,
+  tradingUnlocked: saved.tradingUnlocked ?? saved.businesses.length > 0,
   market: saved.market ?? {
     seed: saved.saveId,
     tick: Math.floor(saved.clock.simulationMs / MARKET_TICK_MS_BEFORE_MARKETS),

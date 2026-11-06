@@ -13,7 +13,9 @@ import { AppText } from '@/ui/Typography';
 import { AssetAbout } from './AssetAbout';
 import { AssetOverview } from './AssetOverview';
 import { NewsList } from './NewsList';
+import { PositionCard } from './PositionCard';
 import { PriceChartCard } from './PriceChartCard';
+import { StockTrading } from './StockTrading';
 
 const NEWS_ITEMS = 3;
 
@@ -36,6 +38,8 @@ export function AssetDetailScreen() {
     <Screen>
       <Stack.Screen options={{ title: detail.asset.name }} />
       <AssetOverview detail={detail} />
+      {detail.position === undefined ? null : <PositionCard position={detail.position} />}
+      {detail.kind === 'stock' ? <StockTrading detail={detail} /> : null}
       <PriceChartCard detail={detail} />
       <AssetAbout detail={detail} />
       <Section title="News" note={`Recent events that moved ${detail.asset.name}`}>

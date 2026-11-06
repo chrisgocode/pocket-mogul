@@ -63,7 +63,8 @@ export function applyBuyBusiness(state: GameState, order: BusinessOrder): Comman
   }
   if (!state.unlockedTiers.includes(definition.tier)) return { ok: false, error: 'LOCKED_TIER' };
   const bought = { ...levelZeroBusiness(definition.id), capitalizedSpendCents: definition.price };
-  return spend({ ...state, businesses: [...state.businesses, bought] }, definition.price);
+  const businesses = [...state.businesses, bought];
+  return spend({ ...state, businesses, tradingUnlocked: true }, definition.price);
 }
 
 export function applyUpgradeBusiness(
