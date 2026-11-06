@@ -51,6 +51,8 @@ function sequentialIds(): () => string {
 
 export type WriteFaults = { failWrites: boolean };
 
+export type ReadFaults = { failReads: boolean };
+
 type SaveGate = { passed: () => Promise<void>; hold: () => () => void };
 
 const doNothing = (): void => undefined;
@@ -78,16 +80,23 @@ function saveGate(): SaveGate {
   };
 }
 
-function faultyDriver(driver: SqlDriver, faults: WriteFaults, gate: SaveGate): SqlDriver {
+type Faults = { writes: WriteFaults; reads: ReadFaults };
+
+function faultyDriver(driver: SqlDriver, faults: Faults, gate: SaveGate): SqlDriver {
   return {
     exclusive: async (work) => {
       await gate.passed();
       return driver.exclusive((sql) =>
         work({
           first: sql.first,
-          all: sql.all,
+          all: (statement, params) =>
+            faults.reads.failReads
+              ? Promise.reject(new Error('read failed'))
+              : sql.all(statement, params),
           run: (statement, params) =>
-            faults.failWrites ? Promise.reject(new Error('disk full')) : sql.run(statement, params),
+            faults.writes.failWrites
+              ? Promise.reject(new Error('disk full'))
+              : sql.run(statement, params),
         }),
       );
     },
@@ -98,6 +107,7 @@ export type TestGame = {
   game: Game;
   clock: FakeClock;
   faults: WriteFaults;
+  readFaults: ReadFaults;
   holdSaves: () => () => void;
   restart: (absence?: { awayMs: number }) => Promise<TestGame>;
   diagnostics: () => Promise<readonly Diagnostic[]>;
@@ -122,8 +132,11 @@ const freshTestSave = (): TestSave => ({
 export async function startTestGame(save: TestSave = freshTestSave()): Promise<TestGame> {
   const clock = fakeClock(save.wallStartMs);
   const faults: WriteFaults = { failWrites: false };
+  const readFaults: ReadFaults = { failReads: false };
   const gate = saveGate();
-  const store = await openSqlSaveStore(faultyDriver(nodeSqliteDriver(save.database), faults, gate));
+  const store = await openSqlSaveStore(
+    faultyDriver(nodeSqliteDriver(save.database), { writes: faults, reads: readFaults }, gate),
+  );
   const game = await createGame({
     ...save.hooks,
     clock,
@@ -135,6 +148,7 @@ export async function startTestGame(save: TestSave = freshTestSave()): Promise<T
     game,
     clock,
     faults,
+    readFaults,
     holdSaves: gate.hold,
     restart: (absence = { awayMs: 0 }) =>
       startTestGame({ ...save, wallStartMs: clock.wallMs() + absence.awayMs }),

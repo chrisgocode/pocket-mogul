@@ -5,7 +5,8 @@ import { freshGameState, type GameState } from '@/domain/gameState';
 import { commitCommand } from './commitCommand';
 import { foregroundTime } from './foregroundTime';
 import { foregroundLoops } from './foregroundLoops';
-import type { Clock, SaveStore } from './ports';
+import { marketHistoryFeeds, type HistoryFeed } from './marketHistoryFeed';
+import type { AssetHistory, Clock, SaveStore } from './ports';
 import { serialQueue } from './serialQueue';
 import { snapshotStore } from './snapshotStore';
 import { tapBatcher } from './tapBatcher';
@@ -34,6 +35,8 @@ export type Game = {
   pause: () => Promise<void>;
   resume: () => Promise<void>;
   createCommandId: () => string;
+  readMarketHistory: (assetId: string) => Promise<AssetHistory>;
+  marketHistory: (assetId: string) => HistoryFeed;
 };
 
 async function loadOrStart(ports: GamePorts): Promise<GameState> {
@@ -70,6 +73,7 @@ function committer(ports: GamePorts, initial: GameState) {
   });
   const time = foregroundTime(ports.clock);
   const queue = serialQueue();
+  const history = marketHistoryFeeds({ queue, load: ports.store.loadAssetHistory });
   const publish = (change: { state?: GameState | undefined; settledTaps: number }) => {
     const current = snapshots.get();
     snapshots.set({
@@ -88,6 +92,7 @@ function committer(ports: GamePorts, initial: GameState) {
         envelope,
         time: { elapsedMs, wallMs },
       });
+      if (committed.history !== undefined) history.append(committed.history);
       if (committed.state !== undefined) {
         time.saved(elapsedMs);
         await runBeforePublish(options.beforePublish);
@@ -96,7 +101,7 @@ function committer(ports: GamePorts, initial: GameState) {
       return committed.outcome;
     });
   };
-  return { snapshots, time, queue, run, refresh: () => publish({ settledTaps: 0 }) };
+  return { snapshots, time, queue, history, run, refresh: () => publish({ settledTaps: 0 }) };
 }
 
 type Committer = ReturnType<typeof committer>;
@@ -171,6 +176,8 @@ export async function createGame(ports: GamePorts): Promise<Game> {
     tap,
     flushTaps,
     createCommandId: ports.createId,
+    readMarketHistory: (assetId) => core.queue.run(() => ports.store.loadAssetHistory(assetId)),
+    marketHistory: (assetId) => core.history.feed(assetId),
     async pause() {
       loops.stop();
       core.time.pause();

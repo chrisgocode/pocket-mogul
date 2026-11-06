@@ -219,6 +219,11 @@ const economySchema = z.object({
       bull: nonNegativeInt,
     }),
     eventEveryTicks: positiveInt,
+    eventChancePercent: z.object({
+      asset: nonNegativeInt,
+      sector: nonNegativeInt,
+      market: nonNegativeInt,
+    }),
     stocks: marketParamsSchema,
     pennyAssetShockBps: nonNegativeBps,
     crypto: marketParamsSchema,
