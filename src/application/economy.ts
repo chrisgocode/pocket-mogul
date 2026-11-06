@@ -19,3 +19,13 @@ export function passiveEconomy(content: Content): PassiveEconomy {
 export function progressRules(content: Content): ProgressRules {
   return { tierUnlocks: content.economy.tierUnlocks, properties: propertyEconomy(content) };
 }
+
+export type EconomyVersions = {
+  readonly content: Content;
+  readonly pastContent?: readonly Content[];
+};
+
+export function contentAt(versions: EconomyVersions, economyVersion: number): Content {
+  const past = versions.pastContent ?? [];
+  return past.find((content) => content.economyVersion === economyVersion) ?? versions.content;
+}

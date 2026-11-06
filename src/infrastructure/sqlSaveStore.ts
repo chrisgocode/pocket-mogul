@@ -1,9 +1,11 @@
 import { z } from 'zod';
 
-import type { SaveStore, SaveTransaction } from '@/application/ports';
-import { decodeOutcome, decodeSave, encodeOutcome, encodeSave } from '@/application/saveFormat';
+import type { Diagnostic, SaveStore, SaveTransaction } from '@/application/ports';
+import { decodeOutcome, encodeOutcome, encodeSave } from '@/application/saveFormat';
 
 import type { SqlDriver, SqlExecutor } from './sqlDriver';
+
+const BACKUPS_KEPT = 2;
 
 const MIGRATIONS: readonly (readonly string[])[] = [
   [
@@ -13,22 +15,33 @@ const MIGRATIONS: readonly (readonly string[])[] = [
   [
     'CREATE TABLE diagnostics (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, detail TEXT NOT NULL, recorded_wall_ms INTEGER NOT NULL)',
   ],
+  [
+    'CREATE TABLE save_backups (id INTEGER PRIMARY KEY AUTOINCREMENT, document TEXT NOT NULL, recorded_wall_ms INTEGER NOT NULL)',
+  ],
 ];
 
 const versionRow = z.object({ version: z.number().int().nullable() });
 const documentRow = z.object({ document: z.string() });
 const outcomeRow = z.object({ outcome: z.string() });
-const diagnosticDetail = z.object({ checkpointWallMs: z.number(), observedWallMs: z.number() });
+const backupRows = z.array(
+  z
+    .object({ document: z.string(), recorded_wall_ms: z.number() })
+    .transform((row) => ({ document: row.document, recordedWallMs: row.recorded_wall_ms })),
+);
+const diagnosticDetail = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('BACKWARD_WALL_CLOCK'),
+    checkpointWallMs: z.number(),
+    observedWallMs: z.number(),
+  }),
+  z.object({ type: z.literal('DAMAGED_SAVE'), document: z.string() }),
+]);
+const detailFields = z.record(z.string(), z.unknown());
 const diagnosticRows = z.array(
   z
-    .object({
-      type: z.literal('BACKWARD_WALL_CLOCK'),
-      detail: z.string(),
-      recorded_wall_ms: z.number(),
-    })
-    .transform((row) => ({
-      ...diagnosticDetail.parse(JSON.parse(row.detail)),
-      type: row.type,
+    .object({ type: z.string(), detail: z.string(), recorded_wall_ms: z.number() })
+    .transform((row): Diagnostic => ({
+      ...diagnosticDetail.parse({ ...detailFields.parse(JSON.parse(row.detail)), type: row.type }),
       recordedWallMs: row.recorded_wall_ms,
     })),
 );
@@ -60,7 +73,31 @@ async function migrate(sql: SqlExecutor): Promise<void> {
   );
 }
 
-function transactionOver(sql: SqlExecutor): SaveTransaction {
+function backupsOver(
+  sql: SqlExecutor,
+): Pick<SaveTransaction, 'readBackups' | 'writeBackup' | 'clearBackups'> {
+  return {
+    readBackups: async () =>
+      backupRows.parse(
+        await sql.all('SELECT document, recorded_wall_ms FROM save_backups ORDER BY id DESC'),
+      ),
+    async writeBackup(backup) {
+      await sql.run('INSERT INTO save_backups (document, recorded_wall_ms) VALUES (?, ?)', [
+        backup.document,
+        backup.recordedWallMs,
+      ]);
+      await sql.run(
+        'DELETE FROM save_backups WHERE id NOT IN (SELECT id FROM save_backups ORDER BY id DESC LIMIT ?)',
+        [BACKUPS_KEPT],
+      );
+    },
+    clearBackups: () => sql.run('DELETE FROM save_backups'),
+  };
+}
+
+function receiptsOver(
+  sql: SqlExecutor,
+): Pick<SaveTransaction, 'findOutcome' | 'writeReceipt' | 'pruneReceipts'> {
   return {
     async findOutcome(commandId) {
       const row = await sql.first('SELECT outcome FROM command_receipts WHERE command_id = ?', [
@@ -73,6 +110,19 @@ function transactionOver(sql: SqlExecutor): SaveTransaction {
         'INSERT INTO command_receipts (command_id, outcome, recorded_wall_ms) VALUES (?, ?, ?)',
         [receipt.commandId, encodeOutcome(receipt.outcome), receipt.recordedWallMs],
       ),
+    pruneReceipts: (recordedBeforeWallMs) =>
+      sql.run('DELETE FROM command_receipts WHERE recorded_wall_ms < ?', [recordedBeforeWallMs]),
+  };
+}
+
+function transactionOver(sql: SqlExecutor): SaveTransaction {
+  return {
+    ...backupsOver(sql),
+    ...receiptsOver(sql),
+    async readSave() {
+      const row = await sql.first('SELECT document FROM save_state WHERE id = 1');
+      return isMissing(row) ? undefined : documentRow.parse(row).document;
+    },
     writeDiagnostic: ({ type, recordedWallMs, ...detail }) =>
       sql.run('INSERT INTO diagnostics (type, detail, recorded_wall_ms) VALUES (?, ?, ?)', [
         type,
@@ -90,11 +140,6 @@ function transactionOver(sql: SqlExecutor): SaveTransaction {
 export async function openSqlSaveStore(driver: SqlDriver): Promise<SaveStore> {
   await driver.exclusive(migrate);
   return {
-    load: () =>
-      driver.exclusive(async (sql) => {
-        const row = await sql.first('SELECT document FROM save_state WHERE id = 1');
-        return isMissing(row) ? undefined : decodeSave(documentRow.parse(row).document);
-      }),
     loadDiagnostics: () =>
       driver.exclusive(async (sql) =>
         diagnosticRows.parse(

@@ -1,13 +1,13 @@
 import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
-import type { Game } from '@/application/game';
+import type { OpenedGame } from '@/application/game';
 import { startTestGameFrom, type TestGame } from '@/application/testGame';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 
 const HOUR_MS = 3_600_000;
 
-let mockGame: Promise<Game>;
+let mockGame: Promise<OpenedGame>;
 jest.mock('@/bootstrap/deviceGame', () => ({ loadDeviceGame: () => mockGame }));
 
 const withVending: GameState = {
@@ -25,7 +25,7 @@ const withVending: GameState = {
 async function returnAfter(awayMs: number): Promise<TestGame> {
   const left = await startTestGameFrom(withVending);
   const back = await left.restart({ awayMs });
-  mockGame = Promise.resolve(back.game);
+  mockGame = Promise.resolve({ status: 'ready', game: back.game });
   return back;
 }
 

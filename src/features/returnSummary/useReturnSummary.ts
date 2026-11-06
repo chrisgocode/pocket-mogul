@@ -4,11 +4,12 @@ import { useGame, useGameSnapshot } from '@/features/game/GameContext';
 
 export function useReturnSummary() {
   const game = useGame();
-  const { state } = useGameSnapshot();
+  const { state, notice } = useGameSnapshot();
   const dismiss = () =>
     void game.dispatch({
       id: game.createCommandId(),
       command: { type: 'AcknowledgeReturnSummary' },
     });
-  return { summary: selectReturnSummary(state, getContent()), dismiss };
+  const summary = notice.kind === 'none' ? selectReturnSummary(state, getContent()) : undefined;
+  return { summary, dismiss };
 }

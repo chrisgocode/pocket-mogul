@@ -1,12 +1,16 @@
 import { DatabaseSync } from 'node:sqlite';
 
-import { getContent } from '@/content';
+import { z } from 'zod';
+
+import { getContent, type Business, type Content } from '@/content';
+import type { MoneyCents } from '@/domain/money';
 import type { GameState } from '@/domain/gameState';
 import { nodeSqliteDriver } from '@/infrastructure/nodeSqliteDriver';
 import type { SqlDriver } from '@/infrastructure/sqlDriver';
 import { openSqlSaveStore } from '@/infrastructure/sqlSaveStore';
 
-import { createGame, type Game, type GamePorts } from './game';
+import { decodeSave } from './saveFormat';
+import { createGame, type Game, type GamePorts, type OpenedGame } from './game';
 import type { Clock, Diagnostic } from './ports';
 
 const TEST_WALL_START_MS = 1_800_000_000_000;
@@ -49,7 +53,7 @@ function sequentialIds(): () => string {
   };
 }
 
-export type WriteFaults = { failWrites: boolean };
+export type WriteFaults = { failWrites: boolean; failWritesMatching?: RegExp | undefined };
 
 type SaveGate = { passed: () => Promise<void>; hold: () => () => void };
 
@@ -78,6 +82,9 @@ function saveGate(): SaveGate {
   };
 }
 
+const failsOn = (faults: WriteFaults, statement: string) =>
+  faults.failWrites || (faults.failWritesMatching?.test(statement) ?? false);
+
 function faultyDriver(driver: SqlDriver, faults: WriteFaults, gate: SaveGate): SqlDriver {
   return {
     exclusive: async (work) => {
@@ -87,7 +94,9 @@ function faultyDriver(driver: SqlDriver, faults: WriteFaults, gate: SaveGate): S
           first: sql.first,
           all: sql.all,
           run: (statement, params) =>
-            faults.failWrites ? Promise.reject(new Error('disk full')) : sql.run(statement, params),
+            failsOn(faults, statement)
+              ? Promise.reject(new Error('disk full'))
+              : sql.run(statement, params),
         }),
       );
     },
@@ -99,11 +108,20 @@ export type TestGame = {
   clock: FakeClock;
   faults: WriteFaults;
   holdSaves: () => () => void;
-  restart: (absence?: { awayMs: number }) => Promise<TestGame>;
+  restart: (relaunch?: Relaunch) => Promise<TestGame>;
+  reopen: (relaunch?: Relaunch) => Promise<OpenedGame>;
   diagnostics: () => Promise<readonly Diagnostic[]>;
+  saveDocument: () => string;
+  replaceSaveDocument: (document: string) => void;
+  corruptBackups: () => void;
+  receiptIds: () => readonly string[];
 };
 
-type TestHooks = Pick<GamePorts, 'beforeWarmReturnSummary'>;
+type TestHooks = Pick<GamePorts, 'beforeWarmReturnSummary' | 'pastContent'> & {
+  content?: Content;
+};
+
+type Relaunch = { awayMs?: number } & TestHooks;
 
 type TestSave = {
   database: DatabaseSync;
@@ -119,26 +137,63 @@ const freshTestSave = (): TestSave => ({
   hooks: {},
 });
 
-export async function startTestGame(save: TestSave = freshTestSave()): Promise<TestGame> {
+const savedDocumentRow = z.object({ document: z.string() });
+const receiptRows = z.array(z.object({ command_id: z.string() }));
+
+function rawSave(database: DatabaseSync) {
+  return {
+    saveDocument: () =>
+      savedDocumentRow.parse(database.prepare('SELECT document FROM save_state').get()).document,
+    replaceSaveDocument: (document: string) => {
+      database.prepare('UPDATE save_state SET document = ?').run(document);
+    },
+    corruptBackups: () => {
+      database.exec("UPDATE save_backups SET document = 'damaged'");
+    },
+    receiptIds: () =>
+      receiptRows
+        .parse(database.prepare('SELECT command_id FROM command_receipts').all())
+        .map((row) => row.command_id),
+  };
+}
+
+type OpenedTestGame = {
+  opened: OpenedGame;
+  clock: FakeClock;
+  faults: WriteFaults;
+  holdSaves: () => () => void;
+  diagnostics: () => Promise<readonly Diagnostic[]>;
+};
+
+async function openTestGame(save: TestSave = freshTestSave()): Promise<OpenedTestGame> {
   const clock = fakeClock(save.wallStartMs);
   const faults: WriteFaults = { failWrites: false };
   const gate = saveGate();
   const store = await openSqlSaveStore(faultyDriver(nodeSqliteDriver(save.database), faults, gate));
-  const game = await createGame({
+  const opened = await createGame({
+    content: getContent(),
     ...save.hooks,
     clock,
     store,
-    content: getContent(),
     createId: save.createId,
   });
+  return { opened, clock, faults, holdSaves: gate.hold, diagnostics: store.loadDiagnostics };
+}
+
+export async function startTestGame(save: TestSave = freshTestSave()): Promise<TestGame> {
+  const { opened, ...session } = await openTestGame(save);
+  if (opened.status !== 'ready') throw new Error(`The test save stopped: ${opened.reason}`);
+  const awayFrom = ({ awayMs = 0, ...hooks }: Relaunch = {}) => ({
+    ...save,
+    hooks: { ...save.hooks, ...hooks },
+    wallStartMs: session.clock.wallMs() + awayMs,
+  });
   return {
-    game,
-    clock,
-    faults,
-    holdSaves: gate.hold,
-    restart: (absence = { awayMs: 0 }) =>
-      startTestGame({ ...save, wallStartMs: clock.wallMs() + absence.awayMs }),
-    diagnostics: store.loadDiagnostics,
+    ...session,
+    ...rawSave(save.database),
+    game: opened.game,
+    restart: (absence) => startTestGame(awayFrom(absence)),
+    reopen: async (absence) => (await openTestGame(awayFrom(absence))).opened,
   };
 }
 
@@ -159,4 +214,36 @@ export async function startTestGameFrom(
   const store = await openSqlSaveStore(nodeSqliteDriver(save.database));
   await store.transact((tx) => tx.writeState(saved));
   return startTestGame(save);
+}
+
+export function migratedState(document: string): GameState {
+  const decoded = decodeSave(document);
+  if (decoded.status !== 'migrated')
+    throw new Error(`Expected a migrated save, got ${decoded.status}`);
+  return decoded.state;
+}
+
+export async function startTestGameFromDocument(
+  document: string,
+  wallStartMs: number,
+): Promise<TestGame> {
+  const save = { ...freshTestSave(), wallStartMs };
+  await openSqlSaveStore(nodeSqliteDriver(save.database));
+  save.database.prepare('INSERT INTO save_state (id, document) VALUES (1, ?)').run(document);
+  return startTestGame(save);
+}
+
+export function withBusinessRevenue(
+  content: Content,
+  change: { economyVersion: number; businessId: string; revenuePerMinute: MoneyCents },
+): Content {
+  const changed = (definition: Business) =>
+    definition.id === change.businessId
+      ? { ...definition, revenuePerMinute: change.revenuePerMinute }
+      : definition;
+  return {
+    ...content,
+    economyVersion: change.economyVersion,
+    businesses: content.businesses.map(changed),
+  };
 }

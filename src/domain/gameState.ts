@@ -1,6 +1,6 @@
 import { moneyCents, type MoneyCents } from './money';
 
-export const SAVE_SCHEMA_VERSION = 1;
+export const SAVE_SCHEMA_VERSION = 2;
 
 export type BusinessLevels = {
   readonly capacity: number;

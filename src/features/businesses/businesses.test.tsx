@@ -1,11 +1,11 @@
 import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
-import type { Game } from '@/application/game';
+import type { OpenedGame } from '@/application/game';
 import { startTestGameFrom, type TestGame } from '@/application/testGame';
 import { freshGameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 
-let mockGame: Promise<Game>;
+let mockGame: Promise<OpenedGame>;
 jest.mock('@/bootstrap/deviceGame', () => ({ loadDeviceGame: () => mockGame }));
 
 async function openWith(cash: string, initialUrl = '/businesses'): Promise<TestGame> {
@@ -13,7 +13,7 @@ async function openWith(cash: string, initialUrl = '/businesses'): Promise<TestG
     ...freshGameState({ saveId: 'saver', economyVersion: 1, wallMs: 0 }),
     cashCents: dollars(cash),
   });
-  mockGame = Promise.resolve(session.game);
+  mockGame = Promise.resolve({ status: 'ready', game: session.game });
   await renderRouter('src/app', { initialUrl });
   return session;
 }
