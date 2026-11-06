@@ -4,7 +4,7 @@ import { findProperty, type PropertyEconomy } from './properties';
 import { quoteOf } from './market';
 import type { MarketInstrument } from './marketRules';
 import { estimatedValueCents } from './propertyQuotes';
-import { markPosition } from './trading';
+import { markPosition } from './tradeQuotes';
 
 export type TierThresholds = Readonly<Record<number, MoneyCents>>;
 

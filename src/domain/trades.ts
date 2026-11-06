@@ -11,12 +11,12 @@ import {
   type TradePricing,
   type TradeQuote,
   type TradeSide,
-} from './trading';
+} from './tradeQuotes';
 
 export type TradeEconomy = {
   readonly instruments: readonly MarketInstrument[];
   readonly feeBps: Readonly<Record<MarketKind, number>>;
-  readonly minBuyNotionalCents: MoneyCents;
+  readonly minTradeNotionalCents: MoneyCents;
 };
 
 export type TradeRequest = {
@@ -56,7 +56,8 @@ export function tradePricing(
 function refusal(quote: TradeQuote, position: Position, economy: TradeEconomy) {
   const clearsPosition = quote.side === 'sell' && quote.quantity === position.quantity;
   if (quote.side === 'sell' && quote.quantity > position.quantity) return 'INSUFFICIENT_HOLDING';
-  if (quote.notionalCents < economy.minBuyNotionalCents && !clearsPosition) return 'BELOW_MINIMUM';
+  if (quote.notionalCents < economy.minTradeNotionalCents && !clearsPosition)
+    return 'BELOW_MINIMUM';
   return undefined;
 }
 

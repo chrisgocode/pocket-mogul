@@ -1,13 +1,8 @@
 import type { Content } from '@/content';
 import type { GameState } from '@/domain/gameState';
 import { quoteOf } from '@/domain/market';
-import {
-  priceMicros,
-  type MoneyCents,
-  type PriceMicros,
-  type QuantityMicrounits,
-} from '@/domain/money';
-import { markPosition } from '@/domain/trading';
+import type { MoneyCents, PriceMicros, QuantityMicrounits } from '@/domain/money';
+import { averageCost, markPosition } from '@/domain/tradeQuotes';
 import { findInstrument } from '@/domain/trades';
 
 import { tradeEconomy } from './economy';
@@ -21,8 +16,6 @@ export type PositionView = {
   readonly realizedProfitCents: MoneyCents;
 };
 
-const MICROS_TIMES_MICROUNITS_PER_CENT = 10_000_000_000n;
-
 export function selectPosition(
   state: GameState,
   request: { assetId: string; content: Content },
@@ -31,15 +24,9 @@ export function selectPosition(
   const instrument = findInstrument(tradeEconomy(request.content), request.assetId);
   if (position === undefined || instrument === undefined) return undefined;
   const mark = markPosition(position, quoteOf(state.market, instrument));
-  const averageCost =
-    position.quantity === 0n
-      ? undefined
-      : priceMicros(
-          (position.remainingBasisCents * MICROS_TIMES_MICROUNITS_PER_CENT) / position.quantity,
-        );
   return {
     quantity: position.quantity,
-    averageCost,
+    averageCost: averageCost(position),
     basisCents: position.remainingBasisCents,
     valueCents: mark.valueCents,
     unrealizedCents: mark.unrealizedCents,

@@ -1,4 +1,4 @@
-import type { TradeSide } from '@/domain/trading';
+import type { TradeSide } from '@/domain/tradeQuotes';
 import { levelZeroBusiness } from '@/domain/businessQuotes';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars, units, type QuantityMicrounits } from '@/domain/money';

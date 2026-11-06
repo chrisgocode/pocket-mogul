@@ -74,6 +74,19 @@ describe('Stock trading', () => {
     expect(await screen.findByLabelText('Shares, 4')).toBeOnTheScreen();
   });
 
+  it('keeps the shares a dollar amount converted to when the quote goes stale', async () => {
+    const session = await open('/markets/prism');
+    await fireEvent.press(await screen.findByRole('button', { name: 'Buy Prism Labs' }));
+    await fireEvent.press(screen.getByRole('tab', { name: 'Dollars' }));
+    await fireEvent.changeText(screen.getByLabelText('Dollars to spend, fee included'), '100.25');
+    expect(screen.getByLabelText('Quantity, 4 shares')).toBeOnTheScreen();
+    session.clock.advance(MINUTE_MS);
+    await session.game.checkpoint();
+    await fireEvent.press(await screen.findByRole('button', { name: 'Review new price' }));
+    expect(screen.getByLabelText('Quantity, 4 shares')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Dollars to spend, fee included')).toHaveDisplayValue('100.25');
+  });
+
   it('refuses a buy under the $1 minimum before it is sent', async () => {
     await open('/markets/prism');
     await enterShares('0.01');

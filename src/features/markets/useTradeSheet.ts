@@ -1,13 +1,26 @@
-import { selectTradeTicket, presetQuantity, type TradeEntryMode } from '@/application/tradeTicket';
+import {
+  presetQuantity,
+  readEntry,
+  selectTradeTicket,
+  type EnteredOrder,
+  type TradeEntry,
+  type TradeEntryMode,
+} from '@/application/tradeTicket';
 import { getContent } from '@/content';
 import { formatQuantity, type QuantityMicrounits } from '@/domain/money';
-import type { TradeSide } from '@/domain/trading';
+import type { TradeSide } from '@/domain/tradeQuotes';
 import { useGame, useGameSnapshot } from '@/features/game/GameContext';
 import { gameErrorMessage } from '@/features/game/gameErrorMessage';
 import { useConfirmation } from '@/ui/state/useConfirmation';
 import { useTradeDraft } from '@/ui/state/useTradeDraft';
 
-const BLANK = { side: 'buy', mode: 'shares', text: '', reviewedTick: 0 } as const;
+const BLANK = {
+  side: 'buy',
+  mode: 'shares',
+  text: '',
+  order: { status: 'empty' },
+  reviewedTick: 0,
+} as const;
 
 function useTradeSubmit(assetId: string) {
   const game = useGame();
@@ -33,11 +46,21 @@ function useTradeSubmit(assetId: string) {
 function useTradeEntry(assetId: string) {
   const snapshot = useGameSnapshot();
   const content = getContent();
-  const { draft, change, reset } = useTradeDraft<TradeSide, TradeEntryMode>(BLANK);
-  const ticket = selectTradeTicket(snapshot, { assetId, entry: draft, content });
+  const { draft, change, reset } = useTradeDraft<TradeSide, TradeEntryMode, EnteredOrder>(BLANK);
+  const ticket = selectTradeTicket(snapshot, {
+    assetId,
+    side: draft.side,
+    order: draft.order,
+    content,
+  });
+  const read = (entry: TradeEntry) => readEntry(snapshot, { assetId, entry, content });
   const preset = (percent: number) => {
     const quantity = presetQuantity(snapshot, { assetId, side: draft.side, percent, content });
-    change({ mode: 'shares', text: formatQuantity(quantity) });
+    change({
+      mode: 'shares',
+      text: formatQuantity(quantity),
+      order: { status: 'quantity', quantity },
+    });
   };
   return {
     draft,
@@ -45,9 +68,9 @@ function useTradeEntry(assetId: string) {
     change,
     restart: (side: TradeSide) =>
       reset({ ...BLANK, side, reviewedTick: snapshot.state.market.tick }),
-    selectSide: (side: TradeSide) => change({ side }),
-    selectMode: (mode: TradeEntryMode) => change({ mode, text: '' }),
-    enter: (text: string) => change({ text }),
+    selectSide: (side: TradeSide) => change({ side, order: read({ ...draft, side }) }),
+    selectMode: (mode: TradeEntryMode) => change({ mode, text: '', order: BLANK.order }),
+    enter: (text: string) => change({ text, order: read({ ...draft, text }) }),
     preset,
   };
 }

@@ -1,5 +1,5 @@
 import type { TradeEntryMode } from '@/application/tradeTicket';
-import type { TradeSide } from '@/domain/trading';
+import type { TradeSide } from '@/domain/tradeQuotes';
 import { SegmentedControl, type SegmentOption } from '@/ui/SegmentedControl';
 import { TextField } from '@/ui/TextField';
 

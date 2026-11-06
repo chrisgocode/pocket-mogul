@@ -4,10 +4,11 @@ import {
   dollars,
   moneyCents,
   quantityMicrounits,
+  type MoneyCents,
   units,
   type QuantityMicrounits,
 } from '@/domain/money';
-import { largestQuantityWithin, type TradeQuote, type TradeSide } from '@/domain/trading';
+import { largestQuantityWithin, type TradeQuote, type TradeSide } from '@/domain/tradeQuotes';
 import { checkTrade, findInstrument, positionOf, tradePricing } from '@/domain/trades';
 
 import { tradeEconomy } from './economy';
@@ -44,6 +45,29 @@ function parsed<T>(read: () => T): T | undefined {
   }
 }
 
+export type EnteredOrder =
+  | { readonly status: 'empty' }
+  | { readonly status: 'invalid' }
+  | { readonly status: 'quantity'; readonly quantity: QuantityMicrounits };
+
+function quantityForAmount(
+  snapshot: GameSnapshot,
+  request: TicketRequest & { readonly side: TradeSide; readonly amount: MoneyCents },
+): QuantityMicrounits | undefined {
+  const economy = tradeEconomy(request.content);
+  const instrument = findInstrument(economy, request.assetId);
+  if (instrument === undefined) return undefined;
+  const { state } = snapshot;
+  const pricing = tradePricing(state, { instrument, economy });
+  const holding = positionOf(state, instrument.id).quantity;
+  const cashCents = request.amount;
+  const budget =
+    request.side === 'buy'
+      ? { side: 'buy' as const, cashCents }
+      : { side: 'sell' as const, cashCents, holding };
+  return largestQuantityWithin(budget, pricing);
+}
+
 function enteredQuantity(
   snapshot: GameSnapshot,
   request: TicketRequest & { readonly entry: TradeEntry },
@@ -52,31 +76,30 @@ function enteredQuantity(
   if (entry.mode === 'shares') return parsed(() => units(entry.text));
   const amount = parsed(() => dollars(entry.text));
   if (amount === undefined || amount < 0n) return undefined;
-  const economy = tradeEconomy(request.content);
-  const instrument = findInstrument(economy, request.assetId);
-  if (instrument === undefined) return undefined;
-  const { state } = snapshot;
-  const pricing = tradePricing(state, { instrument, economy });
-  const holding = positionOf(state, instrument.id).quantity;
-  const budget =
-    entry.side === 'buy'
-      ? { side: 'buy' as const, cashCents: amount }
-      : { side: 'sell' as const, cashCents: amount, holding };
-  return largestQuantityWithin(budget, pricing);
+  return quantityForAmount(snapshot, { ...request, side: entry.side, amount });
+}
+
+export function readEntry(
+  snapshot: GameSnapshot,
+  request: TicketRequest & { readonly entry: TradeEntry },
+): EnteredOrder {
+  if (request.entry.text.trim() === '') return { status: 'empty' };
+  const quantity = enteredQuantity(snapshot, request);
+  return quantity === undefined ? { status: 'invalid' } : { status: 'quantity', quantity };
 }
 
 export function selectTradeTicket(
   snapshot: GameSnapshot,
-  request: TicketRequest & { readonly entry: TradeEntry },
+  request: TicketRequest & { readonly side: TradeSide; readonly order: EnteredOrder },
 ): TradeTicket {
   const { tick } = snapshot.state.market;
-  if (request.entry.text.trim() === '') return { status: 'empty', tick };
-  const quantity = enteredQuantity(snapshot, request);
-  if (quantity === undefined) return { status: 'invalid', tick, error: 'INVALID_QUANTITY' };
+  const { order } = request;
+  if (order.status === 'empty') return { status: 'empty', tick };
+  if (order.status === 'invalid') return { status: 'invalid', tick, error: 'INVALID_QUANTITY' };
   const checked = checkTrade(snapshot.state, {
     assetId: request.assetId,
-    side: request.entry.side,
-    quantity,
+    side: request.side,
+    quantity: order.quantity,
     economy: tradeEconomy(request.content),
   });
   if (checked.ok) return { status: 'ready', tick, quote: checked.quote };

@@ -60,6 +60,6 @@ export function tradeEconomy(content: Content): TradeEconomy {
   return {
     instruments: instruments(content),
     feeBps: { stocks: market.stocks.feeBps, crypto: market.crypto.feeBps },
-    minBuyNotionalCents: market.minBuyNotional,
+    minTradeNotionalCents: market.minBuyNotional,
   };
 }

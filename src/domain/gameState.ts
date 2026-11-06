@@ -1,6 +1,6 @@
 import { freshMarket, type MarketState } from './market';
 import { moneyCents, type MoneyCents } from './money';
-import type { Position } from './trading';
+import type { Position } from './tradeQuotes';
 
 export const SAVE_SCHEMA_VERSION = 1;
 

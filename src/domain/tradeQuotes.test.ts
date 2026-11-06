@@ -1,11 +1,12 @@
 import { dollarPrice, dollars, quantityMicrounits, units } from './money';
 import {
+  averageCost,
   emptyPosition,
   largestQuantityWithin,
   markPosition,
   quoteTrade,
   settleTrade,
-} from './trading';
+} from './tradeQuotes';
 
 const STOCK_FEE_BPS = 25;
 
@@ -49,6 +50,7 @@ describe('position settlement (AC14)', () => {
       remainingBasisCents: dollars('60.15'),
       realizedProfitCents: dollars('7.78'),
     });
+    expect(averageCost(after)).toBe(dollarPrice('10.025'));
     expect(markPosition(after, dollarPrice('12'))).toEqual({
       valueCents: dollars('72'),
       unrealizedCents: dollars('11.85'),

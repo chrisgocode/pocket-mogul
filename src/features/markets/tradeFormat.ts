@@ -1,7 +1,7 @@
 import type { TradeTicket } from '@/application/tradeTicket';
 import type { GameErrorCode } from '@/domain/commands';
 import { formatMoneyExact, formatPrice, formatQuantity, type MoneyCents } from '@/domain/money';
-import type { TradeQuote, TradeSide } from '@/domain/trading';
+import type { TradeQuote, TradeSide } from '@/domain/tradeQuotes';
 import { formatCashChange } from '@/features/game/priceFormat';
 import type { ConfirmationLine } from '@/ui/ConfirmationDetails';
 

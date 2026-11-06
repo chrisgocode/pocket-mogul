@@ -1,6 +1,7 @@
 import {
   divideRoundingUp,
   moneyCents,
+  priceMicros,
   quantityMicrounits,
   type MoneyCents,
   type PriceMicros,
@@ -123,4 +124,11 @@ export function largestQuantityWithin(
     else high = middle - 1n;
   }
   return quantityMicrounits(low);
+}
+
+export function averageCost(position: Position): PriceMicros | undefined {
+  if (position.quantity === 0n) return undefined;
+  return priceMicros(
+    (position.remainingBasisCents * MICROS_TIMES_MICROUNITS_PER_CENT) / position.quantity,
+  );
 }

@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
-import type { TradeSide } from '@/domain/trading';
+import type { TradeSide } from '@/domain/tradeQuotes';
+import { gameErrorMessage } from '@/features/game/gameErrorMessage';
 import { Button } from '@/ui/Button';
 import { AppText } from '@/ui/Typography';
 import { spacing } from '@/ui/tokens';
@@ -22,7 +23,7 @@ export function TradeActions({
   const { name } = detail.asset;
   return (
     <View style={styles.actions}>
-      {locked ? <AppText muted>Trading opens after you buy your first business.</AppText> : null}
+      {locked ? <AppText muted>{gameErrorMessage('TRADING_LOCKED')}</AppText> : null}
       <View style={styles.row}>
         <View style={styles.cell}>
           <Button

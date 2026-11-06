@@ -2,7 +2,7 @@ import type { UpgradeTrack } from './businessQuotes';
 import type { GameState } from './gameState';
 import type { MoneyCents, QuantityMicrounits } from './money';
 import type { PropertyTrack } from './propertyQuotes';
-import type { TradeSide } from './trading';
+import type { TradeSide } from './tradeQuotes';
 
 export type TapBatch = { readonly type: 'TapBatch'; readonly taps: number };
 

@@ -1,9 +1,9 @@
 import { getContent } from '@/content';
 import { freshGameState, type GameState } from '@/domain/gameState';
-import { dollars, units } from '@/domain/money';
+import { dollarPrice, dollars, units } from '@/domain/money';
 
 import type { GameSnapshot } from './game';
-import { presetQuantity, selectTradeTicket, type TradeEntry } from './tradeTicket';
+import { presetQuantity, readEntry, selectTradeTicket, type TradeEntry } from './tradeTicket';
 
 const content = getContent();
 
@@ -28,7 +28,12 @@ const holding = (quantity: string) => ({
 });
 
 const ticket = (snapshot: GameSnapshot, entry: TradeEntry) =>
-  selectTradeTicket(snapshot, { assetId: 'prism', entry, content });
+  selectTradeTicket(snapshot, {
+    assetId: 'prism',
+    side: entry.side,
+    order: readEntry(snapshot, { assetId: 'prism', entry, content }),
+    content,
+  });
 
 describe('trade ticket', () => {
   it('quotes an entered share count at the current tick', () => {
@@ -51,6 +56,23 @@ describe('trade ticket', () => {
       text: '100.25',
     });
     expect(result).toMatchObject({ status: 'ready', quote: { quantity: units('4') } });
+  });
+
+  it('keeps the shares a dollar amount bought when the price moves', () => {
+    const typedAt = snapshotWith({ cashCents: dollars('1,000') });
+    const entry = { side: 'buy', mode: 'dollars', text: '100.25' } as const;
+    const order = readEntry(typedAt, { assetId: 'prism', entry, content });
+    const moved = snapshotWith({
+      cashCents: dollars('1,000'),
+      market: { ...typedAt.state.market, tick: 1, quotes: { prism: dollarPrice('26') } },
+    });
+    expect(
+      selectTradeTicket(moved, { assetId: 'prism', side: 'buy', order, content }),
+    ).toMatchObject({
+      status: 'ready',
+      tick: 1,
+      quote: { quantity: units('4'), cashChangeCents: dollars('-104.26') },
+    });
   });
 
   it('explains an entry it cannot read', () => {
