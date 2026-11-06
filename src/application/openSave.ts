@@ -43,7 +43,7 @@ async function startFresh(tx: SaveTransaction, opening: SaveOpening): Promise<Op
 
 async function restoreFromBackup(
   tx: SaveTransaction,
-  damaged: { document: string; opening: SaveOpening },
+  damaged: { document?: string; opening: SaveOpening },
 ): Promise<OpenedSave> {
   const backups = await tx.readBackups();
   const restorable = backups
@@ -51,13 +51,20 @@ async function restoreFromBackup(
     .filter(isReadable)
     .find((decoded) => damaged.opening.supportsEconomy(decoded.state.economyVersion));
   if (restorable === undefined) return { status: 'stopped', reason: 'DAMAGED_SAVE' };
-  await tx.writeDiagnostic({
-    type: 'DAMAGED_SAVE',
-    document: damaged.document,
-    recordedWallMs: damaged.opening.wallMs,
-  });
+  if (damaged.document !== undefined) {
+    await tx.writeDiagnostic({
+      type: 'DAMAGED_SAVE',
+      document: damaged.document,
+      recordedWallMs: damaged.opening.wallMs,
+    });
+  }
   await tx.writeState(restorable.state);
   return { status: 'ready', state: restorable.state, notice: { kind: 'restoredFromBackup' } };
+}
+
+async function openMissing(tx: SaveTransaction, opening: SaveOpening): Promise<OpenedSave> {
+  const backups = await tx.readBackups();
+  return backups.length === 0 ? startFresh(tx, opening) : restoreFromBackup(tx, { opening });
 }
 
 async function openReadable(
@@ -90,7 +97,7 @@ export function openSave(opening: SaveOpening): Promise<OpenedSave> {
     const document = await tx.readSave();
     const opened =
       document === undefined
-        ? await startFresh(tx, opening)
+        ? await openMissing(tx, opening)
         : await openDocument(tx, { document, opening });
     if (opened.status === 'ready') await tx.pruneReceipts(opening.wallMs - RECEIPT_RETENTION_MS);
     return opened;

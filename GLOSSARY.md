@@ -46,6 +46,10 @@ _Avoid_: Log entry, idempotency key
 A verified copy of the save document kept in the same database: one is written at most once a minute after a successful commit and before every migration, and the two newest are kept. It guards against a damaged snapshot, not against losing the device.
 _Avoid_: Snapshot copy, autosave
 
+**Recovery notice**:
+The "Save restored" sheet shown when the latest snapshot was damaged or missing and the Game opened the newest valid Save backup instead. A save that can't be restored, or that comes from a newer version, stops on an explanation screen and is never reset.
+_Avoid_: Error popup, crash dialog
+
 **Save migration**:
 An explicit, tested step that upgrades a save document from one schema version to the next. It never changes the economy; an economyVersion change settles at the old rates first instead.
 _Avoid_: Upgrade, conversion

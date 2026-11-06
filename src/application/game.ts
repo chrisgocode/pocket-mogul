@@ -2,6 +2,7 @@ import type { Content } from '@/content';
 import type { CommandEnvelope, CommandOutcome } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
 
+import { supportsEconomy } from './economy';
 import { commitCommand, type CommandTime, type Committed } from './commitCommand';
 import { foregroundTime } from './foregroundTime';
 import { foregroundLoops } from './foregroundLoops';
@@ -48,13 +49,6 @@ export type OpenedGame =
   | { readonly status: 'stopped'; readonly reason: SaveStopReason };
 
 type Opened = { readonly state: GameState; readonly notice: SaveNotice };
-
-function supportsEconomy(ports: GamePorts) {
-  const versions = new Set(
-    [ports.content, ...(ports.pastContent ?? [])].map((content) => content.economyVersion),
-  );
-  return (economyVersion: number) => versions.has(economyVersion);
-}
 
 type RunOptions = {
   settledTaps?: number;
@@ -177,7 +171,8 @@ function saveControls(ports: GamePorts, game: { core: Committer; flushTaps: () =
 
 async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
   const core = committer(ports, opened);
-  await backUpIfDue(ports.store, { revision: opened.state.revision, wallMs: ports.clock.wallMs() });
+  const wallMs = ports.clock.wallMs();
+  await core.queue.run(() => backUpIfDue(ports.store, { revision: opened.state.revision, wallMs }));
   const offline = offlineSettlement(ports, core);
   await offline.onLaunch();
   const { dispatch, tap, flushTaps } = tapBatching(ports, core);

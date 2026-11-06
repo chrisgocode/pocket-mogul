@@ -65,6 +65,17 @@ describe('a corrupt latest snapshot', () => {
     );
   });
 
+  it('restores a backup instead of starting over when the snapshot row is missing', async () => {
+    const first = await startTestGame();
+    await first.game.dispatch(threeTaps);
+    first.clock.advance(BACKUP_DUE_MS);
+    await first.game.checkpoint();
+    first.deleteSaveDocument();
+    const { game } = await first.restart();
+    expect(game.getSnapshot().notice).toEqual({ kind: 'restoredFromBackup' });
+    expect<bigint>(game.getSnapshot().state.cashCents).toBe(dollars('3'));
+  });
+
   it('stops without touching the save when no backup is valid (AC23)', async () => {
     const first = await startTestGame();
     first.replaceSaveDocument('not json');

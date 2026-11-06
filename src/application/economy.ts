@@ -25,7 +25,16 @@ export type EconomyVersions = {
   readonly pastContent?: readonly Content[];
 };
 
+const bundled = (versions: EconomyVersions) => [versions.content, ...(versions.pastContent ?? [])];
+
 export function contentAt(versions: EconomyVersions, economyVersion: number): Content {
-  const past = versions.pastContent ?? [];
-  return past.find((content) => content.economyVersion === economyVersion) ?? versions.content;
+  return (
+    bundled(versions).find((content) => content.economyVersion === economyVersion) ??
+    versions.content
+  );
+}
+
+export function supportsEconomy(versions: EconomyVersions) {
+  const supported = new Set(bundled(versions).map((content) => content.economyVersion));
+  return (economyVersion: number) => supported.has(economyVersion);
 }

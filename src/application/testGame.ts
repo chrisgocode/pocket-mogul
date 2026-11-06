@@ -113,6 +113,7 @@ export type TestGame = {
   diagnostics: () => Promise<readonly Diagnostic[]>;
   saveDocument: () => string;
   replaceSaveDocument: (document: string) => void;
+  deleteSaveDocument: () => void;
   corruptBackups: () => void;
   receiptIds: () => readonly string[];
 };
@@ -146,6 +147,9 @@ function rawSave(database: DatabaseSync) {
       savedDocumentRow.parse(database.prepare('SELECT document FROM save_state').get()).document,
     replaceSaveDocument: (document: string) => {
       database.prepare('UPDATE save_state SET document = ?').run(document);
+    },
+    deleteSaveDocument: () => {
+      database.exec('DELETE FROM save_state');
     },
     corruptBackups: () => {
       database.exec("UPDATE save_backups SET document = 'damaged'");
