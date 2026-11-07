@@ -3,6 +3,7 @@ import type { ActivityEntry, ActivityEvent, ActivityKind } from '@/domain/activi
 import { formatMoneyExact, formatQuantity, moneyCents, type MoneyCents } from '@/domain/money';
 
 import { durationText, gameClockText } from './clockText';
+import { incidentStrikeText } from './incidentText';
 
 export type ActivityRow = {
   readonly key: string;
@@ -120,6 +121,14 @@ const DESCRIBERS: Describers = {
   closure: (event, content) => ({
     title: `${assetName(content, event.assetId)} closed`,
     detail: 'Its treasury ran out. Deposit cash to reopen it.',
+    cashChangeCents: undefined,
+  }),
+  incident: (event, content) => ({
+    ...incidentStrikeText(content, {
+      ...event,
+      businessId: event.assetId,
+      treasuryLossCents: moneyCents(0n - event.treasuryChangeCents),
+    }),
     cashChangeCents: undefined,
   }),
   rental: (event, content) => ({

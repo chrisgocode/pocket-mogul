@@ -14,7 +14,7 @@ const staffed = (staff: Partial<{ operations: number; sales: number; manager: nu
   });
 
 const settle = (business: ReturnType<typeof staffed>, elapsedMs: number) =>
-  settleBusinesses([business], { fromMs: 0, elapsedMs, economy });
+  settleBusinesses([business], { fromMs: 0, elapsedMs, economy, seed: 'staff' });
 
 describe('staff effects (BUS13)', () => {
   it('adds 20 percent capacity per operations hire and pays 4 percent of catalog revenue', () => {
@@ -112,6 +112,7 @@ describe('the manager at each day boundary (BUS14, AC43)', () => {
       fromMs: 600_000,
       elapsedMs: 0,
       economy,
+      seed: 'staff',
     });
     expect(atBoundary.businesses[0]?.priceLevel).toBe('standard');
   });

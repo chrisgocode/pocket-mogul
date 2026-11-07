@@ -1,4 +1,4 @@
-import type { BusinessTrack, PriceLevel, StaffRole } from './business/definition';
+import type { BusinessTrack, IncidentCategory, PriceLevel, StaffRole } from './business/definition';
 import type { GameState } from './gameState';
 import type { MoneyCents, QuantityMicrounits } from './money';
 import type { PropertyTrack } from './propertyQuotes';
@@ -52,6 +52,13 @@ export type UpgradeStage = {
   readonly type: 'UpgradeStage';
   readonly businessId: string;
   readonly fromStage: number;
+};
+
+export type SetInsurance = {
+  readonly type: 'SetInsurance';
+  readonly businessId: string;
+  readonly category: IncidentCategory;
+  readonly insured: boolean;
 };
 
 export type SetPayout = {
@@ -130,6 +137,7 @@ export type GameCommand =
   | HireStaff
   | FireStaff
   | UpgradeStage
+  | SetInsurance
   | SetPayout
   | DepositToTreasury
   | WithdrawFromTreasury

@@ -3,6 +3,7 @@ import { moneyCents, type MoneyCents } from '@/domain/money';
 import { profitPerDayCents } from './core';
 import { findBusiness, type BusinessEconomy, type BusinessPricing } from './definition';
 import type { OwnedBusiness } from './owned';
+import { startBusinessDay, type StruckIncident } from './risks';
 import { managerDecisions } from './staff';
 
 export type BusinessClosure = { readonly businessId: string; readonly atMs: number };
@@ -11,6 +12,7 @@ export type BusinessSettlement = {
   readonly businesses: readonly OwnedBusiness[];
   readonly toCashCents: MoneyCents;
   readonly closures: readonly BusinessClosure[];
+  readonly incidents: readonly StruckIncident[];
 };
 
 type Period = { readonly fromMs: number; readonly elapsedMs: number };
@@ -19,7 +21,10 @@ type Settled = {
   readonly business: OwnedBusiness;
   readonly toCashCents: bigint;
   readonly closedAtMs?: number;
+  readonly incidents?: readonly StruckIncident[];
 };
+
+type Settlement = Period & { readonly pricing: BusinessPricing; readonly seed: string };
 
 const PERCENT = 100n;
 
@@ -100,15 +105,19 @@ function segmentEnds(period: Period, dayMs: number): number[] {
   return boundaries[boundaries.length - 1] === endMs ? boundaries : [...boundaries, endMs];
 }
 
-type Settling = Settled & { readonly atMs: number };
+type Settling = Settled & { readonly atMs: number; readonly incidents: readonly StruckIncident[] };
 
-function settleBusiness(
-  business: OwnedBusiness,
-  settlement: Period & { readonly pricing: BusinessPricing },
-): Settled {
+function dayStarted(segment: Settled, boundary: { settlement: Settlement; endMs: number }) {
+  const { pricing, seed } = boundary.settlement;
+  const day = boundary.endMs / pricing.rules.dayMs;
+  const started = startBusinessDay(segment.business, { pricing, seed, day });
+  return { ...started, business: managerDecisions(started.business, pricing) };
+}
+
+function settleBusiness(business: OwnedBusiness, settlement: Settlement): Settled {
   const { pricing } = settlement;
   const { dayMs } = pricing.rules;
-  const start: Settling = { business, toCashCents: 0n, atMs: settlement.fromMs };
+  const start: Settling = { business, toCashCents: 0n, atMs: settlement.fromMs, incidents: [] };
   return segmentEnds(settlement, dayMs).reduce<Settling>((settled, endMs) => {
     if (settled.closedAtMs !== undefined) return settled;
     const segment = settleSegment(settled.business, {
@@ -118,18 +127,22 @@ function settleBusiness(
     });
     const reachedBoundary = endMs > settled.atMs && endMs % dayMs === 0;
     const atBoundary = reachedBoundary && segment.closedAtMs === undefined;
+    const day = atBoundary
+      ? dayStarted(segment, { settlement, endMs })
+      : { business: segment.business, incidents: [] };
     return {
       ...segment,
-      business: atBoundary ? managerDecisions(segment.business, pricing) : segment.business,
+      business: day.business,
       toCashCents: settled.toCashCents + segment.toCashCents,
       atMs: endMs,
+      incidents: [...settled.incidents, ...day.incidents],
     };
   }, start);
 }
 
 export function settleBusinesses(
   businesses: readonly OwnedBusiness[],
-  settlement: Period & { readonly economy: BusinessEconomy },
+  settlement: Period & { readonly economy: BusinessEconomy; readonly seed: string },
 ): BusinessSettlement {
   const { rules, catalog } = settlement.economy;
   const settled = businesses.map((business): Settled => {
@@ -145,5 +158,6 @@ export function settleBusinesses(
         ? []
         : [{ businessId: each.business.definitionId, atMs: each.closedAtMs }],
     ),
+    incidents: settled.flatMap((each) => each.incidents ?? []),
   };
 }

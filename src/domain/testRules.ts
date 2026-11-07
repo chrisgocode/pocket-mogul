@@ -64,6 +64,13 @@ export const businessRules: BusinessRules = {
     wagePercent: { operations: 4, sales: 6, manager: 10 },
     signingFeeDays: 3,
   },
+  risks: {
+    safeDaysAfterPurchase: 30,
+    treasuryLossCapPercent: 20,
+    insuranceFromStage: 2,
+    premiumPercent: 2,
+    coveredLossPercent: 80,
+  },
   maxTrackLevel: 20,
   upgradeWeightBps: { quality: 2500, efficiency: 1500 },
   upgradeGrowth: { numerator: 118, denominator: 100 },
@@ -85,6 +92,26 @@ export const vendingDefinition: BusinessDefinition = {
   upkeepPerUnitCents: dollars('16'),
   catalogRevenuePerDayCents: dollars('140'),
   demandBps: { budget: 14500, value: 12000, standard: 10000, premium: 7500, luxury: 5500 },
+  incidents: [
+    {
+      id: 'vending_breakdown',
+      category: 'equipment',
+      chanceBps: 250,
+      effect: { kind: 'capacity', percent: 30, days: 4 },
+    },
+    {
+      id: 'vending_vandalism',
+      category: 'liability',
+      chanceBps: 150,
+      effect: { kind: 'treasury', revenueDays: 2 },
+    },
+    {
+      id: 'vending_expired_stock',
+      category: 'supply',
+      chanceBps: 200,
+      effect: { kind: 'treasury', revenueDays: 1 },
+    },
+  ],
 };
 
 export function ownedBusiness(
@@ -105,6 +132,8 @@ export function ownedBusiness(
     status: 'open',
     purchasedDay: 0,
     capitalizedSpendCents: dollars('250'),
+    insurance: { equipment: 'none', liability: 'none', supply: 'none' },
+    incident: { status: 'none' },
     ...change,
   };
 }

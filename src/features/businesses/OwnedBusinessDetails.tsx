@@ -5,6 +5,8 @@ import type { BusinessAction } from './businessAction';
 import { BusinessOverviewCard } from './BusinessOverviewCard';
 import { GrowSection } from './GrowSection';
 import { PriceLevelCard } from './PriceLevelCard';
+import type { InsuranceChange } from './InsuranceButton';
+import { RisksSection } from './RisksSection';
 import { SellCard } from './SellCard';
 import { StaffSection } from './StaffSection';
 import type { TreasuryActions } from './treasuryActions';
@@ -14,11 +16,13 @@ export function OwnedBusinessDetails({
   detail,
   onReview,
   onPriceLevel,
+  onInsurance,
   treasury,
 }: {
   detail: OwnedBusinessDetail;
   onReview: (action: BusinessAction) => void;
   onPriceLevel: (priceLevel: PriceLevel) => void;
+  onInsurance: (change: InsuranceChange) => void;
   treasury: TreasuryActions;
 }) {
   const { business } = detail;
@@ -34,6 +38,7 @@ export function OwnedBusinessDetails({
         onStage={(stage) => onReview({ kind: 'stage', business, stage })}
       />
       <StaffSection detail={detail} onReview={onReview} />
+      <RisksSection detail={detail} onInsurance={onInsurance} />
       <SellCard
         name={business.name}
         sale={detail.sale}

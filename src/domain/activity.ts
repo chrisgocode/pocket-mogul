@@ -48,6 +48,13 @@ export type ActivityEvent =
     }
   | { readonly kind: 'treasury'; readonly assetId: string; readonly cashChangeCents: MoneyCents }
   | { readonly kind: 'closure'; readonly assetId: string; readonly closedAtMs: number }
+  | {
+      readonly kind: 'incident';
+      readonly assetId: string;
+      readonly incidentId: string;
+      readonly treasuryChangeCents: MoneyCents;
+      readonly insured: boolean;
+    }
   | { readonly kind: 'rental'; readonly assetId: string; readonly rented: boolean }
   | {
       readonly kind: 'trade';
@@ -102,6 +109,7 @@ const zeroCounts: Readonly<Record<ActivityKind, number>> = {
   improvement: 0,
   treasury: 0,
   closure: 0,
+  incident: 0,
   rental: 0,
   trade: 0,
   dividend: 0,

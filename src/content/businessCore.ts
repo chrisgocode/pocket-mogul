@@ -42,6 +42,7 @@ export function businessDefinition(
     upkeepPerUnitCents: moneyCents(figures.upkeepPerUnit),
     catalogRevenuePerDayCents: business.revenuePerDay,
     demandBps: business.demandResponseBps ?? rules.demandBps,
+    incidents: business.incidents,
   };
 }
 

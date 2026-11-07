@@ -70,6 +70,7 @@ describe('bundled content', () => {
       upkeepPerUnitCents: dollars('16'),
       catalogRevenuePerDayCents: dollars('140'),
       demandBps: { budget: 14500, value: 12000, standard: 10000, premium: 7500, luxury: 5500 },
+      incidents: vending.incidents,
     });
   });
 

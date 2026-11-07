@@ -3,6 +3,7 @@ import { MICROS_PER_DOLLAR } from '@/domain/money';
 
 import { inexactCoreFigures } from './businessCore';
 import { contentSchema, TIERS, type Content } from './schema';
+import { businessRisksFit } from './validateRisks';
 
 export class ContentValidationError extends Error {
   constructor(readonly issues: readonly string[]) {
@@ -60,6 +61,7 @@ function crossChecks(content: Content): string[] {
     businessesAndPropertiesEarnAtBaseLevel,
     businessCoreFiguresAreWhole,
     businessStagesAndPayoutsFit,
+    businessRisksFit,
     efficiencyKeepsCostsPositive,
     systemsKeepUpkeepPositive,
     stockClassesFollowTheirRules,
@@ -76,6 +78,11 @@ type Catalog = { kind: string; ids: string[]; retirable: boolean };
 function catalogsOf(content: Content): Catalog[] {
   return [
     { kind: 'business', ids: content.businesses.map((b) => b.id), retirable: true },
+    {
+      kind: 'incident',
+      ids: content.businesses.flatMap((b) => b.incidents.map((incident) => incident.id)),
+      retirable: true,
+    },
     { kind: 'property', ids: content.properties.map((p) => p.id), retirable: true },
     {
       kind: 'instrument',

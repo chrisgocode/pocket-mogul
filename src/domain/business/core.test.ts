@@ -25,6 +25,7 @@ describe('a business day', () => {
       upkeepCents: dollars('16'),
       customerCostsCents: dollars('24'),
       wagesCents: dollars('0'),
+      premiumsCents: dollars('0'),
       managerBonusCents: dollars('0'),
       profitCents: dollars('100'),
     });

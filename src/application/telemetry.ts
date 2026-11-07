@@ -12,6 +12,7 @@ export type TelemetryEventName =
   | 'wallet_upgrade'
   | 'business_upgrade'
   | 'business_closed'
+  | 'incident'
   | 'rental_started'
   | 'trade_executed'
   | 'offline_settled'
@@ -107,6 +108,10 @@ const DESCRIBERS: Describers = {
   }),
   treasury: () => undefined,
   closure: (entry) => ({ name: 'business_closed', details: { businessId: entry.assetId } }),
+  incident: (entry) => ({
+    name: 'incident',
+    details: { businessId: entry.assetId, incidentId: entry.incidentId, insured: entry.insured },
+  }),
   rental: (entry) =>
     entry.rented ? { name: 'rental_started', details: { propertyId: entry.assetId } } : undefined,
   trade: (entry) => ({

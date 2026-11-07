@@ -174,6 +174,7 @@ describe('bounded activity history', () => {
       improvement: 0,
       treasury: 0,
       closure: 0,
+      incident: 0,
       rental: 2000,
       trade: 0,
       dividend: 0,

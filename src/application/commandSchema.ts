@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
-import { BUSINESS_TRACKS, PRICE_LEVELS, STAFF_ROLES } from '@/domain/business/definition';
+import {
+  BUSINESS_TRACKS,
+  INCIDENT_CATEGORIES,
+  PRICE_LEVELS,
+  STAFF_ROLES,
+} from '@/domain/business/definition';
 import type { GameCommand } from '@/domain/commands';
 import { moneyCents, quantityMicrounits } from '@/domain/money';
 import { PROPERTY_TRACKS } from '@/domain/propertyQuotes';
@@ -35,6 +40,12 @@ const gameCommandSchema = z.discriminatedUnion('type', [
     type: z.literal('UpgradeStage'),
     businessId,
     fromStage: z.number().int().positive(),
+  }),
+  z.object({
+    type: z.literal('SetInsurance'),
+    businessId,
+    category: z.enum(INCIDENT_CATEGORIES),
+    insured: z.boolean(),
   }),
   z.object({ type: z.literal('SetPayout'), businessId, payoutPercent: z.number().int() }),
   z.object({ type: z.literal('DepositToTreasury'), businessId, amountCents }),

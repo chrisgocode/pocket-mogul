@@ -50,6 +50,7 @@ export function BusinessDetailScreen() {
           detail={detail}
           onReview={review}
           onPriceLevel={(priceLevel) => run({ type: 'SetPriceLevel', businessId, priceLevel })}
+          onInsurance={(change) => run({ type: 'SetInsurance', businessId, ...change })}
           treasury={treasuryActions(detail, { run, review })}
         />
       ) : null}

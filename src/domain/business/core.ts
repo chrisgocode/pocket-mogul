@@ -2,6 +2,7 @@ import { moneyCents, type MoneyCents } from '@/domain/money';
 import { geometricUpgradeCents } from '@/domain/pricing';
 
 import {
+  INCIDENT_CATEGORIES,
   PRICE_LEVELS,
   STAFF_ROLES,
   stageRule,
@@ -22,6 +23,7 @@ export type BusinessDayQuote = {
   readonly upkeepCents: MoneyCents;
   readonly customerCostsCents: MoneyCents;
   readonly wagesCents: MoneyCents;
+  readonly premiumsCents: MoneyCents;
   readonly managerBonusCents: MoneyCents;
   readonly profitCents: MoneyCents;
 };
@@ -65,13 +67,30 @@ function demandOf(business: OwnedBusiness, pricing: BusinessPricing): bigint {
   return numerator / (PERCENT * BASIS_POINTS * PERCENT * PERCENT);
 }
 
+const NO_EFFECT_BPS = 10_000;
+
+function incidentBps(business: OwnedBusiness, effect: 'capacityBps' | 'costBps'): bigint {
+  const { incident } = business;
+  return BigInt(incident.status === 'active' ? incident[effect] : NO_EFFECT_BPS);
+}
+
 function capacityOf(business: OwnedBusiness, pricing: BusinessPricing): bigint {
   const { definition, rules } = pricing;
   const numerator =
     BigInt(definition.capacityPerUnit) *
     BigInt(business.units) *
-    raisedPercent(rules.staff.operationsCapacityPercent, business.staff.operations);
-  return numerator / PERCENT;
+    raisedPercent(rules.staff.operationsCapacityPercent, business.staff.operations) *
+    incidentBps(business, 'capacityBps');
+  return numerator / (PERCENT * BASIS_POINTS);
+}
+
+export function premiumCents(pricing: BusinessPricing): MoneyCents {
+  const percent = BigInt(pricing.rules.risks.premiumPercent);
+  return moneyCents((pricing.definition.catalogRevenuePerDayCents * percent) / PERCENT);
+}
+
+function activePolicies(business: OwnedBusiness): number {
+  return INCIDENT_CATEGORIES.filter((category) => business.insurance[category] === 'active').length;
 }
 
 export function wageCents(pricing: BusinessPricing, role: StaffRole): MoneyCents {
@@ -93,7 +112,11 @@ function managerBonusOf(gross: bigint, business: OwnedBusiness, pricing: Busines
 
 function costPerServedOf(business: OwnedBusiness, pricing: BusinessPricing): bigint {
   const saving = pricing.rules.efficiencySavingPercent * business.levels.efficiency;
-  return (pricing.definition.costPerCustomerCents * (PERCENT - BigInt(saving))) / PERCENT;
+  const numerator =
+    pricing.definition.costPerCustomerCents *
+    (PERCENT - BigInt(saving)) *
+    incidentBps(business, 'costBps');
+  return numerator / (PERCENT * BASIS_POINTS);
 }
 
 export function quoteBusinessDay(
@@ -111,7 +134,8 @@ export function quoteBusinessDay(
   const upkeepCents = definition.upkeepPerUnitCents * BigInt(business.units);
   const customerCostsCents = served * costPerServedCents;
   const wagesCents = wagesOf(business, pricing);
-  const gross = revenueCents - upkeepCents - customerCostsCents - wagesCents;
+  const premiumsCents = premiumCents(pricing) * BigInt(activePolicies(business));
+  const gross = revenueCents - upkeepCents - customerCostsCents - wagesCents - premiumsCents;
   const managerBonusCents = managerBonusOf(gross, business, pricing);
   return {
     demand: Number(demand),
@@ -123,6 +147,7 @@ export function quoteBusinessDay(
     upkeepCents: moneyCents(upkeepCents),
     customerCostsCents: moneyCents(customerCostsCents),
     wagesCents: moneyCents(wagesCents),
+    premiumsCents: moneyCents(premiumsCents),
     managerBonusCents: moneyCents(managerBonusCents),
     profitCents: moneyCents(gross + managerBonusCents),
   };

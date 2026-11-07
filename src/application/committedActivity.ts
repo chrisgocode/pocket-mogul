@@ -5,6 +5,7 @@ import {
   type ActivityEvent,
   type Earned,
 } from '@/domain/activity';
+import type { StruckIncident } from '@/domain/business/risks';
 import type { BusinessClosure } from '@/domain/business/treasury';
 import { commandActivity } from '@/domain/commandActivity';
 import type { GameCommand } from '@/domain/commands';
@@ -16,6 +17,7 @@ export type PassedTime = {
   readonly earnings: IncomeBySource;
   readonly absence: ReturnSummary | undefined;
   readonly closures: readonly BusinessClosure[];
+  readonly incidents: readonly StruckIncident[];
 };
 
 type ActivityChange = {
@@ -41,7 +43,14 @@ function timeEvents(time: PassedTime): readonly ActivityEvent[] {
     assetId: closure.businessId,
     closedAtMs: closure.atMs,
   }));
-  return [...incomeEvents(time), ...closures];
+  const incidents = time.incidents.map((incident): ActivityEvent => ({
+    kind: 'incident',
+    assetId: incident.businessId,
+    incidentId: incident.incidentId,
+    treasuryChangeCents: moneyCents(0n - incident.treasuryLossCents),
+    insured: incident.insured,
+  }));
+  return [...incomeEvents(time), ...incidents, ...closures];
 }
 
 function earnedOf(change: ActivityChange): Earned {

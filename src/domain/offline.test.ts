@@ -8,10 +8,11 @@ const HOUR_MS = 3_600_000;
 const CAP_MS = 8 * HOUR_MS;
 const LEFT_AT_MS = 1_000_000;
 
-const leaky = { ...vendingDefinition, id: 'leaky', upkeepPerUnitCents: dollars('132') };
+const calmVending = { ...vendingDefinition, incidents: [] };
+const leaky = { ...calmVending, id: 'leaky', upkeepPerUnitCents: dollars('132') };
 
 const economy: PassiveEconomy = {
-  businesses: { catalog: [vendingDefinition, leaky], rules: businessRules },
+  businesses: { catalog: [calmVending, leaky], rules: businessRules },
   properties: { catalog: [], rules: propertyRules },
   dividendRates: {},
 };
@@ -60,6 +61,7 @@ describe('settling an absence', () => {
         creditedMs: CAP_MS,
         earnings: { ...noEarnings, businesses: dollars('2400') },
         closures: [],
+        incidents: [],
       },
     });
   });
@@ -85,6 +87,7 @@ describe('settling an absence', () => {
         creditedMs: 2 * HOUR_MS + 30_000,
         earnings: { ...noEarnings, businesses: dollars('602.50') },
         closures: [],
+        incidents: [],
       },
     });
   });
@@ -101,6 +104,7 @@ describe('a business that closes while the player is away (BUS12)', () => {
         creditedMs: CAP_MS,
         earnings: noEarnings,
         closures: ['leaky'],
+        incidents: [],
       },
     });
   });

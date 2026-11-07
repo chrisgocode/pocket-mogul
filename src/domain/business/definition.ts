@@ -12,6 +12,29 @@ export type StaffCounts = Readonly<Record<StaffRole, number>>;
 
 export const NO_STAFF: StaffCounts = { operations: 0, sales: 0, manager: 0 };
 
+export const INCIDENT_CATEGORIES = ['equipment', 'liability', 'supply'] as const;
+export type IncidentCategory = (typeof INCIDENT_CATEGORIES)[number];
+
+export type IncidentEffect =
+  | { readonly kind: 'treasury'; readonly revenueDays: number }
+  | { readonly kind: 'capacity'; readonly percent: number; readonly days: number }
+  | { readonly kind: 'cost'; readonly percent: number; readonly days: number };
+
+export type IncidentType = {
+  readonly id: string;
+  readonly category: IncidentCategory;
+  readonly chanceBps: number;
+  readonly effect: IncidentEffect;
+};
+
+export type RiskRules = {
+  readonly safeDaysAfterPurchase: number;
+  readonly treasuryLossCapPercent: number;
+  readonly insuranceFromStage: number;
+  readonly premiumPercent: number;
+  readonly coveredLossPercent: number;
+};
+
 export type ByPriceLevel = Readonly<Record<PriceLevel, number>>;
 
 type Growth = { readonly numerator: number; readonly denominator: number };
@@ -42,6 +65,7 @@ export type BusinessDefinition = {
   readonly upkeepPerUnitCents: MoneyCents;
   readonly catalogRevenuePerDayCents: MoneyCents;
   readonly demandBps: ByPriceLevel;
+  readonly incidents: readonly IncidentType[];
 };
 
 export type BusinessCatalog = readonly BusinessDefinition[];
@@ -55,6 +79,7 @@ export type BusinessRules = {
   readonly unitPriceGrowth: Growth;
   readonly stages: readonly StageRule[];
   readonly staff: StaffRules;
+  readonly risks: RiskRules;
   readonly maxTrackLevel: number;
   readonly upgradeWeightBps: Readonly<Record<BusinessTrack, number>>;
   readonly upgradeGrowth: Growth;

@@ -6,11 +6,29 @@ import {
   type BusinessDefinition,
   type BusinessRules,
   type BusinessTrack,
+  type IncidentCategory,
   type PriceLevel,
   type StaffCounts,
 } from './definition';
 
 export type BusinessStatus = 'open' | 'closed';
+
+export type PolicyStatus = 'none' | 'active' | 'lapsed';
+export type Insurance = Readonly<Record<IncidentCategory, PolicyStatus>>;
+
+export const NO_INSURANCE: Insurance = { equipment: 'none', liability: 'none', supply: 'none' };
+
+export type ActiveIncident =
+  | { readonly status: 'none' }
+  | {
+      readonly status: 'active';
+      readonly incidentId: string;
+      readonly endsDay: number;
+      readonly capacityBps: number;
+      readonly costBps: number;
+    };
+
+export const NO_INCIDENT: ActiveIncident = { status: 'none' };
 
 export type OwnedBusiness = {
   readonly definitionId: string;
@@ -26,6 +44,8 @@ export type OwnedBusiness = {
   readonly status: BusinessStatus;
   readonly purchasedDay: number;
   readonly capitalizedSpendCents: MoneyCents;
+  readonly insurance: Insurance;
+  readonly incident: ActiveIncident;
 };
 
 const FIRST_STAGE = 1;
@@ -48,5 +68,7 @@ export function newBusiness(
     status: 'open',
     purchasedDay: businessDayOf(opening.atMs, opening.rules),
     capitalizedSpendCents: definition.price,
+    insurance: NO_INSURANCE,
+    incident: NO_INCIDENT,
   };
 }

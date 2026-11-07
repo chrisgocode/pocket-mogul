@@ -22,6 +22,7 @@ import {
   applyHireStaff,
   applyUpgradeStage,
 } from '@/domain/business/growthCommands';
+import { applySetInsurance } from '@/domain/business/riskCommands';
 import type {
   CommandEnvelope,
   CommandOutcome,
@@ -123,6 +124,8 @@ const COMMAND_HANDLERS: CommandHandlers = {
     applyFireStaff(state, { ...command, economy: businessEconomy(content) }),
   UpgradeStage: (state, command, content) =>
     applyUpgradeStage(state, { ...command, economy: businessEconomy(content) }),
+  SetInsurance: (state, command, content) =>
+    applySetInsurance(state, { ...command, economy: businessEconomy(content) }),
   SetPayout: (state, command, content) =>
     applySetPayout(state, { ...command, economy: businessEconomy(content) }),
   DepositToTreasury: (state, command, content) =>
@@ -183,17 +186,15 @@ function passTime(
   if (step.command.type === 'SettleOffline') {
     const capMs = step.content.economy.time.offlineCapMs;
     const settled = settleOffline(state, { wallMs: step.time.wallMs, capMs, economy });
-    const passed = {
-      earnings: settled.absence.earnings,
-      absence: settled.absence,
-      closures: settled.closures,
-    };
+    const { absence, closures, incidents } = settled;
+    const passed = { earnings: absence.earnings, absence, closures, incidents };
     return { ...settled, wallClock: settled.clock, passed };
   }
   const { elapsedMs, boostElapsedMs, wallMs } = step.time;
   const advanced = advanceTime(state, { elapsedMs, wallMs, economy });
   const boosted = consumeBoostTime(advanced.state, boostElapsedMs);
-  const passed = { earnings: advanced.earnings, absence: undefined, closures: advanced.closures };
+  const { earnings, closures, incidents } = advanced;
+  const passed = { earnings, absence: undefined, closures, incidents };
   return { ...advanced, state: boosted, wallClock: { direction: 'forward' }, passed };
 }
 
