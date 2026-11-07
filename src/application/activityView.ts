@@ -49,14 +49,36 @@ function upgradeTitle(event: EventOf<'upgrade'>, content: Content): string {
   return `${name} ${TRACK_NAMES[event.track] ?? event.track} to level ${event.level}`;
 }
 
+const STAGE_NAMES = ['Startup', 'Local', 'Regional', 'National', 'Global'];
+
+const STAFF_TITLES: Readonly<Record<string, string>> = {
+  operations: 'operations staff',
+  sales: 'sales staff',
+  manager: 'manager',
+};
+
+function staffTitle(name: string, event: EventOf<'improvement'>): string | undefined {
+  const role = STAFF_TITLES[event.track];
+  if (role === undefined) return undefined;
+  const plural = event.track === 'manager' && event.level !== 1 ? 's' : '';
+  return `${name} now has ${event.level} ${role}${plural}`;
+}
+
 function improvementTitle(event: EventOf<'improvement'>, content: Content): string {
   const name = assetName(content, event.assetId);
   if (event.track === 'units') return `${name} grew to ${event.level} units`;
+  if (event.track === 'stage') {
+    return `${name} grew to ${STAGE_NAMES[event.level - 1] ?? `stage ${event.level}`}`;
+  }
+  const staff = staffTitle(name, event);
+  if (staff !== undefined) return staff;
   return `${name} ${TRACK_NAMES[event.track] ?? event.track} to level ${event.level}`;
 }
 
-const fromTreasury = (cents: MoneyCents) =>
-  `Paid ${formatMoneyExact(moneyCents(0n - cents))} from its treasury`;
+function fromTreasury(cents: MoneyCents): string {
+  if (cents === 0n) return 'Nothing paid';
+  return `Paid ${formatMoneyExact(moneyCents(0n - cents))} from its treasury`;
+}
 
 const DESCRIBERS: Describers = {
   earnings: (event) => {

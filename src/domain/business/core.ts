@@ -3,9 +3,12 @@ import { geometricUpgradeCents } from '@/domain/pricing';
 
 import {
   PRICE_LEVELS,
+  STAFF_ROLES,
+  stageRule,
   type BusinessPricing,
   type BusinessTrack,
   type PriceLevel,
+  type StaffRole,
 } from './definition';
 import type { OwnedBusiness } from './owned';
 
@@ -18,6 +21,8 @@ export type BusinessDayQuote = {
   readonly revenueCents: MoneyCents;
   readonly upkeepCents: MoneyCents;
   readonly customerCostsCents: MoneyCents;
+  readonly wagesCents: MoneyCents;
+  readonly managerBonusCents: MoneyCents;
   readonly profitCents: MoneyCents;
 };
 
@@ -55,8 +60,35 @@ function demandOf(business: OwnedBusiness, pricing: BusinessPricing): bigint {
     BigInt(definition.baseDemand) *
     raisedPercent(rules.extraUnitDemandPercent, business.units - 1) *
     BigInt(definition.demandBps[business.priceLevel]) *
-    raisedPercent(rules.qualityDemandPercent, business.levels.quality);
-  return numerator / (PERCENT * BASIS_POINTS * PERCENT);
+    raisedPercent(rules.qualityDemandPercent, business.levels.quality) *
+    raisedPercent(rules.staff.salesDemandPercent, business.staff.sales);
+  return numerator / (PERCENT * BASIS_POINTS * PERCENT * PERCENT);
+}
+
+function capacityOf(business: OwnedBusiness, pricing: BusinessPricing): bigint {
+  const { definition, rules } = pricing;
+  const numerator =
+    BigInt(definition.capacityPerUnit) *
+    BigInt(business.units) *
+    raisedPercent(rules.staff.operationsCapacityPercent, business.staff.operations);
+  return numerator / PERCENT;
+}
+
+export function wageCents(pricing: BusinessPricing, role: StaffRole): MoneyCents {
+  const percent = BigInt(pricing.rules.staff.wagePercent[role]);
+  return moneyCents((pricing.definition.catalogRevenuePerDayCents * percent) / PERCENT);
+}
+
+function wagesOf(business: OwnedBusiness, pricing: BusinessPricing): bigint {
+  return STAFF_ROLES.reduce<bigint>(
+    (total, role) => total + wageCents(pricing, role) * BigInt(business.staff[role]),
+    0n,
+  );
+}
+
+function managerBonusOf(gross: bigint, business: OwnedBusiness, pricing: BusinessPricing) {
+  if (gross <= 0n || business.staff.manager === 0) return 0n;
+  return (gross * BigInt(pricing.rules.staff.managerProfitPercent)) / PERCENT;
 }
 
 function costPerServedOf(business: OwnedBusiness, pricing: BusinessPricing): bigint {
@@ -70,7 +102,7 @@ export function quoteBusinessDay(
 ): BusinessDayQuote {
   const { definition, rules } = pricing;
   const demand = demandOf(business, pricing);
-  const capacity = BigInt(definition.capacityPerUnit) * BigInt(business.units);
+  const capacity = capacityOf(business, pricing);
   const served = demand < capacity ? demand : capacity;
   const priceCents =
     (definition.pricePerCustomerCents * BigInt(rules.priceBps[business.priceLevel])) / BASIS_POINTS;
@@ -78,6 +110,9 @@ export function quoteBusinessDay(
   const revenueCents = served * priceCents;
   const upkeepCents = definition.upkeepPerUnitCents * BigInt(business.units);
   const customerCostsCents = served * costPerServedCents;
+  const wagesCents = wagesOf(business, pricing);
+  const gross = revenueCents - upkeepCents - customerCostsCents - wagesCents;
+  const managerBonusCents = managerBonusOf(gross, business, pricing);
   return {
     demand: Number(demand),
     capacity: Number(capacity),
@@ -87,7 +122,9 @@ export function quoteBusinessDay(
     revenueCents: moneyCents(revenueCents),
     upkeepCents: moneyCents(upkeepCents),
     customerCostsCents: moneyCents(customerCostsCents),
-    profitCents: moneyCents(revenueCents - upkeepCents - customerCostsCents),
+    wagesCents: moneyCents(wagesCents),
+    managerBonusCents: moneyCents(managerBonusCents),
+    profitCents: moneyCents(gross + managerBonusCents),
   };
 }
 
@@ -104,9 +141,8 @@ export function bestPriceLevel(business: OwnedBusiness, pricing: BusinessPricing
   );
 }
 
-function unitCap(business: OwnedBusiness, pricing: BusinessPricing): number {
-  const caps = pricing.rules.unitCapByStage;
-  return caps[business.stage - 1] ?? caps[caps.length - 1] ?? business.units;
+export function unitCap(business: OwnedBusiness, pricing: BusinessPricing): number {
+  return stageRule(pricing.rules, business.stage)?.unitCap ?? business.units;
 }
 
 export function quoteUnit(business: OwnedBusiness, pricing: BusinessPricing): UnitQuote {

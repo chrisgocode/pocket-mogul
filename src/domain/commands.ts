@@ -1,4 +1,4 @@
-import type { BusinessTrack, PriceLevel } from './business/definition';
+import type { BusinessTrack, PriceLevel, StaffRole } from './business/definition';
 import type { GameState } from './gameState';
 import type { MoneyCents, QuantityMicrounits } from './money';
 import type { PropertyTrack } from './propertyQuotes';
@@ -32,6 +32,26 @@ export type SetPriceLevel = {
   readonly type: 'SetPriceLevel';
   readonly businessId: string;
   readonly priceLevel: PriceLevel;
+};
+
+export type HireStaff = {
+  readonly type: 'HireStaff';
+  readonly businessId: string;
+  readonly role: StaffRole;
+  readonly fromCount: number;
+};
+
+export type FireStaff = {
+  readonly type: 'FireStaff';
+  readonly businessId: string;
+  readonly role: StaffRole;
+  readonly fromCount: number;
+};
+
+export type UpgradeStage = {
+  readonly type: 'UpgradeStage';
+  readonly businessId: string;
+  readonly fromStage: number;
 };
 
 export type SetPayout = {
@@ -107,6 +127,9 @@ export type GameCommand =
   | BuyUnit
   | UpgradeBusiness
   | SetPriceLevel
+  | HireStaff
+  | FireStaff
+  | UpgradeStage
   | SetPayout
   | DepositToTreasury
   | WithdrawFromTreasury
@@ -142,6 +165,8 @@ export const GAME_ERROR_CODES = [
   'UNKNOWN_ASSET',
   'MAX_LEVEL',
   'UPGRADE_UNAVAILABLE',
+  'STAGE_LOCKED',
+  'STAGE_NOT_READY',
   'INVALID_QUANTITY',
   'INSUFFICIENT_HOLDING',
   'BELOW_MINIMUM',

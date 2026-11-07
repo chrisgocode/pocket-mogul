@@ -2,7 +2,9 @@ import { z } from 'zod';
 
 import { activityLog, goalProgress } from './activitySchemas';
 import { adSchedule, settings, tutorialProgress } from './preferenceSchemas';
-import { PRICE_LEVELS } from '@/domain/business/definition';
+import { NO_STAFF, PRICE_LEVELS, type StaffCounts } from '@/domain/business/definition';
+import type { OwnedBusiness } from '@/domain/business/owned';
+import type { GameState } from '@/domain/gameState';
 import { parseMoneyCents, parsePriceMicros, parseQuantityMicrounits } from '@/domain/money';
 
 export const moneyText = z
@@ -89,7 +91,9 @@ const boost = z.discriminatedUnion('status', [
   z.object({ status: z.literal('active'), grantId, remainingMs: z.number().int().positive() }),
 ]);
 
-export const saveSchema = z.looseObject({
+const staffCounts = z.object({ operations: count, sales: count, manager: count });
+
+export const saveDocumentSchema = z.looseObject({
   saveId: z.string().min(1),
   schemaVersion: formatVersion,
   minReaderVersion: formatVersion,
@@ -116,4 +120,26 @@ export const saveSchema = z.looseObject({
   tutorial: tutorialProgress,
   settings,
   adSchedule,
+  staffing: z.record(z.string().min(1), staffCounts).default({}),
 });
+
+type SaveDocument = Omit<GameState, 'businesses'> & {
+  readonly businesses: readonly Omit<OwnedBusiness, 'staff'>[];
+  readonly staffing: Readonly<Record<string, StaffCounts>>;
+};
+
+type SavedBusiness = SaveDocument['businesses'][number];
+
+function staffedBusiness(saved: SavedBusiness, staff: StaffCounts | undefined): OwnedBusiness {
+  return { ...saved, staff: staff ?? NO_STAFF };
+}
+
+export function withStaffing(document: SaveDocument): GameState {
+  const { staffing, businesses, ...rest } = document;
+  return {
+    ...rest,
+    businesses: businesses.map((saved) => staffedBusiness(saved, staffing[saved.definitionId])),
+  };
+}
+
+export const saveSchema = saveDocumentSchema.transform(withStaffing);

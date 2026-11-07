@@ -11,6 +11,8 @@ const MESSAGES: Record<GameErrorCode, string> = {
   UNKNOWN_ASSET: "That isn't available to buy.",
   MAX_LEVEL: 'This is already at its max level.',
   UPGRADE_UNAVAILABLE: "This upgrade isn't available here.",
+  STAGE_LOCKED: 'This business unlocks that at a later stage.',
+  STAGE_NOT_READY: 'This business needs more units or more days owned before it can grow.',
   INVALID_QUANTITY: "That amount isn't valid.",
   INSUFFICIENT_HOLDING: "You don't own that much of it. Nothing was sold.",
   BELOW_MINIMUM: 'This trade is below the minimum trade size.',

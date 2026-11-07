@@ -17,6 +17,11 @@ import {
   applySetPriceLevel,
   applyWithdrawFromTreasury,
 } from '@/domain/business/commands';
+import {
+  applyFireStaff,
+  applyHireStaff,
+  applyUpgradeStage,
+} from '@/domain/business/growthCommands';
 import type {
   CommandEnvelope,
   CommandOutcome,
@@ -112,6 +117,12 @@ const COMMAND_HANDLERS: CommandHandlers = {
     applyImproveBusiness(state, { ...command, economy: businessEconomy(content) }),
   SetPriceLevel: (state, command, content) =>
     applySetPriceLevel(state, { ...command, economy: businessEconomy(content) }),
+  HireStaff: (state, command, content) =>
+    applyHireStaff(state, { ...command, economy: businessEconomy(content) }),
+  FireStaff: (state, command, content) =>
+    applyFireStaff(state, { ...command, economy: businessEconomy(content) }),
+  UpgradeStage: (state, command, content) =>
+    applyUpgradeStage(state, { ...command, economy: businessEconomy(content) }),
   SetPayout: (state, command, content) =>
     applySetPayout(state, { ...command, economy: businessEconomy(content) }),
   DepositToTreasury: (state, command, content) =>

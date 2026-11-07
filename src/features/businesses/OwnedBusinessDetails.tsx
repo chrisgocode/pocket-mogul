@@ -6,6 +6,7 @@ import { BusinessOverviewCard } from './BusinessOverviewCard';
 import { GrowSection } from './GrowSection';
 import { PriceLevelCard } from './PriceLevelCard';
 import { SellCard } from './SellCard';
+import { StaffSection } from './StaffSection';
 import type { TreasuryActions } from './treasuryActions';
 import { TreasuryCard } from './TreasuryCard';
 
@@ -30,7 +31,9 @@ export function OwnedBusinessDetails({
         detail={detail}
         onUnit={(unit) => onReview({ kind: 'unit', business, unit })}
         onImprove={(improvement) => onReview({ kind: 'improve', business, improvement })}
+        onStage={(stage) => onReview({ kind: 'stage', business, stage })}
       />
+      <StaffSection detail={detail} onReview={onReview} />
       <SellCard
         name={business.name}
         sale={detail.sale}

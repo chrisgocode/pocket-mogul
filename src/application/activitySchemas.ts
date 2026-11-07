@@ -40,7 +40,7 @@ const activityEvent = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('improvement'),
     assetId,
-    track: z.enum(['units', 'quality', 'efficiency']),
+    track: z.enum(['units', 'stage', 'quality', 'efficiency', 'operations', 'sales', 'manager']),
     level: count,
     treasuryChangeCents: cents,
   }),

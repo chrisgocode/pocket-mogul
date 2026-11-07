@@ -1,4 +1,4 @@
-import type { BusinessTrack } from './business/definition';
+import type { BusinessTrack, StaffRole } from './business/definition';
 import type { IncomeBySource } from './gameState';
 import { moneyCents, type MoneyCents, type QuantityMicrounits } from './money';
 import type { TradeSide } from './tradeQuotes';
@@ -11,7 +11,7 @@ export type OwnedAssetKind = 'business' | 'property';
 
 export type UpgradeTarget = 'wallet' | 'property';
 
-export type ImprovementTrack = 'units' | BusinessTrack;
+export type ImprovementTrack = 'units' | 'stage' | BusinessTrack | StaffRole;
 
 export type GroupedEarnings = {
   readonly fromMs: number;

@@ -1,5 +1,5 @@
-import type { BusinessTrack, PriceLevel } from '@/domain/business/definition';
-import { formatMoneyExact, type MoneyCents } from '@/domain/money';
+import type { BusinessTrack, PriceLevel, StaffRole } from '@/domain/business/definition';
+import { formatMoneyExact, moneyCents, type MoneyCents } from '@/domain/money';
 
 export const TRACK_NAMES: Readonly<Record<BusinessTrack, string>> = {
   quality: 'Quality',
@@ -9,6 +9,18 @@ export const TRACK_NAMES: Readonly<Record<BusinessTrack, string>> = {
 export const TRACK_EFFECTS: Readonly<Record<BusinessTrack, string>> = {
   quality: 'More customers want to buy',
   efficiency: 'Lower cost for each customer served',
+};
+
+export const ROLE_NAMES: Readonly<Record<StaffRole, string>> = {
+  operations: 'Operations',
+  sales: 'Sales',
+  manager: 'Manager',
+};
+
+export const ROLE_EFFECTS: Readonly<Record<StaffRole, string>> = {
+  operations: '+20% capacity each',
+  sales: '+15% customers each',
+  manager: '+10% profit and sets the best price each day',
 };
 
 export const PRICE_LEVEL_NAMES: Readonly<Record<PriceLevel, string>> = {
@@ -27,4 +39,12 @@ export function stageName(stage: number): string {
 
 export function formatPerDay(cents: MoneyCents): string {
   return `${formatMoneyExact(cents)}/day`;
+}
+
+export function spent(priceCents: MoneyCents): MoneyCents {
+  return moneyCents(0n - priceCents);
+}
+
+export function profitChange(from: MoneyCents, to: MoneyCents): string {
+  return `${formatPerDay(from)} → ${formatPerDay(to)}`;
 }

@@ -49,8 +49,18 @@ function bigintsAsText(_key: string, value: unknown): unknown {
   return typeof value === 'bigint' ? value.toString() : value;
 }
 
+function saveDocument(state: GameState) {
+  return {
+    ...state,
+    businesses: state.businesses.map(({ staff: _staff, ...business }) => business),
+    staffing: Object.fromEntries(
+      state.businesses.map((business) => [business.definitionId, business.staff]),
+    ),
+  };
+}
+
 export function encodeSave(state: GameState): string {
-  return JSON.stringify(state, bigintsAsText);
+  return JSON.stringify(saveDocument(state), bigintsAsText);
 }
 
 function parseJson(text: string): unknown {

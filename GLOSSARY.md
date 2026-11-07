@@ -139,8 +139,16 @@ One of a business's two independent levels, 0 to 20, paid from its Treasury: Qua
 _Avoid_: Stat, skill, upgrade slot
 
 **Stage**:
-A business's growth level, Startup to Global. It caps the Unit count; every business is at Startup until stage upgrades ship.
+A business's growth level: Startup, Local, Regional, National and Global. It caps the Unit count and each staff role's headcount. A stage upgrade is paid from the Treasury and needs the Unit count at the current cap and enough business days owned.
 _Avoid_: Tier (that is the catalog unlock), level
+
+**Staff role**:
+One of a business's three kinds of hire: operations staff (+20% capacity each), sales staff (+15% demand each) and one Manager. Each is paid a daily wage out of profit, and hiring pays a signing fee of three days' wages from the Treasury; firing is free.
+_Avoid_: Worker, employee, crew
+
+**Manager**:
+The staff role, unlocked at stage 2 (Local), that adds 10% to positive profit and makes a business's routine decisions at each day boundary, offline too: today, setting the most profitable Price level. A Manager never deposits, withdraws or sells.
+_Avoid_: Automation, autopilot
 
 **Treasury**:
 A business's own money. Its profit lands here, and its units, upgrades and other running spending are paid from here, never from the player's cash. It never goes below zero.
@@ -155,7 +163,7 @@ A business whose Treasury ran out under a loss. It earns and pays nothing, keeps
 _Avoid_: Bankrupt, paused, failed
 
 **Carrying value**:
-What a business counts for in net worth: its purchase price plus spending on units and upgrades, plus its Treasury.
+What a business counts for in net worth: its purchase price plus spending on units, upgrades and stage upgrades, plus its Treasury. Wages and signing fees are running costs and don't count.
 _Avoid_: Book value, asset value
 
 **Sale quote**:

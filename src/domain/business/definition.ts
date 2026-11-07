@@ -6,9 +6,30 @@ export type PriceLevel = (typeof PRICE_LEVELS)[number];
 export const BUSINESS_TRACKS = ['quality', 'efficiency'] as const;
 export type BusinessTrack = (typeof BUSINESS_TRACKS)[number];
 
+export const STAFF_ROLES = ['operations', 'sales', 'manager'] as const;
+export type StaffRole = (typeof STAFF_ROLES)[number];
+export type StaffCounts = Readonly<Record<StaffRole, number>>;
+
+export const NO_STAFF: StaffCounts = { operations: 0, sales: 0, manager: 0 };
+
 export type ByPriceLevel = Readonly<Record<PriceLevel, number>>;
 
 type Growth = { readonly numerator: number; readonly denominator: number };
+
+export type StageRule = {
+  readonly unitCap: number;
+  readonly staffCap: StaffCounts;
+  readonly upgradePriceMultiple: number;
+  readonly daysOwnedToReach: number;
+};
+
+export type StaffRules = {
+  readonly operationsCapacityPercent: number;
+  readonly salesDemandPercent: number;
+  readonly managerProfitPercent: number;
+  readonly wagePercent: StaffCounts;
+  readonly signingFeeDays: number;
+};
 
 export type BusinessDefinition = {
   readonly id: string;
@@ -32,7 +53,8 @@ export type BusinessRules = {
   readonly extraUnitDemandPercent: number;
   readonly unitPriceBps: number;
   readonly unitPriceGrowth: Growth;
-  readonly unitCapByStage: readonly number[];
+  readonly stages: readonly StageRule[];
+  readonly staff: StaffRules;
   readonly maxTrackLevel: number;
   readonly upgradeWeightBps: Readonly<Record<BusinessTrack, number>>;
   readonly upgradeGrowth: Growth;
@@ -62,4 +84,8 @@ export function findBusiness(
 
 export function businessDayOf(simulationMs: number, rules: BusinessRules): number {
   return Math.floor(simulationMs / rules.dayMs);
+}
+
+export function stageRule(rules: BusinessRules, stage: number): StageRule | undefined {
+  return rules.stages[stage - 1];
 }

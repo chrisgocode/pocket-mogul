@@ -59,6 +59,27 @@ const DESCRIBERS: Describers = {
     level: command.fromLevel + 1,
     treasuryChangeCents: treasuryChange(change, command.businessId),
   }),
+  HireStaff: (command, change) => ({
+    kind: 'improvement',
+    assetId: command.businessId,
+    track: command.role,
+    level: command.fromCount + 1,
+    treasuryChangeCents: treasuryChange(change, command.businessId),
+  }),
+  FireStaff: (command, change) => ({
+    kind: 'improvement',
+    assetId: command.businessId,
+    track: command.role,
+    level: command.fromCount - 1,
+    treasuryChangeCents: treasuryChange(change, command.businessId),
+  }),
+  UpgradeStage: (command, change) => ({
+    kind: 'improvement',
+    assetId: command.businessId,
+    track: 'stage',
+    level: command.fromStage + 1,
+    treasuryChangeCents: treasuryChange(change, command.businessId),
+  }),
   DepositToTreasury: (command, { cashChangeCents }) => ({
     kind: 'treasury',
     assetId: command.businessId,

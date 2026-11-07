@@ -1,3 +1,4 @@
+import { STAFF_ROLES } from '@/domain/business/definition';
 import { MICROS_PER_DOLLAR } from '@/domain/money';
 
 import { inexactCoreFigures } from './businessCore';
@@ -45,6 +46,10 @@ function duplicates(values: readonly string[]): string[] {
 
 function isAscending(values: readonly bigint[] | readonly number[]): boolean {
   return values.every((v, i) => i === 0 || v > values[i - 1]!);
+}
+
+function neverFalls(values: readonly number[]): boolean {
+  return values.every((v, i) => i === 0 || v >= values[i - 1]!);
 }
 
 function crossChecks(content: Content): string[] {
@@ -154,9 +159,17 @@ function businessCoreFiguresAreWhole(content: Content): string[] {
 }
 
 function businessStagesAndPayoutsFit(content: Content): string[] {
-  const { unitCapByStage, defaultPayoutPercent, payoutStepPercent } = content.economy.businessRules;
+  const { stages, defaultPayoutPercent, payoutStepPercent } = content.economy.businessRules;
+  const staffCapsHold = STAFF_ROLES.every((role) =>
+    neverFalls(stages.map((stage) => stage.staffCap[role])),
+  );
   return [
-    !isAscending(unitCapByStage) && 'Unit caps must rise with each stage',
+    !isAscending(stages.map((stage) => stage.unitCap)) && 'Unit caps must rise with each stage',
+    !staffCapsHold && 'Staff caps must never fall from one stage to the next',
+    !isAscending(stages.map((stage) => stage.upgradePriceMultiple)) &&
+      'Stage upgrade prices must rise with each stage',
+    !neverFalls(stages.map((stage) => stage.daysOwnedToReach)) &&
+      'Days owned to reach a stage must never fall',
     defaultPayoutPercent % payoutStepPercent !== 0 && 'The default payout must be a payout step',
   ].filter((issue) => issue !== false);
 }
