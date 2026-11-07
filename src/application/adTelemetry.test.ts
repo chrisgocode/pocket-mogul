@@ -103,16 +103,6 @@ describe('automatic ad telemetry', () => {
     ]);
   });
 
-  it('records banner loads by screen and banner clicks', async () => {
-    const session = await startAdSession();
-    session.game.reportBanner('loaded', 'markets');
-    session.game.reportBanner('clicked', 'markets');
-    expect(automaticAdEvents(session.sink.events)).toEqual([
-      ['ad_banner_loaded', { screen: 'markets' }],
-      ['ad_clicked', { placement: 'banner' }],
-    ]);
-  });
-
   it('sends the usual envelope and no save or ad identifiers', async () => {
     const session = await startAdSession();
     await breakAfterIdle(session);

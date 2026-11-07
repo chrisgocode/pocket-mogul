@@ -25,7 +25,6 @@ export function openingSnapshot(opened: Opened): GameSnapshot {
     unsavedBoostMs: 0,
     tapBoostAd: 'loading',
     automaticAd: 'none',
-    banner: 'held',
   };
 }
 

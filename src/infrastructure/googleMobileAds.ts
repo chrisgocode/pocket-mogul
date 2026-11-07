@@ -35,7 +35,7 @@ async function startMobileAds(): Promise<boolean> {
 
 let started: Promise<boolean> | undefined;
 
-export function mobileAdsStarted(): Promise<boolean> {
+function mobileAdsStarted(): Promise<boolean> {
   started ??= startMobileAds().catch(() => false);
   return started;
 }

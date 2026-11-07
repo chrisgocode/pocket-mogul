@@ -111,14 +111,6 @@ function gateReason(
   return undefined;
 }
 
-export function bannersAllowed(
-  state: AdScheduleState,
-  rules: AdScheduleRules,
-  moment: Pick<AdMoment, 'tutorial'>,
-): boolean {
-  return gateReason(state, rules, moment) === undefined;
-}
-
 function fullScreenReason(
   state: AdScheduleState,
   rules: AdScheduleRules,

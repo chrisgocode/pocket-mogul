@@ -1,11 +1,10 @@
-import { act, fireEvent, renderRouter, screen, within } from 'expo-router/testing-library';
-import { Linking, Pressable, Text } from 'react-native';
+import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
+import { Linking } from 'react-native';
 
 import { startAdSession, type AdSession } from '@/application/automaticAdsTesting';
 import type { OpenedGame } from '@/application/game';
 import type { AutomaticAdSetup } from '@/application/scriptedAds';
 import { getContent } from '@/content';
-import { freshGameState } from '@/domain/gameState';
 
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(() => Promise.resolve()),
@@ -14,33 +13,6 @@ jest.mock('expo-haptics', () => ({
 
 let mockGame: Promise<OpenedGame>;
 jest.mock('@/bootstrap/deviceGame', () => ({ loadDeviceGame: () => mockGame }));
-
-function MockBanner({ onLoaded, onClicked }: { onLoaded: () => void; onClicked: () => void }) {
-  return (
-    <>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Load test banner"
-        onPress={onLoaded}
-      >
-        <Text>Test banner</Text>
-      </Pressable>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Tap test banner"
-        onPress={onClicked}
-      >
-        <Text>Open ad</Text>
-      </Pressable>
-    </>
-  );
-}
-
-jest.mock('@/bootstrap/deviceBanner', () => ({
-  get DeviceBanner() {
-    return MockBanner;
-  },
-}));
 
 const AD_BREAK_MS = getContent().economy.ads.adBreakCardMs;
 
@@ -55,49 +27,6 @@ async function openApp(
 }
 
 const tab = (name: string) => screen.getByRole('button', { name: new RegExp(`^${name}`) });
-
-describe('banners', () => {
-  it.each(['businesses', 'markets', 'properties', 'portfolio'])('show on %s', async (name) => {
-    await openApp(`/${name}`);
-    expect(screen.getByTestId(`ad-banner-${name}`)).toBeOnTheScreen();
-    expect(screen.getByText('Test banner')).toBeOnTheScreen();
-  });
-
-  it('never show on Home', async () => {
-    await openApp('/home');
-    expect(screen.queryByText('Test banner')).not.toBeOnTheScreen();
-  });
-
-  it('sit below the screen content, clear of the buy buttons and above the tab bar', async () => {
-    await openApp('/businesses');
-    const banner = screen.getByTestId('ad-banner-businesses');
-    expect(within(banner).queryByRole('button', { name: /^Buy / })).not.toBeOnTheScreen();
-    expect(within(banner).queryByRole('button', { name: /^Home/ })).not.toBeOnTheScreen();
-    expect(screen.getAllByRole('button', { name: /^Buy / }).length).toBeGreaterThan(0);
-    expect(banner).toHaveStyle({ paddingVertical: 8 });
-  });
-
-  it('wait for the tutorial and 5 minutes of play', async () => {
-    const session = await startAdSession({
-      state: freshGameState({ saveId: 'new', economyVersion: 1, wallMs: 1_800_000_000_000 }),
-    });
-    mockGame = Promise.resolve({ status: 'ready', game: session.game });
-    await renderRouter('src/app', { initialUrl: '/markets' });
-    expect(screen.queryByText('Test banner')).not.toBeOnTheScreen();
-  });
-
-  it('report loads and clicks to telemetry', async () => {
-    const session = await openApp('/markets');
-    await fireEvent.press(screen.getByRole('button', { name: 'Load test banner' }));
-    await fireEvent.press(screen.getByRole('button', { name: 'Tap test banner' }));
-    expect(session.sink.events.map((event) => [event.name, event.details])).toEqual(
-      expect.arrayContaining([
-        ['ad_banner_loaded', { screen: 'markets' }],
-        ['ad_clicked', { placement: 'banner' }],
-      ]),
-    );
-  });
-});
 
 describe('natural-break interstitials on screen', () => {
   it('leaving Home shows the Ad break card, then the interstitial', async () => {

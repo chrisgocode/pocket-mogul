@@ -36,7 +36,6 @@ const snapshotOf = (state: GameState): GameSnapshot => ({
   unsavedBoostMs: 0,
   tapBoostAd: 'loading',
   automaticAd: 'none',
-  banner: 'held',
   notice: { kind: 'none' },
 });
 
