@@ -59,7 +59,9 @@ describe('bundled content', () => {
   it('derives the Vending Machine core figures from its catalog row (BUS09)', () => {
     const content = getContent();
     const vending = content.businesses.find((b) => b.id === 'vending')!;
-    expect(businessDefinition(vending, content.economy.businessRules)).toEqual({
+    const { mechanic, ...core } = businessDefinition(vending, content.economy.businessRules);
+    expect(mechanic.kind).toBe('vending');
+    expect(core).toEqual({
       id: 'vending',
       tier: 1,
       price: dollars('250'),

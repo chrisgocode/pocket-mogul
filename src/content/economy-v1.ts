@@ -194,6 +194,52 @@ export const economyV1 = {
           effect: { kind: 'treasury', revenueDays: 1 },
         },
       ],
+      mechanic: {
+        kind: 'vending',
+        unlockStage: 2,
+        defaultMix: 'balanced',
+        stockPerMachine: 300,
+        matchBps: { poor: 6000, perfect: 14000 },
+        locations: {
+          office: {
+            slots: 120,
+            trafficBps: 10000,
+            taste: { snacks: 40, drinks: 45, healthy: 15 },
+            restockFeePerMachineCents: dollars('2'),
+          },
+          gym: {
+            slots: 20,
+            trafficBps: 11000,
+            taste: { snacks: 10, drinks: 40, healthy: 50 },
+            restockFeePerMachineCents: dollars('3'),
+          },
+          school: {
+            slots: 25,
+            trafficBps: 12000,
+            taste: { snacks: 65, drinks: 25, healthy: 10 },
+            restockFeePerMachineCents: dollars('2.50'),
+          },
+          station: {
+            slots: 30,
+            trafficBps: 14000,
+            taste: { snacks: 25, drinks: 65, healthy: 10 },
+            restockFeePerMachineCents: dollars('4'),
+          },
+          hospital: {
+            slots: 20,
+            trafficBps: 12500,
+            taste: { snacks: 15, drinks: 25, healthy: 60 },
+            restockFeePerMachineCents: dollars('3.50'),
+          },
+        },
+        mixes: {
+          snacks: { snacks: 70, drinks: 20, healthy: 10 },
+          drinks: { snacks: 20, drinks: 70, healthy: 10 },
+          healthy: { snacks: 10, drinks: 20, healthy: 70 },
+          balanced: { snacks: 34, drinks: 33, healthy: 33 },
+        },
+        cardReaders: { stage: 5, priceMultiple: 150, demandPercent: 20 },
+      },
       logo: { glyph: 'square', color: '#2F80ED' },
     },
     {

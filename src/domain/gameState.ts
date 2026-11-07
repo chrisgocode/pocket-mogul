@@ -90,6 +90,7 @@ export type GameState = {
   readonly tutorial: TutorialProgress;
   readonly settings: Settings;
   readonly adSchedule: AdScheduleState;
+  readonly seenCoachMarks: readonly string[];
 };
 
 export function freshGameState(start: {
@@ -129,5 +130,6 @@ export function freshGameState(start: {
     tutorial: freshTutorial(),
     settings: defaultSettings(),
     adSchedule: freshAdSchedule(),
+    seenCoachMarks: [],
   };
 }

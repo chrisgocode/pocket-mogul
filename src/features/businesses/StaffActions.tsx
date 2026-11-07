@@ -4,21 +4,21 @@ import type { AvailableHire, StaffOption } from '@/application/businessDetailVie
 import { Button } from '@/ui/Button';
 import { spacing } from '@/ui/tokens';
 
-import { ROLE_NAMES } from './businessFormat';
 import { HireButton } from './HireButton';
 
 type CountedStaff = Exclude<StaffOption, { status: 'locked' }>;
 
 export function StaffActions({
+  role,
   option,
   onHire,
   onFire,
 }: {
+  role: string;
   option: CountedStaff;
   onHire: (hire: AvailableHire) => void;
   onFire: (option: CountedStaff) => void;
 }) {
-  const role = ROLE_NAMES[option.role];
   return (
     <View style={styles.actions}>
       {option.status === 'available' ? (

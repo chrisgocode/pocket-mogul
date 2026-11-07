@@ -5,6 +5,7 @@ import type {
   BusinessSale,
   ReadyStage,
 } from '@/application/businessDetailView';
+import type { AvailableCardReaders } from '@/application/vendingView';
 import type { Business } from '@/content';
 import type { StaffRole } from '@/domain/business/definition';
 import type { GameCommand } from '@/domain/commands';
@@ -14,6 +15,7 @@ import { formatCashChange } from '@/features/game/priceFormat';
 
 import { profitChange, spent, TRACK_NAMES } from './businessFormat';
 import { fireText, hireText, stageText } from './growthActionText';
+import { cardReaderText } from './vendingActionText';
 
 export type BusinessAction =
   | { readonly kind: 'unit'; readonly business: Business; readonly unit: AvailableUnit }
@@ -30,6 +32,11 @@ export type BusinessAction =
       readonly count: number;
     }
   | { readonly kind: 'stage'; readonly business: Business; readonly stage: ReadyStage }
+  | {
+      readonly kind: 'card_readers';
+      readonly business: Business;
+      readonly readers: AvailableCardReaders;
+    }
   | { readonly kind: 'withdraw'; readonly business: Business; readonly amountCents: MoneyCents }
   | { readonly kind: 'sell'; readonly business: Business; readonly sale: BusinessSale };
 
@@ -82,6 +89,7 @@ const COMMANDS: ActionHandlers<GameCommand> = {
     businessId: business.id,
     fromStage: stage.stage,
   }),
+  card_readers: ({ business }) => ({ type: 'InstallCardReaders', businessId: business.id }),
 };
 
 export function businessActionCommand(action: BusinessAction): GameCommand {
@@ -147,9 +155,10 @@ const SHEET_TEXT: ActionHandlers<ActionSheetText> = {
   withdraw: withdrawText,
   unit: unitText,
   improve: (action) => improvementText(action.improvement),
-  hire: (action) => hireText(action.hire),
-  fire: (action) => fireText(action.role),
+  hire: (action) => hireText(action.hire, action.business),
+  fire: (action) => fireText(action.role, action.business),
   stage: (action) => stageText(action.stage),
+  card_readers: (action) => cardReaderText(action.readers),
 };
 
 export function businessActionSheetText(action: BusinessAction): ActionSheetText {

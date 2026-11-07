@@ -112,6 +112,7 @@ export const vendingDefinition: BusinessDefinition = {
       effect: { kind: 'treasury', revenueDays: 1 },
     },
   ],
+  mechanic: { kind: 'shared_core' },
 };
 
 export function ownedBusiness(
@@ -134,6 +135,7 @@ export function ownedBusiness(
     capitalizedSpendCents: dollars('250'),
     insurance: { equipment: 'none', liability: 'none', supply: 'none' },
     incident: { status: 'none' },
+    vending: { status: 'inactive' },
     ...change,
   };
 }

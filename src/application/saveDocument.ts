@@ -7,6 +7,7 @@ import {
   type Insurance,
   type OwnedBusiness,
 } from '@/domain/business/owned';
+import { NO_VENDING, type VendingOperation } from '@/domain/business/vendingRules';
 import type {
   AbsenceIncident,
   GameState,
@@ -16,7 +17,7 @@ import type {
 
 export type SavedRisks = { readonly insurance: Insurance; readonly incident: ActiveIncident };
 
-type SavedBusiness = Omit<OwnedBusiness, 'staff' | 'insurance' | 'incident'>;
+type SavedBusiness = Omit<OwnedBusiness, 'staff' | 'insurance' | 'incident' | 'vending'>;
 
 type SavedReturnSummary =
   | { readonly status: 'none' }
@@ -34,6 +35,7 @@ export type SaveDocument = Omit<GameState, 'businesses' | 'returnSummary' | 'act
   readonly activity: SavedActivity;
   readonly staffing: Readonly<Record<string, StaffCounts>>;
   readonly risks: Readonly<Record<string, SavedRisks>>;
+  readonly vending: Readonly<Record<string, VendingOperation>>;
   readonly absenceIncidents: readonly AbsenceIncident[];
   readonly incidentEntries: number;
 };
@@ -59,12 +61,14 @@ export function toSaveDocument(state: GameState): SaveDocument {
   return {
     ...state,
     businesses: businesses.map(
-      ({ staff: _staff, insurance: _insurance, incident: _incident, ...business }) => business,
+      ({ staff: _staff, insurance: _insurance, incident: _incident, vending: _vending, ...rest }) =>
+        rest,
     ),
     returnSummary: savedReturnSummary(returnSummary),
     activity: savedActivity(activity),
     staffing: byBusiness(businesses, (business) => business.staff),
     risks: byBusiness(businesses, ({ insurance, incident }) => ({ insurance, incident })),
+    vending: byBusiness(businesses, (business) => business.vending),
     absenceIncidents: returnSummary.status === 'pending' ? returnSummary.summary.incidents : [],
     incidentEntries: activity.lifetime.byKind.incident,
   };
@@ -77,6 +81,7 @@ function loadedBusiness(saved: SavedBusiness, document: SaveDocument): OwnedBusi
     staff: document.staffing[saved.definitionId] ?? NO_STAFF,
     insurance: risks?.insurance ?? NO_INSURANCE,
     incident: risks?.incident ?? NO_INCIDENT,
+    vending: document.vending[saved.definitionId] ?? NO_VENDING,
   };
 }
 
@@ -98,6 +103,7 @@ export function fromSaveDocument(document: SaveDocument): GameState {
     risks: _risks,
     absenceIncidents: _absenceIncidents,
     incidentEntries: _incidentEntries,
+    vending: _vending,
     ...rest
   } = document;
   return {

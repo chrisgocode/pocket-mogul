@@ -50,6 +50,7 @@ const BASELINE_STATE = {
       staff: { operations: 0, sales: 0, manager: 0 },
       insurance: { equipment: 'none', liability: 'none', supply: 'none' },
       incident: { status: 'none' },
+      vending: { status: 'inactive' },
     },
   ],
   properties: [
@@ -112,6 +113,7 @@ const BASELINE_STATE = {
   tutorial: { completedSteps: ['tap', 'upgradeWallet', 'buyBusiness'], explanations: 'shown' },
   settings: { sound: 'on', haptics: 'on', reducedMotion: 'system', numberFormatting: 'compact' },
   adSchedule: freshAdSchedule(),
+  seenCoachMarks: [],
 };
 
 describe('the baseline save format', () => {

@@ -1,4 +1,7 @@
 import type { BusinessTrack, IncidentCategory, PriceLevel, StaffRole } from './business/definition';
+import type { RestockTarget } from './business/vendingCommands';
+import type { StockMix, VendingLocation } from './business/vendingRules';
+import type { CoachMark } from './coachMarks';
 import type { GameState } from './gameState';
 import type { MoneyCents, QuantityMicrounits } from './money';
 import type { PropertyTrack } from './propertyQuotes';
@@ -60,6 +63,33 @@ export type SetInsurance = {
   readonly category: IncidentCategory;
   readonly insured: boolean;
 };
+
+export type MoveVendingMachine = {
+  readonly type: 'MoveVendingMachine';
+  readonly businessId: string;
+  readonly from: VendingLocation;
+  readonly to: VendingLocation;
+};
+
+export type SetVendingMix = {
+  readonly type: 'SetVendingMix';
+  readonly businessId: string;
+  readonly location: VendingLocation;
+  readonly mix: StockMix;
+};
+
+export type RestockVending = {
+  readonly type: 'RestockVending';
+  readonly businessId: string;
+  readonly location: RestockTarget;
+};
+
+export type InstallCardReaders = {
+  readonly type: 'InstallCardReaders';
+  readonly businessId: string;
+};
+
+export type DismissCoachMark = { readonly type: 'DismissCoachMark'; readonly coachMark: CoachMark };
 
 export type SetPayout = {
   readonly type: 'SetPayout';
@@ -138,6 +168,11 @@ export type GameCommand =
   | FireStaff
   | UpgradeStage
   | SetInsurance
+  | MoveVendingMachine
+  | SetVendingMix
+  | RestockVending
+  | InstallCardReaders
+  | DismissCoachMark
   | SetPayout
   | DepositToTreasury
   | WithdrawFromTreasury

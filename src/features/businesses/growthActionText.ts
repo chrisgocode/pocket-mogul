@@ -1,13 +1,14 @@
 import type { AvailableHire, ReadyStage } from '@/application/businessDetailView';
+import type { Business } from '@/content';
 import type { StaffRole } from '@/domain/business/definition';
 import { formatMoneyExact } from '@/domain/money';
 import type { ActionSheetText } from '@/features/game/ActionSheet';
 import { formatCashChange } from '@/features/game/priceFormat';
 
-import { formatPerDay, profitChange, ROLE_NAMES, spent, stageName } from './businessFormat';
+import { formatPerDay, profitChange, roleName, spent, stageName } from './businessFormat';
 
-export function hireText(hire: AvailableHire): ActionSheetText {
-  const role = ROLE_NAMES[hire.role];
+export function hireText(hire: AvailableHire, business: Business): ActionSheetText {
+  const role = roleName(business, hire.role);
   return {
     title: `Hire ${role.toLowerCase()} staff`,
     lines: [
@@ -20,8 +21,8 @@ export function hireText(hire: AvailableHire): ActionSheetText {
   };
 }
 
-export function fireText(role: StaffRole): ActionSheetText {
-  const name = ROLE_NAMES[role].toLowerCase();
+export function fireText(role: StaffRole, business: Business): ActionSheetText {
+  const name = roleName(business, role).toLowerCase();
   return {
     title: `Let go of ${role === 'manager' ? 'your manager' : `one ${name} hire`}`,
     lines: [

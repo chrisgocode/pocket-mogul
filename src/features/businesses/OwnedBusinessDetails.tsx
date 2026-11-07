@@ -11,6 +11,8 @@ import { SellCard } from './SellCard';
 import { StaffSection } from './StaffSection';
 import type { TreasuryActions } from './treasuryActions';
 import { TreasuryCard } from './TreasuryCard';
+import type { VendingActions } from './vendingFormat';
+import { VendingSection } from './VendingSection';
 
 export function OwnedBusinessDetails({
   detail,
@@ -18,12 +20,14 @@ export function OwnedBusinessDetails({
   onPriceLevel,
   onInsurance,
   treasury,
+  vending,
 }: {
   detail: OwnedBusinessDetail;
   onReview: (action: BusinessAction) => void;
   onPriceLevel: (priceLevel: PriceLevel) => void;
   onInsurance: (change: InsuranceChange) => void;
   treasury: TreasuryActions;
+  vending: VendingActions;
 }) {
   const { business } = detail;
   return (
@@ -31,6 +35,7 @@ export function OwnedBusinessDetails({
       <BusinessOverviewCard detail={detail} />
       <PriceLevelCard detail={detail} onSelect={onPriceLevel} />
       <TreasuryCard detail={detail} actions={treasury} />
+      <VendingSection detail={detail} actions={vending} />
       <GrowSection
         detail={detail}
         onUnit={(unit) => onReview({ kind: 'unit', business, unit })}

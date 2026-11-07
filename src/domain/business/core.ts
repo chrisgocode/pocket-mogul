@@ -12,6 +12,7 @@ import {
   type StaffRole,
 } from './definition';
 import type { OwnedBusiness } from './owned';
+import { vendingCapacityBps, vendingDemandBps } from './vendingDemand';
 
 export type BusinessDayQuote = {
   readonly demand: number;
@@ -63,8 +64,9 @@ function demandOf(business: OwnedBusiness, pricing: BusinessPricing): bigint {
     raisedPercent(rules.extraUnitDemandPercent, business.units - 1) *
     BigInt(definition.demandBps[business.priceLevel]) *
     raisedPercent(rules.qualityDemandPercent, business.levels.quality) *
-    raisedPercent(rules.staff.salesDemandPercent, business.staff.sales);
-  return numerator / (PERCENT * BASIS_POINTS * PERCENT * PERCENT);
+    raisedPercent(rules.staff.salesDemandPercent, business.staff.sales) *
+    vendingDemandBps(business, pricing);
+  return numerator / (PERCENT * BASIS_POINTS * PERCENT * PERCENT * BASIS_POINTS);
 }
 
 const NO_EFFECT_BPS = 10_000;
@@ -80,8 +82,9 @@ function capacityOf(business: OwnedBusiness, pricing: BusinessPricing): bigint {
     BigInt(definition.capacityPerUnit) *
     BigInt(business.units) *
     raisedPercent(rules.staff.operationsCapacityPercent, business.staff.operations) *
-    incidentBps(business, 'capacityBps');
-  return numerator / (PERCENT * BASIS_POINTS);
+    incidentBps(business, 'capacityBps') *
+    vendingCapacityBps(business, pricing);
+  return numerator / (PERCENT * BASIS_POINTS * BASIS_POINTS);
 }
 
 export function premiumCents(pricing: BusinessPricing): MoneyCents {

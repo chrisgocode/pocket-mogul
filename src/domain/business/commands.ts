@@ -13,6 +13,7 @@ import {
   type PriceLevel,
 } from './definition';
 import { newBusiness, type OwnedBusiness } from './owned';
+import { withVendingUnlocked } from './vending';
 
 export type BusinessOrder = { readonly businessId: string; readonly economy: BusinessEconomy };
 
@@ -103,7 +104,7 @@ export function applyBuyUnit(
   return spendTreasury(state, {
     owned: found.owned,
     priceCents: quote.priceCents,
-    improved: { ...found.owned, units: quote.units + 1 },
+    improved: withVendingUnlocked({ ...found.owned, units: quote.units + 1 }, found.pricing),
     expense: 'capital',
   });
 }

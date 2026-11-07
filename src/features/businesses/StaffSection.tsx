@@ -19,6 +19,7 @@ export function StaffSection({
         {detail.staff.map((option) => (
           <StaffRow
             key={option.role}
+            business={business}
             option={option}
             onHire={(hire) => onReview({ kind: 'hire', business, hire })}
             onFire={({ role, count }) => onReview({ kind: 'fire', business, role, count })}
