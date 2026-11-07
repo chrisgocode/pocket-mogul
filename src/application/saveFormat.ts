@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { GAME_ERROR_CODES, type CommandOutcome } from '@/domain/commands';
 import { SAVE_SCHEMA_VERSION, type GameState } from '@/domain/gameState';
 
+import { toSaveDocument } from './saveDocument';
 import { count, formatVersion, moneyText, saveSchema } from './saveSchemas';
 
 export type DecodedSave =
@@ -49,18 +50,8 @@ function bigintsAsText(_key: string, value: unknown): unknown {
   return typeof value === 'bigint' ? value.toString() : value;
 }
 
-function saveDocument(state: GameState) {
-  return {
-    ...state,
-    businesses: state.businesses.map(({ staff: _staff, ...business }) => business),
-    staffing: Object.fromEntries(
-      state.businesses.map((business) => [business.definitionId, business.staff]),
-    ),
-  };
-}
-
 export function encodeSave(state: GameState): string {
-  return JSON.stringify(saveDocument(state), bigintsAsText);
+  return JSON.stringify(toSaveDocument(state), bigintsAsText);
 }
 
 function parseJson(text: string): unknown {

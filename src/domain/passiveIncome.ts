@@ -1,5 +1,6 @@
 import { cashPerMinuteCents } from './business/core';
 import { findBusiness, type BusinessEconomy } from './business/definition';
+import type { StruckIncident } from './business/risks';
 import { settleBusinesses, type BusinessClosure } from './business/treasury';
 import { advanceDividends, type DividendRates } from './dividends';
 import type { GameState, IncomeBySource, IncomeState } from './gameState';
@@ -86,6 +87,7 @@ type Accrued = {
   readonly income: IncomeState;
   readonly businesses: GameState['businesses'];
   readonly closures: readonly BusinessClosure[];
+  readonly incidents: readonly StruckIncident[];
   readonly dividendAccruals: GameState['dividendAccruals'];
 };
 
@@ -99,6 +101,7 @@ function accruedIncome(
     fromMs,
     elapsedMs: advance.elapsedMs,
     economy: advance.economy.businesses,
+    seed: state.market.seed,
   });
   const rent = accrue(rentStreams(state, advance.economy.properties), {
     elapsedMs: advance.elapsedMs,
@@ -122,6 +125,7 @@ function accruedIncome(
     },
     businesses: business.businesses,
     closures: business.closures,
+    incidents: business.incidents,
     dividendAccruals: dividends.accruals,
   };
 }
@@ -131,13 +135,14 @@ export type AdvancedTime = {
   readonly earnedCents: MoneyCents;
   readonly earnings: IncomeBySource;
   readonly closures: readonly BusinessClosure[];
+  readonly incidents: readonly StruckIncident[];
 };
 
 export function advanceTime(
   state: GameState,
   advance: { elapsedMs: number; wallMs: number; economy: PassiveEconomy },
 ): AdvancedTime {
-  const { earnings, income, businesses, closures, dividendAccruals } = accruedIncome(
+  const { earnings, income, businesses, closures, incidents, dividendAccruals } = accruedIncome(
     state,
     advance,
   );
@@ -146,6 +151,7 @@ export function advanceTime(
     earnedCents,
     earnings,
     closures,
+    incidents,
     state: {
       ...state,
       cashCents: moneyCents(state.cashCents + earnedCents),

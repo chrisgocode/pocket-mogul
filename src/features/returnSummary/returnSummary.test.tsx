@@ -2,12 +2,19 @@ import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
 import type { OpenedGame } from '@/application/game';
 import { getContent, type Content } from '@/content';
-import { startTestGameFrom, withBusinessCosts, type TestGame } from '@/application/testGame';
+import {
+  startTestGameFrom,
+  withBusinessCosts,
+  withoutIncidents,
+  type TestGame,
+} from '@/application/testGame';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 import { ownedBusiness } from '@/domain/testRules';
 
 const HOUR_MS = 3_600_000;
+const DAY_MS = 600_000;
+const SAFE_DAYS = 30;
 
 let mockGame: Promise<OpenedGame>;
 jest.mock('@/bootstrap/deviceGame', () => ({ loadDeviceGame: () => mockGame }));
@@ -21,8 +28,8 @@ async function returnAfter(
   awayMs: number,
   left: { state: GameState; content?: Content } = { state: withVending },
 ): Promise<TestGame> {
-  const hooks = left.content === undefined ? {} : { content: left.content };
-  const session = await startTestGameFrom(left.state, hooks);
+  const content = left.content ?? withoutIncidents(getContent());
+  const session = await startTestGameFrom(left.state, { content });
   const back = await session.restart({ awayMs });
   mockGame = Promise.resolve({ status: 'ready', game: back.game });
   return back;
@@ -71,6 +78,24 @@ describe('the return summary', () => {
     await renderRouter('src/app', { initialUrl: '/home' });
     expect(
       screen.getByText('Vending Machine closed: its treasury ran out. Deposit cash to reopen it.'),
+    ).toBeOnTheScreen();
+  });
+
+  it('lists incidents from the absence (BUS16, UX05)', async () => {
+    const state = {
+      ...withVending,
+      clock: { ...withVending.clock, simulationMs: SAFE_DAYS * DAY_MS },
+      saveId: 'risky',
+      market: { ...withVending.market, seed: 'risky' },
+      businesses: [ownedBusiness('vending', { treasuryCents: dollars('500') })],
+    };
+    await returnAfter(8 * HOUR_MS, { state, content: getContent() });
+    await renderRouter('src/app', { initialUrl: '/home' });
+    expect(
+      screen.getByText('Vending Machine: Breakdown. Capacity down 30% for 4 days.'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText('Vending Machine: Vandalism. Cost $280.00 from its treasury.'),
     ).toBeOnTheScreen();
   });
 });

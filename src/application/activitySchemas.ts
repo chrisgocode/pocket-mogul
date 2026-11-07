@@ -46,6 +46,13 @@ const activityEvent = z.discriminatedUnion('kind', [
   }),
   z.object({ kind: z.literal('treasury'), assetId, cashChangeCents: cents }),
   z.object({ kind: z.literal('closure'), assetId, closedAtMs: count }),
+  z.object({
+    kind: z.literal('incident'),
+    assetId,
+    incidentId: z.string().min(1),
+    treasuryChangeCents: cents,
+    insured: z.boolean(),
+  }),
   z.object({ kind: z.literal('rental'), assetId, rented: z.boolean() }),
   z.object({
     kind: z.literal('trade'),

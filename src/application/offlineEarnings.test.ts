@@ -2,7 +2,15 @@ import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 import { ownedBusiness } from '@/domain/testRules';
 
-import { deferred, startTestGame, startTestGameFrom, type TestGame } from './testGame';
+import { getContent } from '@/content';
+
+import {
+  deferred,
+  startTestGame,
+  startTestGameFrom,
+  withoutIncidents,
+  type TestGame,
+} from './testGame';
 
 const HOUR_MS = 3_600_000;
 const LEFT_AT_MS = 1_800_000_000_000;
@@ -11,6 +19,8 @@ const withVending: GameState = {
   ...freshGameState({ saveId: 'owner', economyVersion: 1, wallMs: LEFT_AT_MS }),
   businesses: [ownedBusiness('vending')],
 };
+
+const calm = { content: withoutIncidents(getContent()) };
 
 const cash = (session: TestGame) => session.game.getSnapshot().state.cashCents;
 const summary = (session: TestGame) => session.game.getSnapshot().state.returnSummary;
@@ -23,7 +33,7 @@ async function awayWhileRunning(session: TestGame, awayMs: number): Promise<void
 
 describe('relaunching after time away', () => {
   it('settles $4,800 for ten hours with one base Vending Machine: $2,400 cash and $2,400 treasury (AC09)', async () => {
-    const left = await startTestGameFrom(withVending);
+    const left = await startTestGameFrom(withVending, calm);
     const back = await left.restart({ awayMs: 10 * HOUR_MS });
     expect<bigint>(cash(back)).toBe(dollars('2400'));
     expect(back.game.getSnapshot().state.businesses[0]?.treasuryCents).toBe(dollars('2400'));
@@ -34,19 +44,20 @@ describe('relaunching after time away', () => {
         creditedMs: 8 * HOUR_MS,
         earnings: { businesses: dollars('2400'), rent: dollars('0'), dividends: dollars('0') },
         closures: [],
+        incidents: [],
       },
     });
   });
 
   it('credits nothing more on a second immediate relaunch (AC09)', async () => {
-    const left = await startTestGameFrom(withVending);
+    const left = await startTestGameFrom(withVending, calm);
     const back = await left.restart({ awayMs: 10 * HOUR_MS });
     const again = await back.restart();
     expect<bigint>(cash(again)).toBe(dollars('2400'));
   });
 
   it('shows the summary again after a crash but never credits twice (AC10)', async () => {
-    const left = await startTestGameFrom(withVending);
+    const left = await startTestGameFrom(withVending, calm);
     const back = await left.restart({ awayMs: 10 * HOUR_MS });
     const afterCrash = await back.restart();
     expect<bigint>(cash(afterCrash)).toBe(dollars('2400'));
@@ -54,7 +65,7 @@ describe('relaunching after time away', () => {
   });
 
   it('updates peak net worth and unlocks Tier 2 from offline earnings (UX02)', async () => {
-    const left = await startTestGameFrom(withVending);
+    const left = await startTestGameFrom(withVending, calm);
     const back = await left.restart({ awayMs: 10 * HOUR_MS });
     const { state } = back.game.getSnapshot();
     expect<bigint>(state.peakNetWorthCents).toBe(dollars('5050'));
@@ -83,6 +94,7 @@ describe('rent while away', () => {
         creditedMs: HOUR_MS,
         earnings: { businesses: dollars('300'), rent: dollars('6000'), dividends: dollars('0') },
         closures: [],
+        incidents: [],
       },
     });
     expect<bigint>(cash(back)).toBe(dollars('6300'));
@@ -91,7 +103,7 @@ describe('rent while away', () => {
 
 describe('dismissing the return summary', () => {
   it('Continue only dismisses: no cash changes and it stays dismissed after a restart (UX05)', async () => {
-    const left = await startTestGameFrom(withVending);
+    const left = await startTestGameFrom(withVending, calm);
     const back = await left.restart({ awayMs: 10 * HOUR_MS });
     const outcome = await back.game.dispatch({
       id: 'continue-1',
@@ -106,7 +118,7 @@ describe('dismissing the return summary', () => {
 
 describe('returning to the running app', () => {
   it('credits the capped absence once (AC09)', async () => {
-    const session = await startTestGameFrom(withVending);
+    const session = await startTestGameFrom(withVending, calm);
     await awayWhileRunning(session, 10 * HOUR_MS);
     await awayWhileRunning(session, 0);
     expect<bigint>(cash(session)).toBe(dollars('2400'));
@@ -117,6 +129,7 @@ describe('returning to the running app', () => {
     const reached = deferred();
     const opened = deferred();
     const session = await startTestGameFrom(withVending, {
+      ...calm,
       beforeWarmReturnSummary: () => {
         reached.resolve();
         return opened.promise;
@@ -135,7 +148,7 @@ describe('returning to the running app', () => {
 
 describe('a pause checkpoint that saves late', () => {
   it('still credits the absence from the moment the app left, behind a tap batch', async () => {
-    const session = await startTestGameFrom(withVending);
+    const session = await startTestGameFrom(withVending, calm);
     const release = session.holdSaves();
     session.game.tap();
     const paused = session.game.pause();
@@ -150,6 +163,7 @@ describe('a pause checkpoint that saves late', () => {
 describe('an app open ad step that fails', () => {
   it('still shows the settled earnings and summary', async () => {
     const session = await startTestGameFrom(withVending, {
+      ...calm,
       beforeWarmReturnSummary: () => Promise.reject(new Error('no fill')),
     });
     await awayWhileRunning(session, HOUR_MS);
@@ -160,7 +174,7 @@ describe('an app open ad step that fails', () => {
 
 describe('a wall clock set backward', () => {
   it('credits no offline time, records a diagnostic and resets the baseline', async () => {
-    const left = await startTestGameFrom(withVending);
+    const left = await startTestGameFrom(withVending, calm);
     const back = await left.restart({ awayMs: -2 * HOUR_MS });
     expect<bigint>(cash(back)).toBe(dollars('0'));
     expect(await back.diagnostics()).toEqual([

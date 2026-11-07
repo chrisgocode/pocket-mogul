@@ -29,6 +29,7 @@ import type { BusinessStatus, OwnedBusiness } from '@/domain/business/owned';
 import type { MoneyCents } from '@/domain/money';
 
 import { affordability, type Affordability } from './affordability';
+import { selectBusinessRisks, type BusinessRisks } from './businessRisksView';
 import { selectCashCents, stateWithUnsavedIncome } from './cashView';
 import { businessEconomy } from './economy';
 import type { GameSnapshot } from './game';
@@ -81,6 +82,7 @@ export type OwnedBusinessDetail = {
   readonly staff: readonly StaffOption[];
   readonly managerHired: boolean;
   readonly stageUpgrade: StageOption;
+  readonly risks: BusinessRisks;
   readonly sale: BusinessSale;
 };
 
@@ -154,6 +156,7 @@ function ownedDetail(business: Business, context: DetailContext): OwnedBusinessD
     staff: STAFF_ROLES.map((role) => staffOption(role, context)),
     managerHired: owned.staff.manager > 0,
     stageUpgrade: stageOption(context),
+    risks: selectBusinessRisks({ ...context, business }),
     sale: {
       proceedsCents: saleProceedsCents(owned, rules),
       spendCents: owned.capitalizedSpendCents,

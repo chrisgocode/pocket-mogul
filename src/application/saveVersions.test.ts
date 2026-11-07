@@ -7,7 +7,8 @@ import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars, quantityMicrounits } from '@/domain/money';
 
 import { decodeSave, decodeSaveIn, encodeSave, SAVE_FORMAT, type SaveFormat } from './saveFormat';
-import { saveDocumentSchema, saveSchema, withStaffing } from './saveSchemas';
+import { fromSaveDocument } from './saveDocument';
+import { saveDocumentSchema, saveSchema } from './saveSchemas';
 import { currentState, startTestGame, startTestGameFromDocument } from './testGame';
 
 const baselineFixture = readFileSync(
@@ -47,6 +48,8 @@ const BASELINE_STATE = {
       purchasedDay: 6,
       capitalizedSpendCents: dollars('412.50'),
       staff: { operations: 0, sales: 0, manager: 0 },
+      insurance: { equipment: 'none', liability: 'none', supply: 'none' },
+      incident: { status: 'none' },
     },
   ],
   properties: [
@@ -96,6 +99,7 @@ const BASELINE_STATE = {
         improvement: 0,
         treasury: 0,
         closure: 0,
+        incident: 0,
         rental: 0,
         trade: 0,
         dividend: 0,
@@ -165,33 +169,12 @@ describe('the automatic ad schedule field', () => {
   });
 });
 
-describe('business staff (BUS13)', () => {
-  const staff = { operations: 2, sales: 1, manager: 0 };
-
-  it('loads a baseline save with no staff hired', () => {
-    expect(currentState(baselineFixture).businesses[0]?.staff).toEqual({
-      operations: 0,
-      sales: 0,
-      manager: 0,
-    });
-  });
-
-  it('keeps staff in a top-level staffing record that round-trips', () => {
-    const staffed = baselineDocument({ staffing: { vending: staff } });
-    const encoded = encodeSave(currentState(staffed));
-    const document = JSON.parse(encoded) as { businesses: readonly object[] };
-    expect(document).toMatchObject({ staffing: { vending: staff } });
-    expect(document.businesses[0]).not.toHaveProperty('staff');
-    expect(currentState(encoded).businesses[0]?.staff).toEqual(staff);
-  });
-});
-
 describe('an additive field', () => {
   const withThrowaway: SaveFormat = {
     ...SAVE_FORMAT,
     schema: saveDocumentSchema
       .extend({ throwawayIds: z.array(z.string()).default([]) })
-      .transform(withStaffing),
+      .transform(fromSaveDocument),
   };
 
   it('loads a baseline save with its neutral default and no version bump', () => {

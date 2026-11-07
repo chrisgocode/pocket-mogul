@@ -1,5 +1,6 @@
 import type { GameState, IncomeBySource, PendingReturnSummary, ReturnSummary } from './gameState';
 import { moneyCents, type MoneyCents } from './money';
+import type { StruckIncident } from './business/risks';
 import type { BusinessClosure } from './business/treasury';
 import { advanceTime, totalIncome, type PassiveEconomy } from './passiveIncome';
 
@@ -19,6 +20,7 @@ export type OfflineSettlement = {
   readonly clock: WallClockReading;
   readonly absence: ReturnSummary;
   readonly closures: readonly BusinessClosure[];
+  readonly incidents: readonly StruckIncident[];
 };
 
 function readWallClock(state: GameState, wallMs: number): WallClockReading {
@@ -42,6 +44,7 @@ function combined(earlier: ReturnSummary, later: ReturnSummary): ReturnSummary {
     creditedMs: earlier.creditedMs + later.creditedMs,
     earnings: addIncome(earlier.earnings, later.earnings),
     closures: [...earlier.closures, ...later.closures],
+    incidents: [...earlier.incidents, ...later.incidents],
   };
 }
 
@@ -49,7 +52,10 @@ function summarize(pending: PendingReturnSummary, absence: ReturnSummary): Pendi
   if (pending.status === 'pending') {
     return { status: 'pending', summary: combined(pending.summary, absence) };
   }
-  const eventful = totalIncome(absence.earnings) > 0n || absence.closures.length > 0;
+  const eventful =
+    totalIncome(absence.earnings) > 0n ||
+    absence.closures.length > 0 ||
+    absence.incidents.length > 0;
   const worthShowing = absence.awayMs >= RETURN_SUMMARY_MIN_AWAY_MS && eventful;
   return worthShowing ? { status: 'pending', summary: absence } : pending;
 }
@@ -67,11 +73,13 @@ export function settleOffline(
     economy: settle.economy,
   });
   const closures = advanced.closures.map((closure) => closure.businessId);
-  const absence = { awayMs, creditedMs, earnings: advanced.earnings, closures };
+  const { incidents } = advanced;
+  const absence = { awayMs, creditedMs, earnings: advanced.earnings, closures, incidents };
   return {
     clock,
     absence,
     closures: advanced.closures,
+    incidents: advanced.incidents,
     earnedCents: advanced.earnedCents,
     state: { ...advanced.state, returnSummary: summarize(state.returnSummary, absence) },
   };

@@ -1,14 +1,21 @@
 import type { Content } from '@/content';
-import type { GameState, IncomeBySource } from '@/domain/gameState';
+import type { AbsenceIncident, GameState, IncomeBySource } from '@/domain/gameState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 
 import { durationText } from './clockText';
+import { incidentStrikeText } from './incidentText';
 
 const INCOME_SOURCES: readonly { source: keyof IncomeBySource; label: string }[] = [
   { source: 'businesses', label: 'Businesses' },
   { source: 'rent', label: 'Rent' },
   { source: 'dividends', label: 'Dividends' },
 ];
+
+export type IncidentLine = {
+  readonly key: string;
+  readonly title: string;
+  readonly detail: string;
+};
 
 export type EarningsLine = { readonly label: string; readonly cents: MoneyCents };
 
@@ -20,7 +27,13 @@ export type ReturnSummaryView = {
   readonly earnings: readonly EarningsLine[];
   readonly totalCents: MoneyCents;
   readonly closedBusinesses: readonly string[];
+  readonly incidents: readonly IncidentLine[];
 };
+
+function incidentLine(content: Content, incident: AbsenceIncident): IncidentLine {
+  const text = incidentStrikeText(content, incident);
+  return { key: `${incident.businessId}:${incident.atMs}`, title: text.title, detail: text.detail };
+}
 
 function earningsLines(earnings: IncomeBySource): EarningsLine[] {
   return INCOME_SOURCES.map(({ source, label }) => ({ label, cents: earnings[source] })).filter(
@@ -46,5 +59,6 @@ export function selectReturnSummary(
       (businessId) =>
         content.businesses.find((business) => business.id === businessId)?.name ?? businessId,
     ),
+    incidents: summary.incidents.map((incident) => incidentLine(content, incident)),
   };
 }

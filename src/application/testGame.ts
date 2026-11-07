@@ -297,6 +297,13 @@ export function withBusinessCosts(
   return { ...content, businesses: content.businesses.map(changed) };
 }
 
+export function withoutIncidents(content: Content): Content {
+  return {
+    ...content,
+    businesses: content.businesses.map((business) => ({ ...business, incidents: [] })),
+  };
+}
+
 export function currentState(document: string): GameState {
   const decoded = decodeSave(document);
   if (decoded.status !== 'current')

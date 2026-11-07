@@ -147,8 +147,16 @@ One of a business's three kinds of hire: operations staff (+20% capacity each), 
 _Avoid_: Worker, employee, crew
 
 **Manager**:
-The staff role, unlocked at stage 2 (Local), that adds 10% to positive profit and makes a business's routine decisions at each day boundary, offline too: today, setting the most profitable Price level. A Manager never deposits, withdraws or sells.
+The staff role, unlocked at stage 2 (Local), that adds 10% to positive profit and makes a business's routine decisions at each day boundary, offline too: setting the most profitable Price level and renewing Lapsed insurance once the Treasury can pay. A Manager never deposits, withdraws or sells.
 _Avoid_: Automation, autopilot
+
+**Incident**:
+A setback drawn at a business day boundary from the save's seed: an equipment, liability or supply problem that costs the Treasury some days of catalog revenue, or cuts capacity or raises the cost per customer for some days. None strike in a business's first 30 days, a business has at most one lasting incident at a time, a Treasury loss is capped at 20% of the Treasury, and personal cash is never touched.
+_Avoid_: Event (that is a market event), disaster, accident
+
+**Insurance policy**:
+Cover for one incident category, available from stage 2 (Local). It costs a daily premium of 2% of catalog revenue out of profit, covers 80% of a Treasury loss and halves a capacity loss or cost rise and its duration. It renews at each day boundary while the Treasury can pay the premium; otherwise it is Lapsed until the player or a Manager renews it.
+_Avoid_: Cover plan, protection
 
 **Treasury**:
 A business's own money. Its profit lands here, and its units, upgrades and other running spending are paid from here, never from the player's cash. It never goes below zero.

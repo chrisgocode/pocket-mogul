@@ -43,11 +43,20 @@ export type IncomeBySource = {
   readonly dividends: MoneyCents;
 };
 
+export type AbsenceIncident = {
+  readonly atMs: number;
+  readonly businessId: string;
+  readonly incidentId: string;
+  readonly treasuryLossCents: MoneyCents;
+  readonly insured: boolean;
+};
+
 export type ReturnSummary = {
   readonly awayMs: number;
   readonly creditedMs: number;
   readonly earnings: IncomeBySource;
   readonly closures: readonly string[];
+  readonly incidents: readonly AbsenceIncident[];
 };
 
 export type PendingReturnSummary =

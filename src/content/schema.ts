@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { PRICE_LEVELS } from '@/domain/business/definition';
 import type { MoneyCents, PriceMicros } from '@/domain/money';
 
+import { incidentSchema, riskRulesSchema } from './riskSchema';
+
 const id = z.string().regex(/^[a-z][a-z0-9_]*$/, 'IDs are lowercase snake_case');
 const ticker = z.string().regex(/^[A-Z]{2,5}$/, 'Tickers are 2–5 capital letters');
 const hexColor = z.string().regex(/^#[0-9A-F]{6}$/, 'Colors are #RRGGBB uppercase');
@@ -97,6 +99,7 @@ const businessSchema = z.object({
   revenuePerDay: positiveCents,
   costsPerDay: nonNegativeCents,
   demandResponseBps: byPriceLevel.optional(),
+  incidents: z.array(incidentSchema),
   logo: logoSchema,
 });
 
@@ -213,6 +216,7 @@ const economySchema = z.object({
       wagePercent: staffCounts,
       signingFeeDays: nonNegativeInt,
     }),
+    risks: riskRulesSchema,
     maxTrackLevel: positiveInt,
     upgradeWeightBps: z.object({ quality: positiveInt, efficiency: positiveInt }),
     upgradeGrowth: growthRatio,

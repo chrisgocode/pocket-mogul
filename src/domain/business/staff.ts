@@ -2,7 +2,8 @@ import { moneyCents, type MoneyCents } from '@/domain/money';
 
 import { bestPriceLevel, profitPerDayCents, wageCents } from './core';
 import { stageRule, type BusinessPricing, type StaffRole } from './definition';
-import type { OwnedBusiness } from './owned';
+import type { OwnedBusiness, PolicyStatus } from './owned';
+import { renewedInsurance } from './risks';
 
 export type StaffQuote =
   | { readonly status: 'locked'; readonly role: StaffRole; readonly unlockStage: number }
@@ -59,7 +60,10 @@ export function quoteStaff(
   };
 }
 
+const MANAGER_RENEWS: readonly PolicyStatus[] = ['active', 'lapsed'];
+
 export function managerDecisions(business: OwnedBusiness, pricing: BusinessPricing): OwnedBusiness {
   if (business.staff.manager === 0 || business.status === 'closed') return business;
-  return { ...business, priceLevel: bestPriceLevel(business, pricing) };
+  const priced = { ...business, priceLevel: bestPriceLevel(business, pricing) };
+  return renewedInsurance(priced, { pricing, renewing: MANAGER_RENEWS });
 }

@@ -3,6 +3,7 @@ import type { Content } from './schema';
 import { findContentIssues, validateContent } from './validate';
 
 export * from './schema';
+export type { Incident } from './riskSchema';
 export { businessDefinition } from './businessCore';
 export { ContentValidationError, findContentIssues, validateContent } from './validate';
 

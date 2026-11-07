@@ -1,4 +1,10 @@
-import type { BusinessTrack, PriceLevel, StaffRole } from '@/domain/business/definition';
+import type {
+  BusinessTrack,
+  IncidentCategory,
+  PriceLevel,
+  StaffRole,
+} from '@/domain/business/definition';
+import type { PolicyStatus } from '@/domain/business/owned';
 import { formatMoneyExact, moneyCents, type MoneyCents } from '@/domain/money';
 
 export const TRACK_NAMES: Readonly<Record<BusinessTrack, string>> = {
@@ -47,4 +53,26 @@ export function spent(priceCents: MoneyCents): MoneyCents {
 
 export function profitChange(from: MoneyCents, to: MoneyCents): string {
   return `${formatPerDay(from)} → ${formatPerDay(to)}`;
+}
+
+export const CATEGORY_NAMES: Readonly<Record<IncidentCategory, string>> = {
+  equipment: 'Equipment',
+  liability: 'Liability',
+  supply: 'Supply',
+};
+
+export const POLICY_NAMES: Readonly<Record<PolicyStatus, string>> = {
+  none: 'Not insured',
+  active: 'Insured',
+  lapsed: 'Lapsed',
+};
+
+const BPS_PER_PERCENT = 100;
+
+export function formatChance(chanceBps: number): string {
+  return `${chanceBps / BPS_PER_PERCENT}%`;
+}
+
+export function dayCount(days: number): string {
+  return days === 1 ? '1 day' : `${days} days`;
 }
