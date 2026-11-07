@@ -1,21 +1,25 @@
 import { freshGameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
+import { ownedBusiness } from '@/domain/testRules';
 
 import type { Game } from './game';
 import { startTestGameFrom, type TestGame } from './testGame';
 
 const ONE_MINUTE_MS = 60_000;
 
-const command = (
-  game: Game,
-  type: 'BuyBusiness' | 'HireManager' | 'SellBusiness',
-  id: string = type,
-) => game.dispatch({ id, command: { type, businessId: 'vending' } });
+const command = (game: Game, type: 'BuyBusiness' | 'SellBusiness', id: string = type) =>
+  game.dispatch({ id, command: { type, businessId: 'vending' } });
 
-const upgradeCapacity = (game: Game, fromLevel: number) =>
+const deposit = (game: Game, amount: string, id = `deposit-${amount}`) =>
   game.dispatch({
-    id: `capacity-${fromLevel}`,
-    command: { type: 'UpgradeBusiness', businessId: 'vending', track: 'capacity', fromLevel },
+    id,
+    command: { type: 'DepositToTreasury', businessId: 'vending', amountCents: dollars(amount) },
+  });
+
+const buyUnit = (game: Game, fromUnits: number) =>
+  game.dispatch({
+    id: `unit-${fromUnits}`,
+    command: { type: 'BuyUnit', businessId: 'vending', fromUnits },
   });
 
 async function startWith(cash: string): Promise<TestGame> {
@@ -25,64 +29,30 @@ async function startWith(cash: string): Promise<TestGame> {
   });
 }
 
-describe('hiring a manager (BUS03)', () => {
-  it('costs twice the price, adds 10% net profit and stays out of the sale basis', async () => {
-    const { game, clock } = await startWith('750');
-    await command(game, 'BuyBusiness');
-    expect(await command(game, 'HireManager')).toMatchObject({
-      ok: true,
-      cashChangeCents: dollars('-500'),
-    });
-    clock.advance(ONE_MINUTE_MS);
-    await game.checkpoint();
-    const { state } = game.getSnapshot();
-    expect<bigint>(state.cashCents).toBe(dollars('11'));
-    expect(state.businesses[0]).toMatchObject({
-      managerOwned: true,
-      capitalizedSpendCents: dollars('250'),
-    });
-  });
-
-  it('can be hired only once', async () => {
-    const { game } = await startWith('1,250');
-    await command(game, 'BuyBusiness');
-    await command(game, 'HireManager');
-    expect(await command(game, 'HireManager', 'again')).toEqual({
-      ok: false,
-      error: 'ALREADY_OWNED',
-    });
-    expect<bigint>(game.getSnapshot().state.cashCents).toBe(dollars('500'));
-  });
-});
-
-describe('selling a business (BUS06)', () => {
-  it('settles income first, then pays 60% of purchase plus upgrade spending', async () => {
+describe('selling a business', () => {
+  it('settles income first, then pays 60% of its spending plus its whole treasury', async () => {
     const { game, clock } = await startWith('800');
     await command(game, 'BuyBusiness');
-    await upgradeCapacity(game, 0);
-    await command(game, 'HireManager');
+    await deposit(game, '100');
+    await buyUnit(game, 1);
     clock.advance(ONE_MINUTE_MS);
-    expect(await command(game, 'SellBusiness')).toMatchObject({ ok: true });
+    expect(await command(game, 'SellBusiness')).toMatchObject({
+      ok: true,
+      cashChangeCents: dollars('218.61'),
+    });
     const { state } = game.getSnapshot();
-    expect<bigint>(state.cashCents).toBe(dollars('192.27'));
+    expect<bigint>(state.cashCents).toBe(dollars('677.21'));
     expect(state.businesses).toEqual([]);
   });
 
-  it('starts a repurchase at level zero with no manager', async () => {
+  it('starts a repurchase fresh at stage 1 with one unit', async () => {
     const { game } = await startWith('1,100');
     await command(game, 'BuyBusiness');
-    await upgradeCapacity(game, 0);
-    await command(game, 'HireManager');
+    await deposit(game, '100');
+    await buyUnit(game, 1);
     await command(game, 'SellBusiness');
     await command(game, 'BuyBusiness', 'buy-again');
-    expect(game.getSnapshot().state.businesses).toEqual([
-      {
-        definitionId: 'vending',
-        levels: { capacity: 0, quality: 0, efficiency: 0 },
-        managerOwned: false,
-        capitalizedSpendCents: dollars('250'),
-      },
-    ]);
+    expect(game.getSnapshot().state.businesses).toEqual([ownedBusiness('vending')]);
   });
 
   it('refuses to sell a business the player does not own', async () => {

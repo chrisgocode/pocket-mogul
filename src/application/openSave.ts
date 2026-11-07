@@ -1,7 +1,7 @@
 import { freshGameState, type GameState } from '@/domain/gameState';
 
 import type { SaveStore, SaveTransaction } from './ports';
-import { decodeSaveIn, type DecodedSave, type SaveFormat } from './saveFormat';
+import { decodeSaveIn, type DecodedSave, type ReplacedSave, type SaveFormat } from './saveFormat';
 
 export type SaveNotice = { readonly kind: 'none' } | { readonly kind: 'restoredFromBackup' };
 
@@ -68,12 +68,12 @@ async function restoreFromBackup(
   return { status: 'ready', state: restorable.state, notice: { kind: 'restoredFromBackup' } };
 }
 
-async function replacePreBaseline(
+async function replaceWithFresh(
   tx: SaveTransaction,
-  saved: { document: string; opening: SaveOpening },
+  saved: { document: string; opening: SaveOpening; reason: ReplacedSave },
 ): Promise<OpenedSave> {
   await tx.writeDiagnostic({
-    type: 'PRE_BASELINE_SAVE',
+    type: saved.reason,
     document: saved.document,
     recordedWallMs: saved.opening.wallMs,
   });
@@ -115,7 +115,8 @@ async function openDocument(
 ): Promise<OpenedSave> {
   const decoded = decodeSaveIn(saved.opening.format, saved.document);
   if (decoded.status === 'newer') return { status: 'stopped', reason: 'UNSUPPORTED_SAVE_VERSION' };
-  if (decoded.status === 'preBaseline') return replacePreBaseline(tx, saved);
+  if (decoded.status === 'replaced')
+    return replaceWithFresh(tx, { ...saved, reason: decoded.reason });
   if (decoded.status === 'corrupt') return restoreFromBackup(tx, saved);
   return openReadable(tx, { ...saved, decoded });
 }

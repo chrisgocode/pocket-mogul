@@ -1,5 +1,5 @@
-import type { Content, Stock } from '@/content';
-import type { BusinessEconomy } from '@/domain/businesses';
+import { businessDefinition, type Content, type Stock } from '@/content';
+import type { BusinessEconomy } from '@/domain/business/definition';
 import type { DividendRates } from '@/domain/dividends';
 import type { MarketEconomy, MarketInstrument } from '@/domain/market';
 import type { PassiveEconomy } from '@/domain/passiveIncome';
@@ -9,7 +9,11 @@ import type { PropertyEconomy } from '@/domain/properties';
 import type { TradeEconomy } from '@/domain/trades';
 
 export function businessEconomy(content: Content): BusinessEconomy {
-  return { catalog: content.businesses, rules: content.economy.businessRules };
+  const rules = content.economy.businessRules;
+  return {
+    catalog: content.businesses.map((business) => businessDefinition(business, rules)),
+    rules,
+  };
 }
 
 export function propertyEconomy(content: Content): PropertyEconomy {

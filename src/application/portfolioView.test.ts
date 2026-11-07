@@ -1,5 +1,5 @@
 import { getContent } from '@/content';
-import { levelZeroBusiness } from '@/domain/businessQuotes';
+import { ownedBusiness } from '@/domain/testRules';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollarPrice, dollars, units } from '@/domain/money';
 import { levelZeroProperty } from '@/domain/propertyQuotes';
@@ -12,7 +12,12 @@ const fresh = freshGameState({ saveId: 'portfolio', economyVersion: 1, wallMs: 0
 const holder: GameState = {
   ...fresh,
   cashCents: dollars('100'),
-  businesses: [{ ...levelZeroBusiness('vending'), capitalizedSpendCents: dollars('300') }],
+  businesses: [
+    ownedBusiness('vending', {
+      capitalizedSpendCents: dollars('250'),
+      treasuryCents: dollars('50'),
+    }),
+  ],
   properties: [{ ...levelZeroProperty('studio'), rented: true }],
   market: { ...fresh.market, quotes: { prism: dollarPrice('30') } },
   positions: [
@@ -62,7 +67,7 @@ describe('portfolio', () => {
       { source: 'Taps', rate: undefined, lifetimeCents: dollars('12') },
       {
         source: 'Businesses',
-        rate: { cents: dollars('10'), per: 'minute' },
+        rate: { cents: dollars('5'), per: 'minute' },
         lifetimeCents: dollars('40'),
       },
       {
@@ -78,14 +83,14 @@ describe('portfolio', () => {
     ]);
   });
 
-  it('lists holdings with business carrying value beside its lower sale quote', () => {
+  it('lists holdings with business carrying value (treasury included) beside its lower sale quote', () => {
     const { holdings } = selectPortfolio(snapshotOf(holder), getContent());
     expect(holdings.businesses).toEqual([
       {
         id: 'vending',
         name: 'Vending Machine',
         valueCents: dollars('300'),
-        saleCents: dollars('180'),
+        saleCents: dollars('200'),
       },
     ]);
     expect(holdings.properties).toEqual([

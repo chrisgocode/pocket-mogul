@@ -9,10 +9,14 @@ import {
 } from '@/domain/boost';
 import {
   applyBuyBusiness,
-  applyHireManager,
+  applyBuyUnit,
+  applyDepositToTreasury,
+  applyImproveBusiness,
   applySellBusiness,
-  applyUpgradeBusiness,
-} from '@/domain/businesses';
+  applySetPayout,
+  applySetPriceLevel,
+  applyWithdrawFromTreasury,
+} from '@/domain/business/commands';
 import type {
   CommandEnvelope,
   CommandOutcome,
@@ -102,10 +106,18 @@ const COMMAND_HANDLERS: CommandHandlers = {
     applyWalletUpgrade(state, { fromLevel: command.fromLevel, rules: content.economy.tap }),
   BuyBusiness: (state, command, content) =>
     applyBuyBusiness(state, { ...command, economy: businessEconomy(content) }),
+  BuyUnit: (state, command, content) =>
+    applyBuyUnit(state, { ...command, economy: businessEconomy(content) }),
   UpgradeBusiness: (state, command, content) =>
-    applyUpgradeBusiness(state, { ...command, economy: businessEconomy(content) }),
-  HireManager: (state, command, content) =>
-    applyHireManager(state, { ...command, economy: businessEconomy(content) }),
+    applyImproveBusiness(state, { ...command, economy: businessEconomy(content) }),
+  SetPriceLevel: (state, command, content) =>
+    applySetPriceLevel(state, { ...command, economy: businessEconomy(content) }),
+  SetPayout: (state, command, content) =>
+    applySetPayout(state, { ...command, economy: businessEconomy(content) }),
+  DepositToTreasury: (state, command, content) =>
+    applyDepositToTreasury(state, { ...command, economy: businessEconomy(content) }),
+  WithdrawFromTreasury: (state, command, content) =>
+    applyWithdrawFromTreasury(state, { ...command, economy: businessEconomy(content) }),
   SellBusiness: (state, command, content) =>
     applySellBusiness(state, { ...command, economy: businessEconomy(content) }),
   BuyProperty: (state, command, content) =>
@@ -160,13 +172,17 @@ function passTime(
   if (step.command.type === 'SettleOffline') {
     const capMs = step.content.economy.time.offlineCapMs;
     const settled = settleOffline(state, { wallMs: step.time.wallMs, capMs, economy });
-    const passed = { earnings: settled.absence.earnings, absence: settled.absence };
+    const passed = {
+      earnings: settled.absence.earnings,
+      absence: settled.absence,
+      closures: settled.closures,
+    };
     return { ...settled, wallClock: settled.clock, passed };
   }
   const { elapsedMs, boostElapsedMs, wallMs } = step.time;
   const advanced = advanceTime(state, { elapsedMs, wallMs, economy });
   const boosted = consumeBoostTime(advanced.state, boostElapsedMs);
-  const passed = { earnings: advanced.earnings, absence: undefined };
+  const passed = { earnings: advanced.earnings, absence: undefined, closures: advanced.closures };
   return { ...advanced, state: boosted, wallClock: { direction: 'forward' }, passed };
 }
 

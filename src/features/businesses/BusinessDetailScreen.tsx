@@ -8,22 +8,50 @@ import { useGameAction } from '@/features/game/useGameAction';
 import { EmptyState } from '@/ui/EmptyState';
 import { Screen } from '@/ui/Screen';
 
-import { businessActionCommand, businessActionSheetText } from './businessAction';
+import {
+  businessActionCommand,
+  businessActionSheetText,
+  type BusinessAction,
+} from './businessAction';
 import { OwnedBusinessDetails } from './OwnedBusinessDetails';
+import type { TreasuryActions } from './treasuryActions';
+import { useBusinessCommand } from './useBusinessCommand';
 
 function screenTitle(detail: BusinessDetailView): string {
   return detail.status === 'unknown' ? 'Business' : detail.business.name;
+}
+
+function treasuryActions(
+  detail: Extract<BusinessDetailView, { status: 'owned' }>,
+  handlers: {
+    run: ReturnType<typeof useBusinessCommand>;
+    review: (action: BusinessAction) => void;
+  },
+): TreasuryActions {
+  const businessId = detail.business.id;
+  return {
+    setPayout: (payoutPercent) => handlers.run({ type: 'SetPayout', businessId, payoutPercent }),
+    deposit: (amountCents) => handlers.run({ type: 'DepositToTreasury', businessId, amountCents }),
+    withdrawAll: (amountCents) =>
+      handlers.review({ kind: 'withdraw', business: detail.business, amountCents }),
+  };
 }
 
 export function BusinessDetailScreen() {
   const { businessId } = useLocalSearchParams<{ businessId: string }>();
   const detail = selectBusinessDetail(useGameSnapshot(), { businessId, content: getContent() });
   const { confirmation, review, close, confirm } = useGameAction(businessActionCommand);
+  const run = useBusinessCommand();
   return (
     <Screen>
       <Stack.Screen options={{ title: screenTitle(detail) }} />
       {detail.status === 'owned' ? (
-        <OwnedBusinessDetails detail={detail} onReview={review} />
+        <OwnedBusinessDetails
+          detail={detail}
+          onReview={review}
+          onPriceLevel={(priceLevel) => run({ type: 'SetPriceLevel', businessId, priceLevel })}
+          treasury={treasuryActions(detail, { run, review })}
+        />
       ) : null}
       {detail.status === 'not_owned' ? (
         <EmptyState

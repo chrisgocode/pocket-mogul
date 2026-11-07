@@ -97,7 +97,7 @@ const finished = (sim: Simulation) =>
   sim.state.peakNetWorthCents >= sim.scenario.stopAtPeakCents;
 
 function buy(sim: Simulation, option: PurchaseOption): boolean {
-  if (option.priceCents > sim.state.cashCents) return false;
+  if (option.cashCents > sim.state.cashCents) return false;
   if (!option.commands.every((command) => commit(sim, command))) return false;
   const { kind, assetId, priceCents } = option;
   sim.purchases.push({

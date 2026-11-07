@@ -47,9 +47,14 @@ describe('telemetry', () => {
     await run(game, { type: 'UpgradeWallet', fromLevel: 0 });
     await run(game, { type: 'BuyBusiness', businessId: 'vending' });
     await run(game, {
+      type: 'DepositToTreasury',
+      businessId: 'vending',
+      amountCents: dollars('62.50'),
+    });
+    await run(game, {
       type: 'UpgradeBusiness',
       businessId: 'vending',
-      track: 'capacity',
+      track: 'quality',
       fromLevel: 0,
     });
     expect(names(sink.events)).toEqual(['wallet_upgrade', 'first_business', 'business_upgrade']);
@@ -58,7 +63,7 @@ describe('telemetry', () => {
       economyVersion: 1,
       schemaVersion: game.getSnapshot().state.schemaVersion,
       simulationMs: 0,
-      details: { businessId: 'vending', track: 'capacity', level: 1 },
+      details: { businessId: 'vending', track: 'quality', level: 1 },
       state: {
         walletLevel: 1,
         totalAcceptedTaps: 0,
@@ -124,13 +129,13 @@ describe('telemetry for taps, saves and the development sink', () => {
     const fixture = readFileSync(new URL('fixtures/save-baseline.json', import.meta.url), 'utf8');
     const saveFormat: SaveFormat = {
       ...SAVE_FORMAT,
-      readerVersion: 2,
+      readerVersion: 3,
       migrations: [
-        { fromVersion: 1, upgrade: (raw) => ({ ...saveSchema.parse(raw), schemaVersion: 2 }) },
+        { fromVersion: 2, upgrade: (raw) => ({ ...saveSchema.parse(raw), schemaVersion: 3 }) },
       ],
     };
     await startTestGameFromDocument(fixture, 1_799_990_000_000, { telemetry, saveFormat });
-    expect(events[0]).toMatchObject({ name: 'migration_completed', details: { fromVersion: 1 } });
+    expect(events[0]).toMatchObject({ name: 'migration_completed', details: { fromVersion: 2 } });
   });
 
   it('never includes the save id', async () => {

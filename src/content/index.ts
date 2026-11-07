@@ -3,6 +3,7 @@ import type { Content } from './schema';
 import { findContentIssues, validateContent } from './validate';
 
 export * from './schema';
+export { businessDefinition } from './businessCore';
 export { ContentValidationError, findContentIssues, validateContent } from './validate';
 
 const bundledContentByEconomyVersion = { 1: economyV1 } as const;

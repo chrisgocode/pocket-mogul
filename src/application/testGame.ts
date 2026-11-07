@@ -3,7 +3,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { z } from 'zod';
 
 import { getContent, type Business, type Content } from '@/content';
-import type { MoneyCents } from '@/domain/money';
+import { moneyCents, type MoneyCents } from '@/domain/money';
 import type { GameState } from '@/domain/gameState';
 import { nodeSqliteDriver } from '@/infrastructure/nodeSqliteDriver';
 import type { SqlDriver } from '@/infrastructure/sqlDriver';
@@ -266,19 +266,35 @@ export async function startTestGameFromDocument(
   return startTestGame(save);
 }
 
-export function withBusinessRevenue(
+export function withBusinessPrice(
   content: Content,
-  change: { economyVersion: number; businessId: string; revenuePerMinute: MoneyCents },
+  change: { economyVersion: number; businessId: string; pricePerCustomer: MoneyCents },
 ): Content {
-  const changed = (definition: Business) =>
-    definition.id === change.businessId
-      ? { ...definition, revenuePerMinute: change.revenuePerMinute }
-      : definition;
+  const changed = (definition: Business) => {
+    if (definition.id !== change.businessId) return definition;
+    const customers = definition.revenuePerDay / definition.pricePerCustomer;
+    return {
+      ...definition,
+      pricePerCustomer: change.pricePerCustomer,
+      revenuePerDay: moneyCents(customers * change.pricePerCustomer),
+    };
+  };
   return {
     ...content,
     economyVersion: change.economyVersion,
     businesses: content.businesses.map(changed),
   };
+}
+
+export function withBusinessCosts(
+  content: Content,
+  change: { businessId: string; costsPerDay: MoneyCents },
+): Content {
+  const changed = (definition: Business) =>
+    definition.id === change.businessId
+      ? { ...definition, costsPerDay: change.costsPerDay }
+      : definition;
+  return { ...content, businesses: content.businesses.map(changed) };
 }
 
 export function currentState(document: string): GameState {

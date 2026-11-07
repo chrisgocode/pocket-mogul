@@ -1,3 +1,4 @@
+import type { BusinessTrack } from './business/definition';
 import type { IncomeBySource } from './gameState';
 import { moneyCents, type MoneyCents, type QuantityMicrounits } from './money';
 import type { TradeSide } from './tradeQuotes';
@@ -8,7 +9,9 @@ export const ACTIVITY_ENTRIES_KEPT = 2000;
 
 export type OwnedAssetKind = 'business' | 'property';
 
-export type UpgradeTarget = 'wallet' | OwnedAssetKind;
+export type UpgradeTarget = 'wallet' | 'property';
+
+export type ImprovementTrack = 'units' | BusinessTrack;
 
 export type GroupedEarnings = {
   readonly fromMs: number;
@@ -36,6 +39,15 @@ export type ActivityEvent =
       readonly level: number;
       readonly cashChangeCents: MoneyCents;
     }
+  | {
+      readonly kind: 'improvement';
+      readonly assetId: string;
+      readonly track: ImprovementTrack;
+      readonly level: number;
+      readonly treasuryChangeCents: MoneyCents;
+    }
+  | { readonly kind: 'treasury'; readonly assetId: string; readonly cashChangeCents: MoneyCents }
+  | { readonly kind: 'closure'; readonly assetId: string; readonly closedAtMs: number }
   | { readonly kind: 'rental'; readonly assetId: string; readonly rented: boolean }
   | {
       readonly kind: 'trade';
@@ -51,6 +63,7 @@ export type ActivityEvent =
       readonly awayMs: number;
       readonly creditedMs: number;
       readonly earnings: IncomeBySource;
+      readonly closures: readonly string[];
     };
 
 export type ActivityKind = ActivityEvent['kind'];
@@ -86,6 +99,9 @@ const zeroCounts: Readonly<Record<ActivityKind, number>> = {
   purchase: 0,
   sale: 0,
   upgrade: 0,
+  improvement: 0,
+  treasury: 0,
+  closure: 0,
   rental: 0,
   trade: 0,
   dividend: 0,

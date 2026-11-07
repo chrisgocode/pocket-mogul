@@ -1,8 +1,9 @@
 import { getContent } from '@/content';
 import { freshGameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
+import { ownedBusiness } from '@/domain/testRules';
 
-import { startTestGame, startTestGameFrom, withBusinessRevenue } from './testGame';
+import { startTestGame, startTestGameFrom, withBusinessPrice } from './testGame';
 
 const threeTaps = { id: 'batch-1', command: { type: 'TapBatch', taps: 3 } } as const;
 
@@ -112,28 +113,21 @@ describe('a write failure during a purchase', () => {
 describe('an economy update while away', () => {
   const HOUR_MS = 3_600_000;
   const economyV1 = getContent();
-  const economyV2 = withBusinessRevenue(economyV1, {
+  const economyV2 = withBusinessPrice(economyV1, {
     economyVersion: 2,
     businessId: 'vending',
-    revenuePerMinute: dollars('24'),
+    pricePerCustomer: dollars('2.40'),
   });
   const withVending = {
     ...freshGameState({ saveId: 'owner', economyVersion: 1, wallMs: 1_800_000_000_000 }),
-    businesses: [
-      {
-        definitionId: 'vending',
-        levels: { capacity: 0, quality: 0, efficiency: 0 },
-        managerOwned: false,
-        capitalizedSpendCents: dollars('250'),
-      },
-    ],
+    businesses: [ownedBusiness('vending')],
   };
   const update = { content: economyV2, pastContent: [economyV1] };
 
   it('settles the absence at the old rate before the new one applies (AC30)', async () => {
     const left = await startTestGameFrom(withVending);
     const back = await left.restart({ awayMs: HOUR_MS, ...update });
-    expect<bigint>(back.game.getSnapshot().state.cashCents).toBe(dollars('600'));
+    expect<bigint>(back.game.getSnapshot().state.cashCents).toBe(dollars('300'));
     expect(back.game.getSnapshot().state.economyVersion).toBe(2);
   });
 
@@ -142,7 +136,7 @@ describe('an economy update while away', () => {
     const back = await left.restart({ awayMs: HOUR_MS, ...update });
     back.clock.advance(60_000);
     await back.game.checkpoint();
-    expect<bigint>(back.game.getSnapshot().state.cashCents).toBe(dollars('620'));
+    expect<bigint>(back.game.getSnapshot().state.cashCents).toBe(dollars('310'));
   });
 
   it('switches economy even when no time passed, and keeps the switch after a restart', async () => {

@@ -1,9 +1,11 @@
+import { getContent } from '@/content';
 import type { GameCommand } from '@/domain/commands';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars, units } from '@/domain/money';
+import { ownedBusiness } from '@/domain/testRules';
 
 import type { Game } from './game';
-import { startTestGameFrom, type TestGame } from './testGame';
+import { startTestGameFrom, withBusinessCosts, type TestGame } from './testGame';
 
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
@@ -21,30 +23,35 @@ const run = (game: Game, command: GameCommand) =>
 const kinds = async (game: Game) => (await game.readActivity()).map((entry) => entry.kind);
 
 describe('activity history', () => {
-  it('records purchases, upgrades and sales with their cash change, newest first', async () => {
+  it('records purchases, treasury moves, improvements and sales, newest first (BUS11)', async () => {
     const { game } = await startWith({ cashCents: dollars('1,000') });
     await run(game, { type: 'BuyBusiness', businessId: 'vending' });
     await run(game, {
-      type: 'UpgradeBusiness',
+      type: 'DepositToTreasury',
       businessId: 'vending',
-      track: 'capacity',
-      fromLevel: 0,
+      amountCents: dollars('100'),
     });
+    await run(game, { type: 'BuyUnit', businessId: 'vending', fromUnits: 1 });
     await run(game, { type: 'SellBusiness', businessId: 'vending' });
     expect(await game.readActivity()).toEqual([
       expect.objectContaining({
         kind: 'sale',
         asset: 'business',
         assetId: 'vending',
-        cashChangeCents: dollars('180'),
-        sequence: 3,
+        cashChangeCents: dollars('210'),
+        sequence: 4,
       }),
       expect.objectContaining({
-        kind: 'upgrade',
-        target: 'business',
-        track: 'capacity',
-        level: 1,
-        cashChangeCents: dollars('-50'),
+        kind: 'improvement',
+        assetId: 'vending',
+        track: 'units',
+        level: 2,
+        treasuryChangeCents: dollars('-100'),
+      }),
+      expect.objectContaining({
+        kind: 'treasury',
+        assetId: 'vending',
+        cashChangeCents: dollars('-100'),
       }),
       expect.objectContaining({ kind: 'purchase', cashChangeCents: dollars('-250') }),
     ]);
@@ -76,8 +83,29 @@ describe('activity history', () => {
     await run(session.game, { type: 'TapBatch', taps: 1 });
     expect(await kinds(session.game)).toEqual(['purchase']);
     expect(session.game.getSnapshot().state.activity.open).toEqual(
-      expect.objectContaining({ taps: 1, businessCents: dollars('20') }),
+      expect.objectContaining({ taps: 1, businessCents: dollars('10') }),
     );
+  });
+});
+
+describe('activity from closures', () => {
+  it('records a closure with the moment the treasury ran out (BUS12)', async () => {
+    const losing = withBusinessCosts(getContent(), {
+      businessId: 'vending',
+      costsPerDay: dollars('340'),
+    });
+    const session = await startTestGameFrom(
+      {
+        ...freshGameState({ saveId: 'activity', economyVersion: 1, wallMs: 0 }),
+        businesses: [ownedBusiness('vending', { treasuryCents: dollars('10') })],
+      },
+      { content: losing },
+    );
+    session.clock.advance(MINUTE_MS);
+    await session.game.checkpoint();
+    expect(await session.game.readActivity()).toEqual([
+      expect.objectContaining({ kind: 'closure', assetId: 'vending', closedAtMs: 30_000 }),
+    ]);
   });
 });
 
@@ -116,7 +144,8 @@ describe('activity from markets and time away', () => {
         kind: 'offline',
         awayMs: 10 * MINUTE_MS,
         creditedMs: 10 * MINUTE_MS,
-        earnings: { businesses: dollars('100'), rent: dollars('0'), dividends: dollars('0') },
+        earnings: { businesses: dollars('50'), rent: dollars('0'), dividends: dollars('0') },
+        closures: [],
       }),
     );
   });
@@ -142,6 +171,9 @@ describe('bounded activity history', () => {
       purchase: 1,
       sale: 0,
       upgrade: 0,
+      improvement: 0,
+      treasury: 0,
+      closure: 0,
       rental: 2000,
       trade: 0,
       dividend: 0,

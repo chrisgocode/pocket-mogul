@@ -40,7 +40,7 @@ describe('app shell', () => {
     await renderApp('/businesses');
     expect(screen.getByText('Unlocks at $5,000.00 peak net worth')).toBeOnTheScreen();
     expect(screen.getByText('Unlocks at $8,000,000.00 peak net worth')).toBeOnTheScreen();
-    expect(screen.getByText('Earns $10.00/min net')).toBeOnTheScreen();
+    expect(screen.getByText('Profit $100.00/day')).toBeOnTheScreen();
   });
 
   it('switches Markets between stocks and crypto, with the fictional notice', async () => {

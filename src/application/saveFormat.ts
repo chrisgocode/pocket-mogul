@@ -9,8 +9,10 @@ export type DecodedSave =
   | { readonly status: 'current'; readonly state: GameState }
   | { readonly status: 'migrated'; readonly state: GameState; readonly fromVersion: number }
   | { readonly status: 'newer' }
-  | { readonly status: 'preBaseline' }
+  | { readonly status: 'replaced'; readonly reason: ReplacedSave }
   | { readonly status: 'corrupt' };
+
+export type ReplacedSave = 'PRE_BASELINE_SAVE' | 'RETIRED_FORMAT_SAVE';
 
 export type Migration = {
   readonly fromVersion: number;
@@ -21,12 +23,16 @@ export type SaveFormat = {
   readonly readerVersion: number;
   readonly schema: z.ZodType<GameState>;
   readonly migrations: readonly Migration[];
+  readonly freshStartBelowVersion: number;
 };
+
+const DEEP_BUSINESS_VERSION = 2;
 
 export const SAVE_FORMAT: SaveFormat = {
   readerVersion: SAVE_SCHEMA_VERSION,
   schema: saveSchema,
   migrations: [],
+  freshStartBelowVersion: DEEP_BUSINESS_VERSION,
 };
 
 const header = z.object({
@@ -76,8 +82,11 @@ export function decodeSaveIn(format: SaveFormat, text: string): DecodedSave {
   const parsed = header.safeParse(raw);
   if (!parsed.success) return { status: 'corrupt' };
   const { schemaVersion, minReaderVersion } = parsed.data;
-  if (minReaderVersion === undefined) return { status: 'preBaseline' };
+  if (minReaderVersion === undefined) return { status: 'replaced', reason: 'PRE_BASELINE_SAVE' };
   if (minReaderVersion > format.readerVersion) return { status: 'newer' };
+  if (schemaVersion < format.freshStartBelowVersion) {
+    return { status: 'replaced', reason: 'RETIRED_FORMAT_SAVE' };
+  }
   if (schemaVersion < format.readerVersion)
     return migrated(format, { raw, fromVersion: schemaVersion });
   return current(format, raw);

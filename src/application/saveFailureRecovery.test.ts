@@ -1,4 +1,4 @@
-import { levelZeroBusiness } from '@/domain/businessQuotes';
+import { ownedBusiness } from '@/domain/testRules';
 import { freshGameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 
@@ -11,7 +11,7 @@ const SECOND_MS = 1000;
 async function failedReturn() {
   const session = await startTestGameFrom({
     ...freshGameState({ saveId: 'recovery', economyVersion: 1, wallMs: 0 }),
-    businesses: [levelZeroBusiness('vending')],
+    businesses: [ownedBusiness('vending', { payoutPercent: 100 })],
   });
   await session.game.pause();
   session.clock.advance(8 * HOUR_MS);

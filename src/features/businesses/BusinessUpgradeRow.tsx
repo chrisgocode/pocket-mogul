@@ -1,41 +1,40 @@
 import { StyleSheet, View } from 'react-native';
 
-import type {
-  AvailableBusinessUpgrade,
-  BusinessUpgradeOption,
-} from '@/application/businessDetailView';
-import { formatRatePerMinute } from '@/domain/money';
-import { Button } from '@/ui/Button';
+import type { AvailableImprovement, ImprovementOption } from '@/application/businessDetailView';
+import { moneyCents } from '@/domain/money';
 import { priceLabel } from '@/features/game/priceFormat';
+import { Button } from '@/ui/Button';
 import { ListRow } from '@/ui/ListRow';
 import { spacing } from '@/ui/tokens';
 
-import { TRACK_EFFECTS, TRACK_NAMES } from './businessFormat';
+import { formatPerDay, TRACK_EFFECTS, TRACK_NAMES } from './businessFormat';
 
 export function BusinessUpgradeRow({
-  upgrade,
+  improvement,
   maxLevel,
   onReview,
 }: {
-  upgrade: BusinessUpgradeOption;
+  improvement: ImprovementOption;
   maxLevel: number;
-  onReview: (upgrade: AvailableBusinessUpgrade) => void;
+  onReview: (improvement: AvailableImprovement) => void;
 }) {
-  const track = TRACK_NAMES[upgrade.track];
-  const title = `${track} ${upgrade.level}/${maxLevel}`;
-  if (upgrade.status === 'max') {
-    return <ListRow title={title} subtitle={TRACK_EFFECTS[upgrade.track]} value="Max level" />;
+  const track = TRACK_NAMES[improvement.track];
+  const title = `${track} ${improvement.level}/${maxLevel}`;
+  const effect = TRACK_EFFECTS[improvement.track];
+  if (improvement.status === 'max') {
+    return <ListRow title={title} subtitle={effect} value="Max level" />;
   }
-  const benefit = `+${formatRatePerMinute(upgrade.benefitPerMinuteCents, 'full')}`;
-  const label = priceLabel('Upgrade', upgrade);
+  const gain = moneyCents(improvement.nextProfitCents - improvement.profitCents);
+  const benefit = `+${formatPerDay(gain)}`;
+  const label = priceLabel('Upgrade', improvement);
   return (
     <View style={styles.upgrade}>
-      <ListRow title={title} subtitle={TRACK_EFFECTS[upgrade.track]} value={benefit} detail="net" />
+      <ListRow title={title} subtitle={effect} value={benefit} detail="profit" />
       <Button
         label={label}
         accessibilityLabel={`Upgrade ${track}, ${benefit}, ${label}`}
-        onPress={() => onReview(upgrade)}
-        disabled={!upgrade.affordable}
+        onPress={() => onReview(improvement)}
+        disabled={!improvement.affordable}
       />
     </View>
   );

@@ -102,6 +102,7 @@ describe('stock dividends in play', () => {
         awayMs: 10 * HOUR_MS,
         creditedMs: 8 * HOUR_MS,
         earnings: { businesses: dollars('0'), rent: dollars('0'), dividends: dollars('1.60') },
+        closures: [],
       },
     });
   });

@@ -1,3 +1,4 @@
+import { carryingValueCents } from './business/core';
 import { pendingDividendsCents } from './dividends';
 import type { GameState } from './gameState';
 import { moneyCents, type MoneyCents } from './money';
@@ -20,7 +21,7 @@ type AssetValuation = (state: GameState, rules: ProgressRules) => bigint;
 const cash: AssetValuation = (state) => state.cashCents;
 
 const businessCarryingValue: AssetValuation = (state) =>
-  state.businesses.reduce<bigint>((total, business) => total + business.capitalizedSpendCents, 0n);
+  state.businesses.reduce<bigint>((total, business) => total + carryingValueCents(business), 0n);
 
 const propertyEstimatedValue: AssetValuation = (state, rules) =>
   state.properties.reduce<bigint>((total, property) => {

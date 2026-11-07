@@ -1,16 +1,11 @@
 import type { Content } from '@/content';
 import { businessEconomy, propertyEconomy } from '@/application/economy';
-import {
-  levelZeroBusiness,
-  managerPriceCents,
-  quoteBusinessIncome,
-  quoteBusinessUpgrade,
-  UPGRADE_TRACKS,
-  type BusinessPricing,
-} from '@/domain/businessQuotes';
-import { findOwnedBusiness } from '@/domain/businesses';
+import { findOwnedBusiness } from '@/domain/business/commands';
+import { profitPerDayCents, quoteImprovement, quoteUnit } from '@/domain/business/core';
+import { BUSINESS_TRACKS, type BusinessPricing } from '@/domain/business/definition';
+import { newBusiness, type OwnedBusiness } from '@/domain/business/owned';
 import type { GameCommand } from '@/domain/commands';
-import type { GameState, OwnedBusiness, OwnedProperty } from '@/domain/gameState';
+import type { GameState, OwnedProperty } from '@/domain/gameState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 import { findOwnedProperty } from '@/domain/properties';
 import {
@@ -25,8 +20,8 @@ import { quoteWalletUpgrade } from '@/domain/wallet';
 export type OptionKind =
   | 'wallet upgrade'
   | 'business purchase'
-  | `business ${(typeof UPGRADE_TRACKS)[number]}`
-  | 'manager'
+  | 'business units'
+  | `business ${(typeof BUSINESS_TRACKS)[number]}`
   | 'property purchase'
   | `property ${(typeof PROPERTY_TRACKS)[number]}`;
 
@@ -34,6 +29,7 @@ export type PurchaseOption = {
   readonly kind: OptionKind;
   readonly assetId: string;
   readonly priceCents: MoneyCents;
+  readonly cashCents: MoneyCents;
   readonly benefitPerMinuteCents: MoneyCents;
   readonly commands: readonly GameCommand[];
 };
@@ -44,6 +40,8 @@ export type OptionContext = {
   readonly tapsPerMinute: number;
 };
 
+const MS_PER_MINUTE = 60_000n;
+
 function walletOptions({ state, content, tapsPerMinute }: OptionContext): PurchaseOption[] {
   const quote = quoteWalletUpgrade(state.tap.walletLevel, content.economy.tap);
   if (quote.status === 'max') return [];
@@ -53,36 +51,72 @@ function walletOptions({ state, content, tapsPerMinute }: OptionContext): Purcha
       kind: 'wallet upgrade',
       assetId: 'wallet',
       priceCents: quote.priceCents,
+      cashCents: quote.priceCents,
       benefitPerMinuteCents: moneyCents(perTap * BigInt(tapsPerMinute)),
       commands: [{ type: 'UpgradeWallet', fromLevel: quote.level }],
     },
   ];
 }
 
-function businessUpgrades(owned: OwnedBusiness, pricing: BusinessPricing): PurchaseOption[] {
+function perMinute(perDayCents: bigint, pricing: BusinessPricing): MoneyCents {
+  return moneyCents((perDayCents * MS_PER_MINUTE) / BigInt(pricing.rules.dayMs));
+}
+
+type Improvement = {
+  readonly kind: OptionKind;
+  readonly priceCents: MoneyCents;
+  readonly profitCents: MoneyCents;
+  readonly nextProfitCents: MoneyCents;
+  readonly command: GameCommand;
+};
+
+function treasuryFunded(
+  owned: OwnedBusiness,
+  improvement: Improvement & { readonly pricing: BusinessPricing },
+): PurchaseOption {
   const businessId = owned.definitionId;
-  const tracks = UPGRADE_TRACKS.map((track) => quoteBusinessUpgrade(owned, { ...pricing, track }))
-    .filter((quote) => quote.status === 'available')
-    .map((quote) => ({
-      kind: `business ${quote.track}` as const,
-      assetId: businessId,
-      priceCents: quote.priceCents,
-      benefitPerMinuteCents: quote.benefitPerMinuteCents,
-      commands: [
-        { type: 'UpgradeBusiness', businessId, track: quote.track, fromLevel: quote.level },
-      ] as const,
-    }));
-  if (owned.managerOwned) return tracks;
-  const now = quoteBusinessIncome(owned, pricing).netPerMinuteCents;
-  const managed = quoteBusinessIncome({ ...owned, managerOwned: true }, pricing).netPerMinuteCents;
-  const manager: PurchaseOption = {
-    kind: 'manager',
+  const shortfall = improvement.priceCents - owned.treasuryCents;
+  const cashCents = moneyCents(shortfall > 0n ? shortfall : 0n);
+  const deposit: GameCommand[] =
+    cashCents > 0n ? [{ type: 'DepositToTreasury', businessId, amountCents: cashCents }] : [];
+  return {
+    kind: improvement.kind,
     assetId: businessId,
-    priceCents: managerPriceCents(pricing),
-    benefitPerMinuteCents: moneyCents(managed - now),
-    commands: [{ type: 'HireManager', businessId }],
+    priceCents: improvement.priceCents,
+    cashCents,
+    benefitPerMinuteCents: perMinute(
+      improvement.nextProfitCents - improvement.profitCents,
+      improvement.pricing,
+    ),
+    commands: [...deposit, improvement.command],
   };
-  return [...tracks, manager];
+}
+
+function businessImprovements(owned: OwnedBusiness, pricing: BusinessPricing): PurchaseOption[] {
+  const businessId = owned.definitionId;
+  const unit = quoteUnit(owned, pricing);
+  const units: Improvement[] =
+    unit.status === 'at_cap'
+      ? []
+      : [
+          {
+            ...unit,
+            kind: 'business units',
+            command: { type: 'BuyUnit', businessId, fromUnits: unit.units },
+          },
+        ];
+  const tracks = BUSINESS_TRACKS.map((track) => quoteImprovement(owned, { ...pricing, track }))
+    .filter((quote) => quote.status === 'available')
+    .map((quote): Improvement => ({
+      kind: `business ${quote.track}`,
+      priceCents: quote.priceCents,
+      profitCents: quote.profitCents,
+      nextProfitCents: quote.nextProfitCents,
+      command: { type: 'UpgradeBusiness', businessId, track: quote.track, fromLevel: quote.level },
+    }));
+  return [...units, ...tracks].map((improvement) =>
+    treasuryFunded(owned, { ...improvement, pricing }),
+  );
 }
 
 function businessOptions({ state, content }: OptionContext): PurchaseOption[] {
@@ -90,15 +124,16 @@ function businessOptions({ state, content }: OptionContext): PurchaseOption[] {
   return catalog.flatMap((definition) => {
     const pricing = { definition, rules };
     const owned = findOwnedBusiness(state, definition.id);
-    if (owned !== undefined) return businessUpgrades(owned, pricing);
+    if (owned !== undefined) return businessImprovements(owned, pricing);
     if (!state.unlockedTiers.includes(definition.tier)) return [];
-    const income = quoteBusinessIncome(levelZeroBusiness(definition.id), pricing);
+    const opened = newBusiness(definition, { rules, atMs: state.clock.simulationMs });
     return [
       {
         kind: 'business purchase' as const,
         assetId: definition.id,
         priceCents: definition.price,
-        benefitPerMinuteCents: income.netPerMinuteCents,
+        cashCents: definition.price,
+        benefitPerMinuteCents: perMinute(profitPerDayCents(opened, pricing), pricing),
         commands: [{ type: 'BuyBusiness', businessId: definition.id }] as const,
       },
     ];
@@ -113,6 +148,7 @@ function propertyUpgrades(owned: OwnedProperty, pricing: PropertyPricing): Purch
       kind: `property ${quote.track}` as const,
       assetId: propertyId,
       priceCents: quote.priceCents,
+      cashCents: quote.priceCents,
       benefitPerMinuteCents: quote.rentedBenefitPerMinuteCents,
       commands: [
         { type: 'UpgradeProperty', propertyId, track: quote.track, fromLevel: quote.level },
@@ -132,6 +168,7 @@ function propertyOptions({ state, content }: OptionContext): PurchaseOption[] {
         kind: 'property purchase' as const,
         assetId: definition.id,
         priceCents: definition.price,
+        cashCents: definition.price,
         benefitPerMinuteCents: quotePropertyIncome(rented, pricing).netPerMinuteCents,
         commands: [
           { type: 'BuyProperty', propertyId: definition.id },

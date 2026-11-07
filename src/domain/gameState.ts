@@ -1,6 +1,7 @@
 import { freshAdSchedule, type AdScheduleState } from './adSchedule';
 import { EMPTY_ACTIVITY, type ActivityLog } from './activity';
 import { NO_REWARDS, type RewardState } from './boost';
+import type { OwnedBusiness } from './business/owned';
 import type { DividendAccrual } from './dividends';
 import { NO_GOAL_PROGRESS, type GoalProgress } from './goals';
 import { freshMarket, type MarketState } from './market';
@@ -9,22 +10,12 @@ import type { Position } from './tradeQuotes';
 import { defaultSettings, type Settings } from './settings';
 import { freshTutorial, type TutorialProgress } from './tutorial';
 
-export const SAVE_SCHEMA_VERSION = 1;
+export type { OwnedBusiness } from './business/owned';
 
-const SAVE_MIN_READER_VERSION = 1;
+export const SAVE_SCHEMA_VERSION = 2;
 
-export type BusinessLevels = {
-  readonly capacity: number;
-  readonly quality: number;
-  readonly efficiency: number;
-};
+const SAVE_MIN_READER_VERSION = 2;
 
-export type OwnedBusiness = {
-  readonly definitionId: string;
-  readonly levels: BusinessLevels;
-  readonly managerOwned: boolean;
-  readonly capitalizedSpendCents: MoneyCents;
-};
 export type PropertyLevels = {
   readonly renovation: number;
   readonly furnishings: number;
@@ -40,7 +31,6 @@ export type OwnedProperty = {
 };
 
 export type IncomeState = {
-  readonly businessRemainders: Readonly<Record<string, number>>;
   readonly businessEarningsCents: MoneyCents;
   readonly rentRemainders: Readonly<Record<string, number>>;
   readonly rentEarningsCents: MoneyCents;
@@ -57,6 +47,7 @@ export type ReturnSummary = {
   readonly awayMs: number;
   readonly creditedMs: number;
   readonly earnings: IncomeBySource;
+  readonly closures: readonly string[];
 };
 
 export type PendingReturnSummary =
@@ -111,7 +102,6 @@ export function freshGameState(start: {
     businesses: [],
     properties: [],
     income: {
-      businessRemainders: {},
       businessEarningsCents: moneyCents(0),
       rentRemainders: {},
       rentEarningsCents: moneyCents(0),

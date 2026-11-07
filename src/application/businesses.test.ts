@@ -1,10 +1,12 @@
 import { freshGameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
+import { ownedBusiness } from '@/domain/testRules';
 
 import type { Game } from './game';
 import { startTestGameFrom, type TestGame } from './testGame';
 
 const ONE_MINUTE_MS = 60_000;
+const BUSINESS_DAY_MS = 600_000;
 
 const buy = (game: Game, businessId: string, id = `buy-${businessId}`) =>
   game.dispatch({ id, command: { type: 'BuyBusiness', businessId } });
@@ -27,14 +29,7 @@ describe('buying a business', () => {
     const { game } = await session.restart();
     const { state } = game.getSnapshot();
     expect<bigint>(state.cashCents).toBe(dollars('50'));
-    expect(state.businesses).toEqual([
-      {
-        definitionId: 'vending',
-        levels: { capacity: 0, quality: 0, efficiency: 0 },
-        managerOwned: false,
-        capitalizedSpendCents: dollars('250'),
-      },
-    ]);
+    expect(state.businesses).toEqual([ownedBusiness('vending')]);
   });
 
   it('refuses a second copy with ALREADY_OWNED and spends nothing (BUS01)', async () => {
@@ -64,12 +59,14 @@ describe('buying a business', () => {
 });
 
 describe('passive income', () => {
-  it('pays a base Vending Machine exactly $10 for 60 seconds (AC06)', async () => {
+  it('splits a base Vending Machine business day into $50 cash and $50 treasury (AC06)', async () => {
     const { game, clock } = await startWith('250');
     await buy(game, 'vending');
-    clock.advance(ONE_MINUTE_MS);
+    clock.advance(BUSINESS_DAY_MS);
     expect(await game.checkpoint()).toMatchObject({ ok: true });
-    expect<bigint>(game.getSnapshot().state.cashCents).toBe(dollars('10'));
+    const { state } = game.getSnapshot();
+    expect<bigint>(state.cashCents).toBe(dollars('50'));
+    expect(state.businesses[0]?.treasuryCents).toBe(dollars('50'));
   });
 
   it('pays sixty one-second steps the same as one minute (AC08)', async () => {
@@ -84,8 +81,12 @@ describe('passive income', () => {
       Promise.resolve(),
     );
     const { state } = game.getSnapshot();
-    expect<bigint>(state.cashCents).toBe(dollars('10'));
-    expect(state.income.businessRemainders).toEqual({ vending: 0 });
+    expect<bigint>(state.cashCents).toBe(dollars('5'));
+    expect(state.businesses[0]).toMatchObject({
+      treasuryCents: dollars('5'),
+      profitRemainder: 0,
+      payoutRemainder: 0,
+    });
     expect(state.clock.simulationMs).toBe(ONE_MINUTE_MS);
   });
 
@@ -112,14 +113,20 @@ describe('passive income', () => {
     session.clock.advance(1_000);
     await session.game.checkpoint();
     const { game } = await session.restart();
-    expect(game.getSnapshot().state.income.businessRemainders).toEqual({ vending: 40_000 });
-    expect<bigint>(game.getSnapshot().state.cashCents).toBe(dollars('0.16'));
+    const { state } = game.getSnapshot();
+    expect(state.businesses[0]).toMatchObject({
+      profitRemainder: 400_000,
+      treasuryCents: dollars('0.08'),
+    });
+    expect<bigint>(state.cashCents).toBe(dollars('0.08'));
   });
+});
 
+describe('income between checkpoints', () => {
   it('lets income earned since the last checkpoint pay for a purchase', async () => {
     const { game, clock } = await startWith('1,490');
     await buy(game, 'vending');
-    clock.advance(ONE_MINUTE_MS);
+    clock.advance(2 * ONE_MINUTE_MS);
     expect(await buy(game, 'food_cart')).toMatchObject({ ok: true });
     expect<bigint>(game.getSnapshot().state.cashCents).toBe(dollars('0'));
   });
@@ -142,6 +149,6 @@ describe('passive income', () => {
     clock.advance(ONE_MINUTE_MS);
     await game.resume();
     await game.checkpoint();
-    expect<bigint>(game.getSnapshot().state.cashCents).toBe(dollars('10'));
+    expect<bigint>(game.getSnapshot().state.cashCents).toBe(dollars('5'));
   });
 });

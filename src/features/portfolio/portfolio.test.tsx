@@ -44,7 +44,7 @@ describe('Portfolio', () => {
   it('shows income by source with net rates', async () => {
     await buyVending();
     await renderRouter('src/app', { initialUrl: '/portfolio' });
-    expect(screen.getByLabelText('Businesses, $10.00/min net, $0.00, earned')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Businesses, $5.00/min net, $0.00, earned')).toBeOnTheScreen();
   });
 
   it('lists recent activity and opens the full history with lifetime totals', async () => {

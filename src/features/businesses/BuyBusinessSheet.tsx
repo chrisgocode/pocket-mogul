@@ -1,13 +1,15 @@
 import type { BusinessOffer } from '@/application/businessesView';
-import { formatMoneyExact, formatRatePerMinute, moneyCents } from '@/domain/money';
+import { formatMoneyExact, moneyCents } from '@/domain/money';
 import type { ConfirmationLine } from '@/ui/ConfirmationDetails';
 import { ConfirmationSheet } from '@/ui/ConfirmationSheet';
 import type { Confirmation } from '@/ui/state/useConfirmation';
 
+import { formatPerDay } from './businessFormat';
+
 function confirmationLines(offer: BusinessOffer): ConfirmationLine[] {
   return [
     { label: 'Cash change', value: formatMoneyExact(moneyCents(0n - offer.business.price)) },
-    { label: 'Income', value: `+${formatRatePerMinute(offer.netPerMinuteCents, 'full')} net` },
+    { label: 'Profit', value: `+${formatPerDay(offer.profitPerDayCents)} to its treasury` },
     { label: 'You will own', value: offer.business.name },
   ];
 }

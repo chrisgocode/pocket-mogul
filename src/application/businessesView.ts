@@ -1,15 +1,18 @@
 import { TIERS, type Business, type Content, type Tier } from '@/content';
-import { quoteBusinessIncome, levelZeroBusiness } from '@/domain/businessQuotes';
-import { findOwnedBusiness } from '@/domain/businesses';
+import { findOwnedBusiness } from '@/domain/business/commands';
+import { profitPerDayCents } from '@/domain/business/core';
+import { findBusiness } from '@/domain/business/definition';
+import { newBusiness } from '@/domain/business/owned';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 
 import { affordability } from './affordability';
 import { selectCashCents, selectBusinessIncomePerMinuteCents } from './cashView';
+import { businessEconomy } from './economy';
 import type { GameSnapshot } from './game';
 
 export type BusinessOffer = {
   readonly business: Business;
-  readonly netPerMinuteCents: MoneyCents;
+  readonly profitPerDayCents: MoneyCents;
   readonly status: 'owned' | 'locked' | 'available';
   readonly affordable: boolean;
   readonly shortfallCents: MoneyCents;
@@ -44,16 +47,21 @@ type OfferContext = {
   unlocked: boolean;
 };
 
+function profitOf(business: Business, context: OfferContext): MoneyCents {
+  const { catalog, rules } = businessEconomy(context.content);
+  const definition = findBusiness(catalog, business.id);
+  if (definition === undefined) return moneyCents(0);
+  const owned = findOwnedBusiness(context.snapshot.state, business.id);
+  const running = owned ?? newBusiness(definition, { rules, atMs: 0 });
+  return profitPerDayCents(running, { definition, rules });
+}
+
 function offer(business: Business, context: OfferContext): BusinessOffer {
   const owned = findOwnedBusiness(context.snapshot.state, business.id);
-  const income = quoteBusinessIncome(owned ?? levelZeroBusiness(business.id), {
-    definition: business,
-    rules: context.content.economy.businessRules,
-  });
   const available = context.unlocked ? 'available' : 'locked';
   return {
     business,
-    netPerMinuteCents: income.netPerMinuteCents,
+    profitPerDayCents: profitOf(business, context),
     status: owned === undefined ? available : 'owned',
     ...affordability(business.price, context.cashCents),
   };

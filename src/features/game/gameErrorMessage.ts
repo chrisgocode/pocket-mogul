@@ -2,6 +2,9 @@ import type { GameErrorCode } from '@/domain/commands';
 
 const MESSAGES: Record<GameErrorCode, string> = {
   INSUFFICIENT_CASH: "You don't have enough cash for this yet. Nothing was spent.",
+  INSUFFICIENT_TREASURY: "This business's treasury can't pay for this yet. Nothing was spent.",
+  BUSINESS_CLOSED: 'This business is closed. Deposit cash into its treasury to reopen it.',
+  AT_CAP: 'This business has reached its cap for now.',
   ALREADY_OWNED: 'You already own this.',
   NOT_OWNED: "You don't own this any more.",
   LOCKED_TIER: 'This tier is still locked. Grow your peak net worth to open it.',

@@ -11,6 +11,7 @@ export type TelemetryEventName =
   | 'first_business'
   | 'wallet_upgrade'
   | 'business_upgrade'
+  | 'business_closed'
   | 'rental_started'
   | 'trade_executed'
   | 'offline_settled'
@@ -96,13 +97,16 @@ const DESCRIBERS: Describers = {
       ? { name: 'first_business', details: { businessId: entry.assetId } }
       : undefined,
   sale: () => undefined,
-  upgrade: (entry) => {
-    if (entry.target === 'wallet')
-      return { name: 'wallet_upgrade', details: { level: entry.level } };
-    if (entry.target === 'property') return undefined;
-    const details = { businessId: entry.assetId, track: entry.track, level: entry.level };
-    return { name: 'business_upgrade', details };
-  },
+  upgrade: (entry) =>
+    entry.target === 'wallet'
+      ? { name: 'wallet_upgrade', details: { level: entry.level } }
+      : undefined,
+  improvement: (entry) => ({
+    name: 'business_upgrade',
+    details: { businessId: entry.assetId, track: entry.track, level: entry.level },
+  }),
+  treasury: () => undefined,
+  closure: (entry) => ({ name: 'business_closed', details: { businessId: entry.assetId } }),
   rental: (entry) =>
     entry.rented ? { name: 'rental_started', details: { propertyId: entry.assetId } } : undefined,
   trade: (entry) => ({

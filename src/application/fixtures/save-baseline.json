@@ -1,7 +1,7 @@
 {
   "saveId": "4f6c2a9e-baseline",
-  "schemaVersion": 1,
-  "minReaderVersion": 1,
+  "schemaVersion": 2,
+  "minReaderVersion": 2,
   "economyVersion": 1,
   "revision": 1842,
   "cashCents": "1208925819614629174706176",
@@ -12,9 +12,17 @@
   "businesses": [
     {
       "definitionId": "vending",
-      "levels": { "capacity": 3, "quality": 1, "efficiency": 0 },
-      "managerOwned": true,
-      "capitalizedSpendCents": "187500"
+      "stage": 1,
+      "units": 2,
+      "priceLevel": "premium",
+      "levels": { "quality": 1, "efficiency": 0 },
+      "payoutPercent": 70,
+      "treasuryCents": "12345",
+      "profitRemainder": 41999,
+      "payoutRemainder": 30,
+      "status": "open",
+      "purchasedDay": 6,
+      "capitalizedSpendCents": "41250"
     }
   ],
   "properties": [
@@ -26,7 +34,6 @@
     }
   ],
   "income": {
-    "businessRemainders": { "vending": 41999 },
     "businessEarningsCents": "912345",
     "rentRemainders": { "studio": 12 },
     "rentEarningsCents": "5000",
@@ -65,6 +72,9 @@
         "purchase": 0,
         "sale": 0,
         "upgrade": 0,
+        "improvement": 0,
+        "treasury": 0,
+        "closure": 0,
         "rental": 0,
         "trade": 0,
         "dividend": 0,

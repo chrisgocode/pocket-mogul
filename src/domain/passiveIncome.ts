@@ -1,5 +1,6 @@
-import { quoteBusinessIncome } from './businessQuotes';
-import { findBusiness, type BusinessEconomy } from './businesses';
+import { cashPerMinuteCents } from './business/core';
+import { findBusiness, type BusinessEconomy } from './business/definition';
+import { settleBusinesses, type BusinessClosure } from './business/treasury';
 import { advanceDividends, type DividendRates } from './dividends';
 import type { GameState, IncomeBySource, IncomeState } from './gameState';
 import { moneyCents, type MoneyCents } from './money';
@@ -22,8 +23,8 @@ function businessStreams(state: GameState, economy: BusinessEconomy): Stream[] {
   return state.businesses.flatMap((owned) => {
     const definition = findBusiness(economy.catalog, owned.definitionId);
     if (definition === undefined) return [];
-    const income = quoteBusinessIncome(owned, { definition, rules: economy.rules });
-    return [{ id: owned.definitionId, ratePerMinuteCents: income.netPerMinuteCents }];
+    const ratePerMinuteCents = cashPerMinuteCents(owned, { definition, rules: economy.rules });
+    return [{ id: owned.definitionId, ratePerMinuteCents }];
   });
 }
 
@@ -80,54 +81,71 @@ function accrue(streams: readonly Stream[], period: { elapsedMs: number; remaind
   );
 }
 
+type Accrued = {
+  readonly earnings: IncomeBySource;
+  readonly income: IncomeState;
+  readonly businesses: GameState['businesses'];
+  readonly closures: readonly BusinessClosure[];
+  readonly dividendAccruals: GameState['dividendAccruals'];
+};
+
 function accruedIncome(
   state: GameState,
   advance: { elapsedMs: number; economy: PassiveEconomy },
-): {
-  earnings: IncomeBySource;
-  income: IncomeState;
-  dividendAccruals: GameState['dividendAccruals'];
-} {
+): Accrued {
   const { income } = state;
-  const business = accrue(businessStreams(state, advance.economy.businesses), {
+  const fromMs = state.clock.simulationMs;
+  const business = settleBusinesses(state.businesses, {
+    fromMs,
     elapsedMs: advance.elapsedMs,
-    remainders: income.businessRemainders,
+    economy: advance.economy.businesses,
   });
   const rent = accrue(rentStreams(state, advance.economy.properties), {
     elapsedMs: advance.elapsedMs,
     remainders: income.rentRemainders,
   });
-  const fromMs = state.clock.simulationMs;
   const dividends = advanceDividends(
     { accruals: state.dividendAccruals, positions: state.positions },
     { fromMs, toMs: fromMs + advance.elapsedMs, rates: advance.economy.dividendRates },
   );
   return {
     earnings: {
-      businesses: moneyCents(business.earnedCents),
+      businesses: business.toCashCents,
       rent: moneyCents(rent.earnedCents),
       dividends: dividends.paidCents,
     },
     income: {
-      businessRemainders: business.remainders,
-      businessEarningsCents: moneyCents(income.businessEarningsCents + business.earnedCents),
+      businessEarningsCents: moneyCents(income.businessEarningsCents + business.toCashCents),
       rentRemainders: rent.remainders,
       rentEarningsCents: moneyCents(income.rentEarningsCents + rent.earnedCents),
       dividendEarningsCents: moneyCents(income.dividendEarningsCents + dividends.paidCents),
     },
+    businesses: business.businesses,
+    closures: business.closures,
     dividendAccruals: dividends.accruals,
   };
 }
 
+export type AdvancedTime = {
+  readonly state: GameState;
+  readonly earnedCents: MoneyCents;
+  readonly earnings: IncomeBySource;
+  readonly closures: readonly BusinessClosure[];
+};
+
 export function advanceTime(
   state: GameState,
   advance: { elapsedMs: number; wallMs: number; economy: PassiveEconomy },
-): { state: GameState; earnedCents: MoneyCents; earnings: IncomeBySource } {
-  const { earnings, income, dividendAccruals } = accruedIncome(state, advance);
+): AdvancedTime {
+  const { earnings, income, businesses, closures, dividendAccruals } = accruedIncome(
+    state,
+    advance,
+  );
   const earnedCents = totalIncome(earnings);
   return {
     earnedCents,
     earnings,
+    closures,
     state: {
       ...state,
       cashCents: moneyCents(state.cashCents + earnedCents),
@@ -136,6 +154,7 @@ export function advanceTime(
         lastWallCheckpointMs: advance.wallMs,
       },
       income,
+      businesses,
       dividendAccruals,
     },
   };
