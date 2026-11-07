@@ -14,7 +14,7 @@ This document is the implementation contract for the first version. This Markdow
 - Tapping earns money. Wallet or card upgrades add small amounts to earnings per tap, and later upgrades cost more.
 - An optional rewarded ad, started only from its own Tap Boost button, multiplies tap earnings by 5 for one minute of active play. It never appears automatically.
 - Automatic ads also run: interstitials at natural breaks and app open ads on warm resume (Section 15).
-- Players buy businesses, upgrade them, and receive passive income. There are exactly four business tiers.
+- Players buy businesses and run them: each business is a small management game with units, prices, staff, growth stages, risks, a treasury, takeovers and listing on the stock market (Section 5). There are exactly four business tiers.
 - A fictional stock market uses playful company names and original parody-inspired visual identities.
 - A separate fictional cryptocurrency market provides tradable coins.
 - Players buy real estate, upgrade properties, and rent them out.
@@ -29,7 +29,7 @@ Use these defaults unless the owner changes them. Keep balance values in version
 
 Include the complete tap, business, stock, crypto, property, offline, save, tutorial, goal, optional rewarded-ad, and automatic-ad loops. All gameplay uses fictional money. Core play works without a network connection; ads depend on availability.
 
-Defer accounts, cloud synchronization, a backend, shared markets, multiplayer, leaderboards, loans, short selling, leverage, limit orders, company IPOs, prestige resets, subscriptions, paid currency, push notifications, daily streaks, and detailed tenant negotiations. Managers are a one-time business upgrade, not a staffing simulation. Additional business locations are represented by upgrades rather than unlimited duplicate purchases.
+Defer accounts, cloud synchronization, a backend, shared markets, multiplayer, leaderboards, loans, short selling, leverage, limit orders, prestige resets, subscriptions, paid currency, push notifications, daily streaks, and detailed tenant negotiations. Each business is owned once; growth comes from its units, stages and takeovers rather than duplicate purchases. Three flagship businesses ship with their own mechanic in the first version; the other nine run on the shared business core until theirs ship in later updates.
 
 Saves are local and on-device in version one. Cloud saves through the platform game services (Apple Game Center saved games on iOS and Google Play Games Services Saved Games on Android) are a planned later feature. Section 14 lists the save-model choices that keep that path open.
 
@@ -62,13 +62,15 @@ Do not use Expo Go: it cannot load the native ads library. All work, including e
 
 | Surface | Primary content | Main actions |
 |---|---|---|
-| Home | Cash, tap card, per-tap income, boost timer, passive income, pinned goal | Tap, upgrade card, press the Tap Boost button (optional rewarded ad) |
-| Businesses | Owned companies, four-tier catalog, locked tier previews | Buy, open details, upgrade, hire manager, sell |
+| Earn | Tap wallet, per-tap income, boost timer, the next suggested step | Tap, upgrade the wallet, press the Tap Boost button (optional rewarded ad) |
+| Businesses | Owned businesses and the four-tier catalog, filtered by Owned and Tier 1 to 4 chips | Buy, open a business |
 | Markets | Stocks and Crypto segments, price changes, watchlist | Open asset, buy, sell |
 | Properties | Owned properties and available listings | Buy, renovate, rent, upgrade, sell |
-| Portfolio | Net worth, allocation, income sources, realized and unrealized results, activity | Inspect holdings and transaction history |
+| Wealth | Net worth, allocation, income sources, realized and unrealized results, activity | Inspect holdings and transaction history |
 
-Goals and Settings open from the header. Use a shared purchase confirmation sheet for businesses, upgrades, properties, and sales. Market orders have a specialized quote sheet. Every confirmation shows the cash change and resulting ownership or income. Disable repeated submissions while the command is pending.
+A top bar on every tab shows cash, income per minute and progress to the next goal; Goals and Settings open from it. A business opens to its own full-screen page with sections: Overview (profit, treasury and payout, key figures, price), the business's own mechanic from stage 2, Grow (units, upgrades, stage), Staff, Risks (incidents and insurance), and Deals (takeovers and going public, when unlocked), with Sell at the bottom of Overview.
+
+Buys and upgrades complete on one tap and show a short message with the income gained; each button shows its price and fills as the player saves toward it. Sales, takeover offers, going public, treasury withdrawals of the whole balance, and property purchases ask for confirmation on a shared sheet that shows the cash change and resulting ownership or income. Market orders have a specialized quote sheet. Disable repeated submissions while a command is pending.
 
 The first session starts with zero cash, tap level zero, no assets, and Tier 1 available. A short tutorial highlights tapping, the first wallet upgrade, and the first business purchase. Tutorial steps observe completed actions and persist across restarts. Players can skip explanations; this does not change unlock rules. No automatic ads appear during the tutorial, and the Tap Boost button is optional.
 
@@ -82,39 +84,126 @@ Requirement IDs TAP01 through TAP06.
 - TAP02: Level zero earns $1 per tap. Each wallet level adds $0.50. The initial level cap is 100. Upgrade price starts at $100 and grows by 1.45 for each level already owned. Use the exact integer calculation in Section 12.
 - TAP03: The upgrade control shows current earnings, next earnings, price, and affordability. A successful purchase updates all four together.
 - TAP04: Card artwork changes at levels 0, 10, 25, 50, and 100. Artwork changes are cosmetic; the displayed payout includes every economic modifier.
-- TAP05: The player starts a rewarded ad only by pressing the Tap Boost button on Home; it is never offered automatically. A completed rewarded ad grants 5x tap income for 60 seconds of eligible foreground game time. Time pauses while the app is inactive or backgrounded, or while a full-screen ad covers it. Time runs across all game tabs. Only one boost can be active; duration and multiplier do not stack.
+- TAP05: The player starts a rewarded ad only by pressing the Tap Boost button on Earn; it is never offered automatically. A completed rewarded ad grants 5x tap income for 60 seconds of eligible foreground game time. Time pauses while the app is inactive or backgrounded, or while a full-screen ad covers it. Time runs across all game tabs. Only one boost can be active; duration and multiplier do not stack.
 - TAP06: Tap animations respond immediately. Optional haptics are throttled so rapid tapping does not create a backlog. Animations and sound never determine the actual balance.
 
 Example: level 2 pays $2 per tap; while boosted it pays $10. The boost affects tapping only. Businesses, rent, dividends, market prices, and resale values use their normal rules.
 
-## 5 Businesses and four tiers
+## 5 Businesses
 
-Requirement IDs BUS01 through BUS07. Each row is one purchasable business template; the player can eventually own all twelve, three per tier. Rates below are dollars per real minute of eligible simulation time, before upgrades.
+Requirement IDs BUS01 through BUS20. Each business is a small management game that runs on one shared core: units serve customers at a price the player sets, staff and upgrades move demand, capacity and costs, and profit lands in the business's own treasury. Three flagship businesses add a mechanic of their own (5.9); the other nine run on the shared core until theirs ship (5.10). Properties keep the simpler model in Section 8.
 
-| Tier | Business ID and name | Price | Revenue per minute | Costs per minute |
-|---|---|---|---|---|
-| 1 | vending Vending Machine | $250 | $14 | $4 |
-| 1 | food_cart Food Cart | $1,250 | $72 | $22 |
-| 1 | coffee_kiosk Coffee Kiosk | $4,000 | $230 | $70 |
-| 2 | laundromat Laundromat | $7,500 | $350 | $100 |
-| 2 | car_wash Car Wash | $30,000 | $1,300 | $400 |
-| 2 | bakery Bakery | $100,000 | $4,000 | $1,200 |
-| 3 | delivery Delivery Company | $250,000 | $9,500 | $3,500 |
-| 3 | gym_chain Gym Chain | $1,000,000 | $30,000 | $10,000 |
-| 3 | hotel_group Hotel Group | $10,000,000 | $200,000 | $80,000 |
-| 4 | manufacturer Manufacturing Company | $50,000,000 | $800,000 | $300,000 |
-| 4 | airline Airline | $250,000,000 | $3,600,000 | $1,400,000 |
-| 4 | space_launch Space Launch Company | $750,000,000 | $10,000,000 | $4,000,000 |
+### 5.1 Catalog and tiers
 
-- BUS01: Buying a business spends cash and creates one owned record atomically. It starts earning immediately. Ownership requires no manager or manual collection.
-- BUS02: Every business has Capacity, Quality, and Efficiency levels from 0 to 20. Capacity increases revenue and operating costs; Quality increases revenue; Efficiency lowers operating costs. Section 12 defines the calculations.
-- BUS03: A manager can be hired once per business for twice its base purchase price. The manager adds 10 percent to net profit. It does not unlock ordinary passive or offline earnings.
-- BUS04: Every 15 total upgrade levels adds a 10 percent additive milestone bonus to net profit. Capacity levels 5, 10, 15, and 20 also change the visual branch count. Branch artwork adds no separate hidden bonus.
-- BUS05: Details show revenue, operating costs, bonuses, final net profit, and next-upgrade benefit. The preview and purchase use the same quote function.
-- BUS06: Selling pays 60 percent of the recorded purchase and upgrade spending. Manager spending is an operating expense and is excluded from this sale basis. Settle earned income before removing the business. A repurchase starts at level zero with no manager.
-- BUS07: Tier 2 unlocks at $5,000 peak net worth, Tier 3 at $200,000, and Tier 4 at $8,000,000. Tier unlocks are permanent. The catalog previews the next milestone.
+The player can own all twelve businesses, one of each, three per tier. Revenue and costs are the business's figures at stage 1 with one unit, Standard price and no staff, in dollars per business day (5.2). Content derives the core figures from this table (5.3).
 
-Business capitalized value equals purchase plus upgrade spending. Portfolio reports this carrying value separately from the lower cash sale quote. Managers are excluded. This convention avoids treating a purchase as money disappearing while making the cost of selling explicit.
+| Tier | Business ID and name | Price | Unit | Customer | Price per customer | Revenue per day | Costs per day |
+|---|---|---|---|---|---|---|---|
+| 1 | vending Vending Machine | $250 | machine | snack sold | $1.40 | $140 | $40 |
+| 1 | food_cart Food Cart | $1,250 | cart | meal served | $9 | $720 | $220 |
+| 1 | coffee_kiosk Coffee Kiosk | $4,000 | kiosk | cup sold | $4.60 | $2,300 | $700 |
+| 2 | laundromat Laundromat | $7,500 | washer | load washed | $7 | $3,500 | $1,000 |
+| 2 | car_wash Car Wash | $30,000 | bay | car washed | $26 | $13,000 | $4,000 |
+| 2 | bakery Bakery | $100,000 | oven | order baked | $40 | $40,000 | $12,000 |
+| 3 | delivery Delivery Company | $250,000 | van | parcel delivered | $9.50 | $95,000 | $35,000 |
+| 3 | gym_chain Gym Chain | $1,000,000 | studio | member visit | $15 | $300,000 | $100,000 |
+| 3 | hotel_group Hotel Group | $10,000,000 | room block | night booked | $250 | $2,000,000 | $800,000 |
+| 4 | manufacturer Manufacturing Company | $50,000,000 | production line | batch shipped | $5,000 | $8,000,000 | $3,000,000 |
+| 4 | airline Airline | $250,000,000 | plane | seat flown | $360 | $36,000,000 | $14,000,000 |
+| 4 | space_launch Space Launch Company | $750,000,000 | launch pad | payload launched | $2,000,000 | $100,000,000 | $40,000,000 |
+
+- BUS01: Buying a business spends the player's cash and creates one owned business atomically, at stage 1 with one unit, Standard price, no staff, an empty treasury and payout at 50 percent. It starts earning immediately. Earning needs no manager and no manual collection.
+- BUS02: Tier 2 unlocks at $5,000 peak net worth, Tier 3 at $200,000, and Tier 4 at $8,000,000. Tier unlocks are permanent. The catalog previews the next milestone.
+- BUS03: Buys and upgrades complete on one tap, with no confirmation sheet; the result shows as a short message with the income gained (Section 3). Sales, takeover offers and going public ask for confirmation.
+
+### 5.2 Business day
+
+- BUS04: A business day is 10 minutes of simulation time. Day boundaries fall at every multiple of 600,000 simulation milliseconds and are shared by all businesses. Income accrues continuously within a day at that day's rate (Section 12). At each boundary, in this order, the engine applies scheduled changes: ending and starting events and incidents, contract days, restocking, manager decisions, and new offers. The 8-hour offline cap is 48 business days.
+
+### 5.3 Shared core
+
+Each business has a unit count, a price level, two upgrade tracks (Quality and Efficiency), staff, a stage and a treasury.
+
+- BUS05: Customers served per day are `min(demand, capacity)`. Revenue is served customers times the price per customer. Costs are an upkeep per unit, a cost per served customer, staff wages and insurance premiums. Section 12 defines every formula.
+- BUS06: The price level is one of Budget, Value, Standard, Premium and Luxury. Each level multiplies the price per customer (70, 85, 100, 125 and 150 percent) and demand (145, 120, 100, 75 and 55 percent by default; content may set a business's own demand response). Changing price takes effect immediately. Details mark the level with the highest profit at the current settings.
+- BUS07: Buying a unit adds full capacity and 60 percent of the base demand of a unit. Unit price starts at 40 percent of the business's purchase price and grows by 1.15 for each unit beyond the first. The stage caps the unit count.
+- BUS08: Quality raises demand by 8 percent per level; Efficiency lowers the cost per served customer by 3 percent per level. Each track runs from 0 to 20 at the upgrade price curve in Section 12.
+- BUS09: Content derives each business's core figures from the catalog: capacity per unit is revenue per day divided by price per customer; base demand is 110 percent of that capacity, so a new business has slightly more customers than it can serve; cost per served customer is 60 percent of costs per day divided by capacity; upkeep per unit is the remaining 40 percent of costs per day.
+
+### 5.4 Treasury and payout
+
+- BUS10: Profit goes to the business's treasury. The payout setting (0 to 100 percent in steps of 10, default 50) moves that share of each settled profit to the player's cash at once. The business's units, upgrades, staff, stage upgrades, insurance and takeovers are paid from its treasury. New businesses, properties and trades are paid from the player's cash.
+- BUS11: The player can deposit cash into a treasury or withdraw from it at any time. Deposits and withdrawals are activity entries.
+- BUS12: A treasury never goes below zero. A loss is taken from the treasury. If losses would take it below zero, the business closes at the moment the treasury reaches zero: it earns nothing and pays nothing, and its staff, units and levels stay. The player reopens it by depositing cash; it reopens with that deposit as its treasury. Personal cash is never taken automatically. A closure is an activity entry and appears in the return summary.
+
+### 5.5 Staff and stages
+
+- BUS13: Every business has three roles. Operations staff add 20 percent capacity each; sales staff add 15 percent demand each; one manager adds 10 percent to positive profit and makes the routine decisions in BUS14. Wages per day are 4, 6 and 10 percent of the business's catalog revenue per day for operations, sales and manager; hiring also pays a signing fee of three days' wages. Firing is free. The stage caps each role's headcount. A flagship may name its roles for its own setting (for example Restocker for vending operations) without changing what they do.
+- BUS14: At each day boundary a hired manager sets the price level with the highest profit, renews insurance and makes the flagship's routine decisions listed in 5.9. The manager never deposits or withdraws, never makes takeover offers, never accepts a contract and never sells. Without a manager, settings stay as the player left them, offline too.
+- BUS15: Businesses grow through five stages: Startup, Local, Regional, National and Global. A stage upgrade is paid from the treasury and requires the unit count at the current stage's cap and a number of business days since purchase. Each stage raises the caps and unlocks features:
+
+| Stage | Unit cap | Operations cap | Sales cap | Upgrade price (× purchase price) | Days owned to upgrade | Unlocks |
+|---|---|---|---|---|---|---|
+| 1 Startup | 3 | 2 | 1 | | | Shared core |
+| 2 Local | 8 | 5 | 2 | 2 | 3 | Manager, insurance, the flagship mechanic |
+| 3 Regional | 20 | 12 | 4 | 8 | 10 | Takeovers |
+| 4 National | 50 | 30 | 6 | 30 | 30 | Going public |
+| 5 Global | 120 | 80 | 10 | 120 | 60 | The flagship's signature upgrade |
+
+The stage replaces branch artwork: business art changes with the stage.
+
+### 5.6 Risks and insurance
+
+- BUS16: Each business has three incident types in content, each with a category (equipment, liability or supply), a chance per business day in basis points, and an effect: a treasury loss of some days of catalog revenue, or a capacity loss of some percent for some days. Incidents are drawn at each day boundary from the save's seed, the day index, the business ID and the stream name `incident` (Section 11), so replaying the same days draws the same incidents. Safety rules: no incidents in a business's first 30 days after purchase; at most one active incident per business; a treasury loss is capped at 20 percent of the treasury; incidents never touch personal cash. Offline incidents appear in the return summary.
+- BUS17: From stage 2 the player can buy one insurance policy per category. A policy costs a premium per day of 2 percent of catalog revenue per day and covers 80 percent of a treasury loss, or halves a capacity loss and its duration, for incidents of its category. A policy renews daily while the treasury can pay its premium; it lapses otherwise.
+
+### 5.7 Takeovers
+
+- BUS18: Each business type has three fictional rival companies in content, each with a name, a unit count and a quality level. From stage 3 the player can make one offer at a time for a rival, paid from the treasury when accepted. The rival's valuation uses the formula in Section 12. At the next day boundary the rival accepts with a chance that rises from 0 at 80 percent of valuation to 100 percent at 140 percent, drawn from the seeded stream `takeover`. On acceptance the offer is paid and the rival merges in: its units join the business even above the stage cap, its quality raises the business's Quality to the higher of the two, and the rival leaves the list. A rejected offer locks offers for that rival for 5 business days. Merged rivals do not return.
+
+### 5.8 Going public
+
+- BUS19: From stage 4 the player can list a business on the in-game stock market. The player chooses a float of 10, 20, 30 or 40 percent and a ticker of 3 to 5 letters; the float times the valuation is paid into the treasury. The business becomes a listed stock in Markets with 1,000,000 shares, priced at each market tick from its valuation (Section 11). Outside shareholders receive the float's share of every payout, so the player's cash receives `payout × (100 − float)` percent. The player can buy back listed shares at the market price from cash; buying all of them delists the business. The player's stake counts in net worth at market price (Section 9). A listed business can still be sold: the buyer pays the player's stake at market price plus the treasury's share owned by the player.
+
+### 5.9 Flagship mechanics
+
+A flagship's mechanic unlocks at stage 2 with a coach mark; at stage 1 the business shows only the shared core. Each flagship's figures live in content.
+
+**Vending Machine: placement and stock** (BUS20a)
+
+- Machines are placed at locations: Office, Gym, School, Station and Hospital. Each location has slots, a traffic multiplier on demand, and a taste split between snacks, drinks and healthy items. Below stage 2 every machine stands at the Office.
+- Each location has a stock mix: Snacks, Drinks, Healthy or Balanced. A location's demand is multiplied by how well the mix matches its taste, from 60 percent for a poor match to 140 percent for a perfect one.
+- Machines hold stock. Each day sells stock in proportion to customers served. A location at zero stock serves no one. Restocking a location fills it and costs its restock fee from the treasury; restocking all locations is one tap. Operations staff are named Restockers and restock every location at each day boundary automatically.
+- The manager moves each location's mix to its best match.
+- Incidents: breakdown (equipment, capacity), vandalism (liability, treasury), expired stock (supply, treasury).
+- Signature upgrade at stage 5: card readers, which add 20 percent to every price level's demand.
+
+**Car Wash: packages and memberships** (BUS20b)
+
+- Walk-in customers choose from three packages, Basic, Deluxe and Ultimate. Each has its own price multiplier and bay time, and a default share of walk-ins (60, 30 and 10 percent). The player can turn Deluxe and Ultimate off; their share moves to the next package down.
+- Capacity counts bay time, so Ultimate washes use more of a bay than Basic washes.
+- Each day has weather drawn from the seeded stream `weather`: Sunny, Cloudy, Rain, or After rain, which multiply walk-in demand by 120, 100, 50 and 160 percent. Details show the weather for the next three days.
+- Memberships: members pay a daily fee whatever the weather and each uses a fixed share of bay time per day. New members join each day in proportion to Quality and the membership price level, and leave when capacity is short. The player sets the membership price level and a cap on the share of capacity members may use.
+- The manager adjusts the membership cap ahead of forecast rain.
+- Incidents: equipment failure (equipment, capacity), damage claim (liability, treasury), water price rise (supply, cost per customer up for some days).
+- Signature upgrade at stage 5: detailing, a fourth package at a high price that uses the most bay time.
+
+**Delivery Company: contracts and fleet** (BUS20c)
+
+- Capacity is parcels per day from vans. Operations staff are named Drivers; a van without a driver delivers nothing.
+- Most revenue comes from contracts. Each day the offers board shows up to three offers drawn from the seeded stream `contract`. An offer has a fictional client, parcels per day, a rate per parcel, a length in days, and a penalty per undelivered parcel. Unanswered offers expire after 2 days.
+- Accepted contracts are served first, in acceptance order. Parcels a day cannot deliver are missed, and each missed parcel costs its contract's penalty. Spare capacity serves ordinary walk-in demand at the price level.
+- Reputation, from 1 to 5 stars, is the on-time share of contract parcels over the last 10 days. Higher reputation brings bigger offers at better rates.
+- The route planner upgrade replaces Efficiency for this business and adds parcels per van instead of lowering cost.
+- The manager declines nothing and accepts nothing, but drops walk-in demand when contracts need the capacity.
+- Incidents: van crash (equipment, capacity), lost-parcel claim (liability, treasury), fuel spike (supply, cost per customer up for some days).
+- Signature upgrade at stage 5: a sorting hub, which adds 30 percent capacity.
+
+### 5.10 The other nine
+
+Until their own mechanic ships, these businesses run on the shared core with staff, stages, insurance, takeovers and going public. Planned mechanics: Coffee Kiosk, morning rush and bean grades; Food Cart, a daily spot and a short menu; Laundromat, machine mix and service washes; Bakery, an oven schedule and wholesale orders; Gym Chain, membership tiers and classes; Hotel Group, room rates by season and star rating; Manufacturing Company, production lines and bulk orders; Airline, routes and fleet; Space Launch Company, launch slots and payload contracts. Each follows the flagship pattern: content figures, a mechanic at stage 2, manager decisions, three incidents and a stage 5 signature upgrade.
+
+Business value: before listing, a business's carrying value is its purchase price plus spending on units, upgrades and stage upgrades, plus its treasury. Wages, premiums, restocking and signing fees are operating expenses and excluded. Selling an unlisted business pays 60 percent of that spending plus the whole treasury, after settling income. A repurchase starts fresh at stage 1.
 
 ## 6 Fictional stocks
 
@@ -206,13 +295,13 @@ Requirement IDs UX01 through UX05.
 
 UX01: Distinguish spendable cash, owned asset value, and total net worth. Show businesses and rent as net income per minute. Show dividend estimates per simulation hour, plus pending accrued dividends. Do not add unrealized market gains to cash.
 
-UX02: Net worth is cash plus business carrying value, estimated property value, current stock and crypto position value, and pending earned dividends. Use integer cents. Display the valuation convention in an expandable explanation. Peak net worth only increases and drives permanent unlocks. Update the peak and unlocks after financial commands and each settled market or dividend boundary, including during offline processing.
+UX02: Net worth is cash plus business carrying value (Section 5, including each treasury), the player's stake in listed businesses at market price instead of carrying value, estimated property value, current stock and crypto position value, and pending earned dividends. Use integer cents. Display the valuation convention in an expandable explanation. Peak net worth only increases and drives permanent unlocks. Update the peak and unlocks after financial commands and each settled market or dividend boundary, including during offline processing.
 
 UX03: Include goals for the first wallet upgrade, first business, first rental, first stock purchase, first crypto purchase, first dividend, and peak wealth of $1,000, $10,000, $100,000, $1,000,000, $10,000,000, $100,000,000, and $1,000,000,000. Goals award badges and feedback, with no extra cash rewards in version one. Players can pin one purchase goal.
 
 UX04: Show a readable activity history for purchases, sales, upgrades, trades, dividends, and offline settlement. Aggregate tap batches and ordinary income accrual rather than displaying every tap or second. Preserve lifetime totals separately from a bounded history.
 
-UX05: On return, automatically credit earned passive income and show a summary. The Continue button dismisses the summary; it does not grant a second reward. Include time away, credited duration, earnings by source, and whether the offline cap was reached.
+UX05: On return, automatically credit earned passive income and show a summary. Business income shows both cash received and treasury growth, and lists incidents, closures and expired contracts from the absence. The Continue button dismisses the summary; it does not grant a second reward. Include time away, credited duration, earnings by source, and whether the offline cap was reached.
 
 ## 10 Time and offline behavior
 
@@ -225,6 +314,8 @@ This means markets also advance by at most eight simulation hours per absence. C
 On a backward wall-clock change, grant zero offline elapsed time, reset the wall baseline, and record a local diagnostic event. Foreground monotonic progress continues. This is a convenience rule for a local game, not secure protection against device-clock manipulation. A trusted shared economy would require a different architecture.
 
 The simulation advances in segments ending at scheduled boundaries: market ticks, dividend payouts, event starts or ends, and the requested target time. Settle the old rates up to a boundary, then apply its changes. At an exact shared boundary, accrue prior-period dividends, post their payout, process event changes, and generate the next market quote before accepting a new player command.
+
+Business day boundaries (every 600,000 simulation milliseconds, Section 5.2) are scheduled boundaries like market ticks. Offline settlement walks every day boundary in the credited interval, so incidents, contract days, restocking, manager decisions, closures and offers resolve in order while the player is away, with the same results as playing through. At a shared boundary, process market and dividend changes first, then business days.
 
 For business and rent income, maintain a remainder per income stream. A constant rate of one cent per minute advanced sixty times by one second must pay the same total as one sixty-second advance. Selling the last asset does not erase a stream's sub-cent remainder.
 
@@ -258,6 +349,8 @@ Store 480 one-minute observations and 720 hourly OHLC observations per asset, wi
 
 Stock dividends use the fixed configured cents per whole share per simulation hour, not current price times a yield. Accrue pro rata before every trade and boundary. Keep fractional entitlement in an integer numerator with denominator 1,000,000 quantity units times 3,600,000 milliseconds. At hourly boundaries transfer whole accrued cents to cash and retain the remainder. Selling a holding retains previously accrued entitlement until payout. Avoid retroactive dividends on newly bought shares.
 
+Listed player businesses (Section 5.8) trade beside the fictional stocks with the stock fee. Their quote at each tick is `floor(valuation * 1000000 / 1000000 shares)` microdollars per share times `(10000 + noiseBps) / 10000`, where noiseBps is an integer from -100 to +100 drawn from the seed, tick, business ID and stream `listing`. They join no regime or event and pay no separate dividend; outside shareholders receive their share of payouts (Section 12). The player's own listed shares are a position like any other.
+
 ## 12 Money and progression calculations
 
 All examples are normative fixtures for the initial configuration. Store cash and transaction totals as BigInt cents, quote prices as BigInt millionths of a dollar, and quantities as BigInt millionths of a share or coin. Use distinct types such as MoneyCents, PriceMicros, and QuantityMicrounits to prevent unit mistakes. Serialize them as base-ten strings. Timestamps and bounded levels may be ordinary safe integers. UI formatting must not convert large balances to floating point first.
@@ -276,21 +369,52 @@ Level zero costs $100 to upgrade. Level one costs $145. Level two costs $210.25.
 
 ### Business rates and upgrades
 
-C, Q, and E are the current Capacity, Quality, and Efficiency levels. Base revenue, base costs, and purchase prices are integer cents.
+All money is integer cents; customer counts are whole customers per business day. Content holds, per business, `pricePerCustomer`, `capacityPerUnit`, `baseDemand`, `costPerCustomer`, `upkeepPerUnit` and the demand response by price level, derived from the catalog as BUS09 describes. U is the unit count; Q and E are the Quality and Efficiency levels; ops and sales are headcounts. Multipliers in basis points default to 10000 when nothing applies.
 
 ```text
-revenue = floor(baseRevenue * (100 + 10*C) * (100 + 10*Q) / 10000)
-costs = floor(baseCosts * (100 + 6*C) * (100 - 2*E) / 10000)
-milestoneBps = 10000 + 1000 * floor((C + Q + E) / 15)
-managerBps = managerOwned ? 11000 : 10000
-netPerMinute = floor(max(0, revenue - costs) * milestoneBps * managerBps / 100000000)
-upgradeCost = ceil(basePurchase * weightBps * 118^currentTrackLevel / (10000 *
-    100^currentTrackLevel))
+dayMs = 600000
+priceBps = [7000, 8500, 10000, 12500, 15000][priceLevel]
+demandBps = demandResponse[priceLevel]        default [14500, 12000, 10000, 7500, 5500]
+demand = floor(baseDemand * (100 + 60*(U - 1)) * demandBps * (100 + 8*Q) * (100 + 15*sales)
+    * mechanicDemandBps * eventDemandBps / (100 * 10000 * 100 * 100 * 10000 * 10000))
+capacity = floor(capacityPerUnit * U * (100 + 20*ops) * mechanicCapacityBps * incidentCapacityBps
+    / (100 * 10000 * 10000))
+served = min(demand, capacity)
+price = floor(pricePerCustomer * priceBps / 10000)
+costPerServed = floor(costPerCustomer * (100 - 3*E) * supplyBps / (100 * 10000))
+wagesPerDay = sum over hired staff of floor(catalogRevenuePerDay * roleWagePercent / 100)
+premiumsPerDay = policies * floor(catalogRevenuePerDay * 2 / 100)
+gross = served * price + mechanicRevenue - upkeepPerUnit*U - served*costPerServed
+    - wagesPerDay - premiumsPerDay - mechanicCosts
+profitPerDay = (gross > 0 and managerHired) ? floor(gross * 11000 / 10000) : gross
+unitPrice = ceil(purchasePrice * 4000 * 115^(U - 1) / (10000 * 100^(U - 1)))
+upgradeCost = ceil(purchasePrice * weightBps * 118^currentTrackLevel
+    / (10000 * 100^currentTrackLevel))        Quality 2500, Efficiency 1500
+stageUpgradePrice = purchasePrice * [2, 8, 30, 120][currentStage - 1]
+valuation = max(0, profitPerDay) * sectorMultipleDays + treasury
 ```
 
-Upgrade weight is 2,000 basis points for Capacity, 2,500 for Quality, and 1,500 for Efficiency. Each track stops at level 20. Manager cost is twice the catalog purchase price. Apply the milestone and manager once, in the formula above.
+The day's rate is fixed between boundaries. A command that changes price, staff, units, upgrades or insurance settles the old rate up to the command time and applies the new rate from then on; the day boundary does not wait.
 
-A base Vending Machine earns $10 per minute. Its first Capacity upgrade costs $50; revenue becomes $15.40 and costs become $4.24, producing $11.16 per minute. Its incremental payback is about 43.10 minutes. This is an illustration of the specified values, not proof that the balance is optimal.
+A base Vending Machine serves 100 of 110 customers at $1.40 and costs $16 upkeep plus 100 × $0.24, so it earns $100 per business day, $10 per minute, as before. At Premium it serves 82 customers at $1.75: revenue $143.50, costs $35.68, profit $107.82 per day. At Luxury it serves 60 at $2.10 for $95.60. The details screen marks Premium as the best level.
+
+### Treasury settlement
+
+For each business, settle profit like any income stream (Passive accrual below), with `dayMs` as the period:
+
+```text
+numerator = profitPerDay * elapsedMs + remainder
+settled = floor(numerator / dayMs)            floor toward negative infinity
+remainder = numerator - settled * dayMs
+if settled > 0:
+    toCash = floor(settled * payoutPercent * (100 - floatPercent) / 10000)
+    toOutside = floor(settled * payoutPercent * floatPercent / 10000)
+    treasury += settled - toCash - toOutside
+else:
+    treasury += settled                        closes the business at zero (BUS12)
+```
+
+When a segment's loss would cross zero, the closure time is `start + ceil(treasury * dayMs / -profitPerDay)` milliseconds into the segment, and settlement stops there. Outside shareholders' share leaves the game; it is recorded as a lifetime total.
 
 ### Property rates and upgrades
 
@@ -318,7 +442,7 @@ earnedCents = floor(numerator / 60000)
 nextRemainder = numerator mod 60000
 ```
 
-Settle before every ownership or rate change. There is no compounding from idle cash and no automatic reinvestment. Eight hours with one base Vending Machine pays $4,800. Ten hours away still pays $4,800 under the initial cap, and a second immediate resume cannot claim the discarded two hours.
+Settle before every ownership or rate change. There is no compounding from idle cash and no automatic reinvestment. Eight hours with one base Vending Machine earns $4,800 of profit: at the default 50 percent payout, $2,400 to cash and $2,400 to its treasury. Ten hours away still earns $4,800 under the initial cap, and a second immediate resume cannot claim the discarded two hours.
 
 ### Trade settlement and cost basis
 
@@ -343,19 +467,19 @@ Use one application, with clear module boundaries rather than an initial monorep
 | Module or directory | Responsibility |
 |---|---|
 | src/app | Expo Router routes and screen composition |
-| src/features | Home, businesses, markets, properties, portfolio, goals, settings |
-| src/domain | Pure commands, quotes, money, progression, settlement, market simulation |
+| src/features | Earn (the home tab), businesses, markets, properties, wealth (portfolio), goals, settings |
+| src/domain | Pure commands, quotes, money, progression, settlement, market simulation; the shared business core in `src/domain/business`, and each flagship mechanic in its own module under it (`vending`, `carWash`, `delivery`) behind one mechanic interface |
 | src/content | Versioned business, property, stock, coin, event, and balance definitions |
 | src/application | Serialized command service, clock coordination, selectors, subscriptions |
 | src/infrastructure | SQLite repository, migrations, ad and telemetry adapters |
 | src/ui | Shared controls, typography, tokens, charts, original SVG assets |
 | tests and scripts | Fixtures, integration journeys, balance simulations, content validation |
 
-Core commands are TapBatch, UpgradeWallet, BuyBusiness, UpgradeBusiness, HireManager, SellBusiness, BuyProperty, UpgradeProperty, SetRentalStatus, SellProperty, ExecuteTrade, SetWatchlist, PinGoal, RecordAdReward, ActivateBoost, AdvanceTime, SettleOffline (the capped wall-clock catch-up on launch and resume), AcknowledgeReturnSummary, and UpdateSettings. ResetSave is a separate destructive settings action requiring an explicit in-app confirmation.
+Core commands are TapBatch, UpgradeWallet, BuyBusiness, BuyUnit, UpgradeBusiness (Quality, Efficiency or a flagship upgrade), SetPriceLevel, HireStaff, FireStaff, UpgradeStage, SetPayout, DepositToTreasury, WithdrawFromTreasury, SetInsurance, MakeTakeoverOffer, GoPublic, SetBusinessMechanic (a flagship's own settings: vending placement, mix and restock; car wash packages and memberships; delivery contract answers), SellBusiness, BuyProperty, UpgradeProperty, SetRentalStatus, SellProperty, ExecuteTrade, SetWatchlist, PinGoal, RecordAdReward, ActivateBoost, AdvanceTime, SettleOffline (the capped wall-clock catch-up on launch and resume), AcknowledgeReturnSummary, and UpdateSettings. ResetSave is a separate destructive settings action requiring an explicit in-app confirmation.
 
 Each command envelope has a unique ID, expected state revision, accepted clock input, and validated payload. Quotes include their configuration version and relevant state revision; market quotes also include tick index. The domain returns a new state, ledger entries, and typed results or errors. External effects occur through adapters after transaction boundaries.
 
-Use typed errors including INSUFFICIENT_CASH, ALREADY_OWNED, LOCKED_TIER, MAX_LEVEL, INVALID_QUANTITY, INSUFFICIENT_HOLDING, STALE_QUOTE, BOOST_ACTIVE, AD_UNAVAILABLE, SAVE_FAILED, and UNSUPPORTED_SAVE_VERSION. Map them to clear UI text. Preserve entered trade quantity when a quote becomes stale.
+Use typed errors including INSUFFICIENT_CASH, INSUFFICIENT_TREASURY, BUSINESS_CLOSED, STAGE_LOCKED, AT_CAP, OFFER_PENDING, OFFER_LOCKED, ALREADY_LISTED, ALREADY_OWNED, LOCKED_TIER, MAX_LEVEL, INVALID_QUANTITY, INSUFFICIENT_HOLDING, STALE_QUOTE, BOOST_ACTIVE, AD_UNAVAILABLE, SAVE_FAILED, and UNSUPPORTED_SAVE_VERSION. Map them to clear UI text. Preserve entered trade quantity when a quote becomes stale.
 
 ## 14 Save model and transaction flow
 
@@ -366,7 +490,7 @@ Use one validated state snapshot as the authoritative representation of ownershi
 | GameState | saveId, schemaVersion, minReaderVersion, economyVersion, revision, cashCents, peakNetWorthCents, lifetime totals |
 | ClockState | simulationMs, lastWallCheckpointMs, lastMarketTick, active boost milliseconds remaining |
 | TapState | walletLevel, totalAcceptedTaps, artwork milestone |
-| OwnedBusiness | definitionId, three upgrade levels, managerOwned, capitalizedSpendCents |
+| OwnedBusiness | definitionId, stage, units, priceLevel, Quality and Efficiency levels, staff by role, payoutPercent, treasuryCents, profit remainder, status (open or closed), purchase day, insurance policies, active incident, takeover offer and locks, listing (float, ticker, shares held), capitalizedSpendCents, and the flagship mechanic state (vending locations, mixes and stock; car wash packages, membership settings and members; delivery contracts, offers and the 10-day delivery record) |
 | OwnedProperty | definitionId, four upgrade levels, rented, upgradeSpendCents |
 | Position | instrumentId, quantityMicrounits, remainingBasisCents, realizedProfitCents |
 | DividendAccrual | instrumentId, pending whole cents, fractional numerator; survives selling all units |
@@ -404,6 +528,8 @@ Batch taps for at most 250 milliseconds to limit write load. Flush a batch befor
 
 Store backup checkpoints after verified successful saves at a bounded cadence, including before migrations. Backups in the same database help with logical snapshot damage, not complete database or device loss. A corrupt latest snapshot may restore the latest valid backup with a visible recovery notice. A save whose minReaderVersion is above this build's reader must fail safely without overwriting the save. Never silently reset a damaged save. Local play does not promise reinstall or cross-device recovery.
 
+Version 2 is the deep-business format. Its business records replace version 1's, so a version 1 save opens as a fresh game, as a pre-baseline save does: the document is kept as a diagnostic and its backups, history and activity are dropped. The owner chose this reset over a conversion because the game is pre-launch. `minReaderVersion` rises to 2.
+
 Save format versions: the save records `schemaVersion` (the format it was written in) and `minReaderVersion` (the lowest save-format reader that can open it without misreading). Version 1 is the baseline format.
 
 - Additive change, no version bump: a new field is declared with a neutral default (an empty list, `none`, "not started"), and a save without it loads with that default. Put it at the top level of the save (a feature's fields go in one new top-level object), because an older build preserves unknown fields only at the top level. Each such field gets a test that the baseline fixture loads with its default. Never default a value that carries money or progress (cash, quantities, cost basis, time): a save missing one is damaged.
@@ -418,7 +544,7 @@ Keep save schema version and economy configuration version separate. On an econo
 
 ## 15 Ad integration and failure behavior
 
-Ads are the only monetization in version one. There are three placements: one opt-in rewarded placement (the Tap Boost button on Home, showing the exact reward and duration) and two automatic full-screen placements described below. There are no banners. Use the platform-aware `TestIds` (rewarded, interstitial, and app open) during development, and register hashed test device IDs before initialization on physical devices [5]. Initialize the real SDK on every launch in this order: (1) gather consent with Google's User Messaging Platform (`AdsConsent.gatherConsent()`); (2) on iOS, show the App Tracking Transparency prompt through the UMP explainer configured in AdMob, with no separate tracking library; (3) set the request configuration, including test device IDs; (4) call `mobileAds().initialize()` only when `canRequestAds` is true; (5) load ads. If consent gathering fails, still try with the previous session's consent. Do not store the consent status yourself. Keep this concern inside the platform adapter. Production IDs and store declarations are owner-provided release configuration (see the release checklist in Section 19).
+Ads are the only monetization in version one. There are three placements: one opt-in rewarded placement (the Tap Boost button on Earn, showing the exact reward and duration) and two automatic full-screen placements described below. There are no banners. Use the platform-aware `TestIds` (rewarded, interstitial, and app open) during development, and register hashed test device IDs before initialization on physical devices [5]. Initialize the real SDK on every launch in this order: (1) gather consent with Google's User Messaging Platform (`AdsConsent.gatherConsent()`); (2) on iOS, show the App Tracking Transparency prompt through the UMP explainer configured in AdMob, with no separate tracking library; (3) set the request configuration, including test device IDs; (4) call `mobileAds().initialize()` only when `canRequestAds` is true; (5) load ads. If consent gathering fails, still try with the previous session's consent. Do not store the consent status yourself. Keep this concern inside the platform adapter. Production IDs and store declarations are owner-provided release configuration (see the release checklist in Section 19).
 
 The ad adapter exposes availability, load, show, earned-reward, closed, and failed events, mapped from the SDK's loaded, earned-reward, closed, and error events. `show()` rejects when an ad is not loaded or is already showing; treat that as failed. Reload after each close. The application creates a unique presentation ID before showing an ad. Persist a reward grant only when the SDK emits its earned-reward event. Closing an ad alone grants nothing. Duplicate or reordered callbacks for the same presentation must resolve to a single reward.
 
@@ -431,7 +557,7 @@ Disable starting an ad while another presentation, pending grant, or boost exist
 Automatic ads appear without the player choosing them. A pure AdScheduler with injected clocks decides eligibility; the platform adapter only loads and shows. All numbers below are content configuration, tuned with telemetry.
 
 - Gate: no automatic ads until the tutorial is complete and the player has 5 minutes of cumulative foreground play.
-- Natural-break interstitials: a foreground timer makes an interstitial eligible at most once every 3 minutes, with at most 12 per local day. An eligible interstitial shows only at the next natural break: leaving Home for another tab, closing a confirmation or trade sheet, or completing a goal. It also requires at least 2.5 seconds since the last tap. A 1-second "Ad break" card that ignores input comes first. Interstitials never appear on Home mid-tap, on app launch or exit, or back to back.
+- Natural-break interstitials: a foreground timer makes an interstitial eligible at most once every 3 minutes, with at most 12 per local day. An eligible interstitial shows only at the next natural break: leaving Earn for another tab, closing a confirmation or trade sheet, or completing a goal. It also requires at least 2.5 seconds since the last tap. A 1-second "Ad break" card that ignores input comes first. Interstitials never appear on Home mid-tap, on app launch or exit, or back to back.
 - App open ads: warm resume only, from the third session, after at least 30 minutes away, at most once every 4 hours, never on cold start. On resume the order is offline settlement, then the app open ad, then the return summary.
 - Suppression: no automatic full-screen ad during the tutorial, while a boost or pending grant exists, within 2 minutes after a rewarded view, without ad consent, or while offline.
 - Backstop: configure AdMob server-side frequency caps slightly looser than the client rules (interstitial unit: 1 per 2.5 minutes, 15 per day).
@@ -455,9 +581,9 @@ Build a small headless simulation script around the same domain functions. It mu
 
 Initial playtest targets are a first wallet upgrade within 45 to 60 seconds at approximately two taps per second, a first business within about 2 minutes when saving for it, the first $1,000,000 after about 3.5 hours of active play, and a meaningful choice between reinvesting and buying another asset in the first session. The planning simulation reached the first wallet upgrade in about 50 seconds, wallet level 10 in about 1.8 hours, $1,000,000 in about 3.4 hours, $10,000,000 in about 6.9 hours, and $1,000,000,000 in about 22 hours of active play; heavy Tap Boost use reached $1,000,000 about 35 to 40 percent sooner. If casual play with offline earnings feels too fast, lower the offline earnings rate before changing prices. These are hypotheses. Record actual results before changing values.
 
-Compare at least three policies: buying the cheapest next upgrade, choosing the shortest incremental payback, and saving for the next business. Include an ad-free run and sessions separated by capped offline intervals. Flag permanently dominant choices, unaffordable progression stalls, and profit from repeatedly buying and selling an unchanged asset. Tune configuration rather than adding unexplained cash grants.
+With deep businesses, the simulation also runs the price, staff, stage and payout choices and the flagship mechanics, with a manager policy (hire managers as soon as stage 2 allows and let them decide) and a hands-on policy. Report the stage reached per business, treasury balances, closures, incident losses, and the payout share that reaches the next business fastest. The first-business and $1,000,000 targets above still apply. Compare at least three policies: buying the cheapest next upgrade, choosing the shortest incremental payback, and saving for the next business. Include an ad-free run and sessions separated by capped offline intervals. Flag permanently dominant choices, unaffordable progression stalls, and profit from repeatedly buying and selling an unchanged asset. Tune configuration rather than adding unexplained cash grants.
 
-Define a TelemetryPort with a no-op production default and a local development event sink. Events include tutorial_step, first_business, wallet_upgrade, business_upgrade, rental_started, trade_executed, offline_settled, ad_requested, ad_rewarded, boost_activated, ad_interstitial_shown, ad_interstitial_suppressed, ad_app_open_shown, ad_clicked, save_failed, and migration_completed. Include configuration version and relevant non-identifying game state. Aggregate taps. An external analytics provider is a later integration decision.
+Define a TelemetryPort with a no-op production default and a local development event sink. Events include tutorial_step, first_business, wallet_upgrade, business_upgrade, stage_upgraded, staff_hired, incident, business_closed, takeover, went_public, rental_started, trade_executed, offline_settled, ad_requested, ad_rewarded, boost_activated, ad_interstitial_shown, ad_interstitial_suppressed, ad_app_open_shown, ad_clicked, save_failed, and migration_completed. Include configuration version and relevant non-identifying game state. Aggregate taps. An external analytics provider is a later integration decision.
 
 ## 18 Acceptance criteria and critical tests
 
@@ -468,10 +594,10 @@ Define a TelemetryPort with a no-op production default and a local development e
 | AC03 | Wallet upgrade from level zero | Spend $100 once; payout becomes $1.50; next cost $145 |
 | AC04 | Repeat a command ID | Same recorded result; no additional cash or ownership change |
 | AC05 | Insufficient cash purchase | No partial spending, ownership, or upgrade |
-| AC06 | Base Vending Machine runs 60 seconds | Exactly $10 income |
-| AC07 | First Capacity upgrade | Costs $50 and changes net income to $11.16 per minute |
+| AC06 | Base Vending Machine runs one business day (10 minutes) at the default payout | Exactly $100 profit: $50 to cash and $50 to its treasury |
+| AC07 | Base Vending Machine set to Premium price | Profit becomes $107.82 per business day, and details mark Premium as the best level |
 | AC08 | Segmented passive accrual | Sixty one-second advances equal one sixty-second advance, including remainder |
-| AC09 | Ten-hour absence with base vending | Credit $4,800 and discard excess interval once |
+| AC09 | Ten-hour absence with base vending | $4,800 profit over 48 business days ($2,400 cash, $2,400 treasury); excess interval discarded once |
 | AC10 | Crash after offline commit | Return summary may reappear; money is not credited twice |
 | AC11 | Tier threshold then wealth falls | Unlocked tier stays available |
 | AC12 | City Studio renovation and sale | Values match the $2,000, $21,600, and $20,520 fixture |
@@ -493,11 +619,20 @@ Define a TelemetryPort with a no-op production default and a local development e
 | AC28 | Native application journey | Complete tap, business, rental, trade, return, and test-ad flows on the iOS Simulator and Android Emulator (agent-driven) and on the owner's iPhone (manual) |
 | AC29 | Ten-cent coin moves by 100 basis points | Quote becomes $0.101; sub-cent moves are preserved |
 | AC30 | Economy configuration changes while away | Settle old rates first; new rates apply only after migration |
-| AC31 | Tapping continuously past the interstitial cooldown | No interstitial appears on Home; it waits for the next natural break with 2.5 seconds of tap idle |
+| AC31 | Tapping continuously past the interstitial cooldown | No interstitial appears on Earn; it waits for the next natural break with 2.5 seconds of tap idle |
 | AC32 | Tutorial, active boost, or pending grant | No automatic full-screen ad appears |
 | AC33 | Cooldown and daily cap | No two interstitials within 3 minutes of foreground time; at most 12 per local day |
 | AC34 | Full-screen ad closes on Android | No offline settlement, return summary, or app open ad results |
 | AC35 | Tap Boost source | A boost starts only after the player presses the Tap Boost button and a reward is earned |
+| AC36 | Loss larger than the treasury | The business closes at the exact moment the treasury reaches zero; cash is untouched; a deposit reopens it |
+| AC37 | Same seed, days played live or settled offline | Identical incidents, weather, contract offers, takeover answers and balances |
+| AC38 | Incident safety | None in a business's first 30 days; at most one active; a treasury loss never exceeds 20 percent of the treasury |
+| AC39 | Listed business pays out | Cash receives payout x (100 - float) percent of settled profit; the rest stays in the treasury or goes to outside shareholders |
+| AC40 | Takeover accepted | Offer paid from the treasury once; rival units and quality merge; the rival leaves the list; a repeated command ID merges nothing |
+| AC41 | Delivery contract under capacity | Missed parcels pay the penalty; reputation falls; walk-in demand is served only from spare capacity |
+| AC42 | Vending location out of stock | It serves no one until restocked; a Restocker restocks it at the next day boundary |
+| AC43 | Manager hired | At each day boundary the price is the most profitable level; the manager never deposits, withdraws, accepts contracts or sells |
+| AC44 | Version 1 save | Opens as a fresh game with the old document kept as a diagnostic |
 
 Add invariant tests for nonnegative cash and quantities; no sell beyond holdings; identical results from segmented time advances; valid quote rounding; and conservation of cash changes against ledger entries. UI tests should cover consequential interactions rather than snapshot every screen.
 
@@ -513,6 +648,7 @@ Measure a maximum capped resume with all assets and chart histories on a represe
 | 4 Property and offline | Rental upgrades, valuation, capped settlement, return summary | AC09, AC10, AC12, AC13 pass |
 | 5 Markets and portfolio | Stocks, crypto, seeded prices, news, dividends, quotes, activity | AC14 through AC18 and AC29 pass; balance simulation runs |
 | 6 Ads and native validation | Mock and native test ads, boost lifecycle, automatic-ad scheduling, accessibility, performance | AC19 through AC22, AC26, AC28, AC31 through AC35 pass; remaining criteria verified |
+| 7 Deep businesses | Shared business core, treasury, staff and stages, risks and insurance, the Vending, Car Wash and Delivery mechanics, takeovers, going public, version 2 saves, balance pass, then the UI overhaul on top | AC06, AC07, AC09 and AC36 through AC44 pass; balance report rerun. Phase 6's native validation (#37) runs after this phase |
 
 Each phase leaves a runnable app and updates the README. The final handoff includes source, setup instructions, exact dependency versions, seed content, migration policy, tests, a balance report with reproducible seeds, and a list of owner-supplied release configuration. Provide evidence for each completion gate and identify any platform checks the available environment could not execute.
 
@@ -581,3 +717,4 @@ Owner decisions that changed this specification. Each entry links the planning t
 - 2026-11-07, [Save format: add fields without a new schema version](https://github.com/chrisgocode/pocket-mogul/issues/57): before launch, save schemas 1 to 7 collapse into one baseline format, version 1, and their upgrade chain and fixtures are deleted. Every save records `minReaderVersion`. Adding a field with a neutral default no longer bumps the version; only a breaking change does (see Section 14). Implementation choices: a save without `minReaderVersion` is pre-baseline and opens as a fresh game; its document is kept as a `PRE_BASELINE_SAVE` diagnostic, and its backups, market history and activity are cleared, as a reset does. The save schema is loose at the top level, so unknown top-level fields round-trip; nested objects still drop unknown keys. A newer save whose `minReaderVersion` this build can read keeps its `schemaVersion` when re-saved. The format (reader version, schema, upgrade steps) is one `SaveFormat` value, which tests can swap to exercise a version bump. `economyVersion` is unchanged. (Sections 14, 18.)
 - 2026-11-07, [Automatic ads](https://github.com/chrisgocode/pocket-mogul/issues/35), implementation choices: the AdScheduler is pure domain code (`src/domain/adSchedule.ts`) over AdScheduleState, which the save holds as the top-level `adSchedule` field (a new save gets a fresh schedule; older saves load with it, no version bump). Its foreground clock runs only while the app is in front and no automatic full-screen ad covers it, and every commit writes the latest schedule. A session is a cold launch or a warm resume after at least `appOpenMinAwayMs` (30 minutes) away, so the third session can be the second resume of one launch. The local day key comes from the injected clock (`Clock.localDayKey`). An interstitial is due once 3 foreground minutes have passed since the last automatic full-screen ad (an app open ad counts, so the two never come back to back); a due interstitial at a natural break is then suppressed, in this order, by the tutorial, the 5-minute warm-up, an active boost, a pending grant, a rewarded view within 2 minutes (wall time from its close), no loaded ad (no consent, offline or no fill; the load is retried), the daily cap, or a tap within 2.5 seconds; `ad_interstitial_suppressed` carries the trigger and one of those reasons, and no event is sent while it is not yet due. Natural breaks are leaving the Home tab (its blur), closing a confirmation or trade sheet (cancel or success; the reset-save sheet is not one), and a `goalsCompleted` game event; a break during a warm resume or after leaving the app is ignored, and leaving the app during the 1-second Ad break card cancels it. On a warm resume the app open ad shows inside the settlement commit after the save is written and before the summary is published, and the resume waits for it to close. While an interstitial or app open ad shows, background and foreground transitions are ignored, as for the rewarded ad (AC34). Banners are gated like full-screen ads (tutorial and warm-up) and sit in a strip below each of the four tabs' stacks, above the tab bar and outside the scroll content and sheets, so they never cover buy buttons; the native banner is `LARGE_ANCHORED_ADAPTIVE_BANNER` (the plain anchored size is deprecated) and loads lazily so screen tests never touch the SDK. Telemetry: `ad_interstitial_shown` (trigger), `ad_interstitial_suppressed` (trigger, reason), `ad_app_open_shown` (time away), `ad_banner_loaded` (screen) and `ad_clicked` (placement), with the usual envelope and no save or ad identifiers. Settings has "Report an ad", which opens an email to a placeholder address (`ads@pocketmogul.example`) that the owner replaces before release. Ad units are Google's test IDs. (Sections 10, 14, 15, 17.)
 - 2026-11-07, owner decision, follows [Automatic ads](https://github.com/chrisgocode/pocket-mogul/issues/35) ([#60](https://github.com/chrisgocode/pocket-mogul/pull/60)): remove the anchored adaptive banners from Businesses, Markets, Properties and Portfolio. They earn little and take up a lot of screen space, so the four tabs get their full content height back. The full-screen placements stay as they are: natural-break interstitials, warm-resume app open ads and the Tap Boost rewarded ad. The `ad_banner_loaded` event goes; `ad_clicked` stays for the full-screen placements. The saved `adSchedule` held no banner-only data (the tutorial and warm-up gate is shared with full-screen ads), so the save format does not change. (Sections 1, 2, 15, 17, 19.)
+- 2026-11-07, [Spec: deep businesses (MOGUL-level)](https://github.com/chrisgocode/pocket-mogul/issues/71): each business becomes a small management game on one shared core, replacing the Capacity, Quality and Efficiency tracks, the one-time manager and the milestone bonus. Owner decisions: depth on the level of MOGUL: Business Empire (studied with its developer's permission; no mechanics, names, text or art copied); shared systems are a treasury per business with a payout setting, staff and five growth stages, risks and insurance, takeovers and going public (no board of directors); a business day is 10 simulation minutes; a business whose treasury runs dry closes until the player deposits; existing saves reset (version 2); flagships Vending Machine, Car Wash and Delivery Company ship first, the other nine later; deep businesses are the new v1, so Phase 6's native validation (#37) waits for Phase 7. Earlier the same day, from the UI overhaul (#63): buys and upgrades complete on one tap while sales, takeovers, listing and property purchases confirm; Home and Portfolio become Earn and Wealth; properties keep a separate Rent Out step. Each flagship mechanic unlocks at stage 2 so the first business stays simple. (Sections 1, 3, 5, 9, 10, 11, 12, 13, 14, 17, 18, 19.)
