@@ -1,10 +1,10 @@
-import { boostTime } from './boostTime';
+import { coveredTime } from './boostTime';
 import { startTestGame } from './testGame';
 
 describe('the boost clock', () => {
   it('stays paused until every cover is lifted', async () => {
     const { clock } = await startTestGame();
-    const time = boostTime(clock);
+    const time = coveredTime(clock);
     clock.advance(1_000);
     time.cover('background');
     time.cover('fullScreenAd');

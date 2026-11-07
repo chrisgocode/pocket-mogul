@@ -8,6 +8,7 @@ import { Section } from '@/ui/Section';
 import { AppText } from '@/ui/Typography';
 
 import { PreferencesSection } from './PreferencesSection';
+import { ReportAdSection } from './ReportAdSection';
 import { ResetSaveSection } from './ResetSaveSection';
 
 export function SettingsScreen() {
@@ -15,6 +16,7 @@ export function SettingsScreen() {
     <Screen>
       <PreferencesSection />
       <ResetSaveSection />
+      <ReportAdSection />
       <Section title="About">
         <Card>
           <ListRow title="App version" detail={Constants.expoConfig?.version ?? 'unknown'} />

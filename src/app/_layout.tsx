@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { STARTUP_CONTENT_ISSUES } from '@/content';
+import { AdBreakCard } from '@/features/ads/AdBreakCard';
 import { GoalCelebration } from '@/features/goals/GoalCelebration';
 import { ContentErrorScreen } from '@/features/startup/ContentErrorScreen';
 import { ReturnSummarySheet } from '@/features/returnSummary/ReturnSummarySheet';
@@ -24,6 +25,7 @@ export default function RootLayout() {
             <GoalCelebration />
             <ReturnSummarySheet />
             <RecoveryNoticeSheet />
+            <AdBreakCard />
           </DeviceGameProvider>
         </Suspense>
       )}

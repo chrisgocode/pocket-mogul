@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 
 import { z } from 'zod';
 
+import { freshAdSchedule } from '@/domain/adSchedule';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars, quantityMicrounits } from '@/domain/money';
 
@@ -94,6 +95,7 @@ const BASELINE_STATE = {
   },
   tutorial: { completedSteps: ['tap', 'upgradeWallet', 'buyBusiness'], explanations: 'shown' },
   settings: { sound: 'on', haptics: 'on', reducedMotion: 'system', numberFormatting: 'compact' },
+  adSchedule: freshAdSchedule(),
 };
 
 describe('the baseline save format', () => {
@@ -117,6 +119,37 @@ describe('the baseline save format', () => {
 
   it('still rejects a known field with the wrong type', () => {
     expect(decodeSave(baselineDocument({ watchlist: 'prism' }))).toEqual({ status: 'corrupt' });
+  });
+});
+
+describe('the automatic ad schedule field', () => {
+  it('loads the baseline save with a fresh schedule and no version bump', () => {
+    expect(JSON.parse(baselineFixture)).not.toHaveProperty('adSchedule');
+    expect(currentState(baselineFixture)).toMatchObject({
+      schemaVersion: 1,
+      adSchedule: {
+        foregroundMs: 0,
+        sinceFullScreenAdMs: 0,
+        interstitials: { dayKey: '', count: 0 },
+        lastRewardedWallMs: null,
+        sessions: 0,
+        lastAppOpenWallMs: null,
+      },
+    });
+  });
+
+  it('round-trips a stored schedule', () => {
+    const adSchedule = {
+      foregroundMs: 600_000,
+      sinceFullScreenAdMs: 12_000,
+      interstitials: { dayKey: '2026-11-7', count: 4 },
+      lastRewardedWallMs: fixtureWallMs,
+      sessions: 3,
+      lastAppOpenWallMs: null,
+    };
+    expect(currentState(encodeSave(currentState(baselineDocument({ adSchedule }))))).toMatchObject({
+      adSchedule,
+    });
   });
 });
 

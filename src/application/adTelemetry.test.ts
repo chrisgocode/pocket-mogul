@@ -1,3 +1,11 @@
+import {
+  automaticAdEvents,
+  awayFor,
+  breakAfterIdle,
+  playFor,
+  repeat,
+  startAdSession,
+} from './automaticAdsTesting';
 import { scriptedAds, type AdScript } from './scriptedAds';
 import type { TelemetryEvent } from './telemetry';
 import { startObservedTestGame } from './testGame';
@@ -70,5 +78,54 @@ describe('Tap Boost telemetry', () => {
     const sent = JSON.stringify(sink.events);
     expect(sent).not.toContain(state.saveId);
     expect(sent).not.toContain(state.reward.processedRewardIds[0]);
+  });
+});
+
+describe('automatic ad telemetry', () => {
+  it('records interstitials shown and suppressed, with the trigger and reason', async () => {
+    const session = await startAdSession({ interstitial: { scripts: ['clickThenClose'] } });
+    session.game.tap();
+    await session.game.naturalBreak('sheet_closed');
+    await playFor(session, 3_000);
+    await breakAfterIdle(session);
+    expect(automaticAdEvents(session.sink.events)).toEqual([
+      ['ad_interstitial_suppressed', { trigger: 'sheet_closed', reason: 'recent_tap' }],
+      ['ad_clicked', { placement: 'interstitial' }],
+      ['ad_interstitial_shown', { trigger: 'left_home' }],
+    ]);
+  });
+
+  it('records an app open ad with the time away', async () => {
+    const session = await startAdSession();
+    await repeat(3, () => awayFor(session, 31 * 60_000));
+    expect(automaticAdEvents(session.sink.events)).toEqual([
+      ['ad_app_open_shown', { awayMs: 31 * 60_000 }],
+    ]);
+  });
+
+  it('records banner loads by screen and banner clicks', async () => {
+    const session = await startAdSession();
+    session.game.reportBanner('loaded', 'markets');
+    session.game.reportBanner('clicked', 'markets');
+    expect(automaticAdEvents(session.sink.events)).toEqual([
+      ['ad_banner_loaded', { screen: 'markets' }],
+      ['ad_clicked', { placement: 'banner' }],
+    ]);
+  });
+
+  it('sends the usual envelope and no save or ad identifiers', async () => {
+    const session = await startAdSession();
+    await breakAfterIdle(session);
+    const shown = session.sink.events.find((event) => event.name === 'ad_interstitial_shown');
+    const { state } = session.game.getSnapshot();
+    expect(shown).toMatchObject({
+      economyVersion: state.economyVersion,
+      schemaVersion: state.schemaVersion,
+      simulationMs: expect.any(Number) as number,
+      state: { businessesOwned: 1 },
+    });
+    const sent = JSON.stringify(session.sink.events);
+    expect(sent).not.toContain(state.saveId);
+    expect(sent).not.toContain('ca-app-pub');
   });
 });

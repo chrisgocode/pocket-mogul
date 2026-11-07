@@ -1,6 +1,8 @@
 import mobileAds, {
   AdEventType,
   AdsConsent,
+  AppOpenAd,
+  InterstitialAd,
   RewardedAd,
   RewardedAdEventType,
   TestIds,
@@ -9,6 +11,8 @@ import mobileAds, {
 import type { AdPort, FullScreenAd, FullScreenAdEvent } from '@/application/ports';
 
 const REWARDED_AD_UNIT_ID = TestIds.REWARDED;
+const INTERSTITIAL_AD_UNIT_ID = TestIds.INTERSTITIAL;
+const APP_OPEN_AD_UNIT_ID = TestIds.APP_OPEN;
 
 const TEST_DEVICE_IDENTIFIERS: string[] = [];
 
@@ -29,22 +33,21 @@ async function startMobileAds(): Promise<boolean> {
   return true;
 }
 
-function safelyStarted(): Promise<boolean> {
-  return startMobileAds().catch(() => false);
+let started: Promise<boolean> | undefined;
+
+export function mobileAdsStarted(): Promise<boolean> {
+  started ??= startMobileAds().catch(() => false);
+  return started;
 }
 
 type Listener = (event: FullScreenAdEvent) => void;
 
-function rewardedAd(started: Promise<boolean>): FullScreenAd {
-  const listeners = new Set<Listener>();
-  const emit = (event: FullScreenAdEvent) => {
-    for (const listener of listeners) listener(event);
-  };
-  const ad = RewardedAd.createForAdRequest(REWARDED_AD_UNIT_ID);
-  ad.addAdEventListener(RewardedAdEventType.LOADED, () =>
-    emit({ type: 'availability', availability: 'ready' }),
-  );
-  ad.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => emit({ type: 'earnedReward' }));
+type SdkFullScreenAd = Pick<InterstitialAd, 'addAdEventListener' | 'load' | 'show'>;
+
+const READY: FullScreenAdEvent = { type: 'availability', availability: 'ready' };
+
+function fullScreenAd(ad: SdkFullScreenAd, emit: Listener): FullScreenAd['load'] {
+  ad.addAdEventListener(AdEventType.CLICKED, () => emit({ type: 'clicked' }));
   ad.addAdEventListener(AdEventType.CLOSED, () => emit({ type: 'closed' }));
   ad.addAdEventListener(AdEventType.ERROR, (error) =>
     emit(
@@ -54,14 +57,23 @@ function rewardedAd(started: Promise<boolean>): FullScreenAd {
     ),
   );
   const loadWhenAllowed = async () => {
-    if (await started) ad.load();
+    if (await mobileAdsStarted()) ad.load();
     else emit({ type: 'availability', availability: 'unavailable' });
   };
+  return () => {
+    emit({ type: 'availability', availability: 'loading' });
+    void loadWhenAllowed();
+  };
+}
+
+function placement(ad: SdkFullScreenAd, onCreated: (emit: Listener) => void): FullScreenAd {
+  const listeners = new Set<Listener>();
+  const emit = (event: FullScreenAdEvent) => {
+    for (const listener of listeners) listener(event);
+  };
+  onCreated(emit);
   return {
-    load() {
-      emit({ type: 'availability', availability: 'loading' });
-      void loadWhenAllowed();
-    },
+    load: fullScreenAd(ad, emit),
     show: () => ad.show(),
     subscribe(listener) {
       listeners.add(listener);
@@ -70,6 +82,23 @@ function rewardedAd(started: Promise<boolean>): FullScreenAd {
   };
 }
 
+function rewardedAd(): FullScreenAd {
+  const ad = RewardedAd.createForAdRequest(REWARDED_AD_UNIT_ID);
+  return placement(ad, (emit) => {
+    ad.addAdEventListener(RewardedAdEventType.LOADED, () => emit(READY));
+    ad.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => emit({ type: 'earnedReward' }));
+  });
+}
+
+function automaticAd(ad: InterstitialAd | AppOpenAd): FullScreenAd {
+  return placement(ad, (emit) => ad.addAdEventListener(AdEventType.LOADED, () => emit(READY)));
+}
+
 export function googleMobileAds(): AdPort {
-  return { rewarded: rewardedAd(safelyStarted()) };
+  void mobileAdsStarted();
+  return {
+    rewarded: rewardedAd(),
+    interstitial: automaticAd(InterstitialAd.createForAdRequest(INTERSTITIAL_AD_UNIT_ID)),
+    appOpen: automaticAd(AppOpenAd.createForAdRequest(APP_OPEN_AD_UNIT_ID)),
+  };
 }

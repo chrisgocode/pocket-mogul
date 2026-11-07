@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { activityLog, goalProgress } from './activitySchemas';
-import { settings, tutorialProgress } from './preferenceSchemas';
+import { adSchedule, settings, tutorialProgress } from './preferenceSchemas';
 import { parseMoneyCents, parsePriceMicros, parseQuantityMicrounits } from '@/domain/money';
 
 export const moneyText = z
@@ -102,4 +102,5 @@ export const saveSchema = z.looseObject({
   activity: activityLog,
   tutorial: tutorialProgress,
   settings,
+  adSchedule,
 });

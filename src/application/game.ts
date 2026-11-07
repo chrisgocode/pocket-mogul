@@ -1,9 +1,16 @@
 import type { Content } from '@/content';
+import type { NaturalBreak } from '@/domain/adSchedule';
 import type { ActivityEntry } from '@/domain/activity';
 import type { CommandEnvelope, CommandOutcome } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
 
 import type { ActivityFeed } from './activityFeed';
+import {
+  automaticAds,
+  type AutomaticAdStage,
+  type BannerScreen,
+  type BannerStatus,
+} from './automaticAds';
 import { supportsEconomy } from './economy';
 import { commitCommand, type CommandTime, type Committed } from './commitCommand';
 import { foregroundLoops } from './foregroundLoops';
@@ -16,6 +23,7 @@ import { openSave, type SaveNotice, type SaveStopReason } from './openSave';
 import type { AdPort, AssetHistory, Clock, SaveStore } from './ports';
 import { commitReset } from './resetSave';
 import { rewardedBoost } from './rewardedBoost';
+import type { TapBoost } from './tapBoost';
 import { backUpIfDue } from './saveBackups';
 import { SAVE_FORMAT, type SaveFormat } from './saveFormat';
 import { serialQueue } from './serialQueue';
@@ -42,6 +50,8 @@ export type GameSnapshot = {
   readonly unsavedElapsedMs: number;
   readonly unsavedBoostMs: number;
   readonly tapBoostAd: TapBoostAd;
+  readonly automaticAd: AutomaticAdStage;
+  readonly banner: BannerStatus;
   readonly notice: SaveNotice;
 };
 
@@ -55,6 +65,8 @@ export type Game = {
   tap: () => void;
   flushTaps: () => Promise<void>;
   pressTapBoost: () => Promise<void>;
+  naturalBreak: (trigger: NaturalBreak) => Promise<void>;
+  reportBanner: (event: 'loaded' | 'clicked', screen: BannerScreen) => void;
   checkpoint: () => Promise<CommandOutcome>;
   pause: () => Promise<void>;
   resume: () => Promise<void>;
@@ -105,7 +117,7 @@ const backUp = (ports: GamePorts, saved: { revision: number; wallMs: number }) =
 
 function committer(ports: GamePorts, opened: Opened) {
   const snapshots = snapshotStore<GameSnapshot>(openingSnapshot(opened));
-  const clocks = gameClocks(ports.clock);
+  const clocks = gameClocks(ports.clock, opened.state.adSchedule);
   const queue = serialQueue();
   const live = feeds(ports, queue);
   const publish = publisher(snapshots, clocks);
@@ -114,7 +126,7 @@ function committer(ports: GamePorts, opened: Opened) {
     const wallMs = options.issuedAtWallMs ?? ports.clock.wallMs();
     return queue.run(async () => {
       const unsaved = clocks.unsaved();
-      const committed = await step(snapshots.get().state, { ...unsaved, wallMs });
+      const committed = await step(clocks.scheduled(snapshots.get().state), { ...unsaved, wallMs });
       live.record(committed);
       if (committed.state !== undefined) {
         clocks.saved(unsaved);
@@ -133,8 +145,7 @@ function committer(ports: GamePorts, opened: Opened) {
     );
   return {
     snapshots,
-    time: clocks.time,
-    boostTime: clocks.boostTime,
+    ...clocks,
     queue,
     telemetry,
     ...live,
@@ -162,7 +173,7 @@ function offlineSettlement(ports: GamePorts, core: Committer) {
       const awayMs = ports.clock.wallMs() - clock.lastWallCheckpointMs;
       if (awayMs !== 0 || economyVersion !== ports.content.economyVersion) await settle();
     },
-    onWarmResume: () => settle(ports.beforeWarmReturnSummary),
+    onWarmResume: (beforeSummary: () => Promise<void>) => settle(beforeSummary),
   };
 }
 
@@ -201,6 +212,19 @@ function refreshWhileEarning(core: Committer) {
   };
 }
 
+function adsAroundPlay(
+  ports: GamePorts,
+  game: { core: Committer; boost: TapBoost; offline: ReturnType<typeof offlineSettlement> },
+) {
+  const ads = automaticAds(ports, { core: game.core, rewardedPresenting: game.boost.isPresenting });
+  const onWarmResume = (awayMs: number) =>
+    game.offline.onWarmResume(async () => {
+      await ads.beforeReturnSummary(awayMs);
+      await ports.beforeWarmReturnSummary?.();
+    });
+  return { ads, onWarmResume };
+}
+
 async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
   const core = committer(ports, opened);
   const wallMs = ports.clock.wallMs();
@@ -216,6 +240,7 @@ async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
   });
   const { boost, activatePendingGrant } = rewardedBoost(ports, { core, flushTaps });
   await activatePendingGrant();
+  const { ads, onWarmResume } = adsAroundPlay(ports, { core, boost, offline });
   const checkpoint = () =>
     dispatch({ id: `checkpoint-${ports.createId()}`, command: { type: 'AdvanceTime' } });
   const loops = foregroundLoops({
@@ -230,13 +255,13 @@ async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
     subscribeEvents: core.events.subscribe,
     dispatch,
     checkpoint,
-    tap,
     flushTaps,
     pressTapBoost: boost.press,
+    ...ads.controls(tap),
     createCommandId: ports.createId,
     ...saveControls(ports, { core, flushTaps }),
     ...gameReads(ports, core),
-    ...lifecycle({ core, boost, checkpoint, loops, onWarmResume: offline.onWarmResume }),
+    ...lifecycle({ core, boost, ads, checkpoint, loops, onWarmResume }),
   };
 }
 

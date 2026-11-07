@@ -26,7 +26,7 @@ export type TelemetryEventName =
   | 'save_failed'
   | 'migration_completed';
 
-type TelemetryDetails = Readonly<Record<string, string | number | boolean>>;
+export type TelemetryDetails = Readonly<Record<string, string | number | boolean>>;
 
 export type TelemetryState = {
   readonly walletLevel: number;
@@ -63,6 +63,17 @@ export type ObservedCommit = {
 };
 
 export type AdRequest = 'load' | 'show';
+
+export type AdEventName = Extract<
+  TelemetryEventName,
+  | 'ad_interstitial_shown'
+  | 'ad_interstitial_suppressed'
+  | 'ad_app_open_shown'
+  | 'ad_banner_loaded'
+  | 'ad_clicked'
+>;
+
+export type AdTelemetry = { readonly name: AdEventName; readonly details: TelemetryDetails };
 
 const TAP_BOOST_PLACEMENT = 'tap_boost';
 
@@ -205,6 +216,7 @@ export function gameTelemetry(ports: { telemetry?: TelemetryPort; content: Conte
       send(committedEvents(observed, { firstBusinessGoals, content: ports.content, state }), state),
     adRequested: (request: AdRequest, state: GameState) =>
       send([{ name: 'ad_requested', details: { placement: TAP_BOOST_PLACEMENT, request } }], state),
+    ad: (event: AdTelemetry, state: GameState) => send([event], state),
     opened: (opened: { state: GameState; migratedFromSchema?: number }) => {
       if (opened.migratedFromSchema === undefined) return;
       const details = { fromVersion: opened.migratedFromSchema };

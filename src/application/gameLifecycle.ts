@@ -1,5 +1,6 @@
 import type { CommandOutcome } from '@/domain/commands';
 
+import type { AutomaticAds } from './automaticAds';
 import type { Committer } from './game';
 import type { ForegroundLoops } from './foregroundLoops';
 import type { TapBoost } from './tapBoost';
@@ -9,7 +10,8 @@ type Lifecycle = {
   boost: TapBoost;
   checkpoint: () => Promise<CommandOutcome>;
   loops: ForegroundLoops;
-  onWarmResume: () => Promise<unknown>;
+  ads: AutomaticAds;
+  onWarmResume: (awayMs: number) => Promise<unknown>;
 };
 
 export function lifecycle(game: Lifecycle) {
@@ -17,8 +19,9 @@ export function lifecycle(game: Lifecycle) {
   let leftDuringAd = false;
   return {
     async pause() {
-      leftDuringAd = game.boost.isPresenting();
+      leftDuringAd = game.boost.isPresenting() || game.ads.isPresenting();
       if (leftDuringAd) return;
+      game.ads.left();
       loops.stop();
       core.time.pause();
       core.boostTime.cover('background');
@@ -29,10 +32,15 @@ export function lifecycle(game: Lifecycle) {
         leftDuringAd = false;
         return;
       }
+      const awayMs = game.ads.returned();
       core.time.resume();
       core.boostTime.uncover('background');
       loops.start();
-      await game.onWarmResume();
+      try {
+        await game.onWarmResume(awayMs);
+      } finally {
+        game.ads.back();
+      }
     },
   };
 }

@@ -15,6 +15,7 @@ import type { Clock, Diagnostic } from './ports';
 import { scriptedAds, type ScriptedAds } from './scriptedAds';
 
 const TEST_WALL_START_MS = 1_800_000_000_000;
+const DAY_MS = 86_400_000;
 
 type ScheduledTask = { dueMs: number; task: () => void };
 
@@ -27,6 +28,7 @@ function fakeClock(wallStartMs: number): FakeClock {
   return {
     monotonicMs: () => timeline.elapsedMs,
     wallMs: () => wallStartMs + timeline.elapsedMs,
+    localDayKey: (wallMs) => `day-${Math.floor(wallMs / DAY_MS)}`,
     schedule(delayMs, task) {
       const scheduled = { dueMs: timeline.elapsedMs + delayMs, task };
       timeline = { ...timeline, tasks: [...timeline.tasks, scheduled] };

@@ -16,7 +16,9 @@ export type ConfirmationAttempt<Subject> = (attempt: {
   subject: Subject;
 }) => Promise<string | undefined>;
 
-export function useConfirmation<Subject>() {
+const NOTHING = (): void => undefined;
+
+export function useConfirmation<Subject>(onClosed: () => void = NOTHING) {
   const [confirmation, setConfirmation] = useState<Confirmation<Subject>>({ status: 'closed' });
   const pending = useRef(false);
 
@@ -24,9 +26,12 @@ export function useConfirmation<Subject>() {
     setConfirmation({ status: 'reviewing', attemptId, subject });
   }, []);
 
+  const isOpen = confirmation.status !== 'closed';
   const close = useCallback(() => {
-    if (!pending.current) setConfirmation({ status: 'closed' });
-  }, []);
+    if (pending.current || !isOpen) return;
+    setConfirmation({ status: 'closed' });
+    onClosed();
+  }, [isOpen, onClosed]);
 
   async function submit(attempt: ConfirmationAttempt<Subject>): Promise<void> {
     if (pending.current || confirmation.status === 'closed') return;
@@ -35,11 +40,10 @@ export function useConfirmation<Subject>() {
     setConfirmation({ status: 'pending', attemptId, subject });
     try {
       const failure = await attempt({ attemptId, subject });
-      setConfirmation(
-        failure === undefined
-          ? { status: 'closed' }
-          : { status: 'failed', attemptId, subject, message: failure },
-      );
+      if (failure === undefined) {
+        setConfirmation({ status: 'closed' });
+        onClosed();
+      } else setConfirmation({ status: 'failed', attemptId, subject, message: failure });
     } finally {
       pending.current = false;
     }
