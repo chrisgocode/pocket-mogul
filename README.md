@@ -16,7 +16,7 @@ A portrait mobile idle wealth game for iOS and Android: tap for cash, then build
 | 2 Economy and persistence | [#21](https://github.com/chrisgocode/pocket-mogul/issues/21) | Tapping, the Game engine, the SQLite save, and save safety ([#27](https://github.com/chrisgocode/pocket-mogul/issues/27)) built |
 | 3 Tapping and businesses | [#22](https://github.com/chrisgocode/pocket-mogul/issues/22)–[#24](https://github.com/chrisgocode/pocket-mogul/issues/24) | Wallet upgrades, businesses, upgrades, managers, sales and Tier unlocks built |
 | 4 Property and offline | [#26](https://github.com/chrisgocode/pocket-mogul/issues/26) | Properties and rent built; offline earnings ([#25](https://github.com/chrisgocode/pocket-mogul/issues/25)) not started |
-| 5 Markets and portfolio | [#28](https://github.com/chrisgocode/pocket-mogul/issues/28) | Seeded market simulation built, read-only; trading not started |
+| 5 Markets and portfolio | [#28](https://github.com/chrisgocode/pocket-mogul/issues/28) | Seeded market simulation and stock trading ([#29](https://github.com/chrisgocode/pocket-mogul/issues/29)) built; dividends, crypto trading and the Portfolio tab not started |
 | 6 Ads and native validation | — | Not started |
 
 Phase 1 is a runnable shell. It has five tabs, each with its own Stack, and Goals and Settings open from the header. It shows the validated v1 catalog read-only.
@@ -28,6 +28,8 @@ Phase 1 is a runnable shell. It has five tabs, each with its own Stack, and Goal
 #26 adds properties. The Properties tab lists all 8 listings, buyable whenever cash allows. A bought property starts vacant; Rent Out starts rent minus upkeep, and Unrent stops both. Renovation, Furnishings and Building Systems (0 to 10) and Expansion (0 to 4, not on City Studio or Starter House) apply at once, each previewed in the confirmation sheet with its cost, rent, upkeep and value change. Selling pays 95% of the estimated value, and estimated value counts toward net worth.
 
 #28 adds the seeded market. Every save has its own market seed, and stock and coin prices move once per market minute of simulation time, including up to 8 hours of offline time. Each move is drawn from a stable key (seed, tick, scope, stream), so restarting or opening a chart never changes the price path. The Markets tab lists all 24 stocks and 6 coins with their change this market hour and a news feed of market events. Each asset opens to a price chart over 1 hour, 8 hours or 30 market days, with a text summary. Chart history (480 minutes and 720 hourly candles per asset) lives in its own SQLite table, written in the same transaction as the commit that closed it. Trading comes in the next ticket.
+
+#29 adds stock trading. Each stock's details open a quote sheet for buying or selling: enter shares (up to 6 decimals) or a dollar amount, or use the 25%, 50% and Max presets. The sheet shows quantity, price, notional, the 25 bps fee, the cash change and the quote's market time. If the market ticks while it is open, the sheet keeps the entered amount and asks the player to review the new price before confirming; the engine refuses a quote from an older tick with STALE_QUOTE. Buys need $1 of notional, and selling a whole position is always allowed. Positions keep their cost basis and realized result, count towards net worth at their marked value, and show average cost and unrealized result on the stock. Trading opens permanently with the first business purchase. Stocks can be added to a watchlist shown at the top of Markets.
 
 ## Setup
 

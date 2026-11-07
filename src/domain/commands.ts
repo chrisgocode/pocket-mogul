@@ -1,7 +1,8 @@
 import type { UpgradeTrack } from './businessQuotes';
 import type { GameState } from './gameState';
-import type { MoneyCents } from './money';
+import type { MoneyCents, QuantityMicrounits } from './money';
 import type { PropertyTrack } from './propertyQuotes';
+import type { TradeSide } from './tradeQuotes';
 
 export type TapBatch = { readonly type: 'TapBatch'; readonly taps: number };
 
@@ -37,6 +38,20 @@ export type SetRentalStatus = {
 
 export type SellProperty = { readonly type: 'SellProperty'; readonly propertyId: string };
 
+export type ExecuteTrade = {
+  readonly type: 'ExecuteTrade';
+  readonly assetId: string;
+  readonly side: TradeSide;
+  readonly quantity: QuantityMicrounits;
+  readonly quotedTick: number;
+};
+
+export type SetWatchlist = {
+  readonly type: 'SetWatchlist';
+  readonly assetId: string;
+  readonly watched: boolean;
+};
+
 export type AdvanceTime = { readonly type: 'AdvanceTime' };
 
 export type SettleOffline = { readonly type: 'SettleOffline' };
@@ -54,6 +69,8 @@ export type GameCommand =
   | UpgradeProperty
   | SetRentalStatus
   | SellProperty
+  | ExecuteTrade
+  | SetWatchlist
   | AdvanceTime
   | SettleOffline
   | AcknowledgeReturnSummary;
@@ -72,6 +89,9 @@ export const GAME_ERROR_CODES = [
   'MAX_LEVEL',
   'UPGRADE_UNAVAILABLE',
   'INVALID_QUANTITY',
+  'INSUFFICIENT_HOLDING',
+  'BELOW_MINIMUM',
+  'TRADING_LOCKED',
   'STALE_QUOTE',
   'SAVE_FAILED',
 ] as const;

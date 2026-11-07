@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { GAME_ERROR_CODES, type CommandOutcome } from '@/domain/commands';
 import { SAVE_SCHEMA_VERSION, type GameState } from '@/domain/gameState';
 
-import { count, moneyText, saveSchemaV1, saveSchemaV2 } from './saveSchemas';
+import { count, moneyText, saveSchemaV1, saveSchemaV2, saveSchemaV3 } from './saveSchemas';
 
 export type DecodedSave =
   | { readonly status: 'current'; readonly state: GameState }
@@ -13,11 +13,21 @@ export type DecodedSave =
 
 type Migration = { readonly fromVersion: number; readonly upgrade: (raw: unknown) => GameState };
 
+type SaveBeforeTrading = Omit<GameState, 'tradingUnlocked' | 'positions' | 'watchlist'>;
+
+function withTrading(saved: SaveBeforeTrading): GameState {
+  return {
+    ...saved,
+    schemaVersion: SAVE_SCHEMA_VERSION,
+    tradingUnlocked: saved.businesses.length > 0,
+    positions: [],
+    watchlist: [],
+  };
+}
+
 const MIGRATIONS: readonly Migration[] = [
-  {
-    fromVersion: 1,
-    upgrade: (raw) => ({ ...saveSchemaV1.parse(raw), schemaVersion: SAVE_SCHEMA_VERSION }),
-  },
+  { fromVersion: 1, upgrade: (raw) => withTrading(saveSchemaV1.parse(raw)) },
+  { fromVersion: 2, upgrade: (raw) => withTrading(saveSchemaV2.parse(raw)) },
 ];
 
 const versioned = z.object({ schemaVersion: z.number().int() });
@@ -54,7 +64,7 @@ function migrated(raw: unknown, fromVersion: number): DecodedSave {
 }
 
 function current(raw: unknown): DecodedSave {
-  const parsed = saveSchemaV2.safeParse(raw);
+  const parsed = saveSchemaV3.safeParse(raw);
   return parsed.success ? { status: 'current', state: parsed.data } : { status: 'corrupt' };
 }
 

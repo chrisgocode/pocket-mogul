@@ -19,6 +19,7 @@ const thresholds = {
     ],
     rules: propertyRules,
   },
+  instruments: [],
 };
 
 const holding = (cash: string, businessValue = '0'): GameState => ({

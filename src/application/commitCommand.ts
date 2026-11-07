@@ -24,6 +24,7 @@ import {
   applyUpgradeProperty,
 } from '@/domain/properties';
 import { applyTapBatch } from '@/domain/tapping';
+import { applyExecuteTrade, applySetWatchlist } from '@/domain/trades';
 import { applyWalletUpgrade } from '@/domain/wallet';
 
 import {
@@ -33,6 +34,7 @@ import {
   passiveEconomy,
   progressRules,
   propertyEconomy,
+  tradeEconomy,
   type EconomyVersions,
 } from './economy';
 import { validCommand } from './commandSchema';
@@ -82,6 +84,10 @@ const COMMAND_HANDLERS: CommandHandlers = {
     applySetRentalStatus(state, { ...command, economy: propertyEconomy(content) }),
   SellProperty: (state, command, content) =>
     applySellProperty(state, { ...command, economy: propertyEconomy(content) }),
+  ExecuteTrade: (state, command, content) =>
+    applyExecuteTrade(state, { ...command, economy: tradeEconomy(content) }),
+  SetWatchlist: (state, command, content) =>
+    applySetWatchlist(state, { ...command, economy: tradeEconomy(content) }),
   AdvanceTime: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),
   SettleOffline: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),
   AcknowledgeReturnSummary: (state) => ({

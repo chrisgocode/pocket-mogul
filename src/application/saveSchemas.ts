@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { SAVE_SCHEMA_VERSION } from '@/domain/gameState';
-import { parseMoneyCents, parsePriceMicros } from '@/domain/money';
+import { parseMoneyCents, parsePriceMicros, parseQuantityMicrounits } from '@/domain/money';
 
 export const moneyText = z
   .string()
@@ -97,9 +97,8 @@ export const saveSchemaV1 = saveSchemaV1Fields.transform((saved) => ({
   },
 }));
 
-export const saveSchemaV2 = z.object({
+const saveSchemaV2Fields = {
   ...savedHeader,
-  schemaVersion: z.literal(SAVE_SCHEMA_VERSION),
   businesses: z.array(
     definitionId.extend({
       levels: businessLevels,
@@ -122,4 +121,27 @@ export const saveSchemaV2 = z.object({
   }),
   returnSummary: awayReport(z.object({ businesses: moneyText, rent: moneyText })),
   market,
+};
+
+const SCHEMA_VERSION_BEFORE_TRADING = 2;
+
+export const saveSchemaV2 = z.object({
+  ...saveSchemaV2Fields,
+  schemaVersion: z.literal(SCHEMA_VERSION_BEFORE_TRADING),
+});
+
+const quantityText = z.string().regex(/^\d+$/).transform(parseQuantityMicrounits);
+const position = z.object({
+  instrumentId: z.string().min(1),
+  quantity: quantityText,
+  remainingBasisCents: moneyText,
+  realizedProfitCents: moneyText,
+});
+
+export const saveSchemaV3 = z.object({
+  ...saveSchemaV2Fields,
+  schemaVersion: z.literal(SAVE_SCHEMA_VERSION),
+  tradingUnlocked: z.boolean(),
+  positions: z.array(position),
+  watchlist: z.array(z.string().min(1)),
 });
