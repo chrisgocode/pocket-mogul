@@ -93,7 +93,7 @@ describe('a save from the previous schema', () => {
     const { game } = await startTestGameFromDocument(v1Fixture, fixtureWallMs);
     expect(game.getSnapshot().state).toEqual({
       saveId: '4f6c2a9e-legacy',
-      schemaVersion: 3,
+      schemaVersion: 4,
       economyVersion: 1,
       revision: 1842,
       cashCents: 1_208_925_819_614_629_174_706_176n,
@@ -128,6 +128,7 @@ describe('a save from the previous schema', () => {
         businessEarningsCents: dollars('9123.45'),
         rentRemainders: {},
         rentEarningsCents: dollars('0'),
+        dividendEarningsCents: dollars('0'),
       },
       unlockedTiers: [1, 2],
       returnSummary: {
@@ -135,19 +136,20 @@ describe('a save from the previous schema', () => {
         summary: {
           awayMs: 7_200_000,
           creditedMs: 7_200_000,
-          earnings: { businesses: dollars('864'), rent: dollars('0') },
+          earnings: { businesses: dollars('864'), rent: dollars('0'), dividends: dollars('0') },
         },
       },
       market: { seed: '4f6c2a9e-legacy', tick: 1440, quotes: {}, candles: {} },
       tradingUnlocked: true,
       positions: [],
+      dividendAccruals: [],
       watchlist: [],
     });
   });
 
   it('saves the migrated snapshot so the next launch opens it as current', async () => {
     const migrated = await startTestGameFromDocument(v1Fixture, fixtureWallMs);
-    expect(JSON.parse(migrated.saveDocument())).toMatchObject({ schemaVersion: 3, revision: 1842 });
+    expect(JSON.parse(migrated.saveDocument())).toMatchObject({ schemaVersion: 4, revision: 1842 });
     const again = await migrated.restart();
     expect(again.game.getSnapshot().state.revision).toBe(1842);
   });
@@ -157,7 +159,7 @@ describe('a save from the previous schema', () => {
     migrated.replaceSaveDocument('not json');
     const { game } = await migrated.restart();
     expect(game.getSnapshot().notice).toEqual({ kind: 'restoredFromBackup' });
-    expect(game.getSnapshot().state).toMatchObject({ schemaVersion: 3, revision: 1842 });
+    expect(game.getSnapshot().state).toMatchObject({ schemaVersion: 4, revision: 1842 });
   });
 });
 

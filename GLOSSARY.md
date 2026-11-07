@@ -158,6 +158,14 @@ _Avoid_: Estimate, preview price
 What the player holds of one stock or coin: quantity, remaining cost basis (purchases plus buy fees, reduced proportionally on each sale) and realized result. It counts towards net worth at its sale notional before fees.
 _Avoid_: Holding (for the record), lot
 
+**Dividend accrual**:
+What a stock has earned the player since its last payout: pending whole cents plus a fractional numerator over 1,000,000 quantity units times 3,600,000 ms. It accrues only while shares are held, pays into cash at each simulation hour, and survives selling every share.
+_Avoid_: Dividend balance, yield
+
+**Pending dividends**:
+The whole cents accrued but not yet paid; they count towards net worth until the hour's payout moves them into cash.
+_Avoid_: Unpaid dividends, owed dividends
+
 **Watchlist**:
 The stocks and coins the player has marked to see at the top of Markets; it changes nothing about prices or trades.
 _Avoid_: Favorites, starred

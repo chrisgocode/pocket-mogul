@@ -37,7 +37,7 @@ describe('relaunching after time away', () => {
       summary: {
         awayMs: 10 * HOUR_MS,
         creditedMs: 8 * HOUR_MS,
-        earnings: { businesses: dollars('4800'), rent: dollars('0') },
+        earnings: { businesses: dollars('4800'), rent: dollars('0'), dividends: dollars('0') },
       },
     });
   });
@@ -85,7 +85,7 @@ describe('rent while away', () => {
       summary: {
         awayMs: HOUR_MS,
         creditedMs: HOUR_MS,
-        earnings: { businesses: dollars('600'), rent: dollars('6000') },
+        earnings: { businesses: dollars('600'), rent: dollars('6000'), dividends: dollars('0') },
       },
     });
     expect<bigint>(cash(back)).toBe(dollars('6600'));

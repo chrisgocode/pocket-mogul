@@ -42,6 +42,7 @@ const businesses: BusinessEconomy = {
 const economy: PassiveEconomy = {
   businesses,
   properties: { catalog: [], rules: propertyRules },
+  dividendRates: {},
 };
 
 function leftWith(...definitions: BusinessDefinition[]): GameState {
@@ -88,7 +89,7 @@ describe('settling an absence', () => {
       summary: {
         awayMs: 10 * HOUR_MS,
         creditedMs: CAP_MS,
-        earnings: { businesses: dollars('4800'), rent: dollars('0') },
+        earnings: { businesses: dollars('4800'), rent: dollars('0'), dividends: dollars('0') },
       },
     });
   });
@@ -112,7 +113,7 @@ describe('settling an absence', () => {
       summary: {
         awayMs: 2 * HOUR_MS + 30_000,
         creditedMs: 2 * HOUR_MS + 30_000,
-        earnings: { businesses: dollars('1205'), rent: dollars('0') },
+        earnings: { businesses: dollars('1205'), rent: dollars('0'), dividends: dollars('0') },
       },
     });
   });

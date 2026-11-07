@@ -3,6 +3,7 @@ import { quoteOf, type MarketState, type Ohlc } from '@/domain/market';
 import { changeBps } from '@/domain/marketPrices';
 import type { PriceMicros } from '@/domain/money';
 
+import { selectDividends, type DividendView } from './dividendView';
 import type { GameSnapshot } from './game';
 import { selectPosition, type PositionView } from './positionView';
 
@@ -25,6 +26,7 @@ export type AssetDetail =
       readonly trading: 'open' | 'locked';
       readonly watched: boolean;
       readonly position: PositionView | undefined;
+      readonly dividends: DividendView | undefined;
     });
 
 function quoted(market: MarketState, asset: Stock | Coin): Quoted {
@@ -61,6 +63,7 @@ export function selectAssetDetail(
     trading: state.tradingUnlocked ? 'open' : 'locked',
     watched: state.watchlist.includes(request.assetId),
     position: selectPosition(state, request),
+    dividends: selectDividends(snapshot, request),
   };
 }
 

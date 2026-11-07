@@ -1,9 +1,24 @@
 import { z } from 'zod';
 
 import { GAME_ERROR_CODES, type CommandOutcome } from '@/domain/commands';
-import { SAVE_SCHEMA_VERSION, type GameState } from '@/domain/gameState';
+import {
+  SAVE_SCHEMA_VERSION,
+  type GameState,
+  type IncomeBySource,
+  type IncomeState,
+  type PendingReturnSummary,
+  type ReturnSummary,
+} from '@/domain/gameState';
+import { moneyCents } from '@/domain/money';
 
-import { count, moneyText, saveSchemaV1, saveSchemaV2, saveSchemaV3 } from './saveSchemas';
+import {
+  count,
+  moneyText,
+  saveSchemaV1,
+  saveSchemaV2,
+  saveSchemaV3,
+  saveSchemaV4,
+} from './saveSchemas';
 
 export type DecodedSave =
   | { readonly status: 'current'; readonly state: GameState }
@@ -13,21 +28,53 @@ export type DecodedSave =
 
 type Migration = { readonly fromVersion: number; readonly upgrade: (raw: unknown) => GameState };
 
-type SaveBeforeTrading = Omit<GameState, 'tradingUnlocked' | 'positions' | 'watchlist'>;
+type EarningsBeforeDividends = Omit<IncomeBySource, 'dividends'>;
 
-function withTrading(saved: SaveBeforeTrading): GameState {
+type SummaryBeforeDividends =
+  | { readonly status: 'none' }
+  | {
+      readonly status: 'pending';
+      readonly summary: Omit<ReturnSummary, 'earnings'> & {
+        readonly earnings: EarningsBeforeDividends;
+      };
+    };
+
+type SaveBeforeDividends = Omit<GameState, 'income' | 'returnSummary' | 'dividendAccruals'> & {
+  readonly income: Omit<IncomeState, 'dividendEarningsCents'>;
+  readonly returnSummary: SummaryBeforeDividends;
+};
+
+type SaveBeforeTrading = Omit<SaveBeforeDividends, 'tradingUnlocked' | 'positions' | 'watchlist'>;
+
+function withTrading(saved: SaveBeforeTrading): SaveBeforeDividends {
   return {
     ...saved,
-    schemaVersion: SAVE_SCHEMA_VERSION,
     tradingUnlocked: saved.businesses.length > 0,
     positions: [],
     watchlist: [],
   };
 }
 
+function summaryWithDividends(summary: SummaryBeforeDividends): PendingReturnSummary {
+  if (summary.status === 'none') return summary;
+  const earnings = { ...summary.summary.earnings, dividends: moneyCents(0) };
+  return { status: 'pending', summary: { ...summary.summary, earnings } };
+}
+
+function withDividends(saved: SaveBeforeDividends): GameState {
+  return {
+    ...saved,
+    schemaVersion: SAVE_SCHEMA_VERSION,
+    income: { ...saved.income, dividendEarningsCents: moneyCents(0) },
+    returnSummary: summaryWithDividends(saved.returnSummary),
+    dividendAccruals: [],
+  };
+}
+
 const MIGRATIONS: readonly Migration[] = [
-  { fromVersion: 1, upgrade: (raw) => withTrading(saveSchemaV1.parse(raw)) },
-  { fromVersion: 2, upgrade: (raw) => withTrading(saveSchemaV2.parse(raw)) },
+  { fromVersion: 1, upgrade: (raw) => withDividends(withTrading(saveSchemaV1.parse(raw))) },
+  { fromVersion: 2, upgrade: (raw) => withDividends(withTrading(saveSchemaV2.parse(raw))) },
+  { fromVersion: 3, upgrade: (raw) => withDividends(saveSchemaV3.parse(raw)) },
 ];
 
 const versioned = z.object({ schemaVersion: z.number().int() });
@@ -64,7 +111,7 @@ function migrated(raw: unknown, fromVersion: number): DecodedSave {
 }
 
 function current(raw: unknown): DecodedSave {
-  const parsed = saveSchemaV3.safeParse(raw);
+  const parsed = saveSchemaV4.safeParse(raw);
   return parsed.success ? { status: 'current', state: parsed.data } : { status: 'corrupt' };
 }
 

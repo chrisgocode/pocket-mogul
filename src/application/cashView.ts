@@ -12,7 +12,7 @@ import { tapPayoutCents } from '@/domain/tapping';
 import { passiveEconomy } from './economy';
 import type { GameSnapshot } from './game';
 
-function stateWithUnsavedIncome(snapshot: GameSnapshot, content: Content): GameState {
+export function stateWithUnsavedIncome(snapshot: GameSnapshot, content: Content): GameState {
   const { state } = snapshot;
   return advanceTime(state, {
     elapsedMs: snapshot.unsavedElapsedMs,

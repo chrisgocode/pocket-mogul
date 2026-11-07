@@ -1,8 +1,9 @@
+import type { DividendAccrual } from './dividends';
 import { freshMarket, type MarketState } from './market';
 import { moneyCents, type MoneyCents } from './money';
 import type { Position } from './tradeQuotes';
 
-export const SAVE_SCHEMA_VERSION = 3;
+export const SAVE_SCHEMA_VERSION = 4;
 
 export type BusinessLevels = {
   readonly capacity: number;
@@ -35,9 +36,14 @@ export type IncomeState = {
   readonly businessEarningsCents: MoneyCents;
   readonly rentRemainders: Readonly<Record<string, number>>;
   readonly rentEarningsCents: MoneyCents;
+  readonly dividendEarningsCents: MoneyCents;
 };
 
-export type IncomeBySource = { readonly businesses: MoneyCents; readonly rent: MoneyCents };
+export type IncomeBySource = {
+  readonly businesses: MoneyCents;
+  readonly rent: MoneyCents;
+  readonly dividends: MoneyCents;
+};
 
 export type ReturnSummary = {
   readonly awayMs: number;
@@ -67,6 +73,7 @@ export type GameState = {
   readonly market: MarketState;
   readonly tradingUnlocked: boolean;
   readonly positions: readonly Position[];
+  readonly dividendAccruals: readonly DividendAccrual[];
   readonly watchlist: readonly string[];
 };
 
@@ -92,12 +99,14 @@ export function freshGameState(start: {
       businessEarningsCents: moneyCents(0),
       rentRemainders: {},
       rentEarningsCents: moneyCents(0),
+      dividendEarningsCents: moneyCents(0),
     },
     unlockedTiers: [1],
     returnSummary: { status: 'none' },
     market: freshMarket(start.saveId),
     tradingUnlocked: false,
     positions: [],
+    dividendAccruals: [],
     watchlist: [],
   };
 }

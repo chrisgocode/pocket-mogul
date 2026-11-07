@@ -51,6 +51,7 @@ const economy: PassiveEconomy = {
     catalog: [],
     rules: propertyRules,
   },
+  dividendRates: {},
 };
 
 function owning(...definitions: BusinessDefinition[]): GameState {
