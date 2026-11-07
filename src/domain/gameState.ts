@@ -1,9 +1,11 @@
+import { EMPTY_ACTIVITY, type ActivityLog } from './activity';
 import type { DividendAccrual } from './dividends';
+import { NO_GOAL_PROGRESS, type GoalProgress } from './goals';
 import { freshMarket, type MarketState } from './market';
 import { moneyCents, type MoneyCents } from './money';
 import type { Position } from './tradeQuotes';
 
-export const SAVE_SCHEMA_VERSION = 4;
+export const SAVE_SCHEMA_VERSION = 5;
 
 export type BusinessLevels = {
   readonly capacity: number;
@@ -75,6 +77,8 @@ export type GameState = {
   readonly positions: readonly Position[];
   readonly dividendAccruals: readonly DividendAccrual[];
   readonly watchlist: readonly string[];
+  readonly goals: GoalProgress;
+  readonly activity: ActivityLog;
 };
 
 export function freshGameState(start: {
@@ -108,5 +112,7 @@ export function freshGameState(start: {
     positions: [],
     dividendAccruals: [],
     watchlist: [],
+    goals: NO_GOAL_PROGRESS,
+    activity: EMPTY_ACTIVITY,
   };
 }

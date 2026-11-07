@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 import { SAVE_SCHEMA_VERSION } from '@/domain/gameState';
+
+import { activityLog, goalProgress } from './activitySchemas';
 import { parseMoneyCents, parsePriceMicros, parseQuantityMicrounits } from '@/domain/money';
 
 export const moneyText = z
@@ -158,13 +160,26 @@ const dividendAccrual = z.object({
   entitlementNumerator: z.string().regex(/^\d+$/).transform(BigInt),
 });
 
-export const saveSchemaV4 = z.object({
+const SCHEMA_VERSION_BEFORE_GOALS = 4;
+
+const saveSchemaV4Fields = {
   ...saveSchemaV2Fields,
   ...tradingFields,
-  schemaVersion: z.literal(SAVE_SCHEMA_VERSION),
   income: saveSchemaV2Fields.income.extend({ dividendEarningsCents: moneyText }),
   returnSummary: awayReport(
     z.object({ businesses: moneyText, rent: moneyText, dividends: moneyText }),
   ),
   dividendAccruals: z.array(dividendAccrual),
+};
+
+export const saveSchemaV4 = z.object({
+  ...saveSchemaV4Fields,
+  schemaVersion: z.literal(SCHEMA_VERSION_BEFORE_GOALS),
+});
+
+export const saveSchemaV5 = z.object({
+  ...saveSchemaV4Fields,
+  schemaVersion: z.literal(SAVE_SCHEMA_VERSION),
+  goals: goalProgress,
+  activity: activityLog,
 });

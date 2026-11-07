@@ -52,6 +52,8 @@ export type SetWatchlist = {
   readonly watched: boolean;
 };
 
+export type PinGoal = { readonly type: 'PinGoal'; readonly goalId: string | null };
+
 export type AdvanceTime = { readonly type: 'AdvanceTime' };
 
 export type SettleOffline = { readonly type: 'SettleOffline' };
@@ -71,6 +73,7 @@ export type GameCommand =
   | SellProperty
   | ExecuteTrade
   | SetWatchlist
+  | PinGoal
   | AdvanceTime
   | SettleOffline
   | AcknowledgeReturnSummary;
@@ -93,6 +96,8 @@ export const GAME_ERROR_CODES = [
   'BELOW_MINIMUM',
   'TRADING_LOCKED',
   'STALE_QUOTE',
+  'UNKNOWN_GOAL',
+  'GOAL_COMPLETED',
   'SAVE_FAILED',
 ] as const;
 

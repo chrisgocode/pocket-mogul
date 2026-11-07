@@ -16,6 +16,7 @@ export type OfflineSettlement = {
   readonly state: GameState;
   readonly earnedCents: MoneyCents;
   readonly clock: WallClockReading;
+  readonly absence: ReturnSummary;
 };
 
 function readWallClock(state: GameState, wallMs: number): WallClockReading {
@@ -65,6 +66,7 @@ export function settleOffline(
   const absence = { awayMs, creditedMs, earnings: advanced.earnings };
   return {
     clock,
+    absence,
     earnedCents: advanced.earnedCents,
     state: { ...advanced.state, returnSummary: summarize(state.returnSummary, absence) },
   };

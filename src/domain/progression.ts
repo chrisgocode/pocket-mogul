@@ -38,22 +38,31 @@ const positionMarkedValue: AssetValuation = (state, rules) =>
 
 const pendingDividends: AssetValuation = (state) => pendingDividendsCents(state.dividendAccruals);
 
-const ASSET_VALUATIONS: readonly AssetValuation[] = [
-  cash,
-  businessCarryingValue,
-  propertyEstimatedValue,
-  positionMarkedValue,
-  pendingDividends,
-];
+export type NetWorthBreakdown = {
+  readonly cashCents: MoneyCents;
+  readonly businessesCents: MoneyCents;
+  readonly propertiesCents: MoneyCents;
+  readonly positionsCents: MoneyCents;
+  readonly pendingDividendsCents: MoneyCents;
+  readonly netWorthCents: MoneyCents;
+};
 
-function netWorthCents(state: GameState, rules: ProgressRules): MoneyCents {
-  return moneyCents(
-    ASSET_VALUATIONS.reduce<bigint>((total, value) => total + value(state, rules), 0n),
+export function netWorthBreakdown(state: GameState, rules: ProgressRules): NetWorthBreakdown {
+  const parts = {
+    cashCents: moneyCents(cash(state, rules)),
+    businessesCents: moneyCents(businessCarryingValue(state, rules)),
+    propertiesCents: moneyCents(propertyEstimatedValue(state, rules)),
+    positionsCents: moneyCents(positionMarkedValue(state, rules)),
+    pendingDividendsCents: moneyCents(pendingDividends(state, rules)),
+  };
+  const netWorthCents = moneyCents(
+    Object.values(parts).reduce<bigint>((total, value) => total + value, 0n),
   );
+  return { ...parts, netWorthCents };
 }
 
 function withPeakNetWorth(state: GameState, rules: ProgressRules): GameState {
-  const netWorth = netWorthCents(state, rules);
+  const { netWorthCents: netWorth } = netWorthBreakdown(state, rules);
   return netWorth > state.peakNetWorthCents ? { ...state, peakNetWorthCents: netWorth } : state;
 }
 

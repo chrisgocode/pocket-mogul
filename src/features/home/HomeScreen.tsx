@@ -7,6 +7,7 @@ import { Card } from '@/ui/Card';
 import { Screen } from '@/ui/Screen';
 import { AppText } from '@/ui/Typography';
 
+import { PinnedGoalCard } from './PinnedGoalCard';
 import { TapCard } from './TapCard';
 import { useTapHaptics } from './useTapHaptics';
 import { walletArtwork } from './walletArtwork';
@@ -44,6 +45,7 @@ export function HomeScreen() {
         onTap={tap}
       />
       <WalletUpgrade tapCard={view} />
+      <PinnedGoalCard />
     </Screen>
   );
 }

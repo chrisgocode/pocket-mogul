@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { STARTUP_CONTENT_ISSUES } from '@/content';
+import { GoalCelebration } from '@/features/goals/GoalCelebration';
 import { ContentErrorScreen } from '@/features/startup/ContentErrorScreen';
 import { ReturnSummarySheet } from '@/features/returnSummary/ReturnSummarySheet';
 import { DeviceGameProvider } from '@/features/startup/DeviceGameProvider';
@@ -35,6 +36,7 @@ export default function RootLayout() {
                 options={{ title: 'Settings', presentation: 'modal' }}
               />
             </Stack>
+            <GoalCelebration />
             <ReturnSummarySheet />
             <RecoveryNoticeSheet />
           </DeviceGameProvider>
