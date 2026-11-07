@@ -73,7 +73,7 @@ export type GameState = {
   readonly market: MarketState;
   readonly tradingUnlocked: boolean;
   readonly positions: readonly Position[];
-  readonly dividends: readonly DividendAccrual[];
+  readonly dividendAccruals: readonly DividendAccrual[];
   readonly watchlist: readonly string[];
 };
 
@@ -106,7 +106,7 @@ export function freshGameState(start: {
     market: freshMarket(start.saveId),
     tradingUnlocked: false,
     positions: [],
-    dividends: [],
+    dividendAccruals: [],
     watchlist: [],
   };
 }

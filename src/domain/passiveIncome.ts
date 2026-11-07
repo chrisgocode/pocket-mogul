@@ -83,7 +83,11 @@ function accrue(streams: readonly Stream[], period: { elapsedMs: number; remaind
 function accruedIncome(
   state: GameState,
   advance: { elapsedMs: number; economy: PassiveEconomy },
-): { earnings: IncomeBySource; income: IncomeState; dividends: GameState['dividends'] } {
+): {
+  earnings: IncomeBySource;
+  income: IncomeState;
+  dividendAccruals: GameState['dividendAccruals'];
+} {
   const { income } = state;
   const business = accrue(businessStreams(state, advance.economy.businesses), {
     elapsedMs: advance.elapsedMs,
@@ -95,7 +99,7 @@ function accruedIncome(
   });
   const fromMs = state.clock.simulationMs;
   const dividends = advanceDividends(
-    { accruals: state.dividends, positions: state.positions },
+    { accruals: state.dividendAccruals, positions: state.positions },
     { fromMs, toMs: fromMs + advance.elapsedMs, rates: advance.economy.dividendRates },
   );
   return {
@@ -111,7 +115,7 @@ function accruedIncome(
       rentEarningsCents: moneyCents(income.rentEarningsCents + rent.earnedCents),
       dividendEarningsCents: moneyCents(income.dividendEarningsCents + dividends.paidCents),
     },
-    dividends: dividends.accruals,
+    dividendAccruals: dividends.accruals,
   };
 }
 
@@ -119,7 +123,7 @@ export function advanceTime(
   state: GameState,
   advance: { elapsedMs: number; wallMs: number; economy: PassiveEconomy },
 ): { state: GameState; earnedCents: MoneyCents; earnings: IncomeBySource } {
-  const { earnings, income, dividends } = accruedIncome(state, advance);
+  const { earnings, income, dividendAccruals } = accruedIncome(state, advance);
   const earnedCents = totalIncome(earnings);
   return {
     earnedCents,
@@ -132,7 +136,7 @@ export function advanceTime(
         lastWallCheckpointMs: advance.wallMs,
       },
       income,
-      dividends,
+      dividendAccruals,
     },
   };
 }

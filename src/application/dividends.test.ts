@@ -57,7 +57,7 @@ describe('stock dividends in play', () => {
     const session = await startWith({ positions: [heldPrism] });
     await wait(session, 30 * MINUTE_MS);
     await trade(session.game, { side: 'sell', quantity: units('10') });
-    expect(stateOf(session).dividends).toEqual([
+    expect(stateOf(session).dividendAccruals).toEqual([
       { instrumentId: 'prism', pendingCents: dollars('0.10'), entitlementNumerator: 0n },
     ]);
     await wait(session, 30 * MINUTE_MS);
@@ -75,7 +75,7 @@ describe('stock dividends in play', () => {
   it('counts pending dividends in net worth (UX02)', async () => {
     const session = await startWith({
       cashCents: dollars('0'),
-      dividends: [
+      dividendAccruals: [
         { instrumentId: 'prism', pendingCents: dollars('0.10'), entitlementNumerator: 0n },
       ],
     });
@@ -87,7 +87,7 @@ describe('stock dividends in play', () => {
     const session = await startWith({ positions: [heldPrism] });
     await wait(session, 30 * MINUTE_MS);
     const restarted = await session.restart();
-    expect(currentState(restarted.saveDocument()).dividends).toEqual([
+    expect(currentState(restarted.saveDocument()).dividendAccruals).toEqual([
       { instrumentId: 'prism', pendingCents: dollars('0.10'), entitlementNumerator: 0n },
     ]);
   });
@@ -110,7 +110,7 @@ describe('stock dividends in play', () => {
 
 function schemaV3Save(): string {
   const fresh = freshGameState({ saveId: 'older', economyVersion: 1, wallMs: 0 });
-  const { dividends: _dividends, income, ...rest } = fresh;
+  const { dividendAccruals: _accruals, income, ...rest } = fresh;
   const { dividendEarningsCents: _earned, ...olderIncome } = income;
   const summary = {
     awayMs: HOUR_MS,
@@ -129,7 +129,7 @@ describe('saves from before dividends', () => {
   it('migrate from schema 3 with no accrued or earned dividends', () => {
     const state = migratedState(schemaV3Save());
     expect(state.schemaVersion).toBe(4);
-    expect(state.dividends).toEqual([]);
+    expect(state.dividendAccruals).toEqual([]);
     expect<bigint>(state.income.dividendEarningsCents).toBe(dollars('0'));
     expect(state.returnSummary).toEqual({
       status: 'pending',

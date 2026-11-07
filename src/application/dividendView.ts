@@ -26,7 +26,7 @@ export function selectDividends(
   if (stock === undefined || stock.dividendCentsPerSharePerHour === 0n) return undefined;
   const state = stateWithUnsavedIncome(snapshot, request.content);
   const perHour = holdingPerHourCents(state, stock);
-  const accrual = state.dividends.find((pending) => pending.instrumentId === stock.id);
+  const accrual = state.dividendAccruals.find((pending) => pending.instrumentId === stock.id);
   if (perHour === undefined && accrual === undefined) return undefined;
   return {
     holdingPerHourCents: perHour,

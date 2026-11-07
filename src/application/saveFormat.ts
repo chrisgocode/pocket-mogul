@@ -39,7 +39,7 @@ type SummaryBeforeDividends =
       };
     };
 
-type SaveBeforeDividends = Omit<GameState, 'income' | 'returnSummary' | 'dividends'> & {
+type SaveBeforeDividends = Omit<GameState, 'income' | 'returnSummary' | 'dividendAccruals'> & {
   readonly income: Omit<IncomeState, 'dividendEarningsCents'>;
   readonly returnSummary: SummaryBeforeDividends;
 };
@@ -67,7 +67,7 @@ function withDividends(saved: SaveBeforeDividends): GameState {
     schemaVersion: SAVE_SCHEMA_VERSION,
     income: { ...saved.income, dividendEarningsCents: moneyCents(0) },
     returnSummary: summaryWithDividends(saved.returnSummary),
-    dividends: [],
+    dividendAccruals: [],
   };
 }
 

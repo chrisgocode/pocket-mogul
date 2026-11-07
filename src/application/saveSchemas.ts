@@ -166,5 +166,5 @@ export const saveSchemaV4 = z.object({
   returnSummary: awayReport(
     z.object({ businesses: moneyText, rent: moneyText, dividends: moneyText }),
   ),
-  dividends: z.array(dividendAccrual),
+  dividendAccruals: z.array(dividendAccrual),
 });

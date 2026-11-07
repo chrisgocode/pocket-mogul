@@ -36,7 +36,7 @@ const positionMarkedValue: AssetValuation = (state, rules) =>
     return total + markPosition(position, quoteOf(state.market, instrument)).valueCents;
   }, 0n);
 
-const pendingDividends: AssetValuation = (state) => pendingDividendsCents(state.dividends);
+const pendingDividends: AssetValuation = (state) => pendingDividendsCents(state.dividendAccruals);
 
 const ASSET_VALUATIONS: readonly AssetValuation[] = [
   cash,

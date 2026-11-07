@@ -72,6 +72,17 @@ describe('stock dividends', () => {
     expect<bigint>(sold.paidCents).toBe(dollars('0.10'));
   });
 
+  it('pays an hour once when one advance ends on it and the next starts there', () => {
+    const first = advance(holding(units('10')), { fromMs: 0, toMs: HOUR_MS });
+    const still = advance(holding(units('10'), first.accruals), { fromMs: HOUR_MS, toMs: HOUR_MS });
+    const next = advance(holding(units('10'), still.accruals), {
+      fromMs: HOUR_MS,
+      toMs: 2 * HOUR_MS,
+    });
+    expect<bigint>(still.paidCents).toBe(dollars('0'));
+    expect<bigint>(next.paidCents).toBe(dollars('0.20'));
+  });
+
   it('pays nothing for stocks without a dividend', () => {
     const paid = advanceDividends(holding(units('10')), {
       fromMs: 0,

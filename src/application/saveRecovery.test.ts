@@ -142,7 +142,7 @@ describe('a save from the previous schema', () => {
       market: { seed: '4f6c2a9e-legacy', tick: 1440, quotes: {}, candles: {} },
       tradingUnlocked: true,
       positions: [],
-      dividends: [],
+      dividendAccruals: [],
       watchlist: [],
     });
   });

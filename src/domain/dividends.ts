@@ -1,9 +1,9 @@
 import { moneyCents, type MoneyCents, type QuantityMicrounits } from './money';
+import { SIMULATION_HOUR_MS } from './marketHistory';
 import type { Position } from './tradeQuotes';
 
 const QUANTITY_UNITS_PER_SHARE = 1_000_000n;
-const MS_PER_SIMULATION_HOUR = 3_600_000;
-const ENTITLEMENT_DENOMINATOR = QUANTITY_UNITS_PER_SHARE * BigInt(MS_PER_SIMULATION_HOUR);
+const ENTITLEMENT_DENOMINATOR = QUANTITY_UNITS_PER_SHARE * BigInt(SIMULATION_HOUR_MS);
 
 export type DividendAccrual = {
   readonly instrumentId: string;
@@ -76,9 +76,9 @@ function payOut(accruals: readonly DividendAccrual[]): DividendAdvance {
 }
 
 function segmentEnds(fromMs: number, toMs: number): number[] {
-  const firstBoundary = (Math.floor(fromMs / MS_PER_SIMULATION_HOUR) + 1) * MS_PER_SIMULATION_HOUR;
+  const firstBoundary = (Math.floor(fromMs / SIMULATION_HOUR_MS) + 1) * SIMULATION_HOUR_MS;
   const ends: number[] = [];
-  for (let boundary = firstBoundary; boundary < toMs; boundary += MS_PER_SIMULATION_HOUR) {
+  for (let boundary = firstBoundary; boundary < toMs; boundary += SIMULATION_HOUR_MS) {
     ends.push(boundary);
   }
   return [...ends, toMs];
@@ -94,8 +94,7 @@ function settleSegment(
     { ...segment.holdings, accruals: settled.accruals },
     { elapsedMs: segment.endMs - settled.atMs, rates: segment.rates },
   );
-  const reachesPayout =
-    segment.endMs > settled.atMs && segment.endMs % MS_PER_SIMULATION_HOUR === 0;
+  const reachesPayout = segment.endMs > settled.atMs && segment.endMs % SIMULATION_HOUR_MS === 0;
   if (!reachesPayout) return { ...settled, accruals, atMs: segment.endMs };
   const payout = payOut(accruals);
   return {
@@ -133,5 +132,5 @@ export function dividendPerHourCents(
 }
 
 export function msUntilDividendPayout(simulationMs: number): number {
-  return MS_PER_SIMULATION_HOUR - (simulationMs % MS_PER_SIMULATION_HOUR);
+  return SIMULATION_HOUR_MS - (simulationMs % SIMULATION_HOUR_MS);
 }
