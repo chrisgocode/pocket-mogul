@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 import { SAVE_SCHEMA_VERSION } from '@/domain/gameState';
+
+import { activityLog, goalProgress } from './activitySchemas';
 import { parseMoneyCents, parsePriceMicros, parseQuantityMicrounits } from '@/domain/money';
 
 export const moneyText = z
@@ -158,7 +160,9 @@ const dividendAccrual = z.object({
   entitlementNumerator: z.string().regex(/^\d+$/).transform(BigInt),
 });
 
-const SCHEMA_VERSION_BEFORE_REWARDS = 4;
+const SCHEMA_VERSION_BEFORE_GOALS = 4;
+
+const SCHEMA_VERSION_BEFORE_REWARDS = 5;
 
 const saveSchemaV4Fields = {
   ...saveSchemaV2Fields,
@@ -172,6 +176,17 @@ const saveSchemaV4Fields = {
 
 export const saveSchemaV4 = z.object({
   ...saveSchemaV4Fields,
+  schemaVersion: z.literal(SCHEMA_VERSION_BEFORE_GOALS),
+});
+
+const saveSchemaV5Fields = {
+  ...saveSchemaV4Fields,
+  goals: goalProgress,
+  activity: activityLog,
+};
+
+export const saveSchemaV5 = z.object({
+  ...saveSchemaV5Fields,
   schemaVersion: z.literal(SCHEMA_VERSION_BEFORE_REWARDS),
 });
 
@@ -182,8 +197,8 @@ const boost = z.discriminatedUnion('status', [
   z.object({ status: z.literal('active'), grantId, remainingMs: z.number().int().positive() }),
 ]);
 
-export const saveSchemaV5 = z.object({
-  ...saveSchemaV4Fields,
+export const saveSchemaV6 = z.object({
+  ...saveSchemaV5Fields,
   schemaVersion: z.literal(SAVE_SCHEMA_VERSION),
   reward: z.object({ boost, processedRewardIds: z.array(grantId) }),
 });

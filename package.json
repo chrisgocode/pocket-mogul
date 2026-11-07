@@ -18,7 +18,8 @@
     "format:check": "oxfmt --check",
     "prepare": "husky",
     "knip:check": "knip",
-    "doctor": "expo-doctor"
+    "doctor": "expo-doctor",
+    "balance": "bun scripts/balance-report.ts"
   },
   "dependencies": {
     "expo": "~58.0.23",

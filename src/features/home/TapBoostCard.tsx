@@ -1,11 +1,15 @@
-import type { TapBoostView } from '@/application/tapBoostView';
+import { selectTapBoost } from '@/application/tapBoostView';
+import { getContent } from '@/content';
+import { useGame, useGameSnapshot } from '@/features/game/GameContext';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { AppText } from '@/ui/Typography';
 
 import { tapBoostText } from './tapBoostText';
 
-export function TapBoostCard({ view, onPress }: { view: TapBoostView; onPress: () => void }) {
+export function TapBoostCard() {
+  const game = useGame();
+  const view = selectTapBoost(useGameSnapshot(), getContent());
   const text = tapBoostText(view);
   return (
     <Card>
@@ -17,7 +21,7 @@ export function TapBoostCard({ view, onPress }: { view: TapBoostView; onPress: (
         label={text.buttonLabel}
         accessibilityLabel={`Tap Boost, ${text.buttonLabel}`}
         variant={view.status === 'unavailable' ? 'secondary' : 'primary'}
-        onPress={onPress}
+        onPress={() => void game.pressTapBoost()}
         disabled={!text.enabled}
       />
     </Card>

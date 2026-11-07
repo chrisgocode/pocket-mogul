@@ -2,8 +2,7 @@ import type { Content } from '@/content';
 import type { GameState, IncomeBySource } from '@/domain/gameState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 
-const MS_PER_MINUTE = 60_000;
-const MINUTES_PER_HOUR = 60;
+import { durationText } from './clockText';
 
 const INCOME_SOURCES: readonly { source: keyof IncomeBySource; label: string }[] = [
   { source: 'businesses', label: 'Businesses' },
@@ -22,14 +21,6 @@ export type ReturnSummaryView = {
   readonly totalCents: MoneyCents;
 };
 
-function formatDuration(ms: number): string {
-  const totalMinutes = Math.floor(ms / MS_PER_MINUTE);
-  const hours = Math.floor(totalMinutes / MINUTES_PER_HOUR);
-  const minutes = totalMinutes % MINUTES_PER_HOUR;
-  if (hours === 0) return `${minutes}m`;
-  return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}m`;
-}
-
 function earningsLines(earnings: IncomeBySource): EarningsLine[] {
   return INCOME_SOURCES.map(({ source, label }) => ({ label, cents: earnings[source] })).filter(
     (line) => line.cents > 0n,
@@ -44,9 +35,9 @@ export function selectReturnSummary(
   const { summary } = state.returnSummary;
   const earnings = earningsLines(summary.earnings);
   return {
-    awayLabel: formatDuration(summary.awayMs),
-    creditedLabel: formatDuration(summary.creditedMs),
-    capLabel: formatDuration(content.economy.time.offlineCapMs),
+    awayLabel: durationText(summary.awayMs),
+    creditedLabel: durationText(summary.creditedMs),
+    capLabel: durationText(content.economy.time.offlineCapMs),
     capReached: summary.awayMs > summary.creditedMs,
     earnings,
     totalCents: moneyCents(earnings.reduce<bigint>((total, line) => total + line.cents, 0n)),

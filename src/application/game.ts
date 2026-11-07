@@ -1,23 +1,26 @@
 import type { Content } from '@/content';
+import type { ActivityEntry } from '@/domain/activity';
 import type { CommandEnvelope, CommandOutcome } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
 
-import { boostTime, type BoostTime } from './boostTime';
+import type { ActivityFeed } from './activityFeed';
 import { supportsEconomy } from './economy';
 import { commitCommand, type CommandTime, type Committed } from './commitCommand';
-import { foregroundTime, type ForegroundTime } from './foregroundTime';
-import { foregroundLoops, type ForegroundLoops } from './foregroundLoops';
+import { foregroundLoops } from './foregroundLoops';
+import { announce, feeds } from './gameFeeds';
+import { lifecycle } from './gameLifecycle';
+import { gameClocks, openingSnapshot, publisher, type Opened } from './gameSnapshots';
 import { gameTaps, NO_SETTLED_TAPS, type SettledTaps } from './gameTaps';
-import { marketHistoryFeeds, type HistoryFeed } from './marketHistoryFeed';
+import type { HistoryFeed } from './marketHistoryFeed';
 import { openSave, type SaveNotice, type SaveStopReason } from './openSave';
 import type { AdPort, AssetHistory, Clock, SaveStore } from './ports';
 import { commitReset } from './resetSave';
+import { rewardedBoost } from './rewardedBoost';
 import { backUpIfDue } from './saveBackups';
 import { serialQueue } from './serialQueue';
-import { snapshotStore, type SnapshotStore } from './snapshotStore';
-import { rewardedBoost } from './rewardedBoost';
-import type { TapBoost } from './tapBoost';
+import { snapshotStore } from './snapshotStore';
 import { isTapBoosted, type TapBoostAd } from './tapBoostView';
+import { gameTelemetry, type TelemetryPort } from './telemetry';
 
 export type GamePorts = {
   clock: Clock;
@@ -27,6 +30,7 @@ export type GamePorts = {
   pastContent?: readonly Content[];
   createId: () => string;
   beforeWarmReturnSummary?: () => Promise<void>;
+  telemetry?: TelemetryPort;
 };
 
 export type GameSnapshot = {
@@ -39,9 +43,12 @@ export type GameSnapshot = {
   readonly notice: SaveNotice;
 };
 
+export type GameEvent = { readonly type: 'goalsCompleted'; readonly goalIds: readonly string[] };
+
 export type Game = {
   getSnapshot: () => GameSnapshot;
   subscribe: (listener: () => void) => () => void;
+  subscribeEvents: (listener: (event: GameEvent) => void) => () => void;
   dispatch: (envelope: CommandEnvelope) => Promise<CommandOutcome>;
   tap: () => void;
   flushTaps: () => Promise<void>;
@@ -53,14 +60,14 @@ export type Game = {
   dismissNotice: () => void;
   resetSave: (attemptId: string) => Promise<CommandOutcome>;
   readMarketHistory: (assetId: string) => Promise<AssetHistory>;
+  readActivity: () => Promise<readonly ActivityEntry[]>;
+  activity: ActivityFeed;
   marketHistory: (assetId: string) => HistoryFeed;
 };
 
 export type OpenedGame =
   | { readonly status: 'ready'; readonly game: Game }
   | { readonly status: 'stopped'; readonly reason: SaveStopReason };
-
-type Opened = { readonly state: GameState; readonly notice: SaveNotice };
 
 type RunOptions = {
   settled?: SettledTaps;
@@ -78,72 +85,37 @@ async function runBeforePublish(step: (() => Promise<void>) | undefined): Promis
   }
 }
 
-type PublishedChange = { state?: GameState | undefined; settled: SettledTaps };
+type Observers = {
+  events: Parameters<typeof announce>[0];
+  telemetry: ReturnType<typeof gameTelemetry>;
+  state: GameState;
+};
 
-type Clocks = { time: ForegroundTime; boostTime: BoostTime };
-
-function publisher(snapshots: SnapshotStore<GameSnapshot>, clocks: Clocks) {
-  return (change: PublishedChange) => {
-    const current = snapshots.get();
-    snapshots.set({
-      ...current,
-      state: change.state ?? current.state,
-      pendingTaps: current.pendingTaps - change.settled.taps,
-      pendingBoostedTaps: current.pendingBoostedTaps - change.settled.boostedTaps,
-      unsavedElapsedMs: clocks.time.unsavedMs(),
-      unsavedBoostMs: clocks.boostTime.unsavedMs(),
-    });
-  };
-}
-
-function openingSnapshot(opened: Opened): GameSnapshot {
-  return {
-    ...opened,
-    pendingTaps: 0,
-    pendingBoostedTaps: 0,
-    unsavedElapsedMs: 0,
-    unsavedBoostMs: 0,
-    tapBoostAd: 'loading',
-  };
-}
-
-type UnsavedTime = Pick<CommandTime, 'elapsedMs' | 'boostElapsedMs'>;
-
-function gameClocks(clock: Clock) {
-  const time = foregroundTime(clock);
-  const boost = boostTime(clock);
-  return {
-    time,
-    boostTime: boost,
-    unsaved: (): UnsavedTime => ({
-      elapsedMs: time.unsavedMs(),
-      boostElapsedMs: boost.unsavedMs(),
-    }),
-    saved(unsaved: UnsavedTime) {
-      time.saved(unsaved.elapsedMs);
-      boost.saved(unsaved.boostElapsedMs);
-    },
-  };
+function observe(observers: Observers, committed: Committed): void {
+  announce(observers.events, committed);
+  observers.telemetry.committed(committed, observers.state);
 }
 
 function committer(ports: GamePorts, opened: Opened) {
   const snapshots = snapshotStore<GameSnapshot>(openingSnapshot(opened));
   const clocks = gameClocks(ports.clock);
   const queue = serialQueue();
-  const history = marketHistoryFeeds({ queue, load: ports.store.loadAssetHistory });
+  const live = feeds(ports, queue);
   const publish = publisher(snapshots, clocks);
+  const telemetry = gameTelemetry(ports);
   const commit = (step: CommitStep, options: RunOptions = {}) => {
     const wallMs = options.issuedAtWallMs ?? ports.clock.wallMs();
     return queue.run(async () => {
       const unsaved = clocks.unsaved();
       const committed = await step(snapshots.get().state, { ...unsaved, wallMs });
-      if (committed.history !== undefined) history.append(committed.history);
+      live.record(committed);
       if (committed.state !== undefined) {
         clocks.saved(unsaved);
         await backUpIfDue(ports.store, { revision: committed.state.revision, wallMs });
         await runBeforePublish(options.beforePublish);
       }
       publish({ state: committed.state, settled: options.settled ?? NO_SETTLED_TAPS });
+      observe({ events: live.events, telemetry, state: snapshots.get().state }, committed);
       return committed.outcome;
     });
   };
@@ -157,7 +129,8 @@ function committer(ports: GamePorts, opened: Opened) {
     time: clocks.time,
     boostTime: clocks.boostTime,
     queue,
-    history,
+    telemetry,
+    ...live,
     run,
     commit,
     refresh: () => publish({ settled: NO_SETTLED_TAPS }),
@@ -194,39 +167,23 @@ function saveControls(ports: GamePorts, game: { core: Committer; flushTaps: () =
       const outcome = await core.commit((current, { wallMs }) =>
         commitReset(ports, { attemptId, current, wallMs }),
       );
-      if (outcome.ok) core.history.reload();
+      if (outcome.ok) {
+        core.history.reload();
+        core.activity.reload();
+      }
       return outcome;
     },
     dismissNotice: () => core.snapshots.set({ ...core.snapshots.get(), notice: { kind: 'none' } }),
   };
 }
 
-type Lifecycle = { core: Committer; boost: TapBoost; checkpoint: () => Promise<CommandOutcome> };
-
-function lifecycle(
-  game: Lifecycle & { loops: ForegroundLoops; onWarmResume: () => Promise<unknown> },
-) {
-  const { core, loops } = game;
-  let leftDuringAd = false;
+function gameReads(ports: GamePorts, core: Committer) {
   return {
-    async pause() {
-      leftDuringAd = game.boost.isPresenting();
-      if (leftDuringAd) return;
-      loops.stop();
-      core.time.pause();
-      core.boostTime.cover('background');
-      await game.checkpoint();
-    },
-    async resume() {
-      if (leftDuringAd) {
-        leftDuringAd = false;
-        return;
-      }
-      core.time.resume();
-      core.boostTime.uncover('background');
-      loops.start();
-      await game.onWarmResume();
-    },
+    readMarketHistory: (assetId: string) =>
+      core.queue.run(() => ports.store.loadAssetHistory(assetId)),
+    readActivity: () => core.queue.run(() => ports.store.loadActivity()),
+    activity: core.activity.view,
+    marketHistory: (assetId: string) => core.history.feed(assetId),
   };
 }
 
@@ -263,6 +220,7 @@ async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
   return {
     getSnapshot: core.snapshots.get,
     subscribe: core.snapshots.subscribe,
+    subscribeEvents: core.events.subscribe,
     dispatch,
     checkpoint,
     tap,
@@ -270,8 +228,7 @@ async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
     pressTapBoost: boost.press,
     createCommandId: ports.createId,
     ...saveControls(ports, { core, flushTaps }),
-    readMarketHistory: (assetId) => core.queue.run(() => ports.store.loadAssetHistory(assetId)),
-    marketHistory: (assetId) => core.history.feed(assetId),
+    ...gameReads(ports, core),
     ...lifecycle({ core, boost, checkpoint, loops, onWarmResume: offline.onWarmResume }),
   };
 }
@@ -285,5 +242,6 @@ export async function createGame(ports: GamePorts): Promise<OpenedGame> {
     supportsEconomy: supportsEconomy(ports),
   });
   if (opened.status === 'stopped') return opened;
+  gameTelemetry(ports).opened(opened);
   return { status: 'ready', game: await startGame(ports, opened) };
 }

@@ -1,5 +1,4 @@
 import { selectPassiveIncomePerMinuteCents } from '@/application/cashView';
-import { selectTapBoost } from '@/application/tapBoostView';
 import { selectTapCard } from '@/application/tapCardView';
 import { getContent } from '@/content';
 import { formatMoneyExact, formatRatePerMinute } from '@/domain/money';
@@ -8,6 +7,7 @@ import { Card } from '@/ui/Card';
 import { Screen } from '@/ui/Screen';
 import { AppText } from '@/ui/Typography';
 
+import { PinnedGoalCard } from './PinnedGoalCard';
 import { TapBoostCard } from './TapBoostCard';
 import { TapCard } from './TapCard';
 import { useTapHaptics } from './useTapHaptics';
@@ -46,11 +46,9 @@ export function HomeScreen() {
         artwork={walletArtwork(view.artworkStage)}
         onTap={tap}
       />
-      <TapBoostCard
-        view={selectTapBoost(snapshot, content)}
-        onPress={() => void game.pressTapBoost()}
-      />
+      <TapBoostCard />
       <WalletUpgrade tapCard={view} />
+      <PinnedGoalCard />
     </Screen>
   );
 }

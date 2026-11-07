@@ -32,6 +32,7 @@ export async function commitReset(
       await tx.writeState(state);
       await tx.clearBackups();
       await tx.clearMarketHistory();
+      await tx.clearActivity();
       await tx.writeReceipt({ commandId: reset.attemptId, outcome, recordedWallMs: reset.wallMs });
       return { outcome, state };
     });

@@ -128,7 +128,7 @@ export type TestGame = {
   receiptIds: () => readonly string[];
 };
 
-type TestHooks = Pick<GamePorts, 'beforeWarmReturnSummary' | 'pastContent'> & {
+type TestHooks = Pick<GamePorts, 'beforeWarmReturnSummary' | 'pastContent' | 'telemetry'> & {
   content?: Content;
   ads?: ScriptedAds;
 };
@@ -227,7 +227,7 @@ export async function startTestGame(save: TestSave = freshTestSave()): Promise<T
   };
 }
 
-export function startTestGameWith(hooks: TestHooks): Promise<TestGame> {
+export function startObservedTestGame(hooks: TestHooks): Promise<TestGame> {
   return startTestGame({ ...freshTestSave(), hooks });
 }
 
@@ -260,8 +260,9 @@ export function migratedState(document: string): GameState {
 export async function startTestGameFromDocument(
   document: string,
   wallStartMs: number,
+  hooks: TestHooks = {},
 ): Promise<TestGame> {
-  const save = { ...freshTestSave(), wallStartMs };
+  const save = { ...freshTestSave(), wallStartMs, hooks };
   await openSqlSaveStore(nodeSqliteDriver(save.database));
   save.database.prepare('INSERT INTO save_state (id, document) VALUES (1, ?)').run(document);
   return startTestGame(save);

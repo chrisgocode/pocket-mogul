@@ -185,3 +185,15 @@ _Avoid_: Unpaid dividends, owed dividends
 **Watchlist**:
 The stocks and coins the player has marked to see at the top of Markets; it changes nothing about prices or trades.
 _Avoid_: Favorites, starred
+
+**Goal**:
+One of 13 milestones (six first actions and seven peak net worth levels) that earns a badge, never cash, and stays reached once reached. The player can pin one goal not yet reached to Home.
+_Avoid_: Achievement, quest, reward
+
+**Activity history**:
+The player-visible record of purchases, sales, upgrades, rentals, trades, dividend payouts and offline settlements, kept to the newest 2,000 entries. Lifetime totals on the save keep counting past that bound.
+_Avoid_: Ledger (for the screen), log, transactions
+
+**Earnings group**:
+One activity entry that sums taps and business and rent income between other activities, so the history never lists every tap or checkpoint.
+_Avoid_: Tap entry, income tick

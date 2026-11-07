@@ -17,7 +17,9 @@ import type {
   CommandResult,
   GameCommand,
 } from '@/domain/commands';
+import type { ActivityEntry } from '@/domain/activity';
 import type { GameState } from '@/domain/gameState';
+import { applyPinGoal, withCompletedGoals } from '@/domain/goals';
 import { advanceMarket, type MarketHistory } from '@/domain/market';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 import { settleOffline, type WallClockReading } from '@/domain/offline';
@@ -36,6 +38,7 @@ import { applyWalletUpgrade } from '@/domain/wallet';
 import {
   businessEconomy,
   contentAt,
+  goalRules,
   marketEconomy,
   passiveEconomy,
   progressRules,
@@ -44,6 +47,7 @@ import {
   type EconomyVersions,
 } from './economy';
 import { validCommand } from './commandSchema';
+import { withCommittedActivity, type PassedTime } from './committedActivity';
 import type { SaveStore, SaveTransaction } from './ports';
 
 export type Committed = {
@@ -51,6 +55,8 @@ export type Committed = {
   state?: GameState;
   wallClock?: WallClockReading;
   history?: MarketHistory;
+  activity?: readonly ActivityEntry[];
+  completedGoalIds?: readonly string[];
 };
 
 type CommitContext = EconomyVersions & { readonly store: SaveStore };
@@ -105,6 +111,8 @@ const COMMAND_HANDLERS: CommandHandlers = {
     applySetWatchlist(state, { ...command, economy: tradeEconomy(content) }),
   RecordAdReward: (state, command) => applyRecordAdReward(state, command),
   ActivateBoost: (state, _command, content) => applyActivateBoost(state, content.economy.boost),
+  PinGoal: (state, command, content) =>
+    applyPinGoal(state, { goalId: command.goalId, rules: goalRules(content) }),
   AdvanceTime: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),
   SettleOffline: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),
   AcknowledgeReturnSummary: (state) => ({
@@ -118,6 +126,7 @@ type TimeStep = {
   readonly state: GameState;
   readonly earnedCents: MoneyCents;
   readonly wallClock: WallClockReading;
+  readonly passed: PassedTime;
 };
 
 function withMarket(step: TimeStep, content: Content): TimeStep & { history: MarketHistory } {
@@ -138,12 +147,14 @@ function passTime(
   if (step.command.type === 'SettleOffline') {
     const capMs = step.content.economy.time.offlineCapMs;
     const settled = settleOffline(state, { wallMs: step.time.wallMs, capMs, economy });
-    return { ...settled, wallClock: settled.clock };
+    const passed = { earnings: settled.absence.earnings, absence: settled.absence };
+    return { ...settled, wallClock: settled.clock, passed };
   }
   const { elapsedMs, boostElapsedMs, wallMs } = step.time;
   const advanced = advanceTime(state, { elapsedMs, wallMs, economy });
   const boosted = consumeBoostTime(advanced.state, boostElapsedMs);
-  return { ...advanced, state: boosted, wallClock: { direction: 'forward' } };
+  const passed = { earnings: advanced.earnings, absence: undefined };
+  return { ...advanced, state: boosted, wallClock: { direction: 'forward' }, passed };
 }
 
 function applyCommand<Type extends keyof CommandsByType>(
@@ -159,7 +170,35 @@ function boostedOnlyIfActive(command: GameCommand, before: GameState): GameComma
   return { ...command, boosted: false };
 }
 
-function apply(
+type Applied = {
+  readonly command: GameCommand;
+  readonly content: Content;
+  readonly advanced: TimeStep;
+  readonly progressed: GameState;
+  readonly result: Extract<CommandResult, { ok: true }>;
+};
+
+function finish(previous: GameState, applied: Applied) {
+  const { content, result } = applied;
+  const goals = withCompletedGoals(
+    withProgress(result.state, progressRules(content)),
+    goalRules(content),
+  );
+  const logged = withCommittedActivity({
+    command: applied.command,
+    time: applied.advanced.passed,
+    before: applied.progressed,
+    after: goals.state,
+    commandCashCents: result.cashChangeCents,
+  });
+  return {
+    state: { ...logged.state, revision: previous.revision + 1 },
+    activity: logged.entries,
+    completedGoalIds: goals.completedGoalIds,
+  };
+}
+
+export function applyEnvelope(
   state: GameState,
   change: { envelope: CommandEnvelope; time: CommandTime; economies: EconomyVersions },
 ): Committed {
@@ -172,25 +211,25 @@ function apply(
     passTime(state, { command, time: change.time, content: settling }),
     settling,
   );
-  const progress = progressRules(content);
   const adopted = { ...advanced.state, economyVersion: content.economyVersion };
-  const progressed = withProgress(adopted, progress);
+  const progressed = withProgress(adopted, progressRules(content));
   const result = applyCommand(progressed, { type: command.type, payload: command }, content);
   if (!result.ok) return { outcome: result };
   const cashChangeCents = moneyCents(advanced.earnedCents + result.cashChangeCents);
-  const next = { ...withProgress(result.state, progress), revision: state.revision + 1 };
-  const outcome = { ok: true, revision: next.revision, cashChangeCents } as const;
-  return { outcome, state: next, wallClock: advanced.wallClock, history: advanced.history };
+  const next = finish(state, { command, content, advanced, progressed, result });
+  const outcome = { ok: true, revision: next.state.revision, cashChangeCents } as const;
+  return { ...next, outcome, wallClock: advanced.wallClock, history: advanced.history };
 }
 
 async function record(
   tx: SaveTransaction,
   change: { envelope: CommandEnvelope; applied: Committed; wallMs: number },
 ): Promise<void> {
-  const { state, outcome, wallClock, history } = change.applied;
+  const { state, outcome, wallClock, history, activity = [] } = change.applied;
   if (state === undefined) return;
   await tx.writeState(state);
   if (history !== undefined) await tx.appendMarketHistory(history);
+  if (activity.length > 0) await tx.appendActivity(activity);
   if (wallClock?.direction === 'backward') {
     const { direction: _direction, ...reading } = wallClock;
     await tx.writeDiagnostic({
@@ -215,7 +254,7 @@ export async function commitCommand(
     return await context.store.transact(async (tx) => {
       const recorded = await tx.findOutcome(change.envelope.id);
       if (recorded !== undefined) return { outcome: recorded };
-      const applied = apply(change.current, {
+      const applied = applyEnvelope(change.current, {
         envelope: change.envelope,
         time: change.time,
         economies: context,

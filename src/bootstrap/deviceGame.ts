@@ -5,9 +5,15 @@ import { getContent, getPastContent } from '@/content';
 import { deviceClock } from '@/infrastructure/deviceClock';
 import { openExpoSqliteDriver } from '@/infrastructure/expoSqliteDriver';
 import { googleMobileAds } from '@/infrastructure/googleMobileAds';
+import { localTelemetrySink } from '@/infrastructure/localTelemetrySink';
 import { openSqlSaveStore } from '@/infrastructure/sqlSaveStore';
 
 const SAVE_DATABASE_NAME = 'pocket-mogul.db';
+const DEVELOPMENT_TELEMETRY_EVENTS_KEPT = 500;
+
+const developmentTelemetry = __DEV__
+  ? localTelemetrySink(DEVELOPMENT_TELEMETRY_EVENTS_KEPT)
+  : undefined;
 
 let deviceGame: Promise<OpenedGame> | undefined;
 
@@ -20,6 +26,7 @@ async function startDeviceGame(): Promise<OpenedGame> {
     ads: googleMobileAds(),
     pastContent: getPastContent(),
     createId: randomUUID,
+    ...(developmentTelemetry === undefined ? {} : { telemetry: developmentTelemetry }),
   });
 }
 

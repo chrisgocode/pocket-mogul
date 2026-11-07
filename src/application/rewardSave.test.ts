@@ -3,19 +3,25 @@ import { freshGameState, type GameState } from '@/domain/gameState';
 import { decodeSave, encodeSave } from './saveFormat';
 import { currentState, migratedState } from './testGame';
 
-function schemaV4Save(): string {
+function saveBeforeRewards(schemaVersion: number): string {
   const { reward: _reward, ...older } = {
     ...freshGameState({ saveId: 'before-ads', economyVersion: 1, wallMs: 0 }),
-    schemaVersion: 4,
+    schemaVersion,
   };
   return encodeSave(older as GameState);
 }
 
 describe('saves from before the Tap Boost', () => {
-  it('migrate from schema 4 with no grant, boost or processed rewards', () => {
-    const state = migratedState(schemaV4Save());
-    expect(state.schemaVersion).toBe(5);
+  it.each([4, 5])('migrate from schema %p with no grant, boost or processed rewards', (version) => {
+    const state = migratedState(saveBeforeRewards(version));
+    expect(state.schemaVersion).toBe(6);
     expect(state.reward).toEqual({ boost: { status: 'none' }, processedRewardIds: [] });
+  });
+
+  it('keep the goals and activity of a schema 5 save', () => {
+    const state = migratedState(saveBeforeRewards(5));
+    expect(state.goals).toEqual({ completed: [], pinnedGoalId: null });
+    expect(state.activity.lifetime.entries).toBe(0);
   });
 });
 

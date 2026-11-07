@@ -1,3 +1,4 @@
+import type { ActivityEntry } from '@/domain/activity';
 import type { CommandOutcome } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
 import type { HourlyCandle, MarketHistory, MinuteObservation } from '@/domain/market';
@@ -25,6 +26,7 @@ export type AssetHistory = {
 export type SaveStore = {
   loadAssetHistory: (assetId: string) => Promise<AssetHistory>;
   loadDiagnostics: () => Promise<readonly Diagnostic[]>;
+  loadActivity: () => Promise<readonly ActivityEntry[]>;
   transact<T>(work: (tx: SaveTransaction) => Promise<T>): Promise<T>;
 };
 
@@ -42,6 +44,8 @@ export type SaveTransaction = {
   writeBackup: (backup: SaveBackup) => Promise<void>;
   clearBackups: () => Promise<void>;
   clearMarketHistory: () => Promise<void>;
+  clearActivity: () => Promise<void>;
+  appendActivity: (entries: readonly ActivityEntry[]) => Promise<void>;
   pruneReceipts: (recordedBeforeWallMs: number) => Promise<void>;
   findOutcome: (commandId: string) => Promise<CommandOutcome | undefined>;
   writeState: (state: GameState) => Promise<void>;

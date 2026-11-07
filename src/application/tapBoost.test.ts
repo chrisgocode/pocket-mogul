@@ -6,12 +6,12 @@ import { dollars } from '@/domain/money';
 import { scriptedAds, type AdScript } from './scriptedAds';
 import { selectTapCard } from './tapCardView';
 import { selectTapBoost } from './tapBoostView';
-import { startTestGame, startTestGameFrom, startTestGameWith } from './testGame';
+import { startTestGame, startTestGameFrom, startObservedTestGame } from './testGame';
 
 const BOOST_MS = 60_000;
 
 async function boostAfter(script: AdScript) {
-  const session = await startTestGameWith({ ads: scriptedAds({ scripts: [script] }) });
+  const session = await startObservedTestGame({ ads: scriptedAds({ scripts: [script] }) });
   await session.game.pressTapBoost();
   await session.game.flushTaps();
   return session;
@@ -106,7 +106,7 @@ describe('the Tap Boost button', () => {
 
   it('reports no fill, and retries the load when pressed', async () => {
     const ads = scriptedAds({ fill: 'noFill' });
-    const { game } = await startTestGameWith({ ads });
+    const { game } = await startObservedTestGame({ ads });
     expect(game.getSnapshot().tapBoostAd).toBe('unavailable');
     ads.fill('fill');
     await game.pressTapBoost();

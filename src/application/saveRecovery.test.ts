@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 
 import { getContent } from '@/content';
+import { EMPTY_ACTIVITY } from '@/domain/activity';
 import { freshGameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 
@@ -93,7 +94,7 @@ describe('a save from the previous schema', () => {
     const { game } = await startTestGameFromDocument(v1Fixture, fixtureWallMs);
     expect(game.getSnapshot().state).toEqual({
       saveId: '4f6c2a9e-legacy',
-      schemaVersion: 5,
+      schemaVersion: 6,
       economyVersion: 1,
       revision: 1842,
       cashCents: 1_208_925_819_614_629_174_706_176n,
@@ -145,12 +146,14 @@ describe('a save from the previous schema', () => {
       dividendAccruals: [],
       watchlist: [],
       reward: { boost: { status: 'none' }, processedRewardIds: [] },
+      goals: { completed: [], pinnedGoalId: null },
+      activity: EMPTY_ACTIVITY,
     });
   });
 
   it('saves the migrated snapshot so the next launch opens it as current', async () => {
     const migrated = await startTestGameFromDocument(v1Fixture, fixtureWallMs);
-    expect(JSON.parse(migrated.saveDocument())).toMatchObject({ schemaVersion: 5, revision: 1842 });
+    expect(JSON.parse(migrated.saveDocument())).toMatchObject({ schemaVersion: 6, revision: 1842 });
     const again = await migrated.restart();
     expect(again.game.getSnapshot().state.revision).toBe(1842);
   });
@@ -160,7 +163,7 @@ describe('a save from the previous schema', () => {
     migrated.replaceSaveDocument('not json');
     const { game } = await migrated.restart();
     expect(game.getSnapshot().notice).toEqual({ kind: 'restoredFromBackup' });
-    expect(game.getSnapshot().state).toMatchObject({ schemaVersion: 5, revision: 1842 });
+    expect(game.getSnapshot().state).toMatchObject({ schemaVersion: 6, revision: 1842 });
   });
 });
 

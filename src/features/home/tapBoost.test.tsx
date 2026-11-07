@@ -2,7 +2,7 @@ import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-librar
 
 import type { OpenedGame } from '@/application/game';
 import { scriptedAds } from '@/application/scriptedAds';
-import { startTestGameWith, type TestGame } from '@/application/testGame';
+import { startObservedTestGame, type TestGame } from '@/application/testGame';
 
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(() => Promise.resolve()),
@@ -13,7 +13,7 @@ let mockGame: Promise<OpenedGame>;
 jest.mock('@/bootstrap/deviceGame', () => ({ loadDeviceGame: () => mockGame }));
 
 async function openHome(ads = scriptedAds()): Promise<TestGame> {
-  const session = await startTestGameWith({ ads });
+  const session = await startObservedTestGame({ ads });
   mockGame = Promise.resolve({ status: 'ready', game: session.game });
   await renderRouter('src/app', { initialUrl: '/home' });
   return session;
