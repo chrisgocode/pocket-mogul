@@ -16,6 +16,7 @@ type Quoted = {
 export type StockQuote = Quoted & { readonly kind: 'stock'; readonly asset: Stock };
 export type CoinQuote = Quoted & { readonly kind: 'coin'; readonly asset: Coin };
 export type AssetQuote = StockQuote | CoinQuote;
+export type AssetKind = AssetQuote['kind'];
 
 export type AssetDetail =
   | { readonly status: 'unknown' }

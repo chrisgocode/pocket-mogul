@@ -9,7 +9,10 @@ import type { TradeSheetControls } from './useTradeSheet';
 
 export function TradeNotices({ sheet }: { sheet: TradeSheetControls }) {
   const { ticket, stale, confirmation } = sheet;
-  const problem = ticketProblem(ticket, getContent().economy.market.minBuyNotional);
+  const problem = ticketProblem(ticket, {
+    minimum: getContent().economy.market.minBuyNotional,
+    units: sheet.units,
+  });
   return (
     <>
       {problem === undefined ? null : <AppText style={styles.problem}>{problem}</AppText>}

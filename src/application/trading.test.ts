@@ -80,6 +80,33 @@ describe('trading a stock', () => {
   });
 });
 
+describe('trading a coin', () => {
+  it('charges the 50 bps crypto fee and keeps sub-cent coin prices exact', async () => {
+    const session = await startWith('1,000');
+    const bought = await trade(session.game, {
+      side: 'buy',
+      quantity: units('1,000'),
+      assetId: 'wag',
+    });
+    expect(bought).toEqual({ ok: true, revision: 1, cashChangeCents: dollars('-100.50') });
+    const sold = await trade(session.game, {
+      side: 'sell',
+      quantity: units('400'),
+      assetId: 'wag',
+    });
+    expect(sold).toEqual({ ok: true, revision: 2, cashChangeCents: dollars('39.80') });
+    const { game } = await session.restart();
+    expect(game.getSnapshot().state.positions).toEqual([
+      {
+        instrumentId: 'wag',
+        quantity: units('600'),
+        remainingBasisCents: dollars('60.30'),
+        realizedProfitCents: dollars('-0.40'),
+      },
+    ]);
+  });
+});
+
 describe('trade refusals', () => {
   it('refuses a quote from an earlier market tick with STALE_QUOTE (AC16)', async () => {
     const session = await startWith('1,000');

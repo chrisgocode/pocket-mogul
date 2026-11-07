@@ -165,4 +165,45 @@ describe('the content market', () => {
       40, 40, 80, 180,
     ]);
   });
+
+  it('moves coins by the crypto column of spec §11, with no sector shock', () => {
+    const { crypto } = marketEconomy(getContent()).rules;
+    expect(crypto).toMatchObject({
+      commonShockBps: 80,
+      sectorShockBps: 0,
+      regimeDriftBps: 8,
+      eventDriftBps: 100,
+      eventDurationTicks: 6,
+    });
+  });
+
+  it('pins the seeded price path of stocks and coins with golden fixtures', () => {
+    const economy = marketEconomy(getContent());
+    const prices = advanceMarket(freshMarket('golden'), { toTick: 120, economy }).market.quotes;
+    expect([prices['prism'], prices['summit'], prices['zapcar']]).toEqual([
+      dollarPrice('24.413274'),
+      dollarPrice('799.010483'),
+      dollarPrice('0.090844'),
+    ]);
+    expect([prices['block'], prices['wag']]).toEqual([
+      dollarPrice('208.525482'),
+      dollarPrice('0.098048'),
+    ]);
+  });
+
+  it('draws coins from their own streams, so coins never change stock prices', () => {
+    const economy = marketEconomy(getContent());
+    const stockIds = getContent().stocks.map((stock) => stock.id);
+    const kept = new Set([...stockIds, 'wag']);
+    const oneCalmCoin = {
+      rules: { ...economy.rules, crypto: { ...economy.rules.crypto, commonShockBps: 0 } },
+      instruments: economy.instruments.filter((asset) => kept.has(asset.id)),
+    };
+    const advance = (listed: typeof economy) =>
+      advanceMarket(freshMarket('golden'), { toTick: 480, economy: listed }).market.quotes;
+    const full = advance(economy);
+    const reduced = advance(oneCalmCoin);
+    expect(stockIds.map((id) => reduced[id])).toEqual(stockIds.map((id) => full[id]));
+    expect(reduced['wag']).not.toEqual(full['wag']);
+  });
 });

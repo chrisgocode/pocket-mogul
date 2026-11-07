@@ -28,7 +28,9 @@ export function TradeSheet({ name, sheet }: { name: string; sheet: TradeSheetCon
       <TradeEntryFields sheet={sheet} />
       {quoted === undefined
         ? null
-        : quoteLines(quoted, ticket.tick).map((line) => <DetailLine key={line.label} {...line} />)}
+        : quoteLines(quoted, { tick: ticket.tick, units: sheet.units }).map((line) => (
+            <DetailLine key={line.label} {...line} />
+          ))}
       <TradeNotices sheet={sheet} />
       <Button
         label={primaryLabel(sheet)}

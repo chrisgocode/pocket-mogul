@@ -167,5 +167,5 @@ The whole cents accrued but not yet paid; they count towards net worth until the
 _Avoid_: Unpaid dividends, owed dividends
 
 **Watchlist**:
-The stocks the player has marked to see at the top of Markets; it changes nothing about prices or trades.
+The stocks and coins the player has marked to see at the top of Markets; it changes nothing about prices or trades.
 _Avoid_: Favorites, starred

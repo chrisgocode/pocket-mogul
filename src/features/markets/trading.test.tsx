@@ -97,6 +97,20 @@ describe('Stock trading', () => {
   });
 });
 
+describe('Crypto trading', () => {
+  it('quotes coins with the 50 bps crypto fee, then buys into a position', async () => {
+    await open('/markets/wag');
+    await fireEvent.press(await screen.findByRole('button', { name: 'Buy Wag Coin' }));
+    await fireEvent.changeText(screen.getByLabelText('Coins to buy'), '1000');
+    expect(screen.getByLabelText('Quantity, 1,000 coins')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Notional, $100.00')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Trading fee, $0.50')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Confirm buy · -$100.50' }));
+    expect(await screen.findByLabelText('Coins, 1,000')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Unrealized result, -$0.50')).toBeOnTheScreen();
+  });
+});
+
 describe('Watchlist', () => {
   it('toggles from the stock details and saves the choice', async () => {
     const session = await open('/markets/prism');
