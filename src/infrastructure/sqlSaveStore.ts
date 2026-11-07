@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { Diagnostic, SaveStore, SaveTransaction } from '@/application/ports';
 import { decodeOutcome, encodeOutcome, encodeSave } from '@/application/saveFormat';
 
+import { appendActivity, CREATE_LEDGER_ENTRIES, loadActivity } from './sqlActivity';
 import { appendMarketHistory, CREATE_MARKET_HISTORY, loadAssetHistory } from './sqlMarketHistory';
 import type { SqlDriver, SqlExecutor } from './sqlDriver';
 
@@ -20,6 +21,7 @@ const MIGRATIONS: readonly (readonly string[])[] = [
   [
     'CREATE TABLE save_backups (id INTEGER PRIMARY KEY AUTOINCREMENT, document TEXT NOT NULL, recorded_wall_ms INTEGER NOT NULL)',
   ],
+  [CREATE_LEDGER_ENTRIES],
 ];
 
 const versionRow = z.object({ version: z.number().int().nullable() });
@@ -77,7 +79,10 @@ async function migrate(sql: SqlExecutor): Promise<void> {
 
 function backupsOver(
   sql: SqlExecutor,
-): Pick<SaveTransaction, 'readBackups' | 'writeBackup' | 'clearBackups' | 'clearMarketHistory'> {
+): Pick<
+  SaveTransaction,
+  'readBackups' | 'writeBackup' | 'clearBackups' | 'clearMarketHistory' | 'clearActivity'
+> {
   return {
     readBackups: async () =>
       backupRows.parse(
@@ -95,6 +100,7 @@ function backupsOver(
     },
     clearBackups: () => sql.run('DELETE FROM save_backups'),
     clearMarketHistory: () => sql.run('DELETE FROM market_history'),
+    clearActivity: () => sql.run('DELETE FROM ledger_entries'),
   };
 }
 
@@ -133,6 +139,7 @@ function transactionOver(sql: SqlExecutor): SaveTransaction {
         recordedWallMs,
       ]),
     appendMarketHistory: (history) => appendMarketHistory(sql, history),
+    appendActivity: (entries) => appendActivity(sql, entries),
     writeState: (state) =>
       sql.run(
         'INSERT INTO save_state (id, document) VALUES (1, ?) ON CONFLICT (id) DO UPDATE SET document = excluded.document',
@@ -145,6 +152,7 @@ export async function openSqlSaveStore(driver: SqlDriver): Promise<SaveStore> {
   await driver.exclusive(migrate);
   return {
     loadAssetHistory: (assetId) => driver.exclusive((sql) => loadAssetHistory(sql, assetId)),
+    loadActivity: () => driver.exclusive(loadActivity),
     loadDiagnostics: () =>
       driver.exclusive(async (sql) =>
         diagnosticRows.parse(

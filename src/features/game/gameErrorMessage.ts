@@ -13,6 +13,8 @@ const MESSAGES: Record<GameErrorCode, string> = {
   BELOW_MINIMUM: 'This trade is below the minimum trade size.',
   TRADING_LOCKED: 'Trading opens after you buy your first business.',
   STALE_QUOTE: 'The price changed. Check the new amount and try again.',
+  UNKNOWN_GOAL: "That goal isn't available.",
+  GOAL_COMPLETED: 'You already reached this goal. Pin one you are still working toward.',
   SAVE_FAILED: "Your game couldn't be saved, so nothing changed. Try again.",
 };
 

@@ -39,6 +39,7 @@ const gameCommandSchema = z.discriminatedUnion('type', [
     quotedTick: z.number().int().nonnegative(),
   }),
   z.object({ type: z.literal('SetWatchlist'), assetId, watched: z.boolean() }),
+  z.object({ type: z.literal('PinGoal'), goalId: z.string().min(1).nullable() }),
   z.object({ type: z.literal('AdvanceTime') }),
   z.object({ type: z.literal('SettleOffline') }),
   z.object({ type: z.literal('AcknowledgeReturnSummary') }),

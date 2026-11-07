@@ -128,7 +128,7 @@ function schemaV3Save(): string {
 describe('saves from before dividends', () => {
   it('migrate from schema 3 with no accrued or earned dividends', () => {
     const state = migratedState(schemaV3Save());
-    expect(state.schemaVersion).toBe(4);
+    expect(state.schemaVersion).toBe(5);
     expect(state.dividendAccruals).toEqual([]);
     expect<bigint>(state.income.dividendEarningsCents).toBe(dollars('0'));
     expect(state.returnSummary).toEqual({

@@ -1,7 +1,9 @@
 import type { Content } from '@/content';
+import { ACTIVITY_ENTRIES_KEPT, type ActivityEntry } from '@/domain/activity';
 import type { CommandEnvelope, CommandOutcome } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
 
+import { activityFeed, type ActivityFeed } from './activityFeed';
 import { supportsEconomy } from './economy';
 import { commitCommand, type CommandTime, type Committed } from './commitCommand';
 import { foregroundTime, type ForegroundTime } from './foregroundTime';
@@ -11,7 +13,7 @@ import { openSave, type SaveNotice, type SaveStopReason } from './openSave';
 import type { AssetHistory, Clock, SaveStore } from './ports';
 import { commitReset } from './resetSave';
 import { backUpIfDue } from './saveBackups';
-import { serialQueue } from './serialQueue';
+import { serialQueue, type SerialQueue } from './serialQueue';
 import { snapshotStore, type SnapshotStore } from './snapshotStore';
 import { tapBatcher } from './tapBatcher';
 
@@ -31,9 +33,12 @@ export type GameSnapshot = {
   readonly notice: SaveNotice;
 };
 
+export type GameEvent = { readonly type: 'goalsCompleted'; readonly goalIds: readonly string[] };
+
 export type Game = {
   getSnapshot: () => GameSnapshot;
   subscribe: (listener: () => void) => () => void;
+  subscribeEvents: (listener: (event: GameEvent) => void) => () => void;
   dispatch: (envelope: CommandEnvelope) => Promise<CommandOutcome>;
   tap: () => void;
   flushTaps: () => Promise<void>;
@@ -44,6 +49,8 @@ export type Game = {
   dismissNotice: () => void;
   resetSave: (attemptId: string) => Promise<CommandOutcome>;
   readMarketHistory: (assetId: string) => Promise<AssetHistory>;
+  readActivity: () => Promise<readonly ActivityEntry[]>;
+  activity: ActivityFeed;
   marketHistory: (assetId: string) => HistoryFeed;
 };
 
@@ -83,28 +90,63 @@ function publisher(snapshots: SnapshotStore<GameSnapshot>, time: ForegroundTime)
   };
 }
 
-function committer(ports: GamePorts, opened: Opened) {
-  const snapshots = snapshotStore<GameSnapshot>({
-    ...opened,
-    pendingTaps: 0,
-    unsavedElapsedMs: 0,
+function eventChannel() {
+  const listeners = new Set<(event: GameEvent) => void>();
+  return {
+    emit: (event: GameEvent) => {
+      for (const listener of listeners) listener(event);
+    },
+    subscribe: (listener: (event: GameEvent) => void) => {
+      listeners.add(listener);
+      return () => void listeners.delete(listener);
+    },
+  };
+}
+
+type EventChannel = ReturnType<typeof eventChannel>;
+
+function announce(events: EventChannel, committed: Committed): void {
+  const goalIds = committed.completedGoalIds ?? [];
+  if (goalIds.length > 0) events.emit({ type: 'goalsCompleted', goalIds });
+}
+
+function feeds(ports: GamePorts, queue: SerialQueue) {
+  const history = marketHistoryFeeds({ queue, load: ports.store.loadAssetHistory });
+  const activity = activityFeed({
+    queue,
+    load: ports.store.loadActivity,
+    kept: ACTIVITY_ENTRIES_KEPT,
   });
+  return {
+    history,
+    activity,
+    events: eventChannel(),
+    record(committed: Committed) {
+      if (committed.history !== undefined) history.append(committed.history);
+      activity.append(committed.activity ?? []);
+    },
+  };
+}
+
+function committer(ports: GamePorts, opened: Opened) {
+  const snapshots = snapshotStore<GameSnapshot>({ ...opened, pendingTaps: 0, unsavedElapsedMs: 0 });
   const time = foregroundTime(ports.clock);
   const queue = serialQueue();
-  const history = marketHistoryFeeds({ queue, load: ports.store.loadAssetHistory });
+  const live = feeds(ports, queue);
   const publish = publisher(snapshots, time);
   const commit = (step: CommitStep, options: RunOptions = {}) => {
     const wallMs = options.issuedAtWallMs ?? ports.clock.wallMs();
     return queue.run(async () => {
       const elapsedMs = time.unsavedMs();
       const committed = await step(snapshots.get().state, { elapsedMs, wallMs });
-      if (committed.history !== undefined) history.append(committed.history);
+      live.record(committed);
       if (committed.state !== undefined) {
         time.saved(elapsedMs);
         await backUpIfDue(ports.store, { revision: committed.state.revision, wallMs });
         await runBeforePublish(options.beforePublish);
       }
       publish({ state: committed.state, settledTaps: options.settledTaps ?? 0 });
+      announce(live.events, committed);
       return committed.outcome;
     });
   };
@@ -117,7 +159,7 @@ function committer(ports: GamePorts, opened: Opened) {
     snapshots,
     time,
     queue,
-    history,
+    ...live,
     run,
     commit,
     refresh: () => publish({ settledTaps: 0 }),
@@ -182,10 +224,23 @@ function saveControls(ports: GamePorts, game: { core: Committer; flushTaps: () =
       const outcome = await core.commit((current, { wallMs }) =>
         commitReset(ports, { attemptId, current, wallMs }),
       );
-      if (outcome.ok) core.history.reload();
+      if (outcome.ok) {
+        core.history.reload();
+        core.activity.reload();
+      }
       return outcome;
     },
     dismissNotice: () => core.snapshots.set({ ...core.snapshots.get(), notice: { kind: 'none' } }),
+  };
+}
+
+function gameReads(ports: GamePorts, core: Committer) {
+  return {
+    readMarketHistory: (assetId: string) =>
+      core.queue.run(() => ports.store.loadAssetHistory(assetId)),
+    readActivity: () => core.queue.run(() => ports.store.loadActivity()),
+    activity: core.activity.view,
+    marketHistory: (assetId: string) => core.history.feed(assetId),
   };
 }
 
@@ -209,14 +264,14 @@ async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
   return {
     getSnapshot: core.snapshots.get,
     subscribe: core.snapshots.subscribe,
+    subscribeEvents: core.events.subscribe,
     dispatch,
     checkpoint,
     tap,
     flushTaps,
     createCommandId: ports.createId,
     ...saveControls(ports, { core, flushTaps }),
-    readMarketHistory: (assetId) => core.queue.run(() => ports.store.loadAssetHistory(assetId)),
-    marketHistory: (assetId) => core.history.feed(assetId),
+    ...gameReads(ports, core),
     async pause() {
       loops.stop();
       core.time.pause();

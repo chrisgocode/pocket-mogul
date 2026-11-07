@@ -9,6 +9,8 @@ import {
   type PendingReturnSummary,
   type ReturnSummary,
 } from '@/domain/gameState';
+import { EMPTY_ACTIVITY } from '@/domain/activity';
+import { NO_GOAL_PROGRESS } from '@/domain/goals';
 import { moneyCents } from '@/domain/money';
 
 import {
@@ -18,6 +20,7 @@ import {
   saveSchemaV2,
   saveSchemaV3,
   saveSchemaV4,
+  saveSchemaV5,
 } from './saveSchemas';
 
 export type DecodedSave =
@@ -39,7 +42,12 @@ type SummaryBeforeDividends =
       };
     };
 
-type SaveBeforeDividends = Omit<GameState, 'income' | 'returnSummary' | 'dividendAccruals'> & {
+type SaveBeforeGoals = Omit<GameState, 'goals' | 'activity'>;
+
+type SaveBeforeDividends = Omit<
+  SaveBeforeGoals,
+  'income' | 'returnSummary' | 'dividendAccruals'
+> & {
   readonly income: Omit<IncomeState, 'dividendEarningsCents'>;
   readonly returnSummary: SummaryBeforeDividends;
 };
@@ -61,20 +69,35 @@ function summaryWithDividends(summary: SummaryBeforeDividends): PendingReturnSum
   return { status: 'pending', summary: { ...summary.summary, earnings } };
 }
 
-function withDividends(saved: SaveBeforeDividends): GameState {
+function withDividends(saved: SaveBeforeDividends): SaveBeforeGoals {
   return {
     ...saved,
-    schemaVersion: SAVE_SCHEMA_VERSION,
     income: { ...saved.income, dividendEarningsCents: moneyCents(0) },
     returnSummary: summaryWithDividends(saved.returnSummary),
     dividendAccruals: [],
   };
 }
 
+function withGoals(saved: SaveBeforeGoals): GameState {
+  return {
+    ...saved,
+    schemaVersion: SAVE_SCHEMA_VERSION,
+    goals: NO_GOAL_PROGRESS,
+    activity: EMPTY_ACTIVITY,
+  };
+}
+
 const MIGRATIONS: readonly Migration[] = [
-  { fromVersion: 1, upgrade: (raw) => withDividends(withTrading(saveSchemaV1.parse(raw))) },
-  { fromVersion: 2, upgrade: (raw) => withDividends(withTrading(saveSchemaV2.parse(raw))) },
-  { fromVersion: 3, upgrade: (raw) => withDividends(saveSchemaV3.parse(raw)) },
+  {
+    fromVersion: 1,
+    upgrade: (raw) => withGoals(withDividends(withTrading(saveSchemaV1.parse(raw)))),
+  },
+  {
+    fromVersion: 2,
+    upgrade: (raw) => withGoals(withDividends(withTrading(saveSchemaV2.parse(raw)))),
+  },
+  { fromVersion: 3, upgrade: (raw) => withGoals(withDividends(saveSchemaV3.parse(raw))) },
+  { fromVersion: 4, upgrade: (raw) => withGoals(saveSchemaV4.parse(raw)) },
 ];
 
 const versioned = z.object({ schemaVersion: z.number().int() });
@@ -111,7 +134,7 @@ function migrated(raw: unknown, fromVersion: number): DecodedSave {
 }
 
 function current(raw: unknown): DecodedSave {
-  const parsed = saveSchemaV4.safeParse(raw);
+  const parsed = saveSchemaV5.safeParse(raw);
   return parsed.success ? { status: 'current', state: parsed.data } : { status: 'corrupt' };
 }
 

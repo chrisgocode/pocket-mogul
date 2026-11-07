@@ -11,7 +11,9 @@ import type {
   CommandResult,
   GameCommand,
 } from '@/domain/commands';
+import type { ActivityEntry } from '@/domain/activity';
 import type { GameState } from '@/domain/gameState';
+import { applyPinGoal, withCompletedGoals } from '@/domain/goals';
 import { advanceMarket, type MarketHistory } from '@/domain/market';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 import { settleOffline, type WallClockReading } from '@/domain/offline';
@@ -30,6 +32,7 @@ import { applyWalletUpgrade } from '@/domain/wallet';
 import {
   businessEconomy,
   contentAt,
+  goalRules,
   marketEconomy,
   passiveEconomy,
   progressRules,
@@ -38,6 +41,7 @@ import {
   type EconomyVersions,
 } from './economy';
 import { validCommand } from './commandSchema';
+import { withCommittedActivity, type PassedTime } from './committedActivity';
 import type { SaveStore, SaveTransaction } from './ports';
 
 export type Committed = {
@@ -45,6 +49,8 @@ export type Committed = {
   state?: GameState;
   wallClock?: WallClockReading;
   history?: MarketHistory;
+  activity?: readonly ActivityEntry[];
+  completedGoalIds?: readonly string[];
 };
 
 type CommitContext = EconomyVersions & { readonly store: SaveStore };
@@ -88,6 +94,8 @@ const COMMAND_HANDLERS: CommandHandlers = {
     applyExecuteTrade(state, { ...command, economy: tradeEconomy(content) }),
   SetWatchlist: (state, command, content) =>
     applySetWatchlist(state, { ...command, economy: tradeEconomy(content) }),
+  PinGoal: (state, command, content) =>
+    applyPinGoal(state, { goalId: command.goalId, rules: goalRules(content) }),
   AdvanceTime: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),
   SettleOffline: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),
   AcknowledgeReturnSummary: (state) => ({
@@ -101,6 +109,7 @@ type TimeStep = {
   readonly state: GameState;
   readonly earnedCents: MoneyCents;
   readonly wallClock: WallClockReading;
+  readonly passed: PassedTime;
 };
 
 function withMarket(step: TimeStep, content: Content): TimeStep & { history: MarketHistory } {
@@ -121,10 +130,12 @@ function passTime(
   if (step.command.type === 'SettleOffline') {
     const capMs = step.content.economy.time.offlineCapMs;
     const settled = settleOffline(state, { wallMs: step.time.wallMs, capMs, economy });
-    return { ...settled, wallClock: settled.clock };
+    const passed = { earnings: settled.absence.earnings, absence: settled.absence };
+    return { ...settled, wallClock: settled.clock, passed };
   }
   const advanced = advanceTime(state, { ...step.time, economy });
-  return { ...advanced, wallClock: { direction: 'forward' } };
+  const passed = { earnings: advanced.earnings, absence: undefined };
+  return { ...advanced, wallClock: { direction: 'forward' }, passed };
 }
 
 function applyCommand<Type extends keyof CommandsByType>(
@@ -133,6 +144,34 @@ function applyCommand<Type extends keyof CommandsByType>(
   content: Content,
 ): CommandResult {
   return COMMAND_HANDLERS[command.type](state, command.payload, content);
+}
+
+type Applied = {
+  readonly command: GameCommand;
+  readonly content: Content;
+  readonly advanced: TimeStep;
+  readonly progressed: GameState;
+  readonly result: Extract<CommandResult, { ok: true }>;
+};
+
+function finish(previous: GameState, applied: Applied) {
+  const { content, result } = applied;
+  const goals = withCompletedGoals(
+    withProgress(result.state, progressRules(content)),
+    goalRules(content),
+  );
+  const logged = withCommittedActivity({
+    command: applied.command,
+    time: applied.advanced.passed,
+    before: applied.progressed,
+    after: goals.state,
+    commandCashCents: result.cashChangeCents,
+  });
+  return {
+    state: { ...logged.state, revision: previous.revision + 1 },
+    activity: logged.entries,
+    completedGoalIds: goals.completedGoalIds,
+  };
 }
 
 function apply(
@@ -147,25 +186,25 @@ function apply(
     passTime(state, { command, time: change.time, content: settling }),
     settling,
   );
-  const progress = progressRules(content);
   const adopted = { ...advanced.state, economyVersion: content.economyVersion };
-  const progressed = withProgress(adopted, progress);
+  const progressed = withProgress(adopted, progressRules(content));
   const result = applyCommand(progressed, { type: command.type, payload: command }, content);
   if (!result.ok) return { outcome: result };
   const cashChangeCents = moneyCents(advanced.earnedCents + result.cashChangeCents);
-  const next = { ...withProgress(result.state, progress), revision: state.revision + 1 };
-  const outcome = { ok: true, revision: next.revision, cashChangeCents } as const;
-  return { outcome, state: next, wallClock: advanced.wallClock, history: advanced.history };
+  const next = finish(state, { command, content, advanced, progressed, result });
+  const outcome = { ok: true, revision: next.state.revision, cashChangeCents } as const;
+  return { ...next, outcome, wallClock: advanced.wallClock, history: advanced.history };
 }
 
 async function record(
   tx: SaveTransaction,
   change: { envelope: CommandEnvelope; applied: Committed; wallMs: number },
 ): Promise<void> {
-  const { state, outcome, wallClock, history } = change.applied;
+  const { state, outcome, wallClock, history, activity = [] } = change.applied;
   if (state === undefined) return;
   await tx.writeState(state);
   if (history !== undefined) await tx.appendMarketHistory(history);
+  if (activity.length > 0) await tx.appendActivity(activity);
   if (wallClock?.direction === 'backward') {
     const { direction: _direction, ...reading } = wallClock;
     await tx.writeDiagnostic({

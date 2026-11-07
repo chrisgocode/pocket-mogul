@@ -3,6 +3,7 @@ import type { BusinessEconomy } from '@/domain/businesses';
 import type { DividendRates } from '@/domain/dividends';
 import type { MarketEconomy, MarketInstrument } from '@/domain/market';
 import type { PassiveEconomy } from '@/domain/passiveIncome';
+import type { GoalRules } from '@/domain/goals';
 import type { ProgressRules } from '@/domain/progression';
 import type { PropertyEconomy } from '@/domain/properties';
 import type { TradeEconomy } from '@/domain/trades';
@@ -35,6 +36,10 @@ export function progressRules(content: Content): ProgressRules {
     properties: propertyEconomy(content),
     instruments: instruments(content),
   };
+}
+
+export function goalRules(content: Content): GoalRules {
+  return { goals: content.goals, instruments: instruments(content) };
 }
 
 export type EconomyVersions = {
