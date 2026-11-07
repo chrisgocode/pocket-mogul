@@ -206,3 +206,26 @@ describe('property rule validation rejects', () => {
     ).toEqual(['Building Systems at its max level must leave upkeep above zero']);
   });
 });
+
+describe('the automatic ad schedule', () => {
+  it('holds the spec §15 numbers in content configuration', () => {
+    expect(getContent().economy.ads).toEqual({
+      gateAfterForegroundMs: 300_000,
+      interstitialMinGapMs: 180_000,
+      interstitialDailyCap: 12,
+      tapIdleBeforeAdMs: 2_500,
+      adBreakCardMs: 1_000,
+      afterRewardedQuietMs: 120_000,
+      appOpenMinSession: 3,
+      appOpenMinAwayMs: 1_800_000,
+      appOpenMinGapMs: 14_400_000,
+    });
+  });
+
+  it('rejects a daily cap that is not a positive whole number', () => {
+    const issues = issuesFor((c) => {
+      c.economy.ads.interstitialDailyCap = 0;
+    });
+    expect(issues.length).toBeGreaterThan(0);
+  });
+});

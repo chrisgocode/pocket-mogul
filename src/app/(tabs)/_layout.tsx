@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router/js-tabs';
 
+import { useHomeBreak } from '@/features/ads/useHomeBreak';
 import { Icon, type IconName } from '@/ui/Icons';
 import { colors } from '@/ui/tokens';
 
@@ -12,6 +13,7 @@ const TABS: { name: string; title: string; icon: IconName }[] = [
 ];
 
 export default function TabsLayout() {
+  const leftHome = useHomeBreak();
   return (
     <Tabs
       screenOptions={{
@@ -25,6 +27,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           key={tab.name}
           name={tab.name}
+          listeners={tab.name === 'home' ? { blur: leftHome } : {}}
           options={{
             title: tab.title,
             tabBarIcon: ({ color }) => <Icon name={tab.icon} color={color} />,

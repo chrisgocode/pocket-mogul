@@ -61,7 +61,7 @@ function adEvents(deps: TapBoostDependencies, ads: Presentations) {
     const presentation = ads.current();
     if (event.type === 'earnedReward') earned();
     else if (presentation.status === 'showing') {
-      if (event.type !== 'availability') finish(presentation.id);
+      if (event.type === 'closed' || event.type === 'failed') finish(presentation.id);
     } else if (event.type === 'availability') {
       ads.publish({ status: event.availability, recentId: presentation.recentId });
     }

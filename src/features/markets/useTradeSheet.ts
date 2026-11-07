@@ -11,6 +11,7 @@ import { formatQuantity, type QuantityMicrounits } from '@/domain/money';
 import type { TradeSide } from '@/domain/tradeQuotes';
 import { useGame, useGameSnapshot } from '@/features/game/GameContext';
 import { gameErrorMessage } from '@/features/game/gameErrorMessage';
+import { useSheetBreak } from '@/features/ads/useSheetBreak';
 import { useConfirmation } from '@/ui/state/useConfirmation';
 import { useTradeDraft } from '@/ui/state/useTradeDraft';
 
@@ -26,7 +27,7 @@ const BLANK = {
 
 function useTradeSubmit(assetId: string) {
   const game = useGame();
-  const { confirmation, open, close, submit } = useConfirmation<TradeSide>();
+  const { confirmation, open, close, submit } = useConfirmation<TradeSide>(useSheetBreak());
   const send = (order: { side: TradeSide; quantity: QuantityMicrounits; quotedTick: number }) =>
     submit(async ({ attemptId }) => {
       const outcome = await game.dispatch({

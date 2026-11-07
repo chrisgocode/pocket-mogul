@@ -9,6 +9,7 @@ export type CancelTimer = () => void;
 export type Clock = {
   monotonicMs: () => number;
   wallMs: () => number;
+  localDayKey: (wallMs: number) => string;
   schedule: (delayMs: number, task: () => void) => CancelTimer;
 };
 
@@ -63,6 +64,7 @@ export type AdAvailability = 'loading' | 'ready' | 'unavailable';
 export type FullScreenAdEvent =
   | { readonly type: 'availability'; readonly availability: AdAvailability }
   | { readonly type: 'earnedReward' }
+  | { readonly type: 'clicked' }
   | { readonly type: 'closed' }
   | { readonly type: 'failed' };
 
@@ -72,4 +74,8 @@ export type FullScreenAd = {
   subscribe: (listener: (event: FullScreenAdEvent) => void) => () => void;
 };
 
-export type AdPort = { readonly rewarded: FullScreenAd };
+export type AdPort = {
+  readonly rewarded: FullScreenAd;
+  readonly interstitial: FullScreenAd;
+  readonly appOpen: FullScreenAd;
+};

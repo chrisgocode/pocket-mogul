@@ -8,7 +8,7 @@ export type BoostTime = Pick<ForegroundTime, 'unsavedMs' | 'saved'> & {
   uncover: (reason: BoostTimeCover) => void;
 };
 
-export function boostTime(clock: Clock): BoostTime {
+export function coveredTime(clock: Clock): BoostTime {
   const time = foregroundTime(clock);
   let covers: ReadonlySet<BoostTimeCover> = new Set();
   return {

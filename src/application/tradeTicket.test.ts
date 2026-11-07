@@ -20,6 +20,8 @@ function snapshotWith(overrides: Partial<GameState>): GameSnapshot {
     unsavedElapsedMs: 0,
     unsavedBoostMs: 0,
     tapBoostAd: 'loading',
+    automaticAd: 'none',
+    banner: 'held',
     notice: { kind: 'none' },
   };
 }

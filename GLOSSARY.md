@@ -32,6 +32,18 @@ _Avoid_: Random ad, forced ad, popup
 A moment between player tasks (leaving Home, closing a confirmation sheet, completing a goal) where an automatic full-screen ad may appear.
 _Avoid_: Pause, idle moment
 
+**Ad break card**:
+The 1-second card that ignores input before an interstitial shows at a natural break.
+_Avoid_: Ad warning, countdown
+
+**AdScheduler**:
+The pure rules that decide, from AdScheduleState and the moment, whether an automatic ad shows, waits or is suppressed (and why).
+_Avoid_: Ad manager, ad timer
+
+**Session**:
+A cold launch, or a warm resume after at least 30 minutes away; app open ads start from the third.
+_Avoid_: Visit, run
+
 ## Game engine
 
 **Game**:

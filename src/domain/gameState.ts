@@ -1,3 +1,4 @@
+import { freshAdSchedule, type AdScheduleState } from './adSchedule';
 import { EMPTY_ACTIVITY, type ActivityLog } from './activity';
 import { NO_REWARDS, type RewardState } from './boost';
 import type { DividendAccrual } from './dividends';
@@ -88,6 +89,7 @@ export type GameState = {
   readonly activity: ActivityLog;
   readonly tutorial: TutorialProgress;
   readonly settings: Settings;
+  readonly adSchedule: AdScheduleState;
 };
 
 export function freshGameState(start: {
@@ -127,5 +129,6 @@ export function freshGameState(start: {
     activity: EMPTY_ACTIVITY,
     tutorial: freshTutorial(),
     settings: defaultSettings(),
+    adSchedule: freshAdSchedule(),
   };
 }

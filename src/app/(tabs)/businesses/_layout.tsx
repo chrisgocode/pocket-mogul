@@ -1,5 +1,10 @@
+import { BannerLayout } from '@/features/ads/BannerLayout';
 import { TabStack } from '@/ui/TabStack';
 
 export default function Layout() {
-  return <TabStack title="Businesses" />;
+  return (
+    <BannerLayout screen="businesses">
+      <TabStack title="Businesses" />
+    </BannerLayout>
+  );
 }

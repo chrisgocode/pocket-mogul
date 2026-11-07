@@ -1,6 +1,9 @@
+import type { AdScheduleState } from '@/domain/adSchedule';
 import type { GameState } from '@/domain/gameState';
 
-import { boostTime } from './boostTime';
+import { adScheduleKeeper } from './adScheduleKeeper';
+
+import { coveredTime } from './boostTime';
 import type { CommandTime } from './commitCommand';
 import { foregroundTime } from './foregroundTime';
 import type { GameSnapshot } from './game';
@@ -21,15 +24,20 @@ export function openingSnapshot(opened: Opened): GameSnapshot {
     unsavedElapsedMs: 0,
     unsavedBoostMs: 0,
     tapBoostAd: 'loading',
+    automaticAd: 'none',
+    banner: 'held',
   };
 }
 
-export function gameClocks(clock: Clock) {
+export function gameClocks(clock: Clock, savedSchedule: AdScheduleState) {
   const time = foregroundTime(clock);
-  const boost = boostTime(clock);
+  const boost = coveredTime(clock);
+  const schedule = adScheduleKeeper(clock, savedSchedule);
   return {
     time,
     boostTime: boost,
+    adSchedule: schedule,
+    scheduled: (state: GameState): GameState => ({ ...state, adSchedule: schedule.current() }),
     unsaved: (): UnsavedTime => ({
       elapsedMs: time.unsavedMs(),
       boostElapsedMs: boost.unsavedMs(),
