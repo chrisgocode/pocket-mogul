@@ -21,7 +21,10 @@ function recorder() {
   return { events, telemetry: { record: recordGameplay } };
 }
 
-const names = (events: readonly TelemetryEvent[]) => events.map((event) => event.name);
+const gameplay = (events: readonly TelemetryEvent[]) =>
+  events.filter((event) => event.name !== 'tutorial_step');
+
+const names = (events: readonly TelemetryEvent[]) => gameplay(events).map((event) => event.name);
 
 const run = (game: Game, command: GameCommand) =>
   game.dispatch({ id: game.createCommandId(), command });
@@ -48,7 +51,7 @@ describe('telemetry', () => {
       fromLevel: 0,
     });
     expect(names(sink.events)).toEqual(['wallet_upgrade', 'first_business', 'business_upgrade']);
-    expect(sink.events[2]).toEqual({
+    expect(gameplay(sink.events)[2]).toEqual({
       name: 'business_upgrade',
       economyVersion: 1,
       schemaVersion: game.getSnapshot().state.schemaVersion,
@@ -96,13 +99,13 @@ describe('telemetry for taps, saves and the development sink', () => {
     const { game, clock } = await startObservedTestGame({ telemetry });
     Array.from({ length: 30 }, () => game.tap());
     await game.flushTaps();
-    expect(events).toEqual([]);
+    expect(gameplay(events)).toEqual([]);
     clock.advance(TEN_MINUTES_MS);
     game.tap();
     await game.flushTaps();
     expect(names(events)).toEqual(['taps_aggregated']);
-    expect(events[0]?.details).toEqual({ taps: 31, tapCents: '3100' });
-    expect(events[0]?.state.totalAcceptedTaps).toBe(31);
+    expect(gameplay(events)[0]?.details).toEqual({ taps: 31, tapCents: '3100' });
+    expect(gameplay(events)[0]?.state.totalAcceptedTaps).toBe(31);
   });
 
   it('records a failed save', async () => {
