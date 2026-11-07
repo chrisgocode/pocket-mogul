@@ -5,12 +5,7 @@ import type { CommandEnvelope, CommandOutcome } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
 
 import type { ActivityFeed } from './activityFeed';
-import {
-  automaticAds,
-  type AutomaticAdStage,
-  type BannerScreen,
-  type BannerStatus,
-} from './automaticAds';
+import { automaticAds, type AutomaticAdStage } from './automaticAds';
 import { supportsEconomy } from './economy';
 import { commitCommand, type CommandTime, type Committed } from './commitCommand';
 import { foregroundLoops } from './foregroundLoops';
@@ -51,7 +46,6 @@ export type GameSnapshot = {
   readonly unsavedBoostMs: number;
   readonly tapBoostAd: TapBoostAd;
   readonly automaticAd: AutomaticAdStage;
-  readonly banner: BannerStatus;
   readonly notice: SaveNotice;
 };
 
@@ -66,7 +60,6 @@ export type Game = {
   flushTaps: () => Promise<void>;
   pressTapBoost: () => Promise<void>;
   naturalBreak: (trigger: NaturalBreak) => Promise<void>;
-  reportBanner: (event: 'loaded' | 'clicked', screen: BannerScreen) => void;
   checkpoint: () => Promise<CommandOutcome>;
   pause: () => Promise<void>;
   resume: () => Promise<void>;

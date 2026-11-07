@@ -21,7 +21,6 @@ function snapshotWith(overrides: Partial<GameState>): GameSnapshot {
     unsavedBoostMs: 0,
     tapBoostAd: 'loading',
     automaticAd: 'none',
-    banner: 'held',
     notice: { kind: 'none' },
   };
 }

@@ -25,7 +25,7 @@ The application's interface to an ad SDK: availability, load, show, earned-rewar
 _Avoid_: Ad service, ad manager
 
 **Automatic ad**:
-Any ad shown without the player choosing it (interstitial, app open ad, banner).
+Any ad shown without the player choosing it (interstitial or app open ad). Pocket Mogul shows no banners.
 _Avoid_: Random ad, forced ad, popup
 
 **Natural break**:

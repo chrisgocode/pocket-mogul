@@ -1,6 +1,5 @@
 import {
   appOpenDecision,
-  bannersAllowed,
   interstitialDecision,
   recordAppOpen,
   recordInterstitial,
@@ -19,11 +18,7 @@ import { isTapBoosted } from './tapBoostView';
 
 export type AutomaticAdStage = 'none' | 'adBreak' | 'interstitial' | 'appOpen';
 
-export type BannerStatus = 'held' | 'allowed';
-
-export type AdPlacement = 'tap_boost' | 'interstitial' | 'app_open' | 'banner';
-
-export type BannerScreen = 'businesses' | 'markets' | 'properties' | 'portfolio';
+type AdPlacement = 'tap_boost' | 'interstitial' | 'app_open';
 
 type Context = {
   ports: GamePorts;
@@ -121,18 +116,6 @@ function appOpenAds(context: Context) {
   };
 }
 
-function bannerKeeper(context: Context) {
-  const { core, keeper, ports } = context;
-  return () => {
-    const snapshot = core.snapshots.get();
-    const allowed = bannersAllowed(keeper.current(), ports.content.economy.ads, {
-      tutorial: isTutorialFinished(snapshot.state.tutorial) ? 'finished' : 'running',
-    });
-    const banner: BannerStatus = allowed ? 'allowed' : 'held';
-    if (snapshot.banner !== banner) core.snapshots.set({ ...snapshot, banner });
-  };
-}
-
 function watchClicksAndRewards(context: Context) {
   const { ads, clock } = context.ports;
   const clicked = (placement: AdPlacement) => () =>
@@ -148,16 +131,6 @@ function watchClicksAndRewards(context: Context) {
     if (event.type === 'closed')
       context.keeper.update((state) => recordRewardedView(state, clock.wallMs()));
   });
-}
-
-function bannerTelemetry(context: Context) {
-  return (event: 'loaded' | 'clicked', screen: BannerScreen) =>
-    sendAd(
-      context,
-      event === 'loaded'
-        ? { name: 'ad_banner_loaded', details: { screen } }
-        : { name: 'ad_clicked', details: { placement: 'banner' } },
-    );
 }
 
 function presence(context: Context) {
@@ -201,7 +174,6 @@ export function automaticAds(
     away.present() ? interstitialAt(trigger, taps.sinceTapMs()) : Promise.resolve();
   watchClicksAndRewards(context);
   core.events.subscribe(() => void naturalBreak('goal_completed'));
-  core.snapshots.subscribe(bannerKeeper(context));
   context.keeper.startSession();
   return {
     controls: (tap: () => void) => ({
@@ -210,7 +182,6 @@ export function automaticAds(
         tap();
       },
       naturalBreak,
-      reportBanner: bannerTelemetry(context),
     }),
     isPresenting: () => stage.current() === 'interstitial' || stage.current() === 'appOpen',
     left: away.left,

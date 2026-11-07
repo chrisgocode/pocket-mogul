@@ -1,7 +1,6 @@
 import {
   advanceForeground,
   appOpenDecision,
-  bannersAllowed,
   freshAdSchedule,
   interstitialDecision,
   recordAppOpen,
@@ -52,9 +51,6 @@ describe('the automatic ad gate', () => {
       kind: 'suppressed',
       reason: 'tutorial',
     });
-    expect(bannersAllowed(early, RULES, MOMENT)).toBe(false);
-    expect(bannersAllowed(warmedUp(), RULES, { tutorial: 'running' })).toBe(false);
-    expect(bannersAllowed(warmedUp(), RULES, MOMENT)).toBe(true);
     expect(interstitial(warmedUp())).toEqual({ kind: 'show' });
   });
 });

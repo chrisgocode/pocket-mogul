@@ -21,7 +21,6 @@ export type TelemetryEventName =
   | 'ad_interstitial_shown'
   | 'ad_interstitial_suppressed'
   | 'ad_app_open_shown'
-  | 'ad_banner_loaded'
   | 'ad_clicked'
   | 'save_failed'
   | 'migration_completed';
@@ -66,11 +65,7 @@ export type AdRequest = 'load' | 'show';
 
 export type AdEventName = Extract<
   TelemetryEventName,
-  | 'ad_interstitial_shown'
-  | 'ad_interstitial_suppressed'
-  | 'ad_app_open_shown'
-  | 'ad_banner_loaded'
-  | 'ad_clicked'
+  'ad_interstitial_shown' | 'ad_interstitial_suppressed' | 'ad_app_open_shown' | 'ad_clicked'
 >;
 
 export type AdTelemetry = { readonly name: AdEventName; readonly details: TelemetryDetails };
