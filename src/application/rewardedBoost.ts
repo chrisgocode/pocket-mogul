@@ -7,19 +7,22 @@ import { tapBoost } from './tapBoost';
 
 function grantActivation(ports: GamePorts, core: Committer) {
   return () =>
-    core.commit((current, time): Promise<Committed> => {
-      const { boost } = current.reward;
-      if (boost.status !== 'pending') {
-        return Promise.resolve({
-          outcome: { ok: true, revision: current.revision, cashChangeCents: moneyCents(0) },
-        });
-      }
-      const envelope: CommandEnvelope = {
-        id: `activate-${boost.grantId}`,
-        command: { type: 'ActivateBoost' },
-      };
-      return commitCommand(ports, { current, envelope, time });
-    });
+    core.commit(
+      (current, time): Promise<Committed> => {
+        const { boost } = current.reward;
+        if (boost.status !== 'pending') {
+          return Promise.resolve({
+            outcome: { ok: true, revision: current.revision, cashChangeCents: moneyCents(0) },
+          });
+        }
+        const envelope: CommandEnvelope = {
+          id: `activate-${boost.grantId}`,
+          command: { type: 'ActivateBoost' },
+        };
+        return commitCommand(ports, { current, envelope, time });
+      },
+      { retryUntilSaved: true },
+    );
 }
 
 export function rewardedBoost(

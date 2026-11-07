@@ -31,6 +31,9 @@ async function startDeviceGame(): Promise<OpenedGame> {
 }
 
 export function loadDeviceGame(): Promise<OpenedGame> {
-  deviceGame ??= startDeviceGame();
+  deviceGame ??= startDeviceGame().catch((error: unknown) => {
+    deviceGame = undefined;
+    throw error;
+  });
   return deviceGame;
 }
