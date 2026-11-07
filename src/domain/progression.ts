@@ -1,3 +1,4 @@
+import { pendingDividendsCents } from './dividends';
 import type { GameState } from './gameState';
 import { moneyCents, type MoneyCents } from './money';
 import { findProperty, type PropertyEconomy } from './properties';
@@ -35,11 +36,14 @@ const positionMarkedValue: AssetValuation = (state, rules) =>
     return total + markPosition(position, quoteOf(state.market, instrument)).valueCents;
   }, 0n);
 
+const pendingDividends: AssetValuation = (state) => pendingDividendsCents(state.dividends);
+
 const ASSET_VALUATIONS: readonly AssetValuation[] = [
   cash,
   businessCarryingValue,
   propertyEstimatedValue,
   positionMarkedValue,
+  pendingDividends,
 ];
 
 function netWorthCents(state: GameState, rules: ProgressRules): MoneyCents {

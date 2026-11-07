@@ -8,6 +8,7 @@ const MINUTES_PER_HOUR = 60;
 const INCOME_SOURCES: readonly { source: keyof IncomeBySource; label: string }[] = [
   { source: 'businesses', label: 'Businesses' },
   { source: 'rent', label: 'Rent' },
+  { source: 'dividends', label: 'Dividends' },
 ];
 
 export type EarningsLine = { readonly label: string; readonly cents: MoneyCents };

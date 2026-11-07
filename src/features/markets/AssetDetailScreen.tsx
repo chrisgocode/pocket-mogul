@@ -12,6 +12,7 @@ import { AppText } from '@/ui/Typography';
 
 import { AssetAbout } from './AssetAbout';
 import { AssetOverview } from './AssetOverview';
+import { DividendCard } from './DividendCard';
 import { NewsList } from './NewsList';
 import { PositionCard } from './PositionCard';
 import { PriceChartCard } from './PriceChartCard';
@@ -39,6 +40,7 @@ export function AssetDetailScreen() {
       <Stack.Screen options={{ title: detail.asset.name }} />
       <AssetOverview detail={detail} />
       {detail.position === undefined ? null : <PositionCard position={detail.position} />}
+      {detail.dividends === undefined ? null : <DividendCard dividends={detail.dividends} />}
       {detail.kind === 'stock' ? <StockTrading detail={detail} /> : null}
       <PriceChartCard detail={detail} />
       <AssetAbout detail={detail} />

@@ -1,5 +1,6 @@
 import type { Content, Stock } from '@/content';
 import type { BusinessEconomy } from '@/domain/businesses';
+import type { DividendRates } from '@/domain/dividends';
 import type { MarketEconomy, MarketInstrument } from '@/domain/market';
 import type { PassiveEconomy } from '@/domain/passiveIncome';
 import type { ProgressRules } from '@/domain/progression';
@@ -14,8 +15,18 @@ export function propertyEconomy(content: Content): PropertyEconomy {
   return { catalog: content.properties, rules: content.economy.propertyRules };
 }
 
+function dividendRates(content: Content): DividendRates {
+  return Object.fromEntries(
+    content.stocks.map((stock) => [stock.id, stock.dividendCentsPerSharePerHour]),
+  );
+}
+
 export function passiveEconomy(content: Content): PassiveEconomy {
-  return { businesses: businessEconomy(content), properties: propertyEconomy(content) };
+  return {
+    businesses: businessEconomy(content),
+    properties: propertyEconomy(content),
+    dividendRates: dividendRates(content),
+  };
 }
 
 export function progressRules(content: Content): ProgressRules {

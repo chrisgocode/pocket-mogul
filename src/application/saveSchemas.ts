@@ -138,10 +138,33 @@ const position = z.object({
   realizedProfitCents: moneyText,
 });
 
-export const saveSchemaV3 = z.object({
-  ...saveSchemaV2Fields,
-  schemaVersion: z.literal(SAVE_SCHEMA_VERSION),
+const tradingFields = {
   tradingUnlocked: z.boolean(),
   positions: z.array(position),
   watchlist: z.array(z.string().min(1)),
+};
+
+const SCHEMA_VERSION_BEFORE_DIVIDENDS = 3;
+
+export const saveSchemaV3 = z.object({
+  ...saveSchemaV2Fields,
+  ...tradingFields,
+  schemaVersion: z.literal(SCHEMA_VERSION_BEFORE_DIVIDENDS),
+});
+
+const dividendAccrual = z.object({
+  instrumentId: z.string().min(1),
+  pendingCents: moneyText,
+  entitlementNumerator: z.string().regex(/^\d+$/).transform(BigInt),
+});
+
+export const saveSchemaV4 = z.object({
+  ...saveSchemaV2Fields,
+  ...tradingFields,
+  schemaVersion: z.literal(SAVE_SCHEMA_VERSION),
+  income: saveSchemaV2Fields.income.extend({ dividendEarningsCents: moneyText }),
+  returnSummary: awayReport(
+    z.object({ businesses: moneyText, rent: moneyText, dividends: moneyText }),
+  ),
+  dividends: z.array(dividendAccrual),
 });
