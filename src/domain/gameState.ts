@@ -2,7 +2,7 @@ import { freshMarket, type MarketState } from './market';
 import { moneyCents, type MoneyCents } from './money';
 import type { Position } from './tradeQuotes';
 
-export const SAVE_SCHEMA_VERSION = 1;
+export const SAVE_SCHEMA_VERSION = 3;
 
 export type BusinessLevels = {
   readonly capacity: number;

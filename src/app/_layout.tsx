@@ -8,6 +8,7 @@ import { ContentErrorScreen } from '@/features/startup/ContentErrorScreen';
 import { ReturnSummarySheet } from '@/features/returnSummary/ReturnSummarySheet';
 import { DeviceGameProvider } from '@/features/startup/DeviceGameProvider';
 import { OpeningSaveScreen } from '@/features/startup/OpeningSaveScreen';
+import { RecoveryNoticeSheet } from '@/features/startup/RecoveryNoticeSheet';
 import { colors } from '@/ui/tokens';
 
 export default function RootLayout() {
@@ -35,6 +36,7 @@ export default function RootLayout() {
               />
             </Stack>
             <ReturnSummarySheet />
+            <RecoveryNoticeSheet />
           </DeviceGameProvider>
         </Suspense>
       )}

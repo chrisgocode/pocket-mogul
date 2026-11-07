@@ -1,9 +1,9 @@
 import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
-import type { Game } from '@/application/game';
+import type { OpenedGame } from '@/application/game';
 import { startTestGame, type TestGame } from '@/application/testGame';
 
-let mockGame: Promise<Game>;
+let mockGame: Promise<OpenedGame>;
 jest.mock('@/bootstrap/deviceGame', () => ({ loadDeviceGame: () => mockGame }));
 
 const MINUTE_MS = 60_000;
@@ -12,7 +12,7 @@ async function open(initialUrl: string, { playedMs = 0 } = {}): Promise<TestGame
   const session = await startTestGame();
   session.clock.advance(playedMs);
   await session.game.checkpoint();
-  mockGame = Promise.resolve(session.game);
+  mockGame = Promise.resolve({ status: 'ready', game: session.game });
   await renderRouter('src/app', { initialUrl });
   return session;
 }
@@ -80,7 +80,7 @@ describe('Asset details', () => {
     const left = await startTestGame();
     const away = await left.restart({ awayMs: 9 * 60 * MINUTE_MS });
     const back = await away.restart({ awayMs: 2 * MINUTE_MS });
-    mockGame = Promise.resolve(back.game);
+    mockGame = Promise.resolve({ status: 'ready', game: back.game });
     await renderRouter('src/app', { initialUrl: '/markets/prism' });
     await screen.findByRole('image', { name: /price chart/ });
     await fireEvent.press(screen.getByRole('tab', { name: '8 hours' }));

@@ -29,11 +29,13 @@ import { applyWalletUpgrade } from '@/domain/wallet';
 
 import {
   businessEconomy,
+  contentAt,
   marketEconomy,
   passiveEconomy,
   progressRules,
   propertyEconomy,
   tradeEconomy,
+  type EconomyVersions,
 } from './economy';
 import { validCommand } from './commandSchema';
 import type { SaveStore, SaveTransaction } from './ports';
@@ -45,10 +47,7 @@ export type Committed = {
   history?: MarketHistory;
 };
 
-type CommitContext = {
-  readonly store: SaveStore;
-  readonly content: Content;
-};
+type CommitContext = EconomyVersions & { readonly store: SaveStore };
 
 export type CommandTime = { readonly elapsedMs: number; readonly wallMs: number };
 
@@ -138,17 +137,20 @@ function applyCommand<Type extends keyof CommandsByType>(
 
 function apply(
   state: GameState,
-  change: { envelope: CommandEnvelope; time: CommandTime; content: Content },
+  change: { envelope: CommandEnvelope; time: CommandTime; economies: EconomyVersions },
 ): Committed {
   const command = validCommand(change.envelope.command);
   if (command === undefined) return { outcome: { ok: false, error: 'INVALID_QUANTITY' } };
-  const progress = progressRules(change.content);
+  const { content } = change.economies;
+  const settling = contentAt(change.economies, state.economyVersion);
   const advanced = withMarket(
-    passTime(state, { command, time: change.time, content: change.content }),
-    change.content,
+    passTime(state, { command, time: change.time, content: settling }),
+    settling,
   );
-  const progressed = withProgress(advanced.state, progress);
-  const result = applyCommand(progressed, { type: command.type, payload: command }, change.content);
+  const progress = progressRules(content);
+  const adopted = { ...advanced.state, economyVersion: content.economyVersion };
+  const progressed = withProgress(adopted, progress);
+  const result = applyCommand(progressed, { type: command.type, payload: command }, content);
   if (!result.ok) return { outcome: result };
   const cashChangeCents = moneyCents(advanced.earnedCents + result.cashChangeCents);
   const next = { ...withProgress(result.state, progress), revision: state.revision + 1 };
@@ -191,7 +193,7 @@ export async function commitCommand(
       const applied = apply(change.current, {
         envelope: change.envelope,
         time: change.time,
-        content: context.content,
+        economies: context,
       });
       await record(tx, { envelope: change.envelope, applied, wallMs });
       return applied;

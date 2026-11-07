@@ -26,6 +26,25 @@ export function progressRules(content: Content): ProgressRules {
   };
 }
 
+export type EconomyVersions = {
+  readonly content: Content;
+  readonly pastContent?: readonly Content[];
+};
+
+const bundled = (versions: EconomyVersions) => [versions.content, ...(versions.pastContent ?? [])];
+
+export function contentAt(versions: EconomyVersions, economyVersion: number): Content {
+  return (
+    bundled(versions).find((content) => content.economyVersion === economyVersion) ??
+    versions.content
+  );
+}
+
+export function supportsEconomy(versions: EconomyVersions) {
+  const supported = new Set(bundled(versions).map((content) => content.economyVersion));
+  return (economyVersion: number) => supported.has(economyVersion);
+}
+
 function stockShockBps(stock: Stock, content: Content): number {
   const { market } = content.economy;
   return stock.volatilityClass === 'penny'

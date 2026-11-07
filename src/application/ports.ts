@@ -13,10 +13,9 @@ export type Clock = {
 
 type BackwardWallClock = Omit<Extract<WallClockReading, { direction: 'backward' }>, 'direction'>;
 
-export type Diagnostic = BackwardWallClock & {
-  readonly type: 'BACKWARD_WALL_CLOCK';
-  readonly recordedWallMs: number;
-};
+export type Diagnostic =
+  | (BackwardWallClock & { readonly type: 'BACKWARD_WALL_CLOCK'; readonly recordedWallMs: number })
+  | { readonly type: 'DAMAGED_SAVE'; readonly document: string; readonly recordedWallMs: number };
 
 export type AssetHistory = {
   readonly minutes: readonly MinuteObservation[];
@@ -24,7 +23,6 @@ export type AssetHistory = {
 };
 
 export type SaveStore = {
-  load: () => Promise<GameState | undefined>;
   loadAssetHistory: (assetId: string) => Promise<AssetHistory>;
   loadDiagnostics: () => Promise<readonly Diagnostic[]>;
   transact<T>(work: (tx: SaveTransaction) => Promise<T>): Promise<T>;
@@ -36,7 +34,15 @@ export type CommandReceipt = {
   readonly recordedWallMs: number;
 };
 
+export type SaveBackup = { readonly document: string; readonly recordedWallMs: number };
+
 export type SaveTransaction = {
+  readSave: () => Promise<string | undefined>;
+  readBackups: () => Promise<readonly SaveBackup[]>;
+  writeBackup: (backup: SaveBackup) => Promise<void>;
+  clearBackups: () => Promise<void>;
+  clearMarketHistory: () => Promise<void>;
+  pruneReceipts: (recordedBeforeWallMs: number) => Promise<void>;
   findOutcome: (commandId: string) => Promise<CommandOutcome | undefined>;
   writeState: (state: GameState) => Promise<void>;
   writeReceipt: (receipt: CommandReceipt) => Promise<void>;

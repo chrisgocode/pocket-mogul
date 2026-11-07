@@ -32,12 +32,15 @@ function withAppended(
   };
 }
 
-export function marketHistoryFeeds(source: {
+type HistorySource = {
   queue: SerialQueue;
   load: (assetId: string) => Promise<AssetHistory>;
-}) {
-  const feeds = new Map<string, Feed>();
-  const load = (assetId: string, store: SnapshotStore<HistoryRead>) =>
+};
+
+type LoadInto = (assetId: string, store: SnapshotStore<HistoryRead>) => Promise<void>;
+
+function historyLoader(source: HistorySource): LoadInto {
+  return (assetId, store) =>
     source.queue.run(async () => {
       try {
         store.set({ status: 'loaded', history: await source.load(assetId) });
@@ -45,23 +48,36 @@ export function marketHistoryFeeds(source: {
         store.set({ status: 'failed' });
       }
     });
-  const open = (assetId: string): Feed => {
-    const store = snapshotStore<HistoryRead>({ status: 'idle' });
-    const subscribe = (listener: () => void) => {
-      const { status } = store.get();
-      if (status === 'idle' || status === 'failed') {
+}
+
+function openFeed(assetId: string, load: LoadInto): Feed {
+  const store = snapshotStore<HistoryRead>({ status: 'idle' });
+  const subscribe = (listener: () => void) => {
+    const { status } = store.get();
+    if (status === 'idle' || status === 'failed') {
+      store.set({ status: 'loading' });
+      void load(assetId, store);
+    }
+    return store.subscribe(listener);
+  };
+  return { store, view: { subscribe, getSnapshot: store.get } };
+}
+
+export function marketHistoryFeeds(source: HistorySource) {
+  const feeds = new Map<string, Feed>();
+  const load = historyLoader(source);
+  return {
+    feed(assetId: string): HistoryFeed {
+      const feed = feeds.get(assetId) ?? openFeed(assetId, load);
+      feeds.set(assetId, feed);
+      return feed.view;
+    },
+    reload(): void {
+      for (const [assetId, { store }] of feeds) {
+        if (store.get().status === 'idle') continue;
         store.set({ status: 'loading' });
         void load(assetId, store);
       }
-      return store.subscribe(listener);
-    };
-    return { store, view: { subscribe, getSnapshot: store.get } };
-  };
-  return {
-    feed(assetId: string): HistoryFeed {
-      const feed = feeds.get(assetId) ?? open(assetId);
-      feeds.set(assetId, feed);
-      return feed.view;
     },
     append(history: MarketHistory): void {
       for (const [assetId, { store }] of feeds) {

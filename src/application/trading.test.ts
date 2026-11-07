@@ -178,22 +178,31 @@ describe('watchlist', () => {
   });
 });
 
-function legacy(businesses: GameState['businesses']): GameState {
+function schemaV2Save(businesses: GameState['businesses']): string {
   const fresh = freshGameState({ saveId: 'old', economyVersion: 1, wallMs: 0 });
   const {
     tradingUnlocked: _unlocked,
     positions: _positions,
     watchlist: _watchlist,
     ...older
-  } = { ...fresh, businesses };
-  return decodeSave(encodeSave(older as GameState));
+  } = { ...fresh, businesses, schemaVersion: 2 };
+  return encodeSave(older as GameState);
 }
 
+const decodedState = (text: string): GameState | undefined => {
+  const decoded = decodeSave(text);
+  return 'state' in decoded ? decoded.state : undefined;
+};
+
 describe('saves from before trading', () => {
-  it('open trading when a business is already owned, with no positions', () => {
-    const owner = legacy([levelZeroBusiness('vending')]);
-    expect([owner.tradingUnlocked, owner.positions, owner.watchlist]).toEqual([true, [], []]);
-    expect(legacy([]).tradingUnlocked).toBe(false);
+  it('migrate from schema 2, opening trading when a business is already owned', () => {
+    const owner = decodeSave(schemaV2Save([levelZeroBusiness('vending')]));
+    expect(owner).toMatchObject({
+      status: 'migrated',
+      fromVersion: 2,
+      state: { schemaVersion: 3, tradingUnlocked: true, positions: [], watchlist: [] },
+    });
+    expect(decodedState(schemaV2Save([]))?.tradingUnlocked).toBe(false);
   });
 
   it('round-trip positions as exact microunits and cents', () => {
@@ -206,6 +215,6 @@ describe('saves from before trading', () => {
         realizedProfitCents: dollars('-3.50'),
       },
     ];
-    expect(decodeSave(encodeSave({ ...fresh, positions })).positions).toEqual(positions);
+    expect(decodedState(encodeSave({ ...fresh, positions }))?.positions).toEqual(positions);
   });
 });

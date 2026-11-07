@@ -1,6 +1,6 @@
 import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
-import type { Game } from '@/application/game';
+import type { OpenedGame } from '@/application/game';
 import { startTestGame, startTestGameFrom, type TestGame } from '@/application/testGame';
 import { freshGameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
@@ -10,13 +10,13 @@ jest.mock('expo-haptics', () => ({
   ImpactFeedbackStyle: { Light: 'light' },
 }));
 
-let mockGame: Promise<Game>;
+let mockGame: Promise<OpenedGame>;
 jest.mock('@/bootstrap/deviceGame', () => ({ loadDeviceGame: () => mockGame }));
 
 async function openHome(taps: number): Promise<TestGame> {
   const session = await startTestGame();
   await session.game.dispatch({ id: 'savings', command: { type: 'TapBatch', taps } });
-  mockGame = Promise.resolve(session.game);
+  mockGame = Promise.resolve({ status: 'ready', game: session.game });
   await renderRouter('src/app', { initialUrl: '/home' });
   return session;
 }
@@ -83,7 +83,7 @@ describe('Home wallet upgrade', () => {
       cashCents: dollars('5'),
       tap: { ...fresh.tap, walletLevel: 100 },
     });
-    mockGame = Promise.resolve(session.game);
+    mockGame = Promise.resolve({ status: 'ready', game: session.game });
     await renderRouter('src/app', { initialUrl: '/home' });
     expect(screen.getByText('Max level')).toBeOnTheScreen();
     expect(screen.getByRole('button', { name: /^Tap card, Obsidian card/ })).toBeOnTheScreen();

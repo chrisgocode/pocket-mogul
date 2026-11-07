@@ -3,8 +3,8 @@ import { freshGameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 
 import type { Game } from './game';
-import { decodeSave, encodeSave } from './saveFormat';
-import { startTestGameFrom, type TestGame } from './testGame';
+import { encodeSave } from './saveFormat';
+import { migratedState, startTestGameFrom, type TestGame } from './testGame';
 
 const ONE_MINUTE_MS = 60_000;
 const HALF_MINUTE_MS = 30_000;
@@ -237,8 +237,9 @@ describe('saves from before properties', () => {
     const saved = JSON.parse(encodeSave(fresh)) as Record<string, unknown>;
     const old = JSON.stringify({
       ...saved,
+      schemaVersion: 1,
       income: { businessRemainders: {}, businessEarningsCents: '0' },
     });
-    expect(decodeSave(old).income).toEqual(fresh.income);
+    expect(migratedState(old).income).toEqual(fresh.income);
   });
 });

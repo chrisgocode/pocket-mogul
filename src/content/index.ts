@@ -15,6 +15,12 @@ export function getContent(): Content {
   return cached;
 }
 
+export function getPastContent(): readonly Content[] {
+  return Object.values(bundledContentByEconomyVersion)
+    .filter((content) => content.economyVersion !== CURRENT_ECONOMY_VERSION)
+    .map(validateContent);
+}
+
 export const FICTIONAL_NOTICE = 'All companies and coins are fictional.';
 
 export const STARTUP_CONTENT_ISSUES: readonly string[] = findContentIssues(

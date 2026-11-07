@@ -2,8 +2,8 @@ import { freshGameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 
 import type { Game } from './game';
-import { decodeSave, encodeSave } from './saveFormat';
-import { startTestGameFrom, type TestGame } from './testGame';
+import { encodeSave } from './saveFormat';
+import { migratedState, startTestGameFrom, type TestGame } from './testGame';
 
 const ONE_MINUTE_MS = 60_000;
 
@@ -115,9 +115,10 @@ describe('saves from before business upgrades', () => {
     const fresh = freshGameState({ saveId: 'old', economyVersion: 1, wallMs: 0 });
     const legacy = {
       ...(JSON.parse(encodeSave(fresh)) as object),
+      schemaVersion: 1,
       businesses: [{ definitionId: 'vending', capitalizedSpendCents: '25000' }],
     };
-    expect(decodeSave(JSON.stringify(legacy)).businesses).toEqual([
+    expect(migratedState(JSON.stringify(legacy)).businesses).toEqual([
       {
         definitionId: 'vending',
         levels: { capacity: 0, quality: 0, efficiency: 0 },

@@ -2,7 +2,7 @@ import { impactAsync } from 'expo-haptics';
 import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 import { AppState, type AppStateStatus } from 'react-native';
 
-import type { Game } from '@/application/game';
+import type { OpenedGame } from '@/application/game';
 import { nextPublish, startTestGame, type TestGame } from '@/application/testGame';
 
 jest.mock('expo-haptics', () => ({
@@ -10,14 +10,14 @@ jest.mock('expo-haptics', () => ({
   ImpactFeedbackStyle: { Light: 'light' },
 }));
 
-let mockGame: Promise<Game>;
+let mockGame: Promise<OpenedGame>;
 jest.mock('@/bootstrap/deviceGame', () => ({ loadDeviceGame: () => mockGame }));
 
 let session: TestGame;
 
 beforeEach(async () => {
   session = await startTestGame();
-  mockGame = Promise.resolve(session.game);
+  mockGame = Promise.resolve({ status: 'ready', game: session.game });
   jest.mocked(impactAsync).mockClear();
 });
 
