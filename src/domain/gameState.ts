@@ -1,9 +1,10 @@
+import { NO_REWARDS, type RewardState } from './boost';
 import type { DividendAccrual } from './dividends';
 import { freshMarket, type MarketState } from './market';
 import { moneyCents, type MoneyCents } from './money';
 import type { Position } from './tradeQuotes';
 
-export const SAVE_SCHEMA_VERSION = 4;
+export const SAVE_SCHEMA_VERSION = 5;
 
 export type BusinessLevels = {
   readonly capacity: number;
@@ -75,6 +76,7 @@ export type GameState = {
   readonly positions: readonly Position[];
   readonly dividendAccruals: readonly DividendAccrual[];
   readonly watchlist: readonly string[];
+  readonly reward: RewardState;
 };
 
 export function freshGameState(start: {
@@ -108,5 +110,6 @@ export function freshGameState(start: {
     positions: [],
     dividendAccruals: [],
     watchlist: [],
+    reward: NO_REWARDS,
   };
 }

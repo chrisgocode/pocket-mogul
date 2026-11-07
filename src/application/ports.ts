@@ -49,3 +49,19 @@ export type SaveTransaction = {
   writeDiagnostic: (diagnostic: Diagnostic) => Promise<void>;
   appendMarketHistory: (history: MarketHistory) => Promise<void>;
 };
+
+export type AdAvailability = 'loading' | 'ready' | 'unavailable';
+
+export type FullScreenAdEvent =
+  | { readonly type: 'availability'; readonly availability: AdAvailability }
+  | { readonly type: 'earnedReward' }
+  | { readonly type: 'closed' }
+  | { readonly type: 'failed' };
+
+export type FullScreenAd = {
+  load: () => void;
+  show: () => Promise<void>;
+  subscribe: (listener: (event: FullScreenAdEvent) => void) => () => void;
+};
+
+export type AdPort = { readonly rewarded: FullScreenAd };

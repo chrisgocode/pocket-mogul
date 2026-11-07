@@ -4,7 +4,11 @@ import type { MoneyCents, QuantityMicrounits } from './money';
 import type { PropertyTrack } from './propertyQuotes';
 import type { TradeSide } from './tradeQuotes';
 
-export type TapBatch = { readonly type: 'TapBatch'; readonly taps: number };
+export type TapBatch = {
+  readonly type: 'TapBatch';
+  readonly taps: number;
+  readonly boosted?: boolean;
+};
 
 export type UpgradeWallet = { readonly type: 'UpgradeWallet'; readonly fromLevel: number };
 
@@ -56,6 +60,10 @@ export type AdvanceTime = { readonly type: 'AdvanceTime' };
 
 export type SettleOffline = { readonly type: 'SettleOffline' };
 
+export type RecordAdReward = { readonly type: 'RecordAdReward'; readonly presentationId: string };
+
+export type ActivateBoost = { readonly type: 'ActivateBoost' };
+
 export type AcknowledgeReturnSummary = { readonly type: 'AcknowledgeReturnSummary' };
 
 export type GameCommand =
@@ -71,6 +79,8 @@ export type GameCommand =
   | SellProperty
   | ExecuteTrade
   | SetWatchlist
+  | RecordAdReward
+  | ActivateBoost
   | AdvanceTime
   | SettleOffline
   | AcknowledgeReturnSummary;
@@ -93,6 +103,7 @@ export const GAME_ERROR_CODES = [
   'BELOW_MINIMUM',
   'TRADING_LOCKED',
   'STALE_QUOTE',
+  'BOOST_ACTIVE',
   'SAVE_FAILED',
 ] as const;
 

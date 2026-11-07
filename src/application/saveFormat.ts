@@ -9,6 +9,7 @@ import {
   type PendingReturnSummary,
   type ReturnSummary,
 } from '@/domain/gameState';
+import { NO_REWARDS } from '@/domain/boost';
 import { moneyCents } from '@/domain/money';
 
 import {
@@ -18,6 +19,7 @@ import {
   saveSchemaV2,
   saveSchemaV3,
   saveSchemaV4,
+  saveSchemaV5,
 } from './saveSchemas';
 
 export type DecodedSave =
@@ -39,7 +41,12 @@ type SummaryBeforeDividends =
       };
     };
 
-type SaveBeforeDividends = Omit<GameState, 'income' | 'returnSummary' | 'dividendAccruals'> & {
+type SaveBeforeRewards = Omit<GameState, 'reward'>;
+
+type SaveBeforeDividends = Omit<
+  SaveBeforeRewards,
+  'income' | 'returnSummary' | 'dividendAccruals'
+> & {
   readonly income: Omit<IncomeState, 'dividendEarningsCents'>;
   readonly returnSummary: SummaryBeforeDividends;
 };
@@ -61,20 +68,30 @@ function summaryWithDividends(summary: SummaryBeforeDividends): PendingReturnSum
   return { status: 'pending', summary: { ...summary.summary, earnings } };
 }
 
-function withDividends(saved: SaveBeforeDividends): GameState {
+function withDividends(saved: SaveBeforeDividends): SaveBeforeRewards {
   return {
     ...saved,
-    schemaVersion: SAVE_SCHEMA_VERSION,
     income: { ...saved.income, dividendEarningsCents: moneyCents(0) },
     returnSummary: summaryWithDividends(saved.returnSummary),
     dividendAccruals: [],
   };
 }
 
+function withRewards(saved: SaveBeforeRewards): GameState {
+  return { ...saved, schemaVersion: SAVE_SCHEMA_VERSION, reward: NO_REWARDS };
+}
+
 const MIGRATIONS: readonly Migration[] = [
-  { fromVersion: 1, upgrade: (raw) => withDividends(withTrading(saveSchemaV1.parse(raw))) },
-  { fromVersion: 2, upgrade: (raw) => withDividends(withTrading(saveSchemaV2.parse(raw))) },
-  { fromVersion: 3, upgrade: (raw) => withDividends(saveSchemaV3.parse(raw)) },
+  {
+    fromVersion: 1,
+    upgrade: (raw) => withRewards(withDividends(withTrading(saveSchemaV1.parse(raw)))),
+  },
+  {
+    fromVersion: 2,
+    upgrade: (raw) => withRewards(withDividends(withTrading(saveSchemaV2.parse(raw)))),
+  },
+  { fromVersion: 3, upgrade: (raw) => withRewards(withDividends(saveSchemaV3.parse(raw))) },
+  { fromVersion: 4, upgrade: (raw) => withRewards(saveSchemaV4.parse(raw)) },
 ];
 
 const versioned = z.object({ schemaVersion: z.number().int() });
@@ -111,7 +128,7 @@ function migrated(raw: unknown, fromVersion: number): DecodedSave {
 }
 
 function current(raw: unknown): DecodedSave {
-  const parsed = saveSchemaV4.safeParse(raw);
+  const parsed = saveSchemaV5.safeParse(raw);
   return parsed.success ? { status: 'current', state: parsed.data } : { status: 'corrupt' };
 }
 

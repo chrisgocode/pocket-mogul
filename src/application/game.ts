@@ -2,23 +2,28 @@ import type { Content } from '@/content';
 import type { CommandEnvelope, CommandOutcome } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
 
+import { boostTime, type BoostTime } from './boostTime';
 import { supportsEconomy } from './economy';
 import { commitCommand, type CommandTime, type Committed } from './commitCommand';
 import { foregroundTime, type ForegroundTime } from './foregroundTime';
-import { foregroundLoops } from './foregroundLoops';
+import { foregroundLoops, type ForegroundLoops } from './foregroundLoops';
+import { gameTaps, NO_SETTLED_TAPS, type SettledTaps } from './gameTaps';
 import { marketHistoryFeeds, type HistoryFeed } from './marketHistoryFeed';
 import { openSave, type SaveNotice, type SaveStopReason } from './openSave';
-import type { AssetHistory, Clock, SaveStore } from './ports';
+import type { AdPort, AssetHistory, Clock, SaveStore } from './ports';
 import { commitReset } from './resetSave';
 import { backUpIfDue } from './saveBackups';
 import { serialQueue } from './serialQueue';
 import { snapshotStore, type SnapshotStore } from './snapshotStore';
-import { tapBatcher } from './tapBatcher';
+import { rewardedBoost } from './rewardedBoost';
+import type { TapBoost } from './tapBoost';
+import { isTapBoosted, type TapBoostAd } from './tapBoostView';
 
 export type GamePorts = {
   clock: Clock;
   store: SaveStore;
   content: Content;
+  ads: AdPort;
   pastContent?: readonly Content[];
   createId: () => string;
   beforeWarmReturnSummary?: () => Promise<void>;
@@ -27,7 +32,10 @@ export type GamePorts = {
 export type GameSnapshot = {
   readonly state: GameState;
   readonly pendingTaps: number;
+  readonly pendingBoostedTaps: number;
   readonly unsavedElapsedMs: number;
+  readonly unsavedBoostMs: number;
+  readonly tapBoostAd: TapBoostAd;
   readonly notice: SaveNotice;
 };
 
@@ -37,6 +45,7 @@ export type Game = {
   dispatch: (envelope: CommandEnvelope) => Promise<CommandOutcome>;
   tap: () => void;
   flushTaps: () => Promise<void>;
+  pressTapBoost: () => Promise<void>;
   checkpoint: () => Promise<CommandOutcome>;
   pause: () => Promise<void>;
   resume: () => Promise<void>;
@@ -54,7 +63,7 @@ export type OpenedGame =
 type Opened = { readonly state: GameState; readonly notice: SaveNotice };
 
 type RunOptions = {
-  settledTaps?: number;
+  settled?: SettledTaps;
   issuedAtWallMs?: number;
   beforePublish?: (() => Promise<void>) | undefined;
 };
@@ -69,42 +78,72 @@ async function runBeforePublish(step: (() => Promise<void>) | undefined): Promis
   }
 }
 
-type PublishedChange = { state?: GameState | undefined; settledTaps: number };
+type PublishedChange = { state?: GameState | undefined; settled: SettledTaps };
 
-function publisher(snapshots: SnapshotStore<GameSnapshot>, time: ForegroundTime) {
+type Clocks = { time: ForegroundTime; boostTime: BoostTime };
+
+function publisher(snapshots: SnapshotStore<GameSnapshot>, clocks: Clocks) {
   return (change: PublishedChange) => {
     const current = snapshots.get();
     snapshots.set({
       ...current,
       state: change.state ?? current.state,
-      pendingTaps: current.pendingTaps - change.settledTaps,
-      unsavedElapsedMs: time.unsavedMs(),
+      pendingTaps: current.pendingTaps - change.settled.taps,
+      pendingBoostedTaps: current.pendingBoostedTaps - change.settled.boostedTaps,
+      unsavedElapsedMs: clocks.time.unsavedMs(),
+      unsavedBoostMs: clocks.boostTime.unsavedMs(),
     });
   };
 }
 
-function committer(ports: GamePorts, opened: Opened) {
-  const snapshots = snapshotStore<GameSnapshot>({
+function openingSnapshot(opened: Opened): GameSnapshot {
+  return {
     ...opened,
     pendingTaps: 0,
+    pendingBoostedTaps: 0,
     unsavedElapsedMs: 0,
-  });
-  const time = foregroundTime(ports.clock);
+    unsavedBoostMs: 0,
+    tapBoostAd: 'loading',
+  };
+}
+
+type UnsavedTime = Pick<CommandTime, 'elapsedMs' | 'boostElapsedMs'>;
+
+function gameClocks(clock: Clock) {
+  const time = foregroundTime(clock);
+  const boost = boostTime(clock);
+  return {
+    time,
+    boostTime: boost,
+    unsaved: (): UnsavedTime => ({
+      elapsedMs: time.unsavedMs(),
+      boostElapsedMs: boost.unsavedMs(),
+    }),
+    saved(unsaved: UnsavedTime) {
+      time.saved(unsaved.elapsedMs);
+      boost.saved(unsaved.boostElapsedMs);
+    },
+  };
+}
+
+function committer(ports: GamePorts, opened: Opened) {
+  const snapshots = snapshotStore<GameSnapshot>(openingSnapshot(opened));
+  const clocks = gameClocks(ports.clock);
   const queue = serialQueue();
   const history = marketHistoryFeeds({ queue, load: ports.store.loadAssetHistory });
-  const publish = publisher(snapshots, time);
+  const publish = publisher(snapshots, clocks);
   const commit = (step: CommitStep, options: RunOptions = {}) => {
     const wallMs = options.issuedAtWallMs ?? ports.clock.wallMs();
     return queue.run(async () => {
-      const elapsedMs = time.unsavedMs();
-      const committed = await step(snapshots.get().state, { elapsedMs, wallMs });
+      const unsaved = clocks.unsaved();
+      const committed = await step(snapshots.get().state, { ...unsaved, wallMs });
       if (committed.history !== undefined) history.append(committed.history);
       if (committed.state !== undefined) {
-        time.saved(elapsedMs);
+        clocks.saved(unsaved);
         await backUpIfDue(ports.store, { revision: committed.state.revision, wallMs });
         await runBeforePublish(options.beforePublish);
       }
-      publish({ state: committed.state, settledTaps: options.settledTaps ?? 0 });
+      publish({ state: committed.state, settled: options.settled ?? NO_SETTLED_TAPS });
       return committed.outcome;
     });
   };
@@ -115,47 +154,20 @@ function committer(ports: GamePorts, opened: Opened) {
     );
   return {
     snapshots,
-    time,
+    time: clocks.time,
+    boostTime: clocks.boostTime,
     queue,
     history,
     run,
     commit,
-    refresh: () => publish({ settledTaps: 0 }),
+    refresh: () => publish({ settled: NO_SETTLED_TAPS }),
   };
 }
 
-type Committer = ReturnType<typeof committer>;
+export type Committer = ReturnType<typeof committer>;
 
 function earnsPassiveIncome(state: GameState): boolean {
   return state.businesses.length > 0 || state.properties.some((property) => property.rented);
-}
-
-function tapBatching(ports: GamePorts, core: Committer) {
-  const taps = tapBatcher({
-    clock: ports.clock,
-    windowMs: ports.content.economy.time.tapBatchMaxMs,
-    send: (count) =>
-      core.run(
-        { id: `tap-${ports.createId()}`, command: { type: 'TapBatch', taps: count } },
-        { settledTaps: count },
-      ),
-  });
-  return {
-    dispatch: async (envelope: CommandEnvelope) => {
-      const issuedAtWallMs = ports.clock.wallMs();
-      if (envelope.command.type !== 'TapBatch') await taps.close();
-      return core.run(envelope, { issuedAtWallMs });
-    },
-    tap: () => {
-      taps.add();
-      const current = core.snapshots.get();
-      core.snapshots.set({ ...current, pendingTaps: current.pendingTaps + 1 });
-    },
-    flushTaps: async () => {
-      await taps.close();
-      await core.queue.run(() => Promise.resolve());
-    },
-  };
 }
 
 function offlineSettlement(ports: GamePorts, core: Committer) {
@@ -189,22 +201,64 @@ function saveControls(ports: GamePorts, game: { core: Committer; flushTaps: () =
   };
 }
 
+type Lifecycle = { core: Committer; boost: TapBoost; checkpoint: () => Promise<CommandOutcome> };
+
+function lifecycle(
+  game: Lifecycle & { loops: ForegroundLoops; onWarmResume: () => Promise<unknown> },
+) {
+  const { core, loops } = game;
+  let leftDuringAd = false;
+  return {
+    async pause() {
+      leftDuringAd = game.boost.isPresenting();
+      if (leftDuringAd) return;
+      loops.stop();
+      core.time.pause();
+      core.boostTime.cover('background');
+      await game.checkpoint();
+    },
+    async resume() {
+      if (leftDuringAd) {
+        leftDuringAd = false;
+        return;
+      }
+      core.time.resume();
+      core.boostTime.uncover('background');
+      loops.start();
+      await game.onWarmResume();
+    },
+  };
+}
+
+function refreshWhileEarning(core: Committer) {
+  return () => {
+    const snapshot = core.snapshots.get();
+    if (earnsPassiveIncome(snapshot.state) || isTapBoosted(snapshot)) core.refresh();
+  };
+}
+
 async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
   const core = committer(ports, opened);
   const wallMs = ports.clock.wallMs();
   await core.queue.run(() => backUpIfDue(ports.store, { revision: opened.state.revision, wallMs }));
   const offline = offlineSettlement(ports, core);
   await offline.onLaunch();
-  const { dispatch, tap, flushTaps } = tapBatching(ports, core);
+  const { dispatch, tap, flushTaps } = gameTaps({
+    ...core,
+    clock: ports.clock,
+    windowMs: ports.content.economy.time.tapBatchMaxMs,
+    createId: ports.createId,
+    queueIdle: () => core.queue.run(() => Promise.resolve()),
+  });
+  const { boost, activatePendingGrant } = rewardedBoost(ports, { core, flushTaps });
+  await activatePendingGrant();
   const checkpoint = () =>
     dispatch({ id: `checkpoint-${ports.createId()}`, command: { type: 'AdvanceTime' } });
   const loops = foregroundLoops({
     clock: ports.clock,
     checkpointMs: ports.content.economy.time.foregroundCheckpointMs,
     checkpoint: () => void checkpoint(),
-    refresh: () => {
-      if (earnsPassiveIncome(core.snapshots.get().state)) core.refresh();
-    },
+    refresh: refreshWhileEarning(core),
   });
   return {
     getSnapshot: core.snapshots.get,
@@ -213,20 +267,12 @@ async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
     checkpoint,
     tap,
     flushTaps,
+    pressTapBoost: boost.press,
     createCommandId: ports.createId,
     ...saveControls(ports, { core, flushTaps }),
     readMarketHistory: (assetId) => core.queue.run(() => ports.store.loadAssetHistory(assetId)),
     marketHistory: (assetId) => core.history.feed(assetId),
-    async pause() {
-      loops.stop();
-      core.time.pause();
-      await checkpoint();
-    },
-    async resume() {
-      core.time.resume();
-      loops.start();
-      await offline.onWarmResume();
-    },
+    ...lifecycle({ core, boost, checkpoint, loops, onWarmResume: offline.onWarmResume }),
   };
 }
 

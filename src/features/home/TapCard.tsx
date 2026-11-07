@@ -9,11 +9,13 @@ import type { WalletArtwork } from './walletArtwork';
 export function TapCard({
   perTapCents,
   walletLevel,
+  boosted,
   artwork,
   onTap,
 }: {
   perTapCents: MoneyCents;
   walletLevel: number;
+  boosted: boolean;
   artwork: WalletArtwork;
   onTap: () => void;
 }) {
@@ -21,7 +23,7 @@ export function TapCard({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Tap card, ${artwork.name}, earns ${payout} per tap`}
+      accessibilityLabel={`Tap card, ${artwork.name}, earns ${payout} per tap${boosted ? ', boosted' : ''}`}
       onPress={onTap}
       style={({ pressed }) => [
         styles.card,
@@ -34,6 +36,7 @@ export function TapCard({
       </AppText>
       <AppText style={styles.text}>
         Level {walletLevel} · +{payout}
+        {boosted ? ' · Boosted' : ''}
       </AppText>
     </Pressable>
   );

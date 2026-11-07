@@ -1,5 +1,11 @@
 import type { Content } from '@/content';
 import {
+  applyActivateBoost,
+  applyRecordAdReward,
+  consumeBoostTime,
+  isBoostActive,
+} from '@/domain/boost';
+import {
   applyBuyBusiness,
   applyHireManager,
   applySellBusiness,
@@ -49,7 +55,11 @@ export type Committed = {
 
 type CommitContext = EconomyVersions & { readonly store: SaveStore };
 
-export type CommandTime = { readonly elapsedMs: number; readonly wallMs: number };
+export type CommandTime = {
+  readonly elapsedMs: number;
+  readonly boostElapsedMs: number;
+  readonly wallMs: number;
+};
 
 type CommandsByType = { [Type in GameCommand['type']]: Extract<GameCommand, { type: Type }> };
 
@@ -63,7 +73,12 @@ type CommandHandlers = {
 
 const COMMAND_HANDLERS: CommandHandlers = {
   TapBatch: (state, command, content) => {
-    const paid = applyTapBatch(state, { taps: command.taps, rules: content.economy.tap });
+    const multiplier = command.boosted === true ? content.economy.boost.tapMultiplier : 1;
+    const paid = applyTapBatch(state, {
+      taps: command.taps,
+      rules: content.economy.tap,
+      multiplier,
+    });
     return { ok: true, state: paid.state, cashChangeCents: paid.earnedCents };
   },
   UpgradeWallet: (state, command, content) =>
@@ -88,6 +103,8 @@ const COMMAND_HANDLERS: CommandHandlers = {
     applyExecuteTrade(state, { ...command, economy: tradeEconomy(content) }),
   SetWatchlist: (state, command, content) =>
     applySetWatchlist(state, { ...command, economy: tradeEconomy(content) }),
+  RecordAdReward: (state, command) => applyRecordAdReward(state, command),
+  ActivateBoost: (state, _command, content) => applyActivateBoost(state, content.economy.boost),
   AdvanceTime: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),
   SettleOffline: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),
   AcknowledgeReturnSummary: (state) => ({
@@ -123,8 +140,10 @@ function passTime(
     const settled = settleOffline(state, { wallMs: step.time.wallMs, capMs, economy });
     return { ...settled, wallClock: settled.clock };
   }
-  const advanced = advanceTime(state, { ...step.time, economy });
-  return { ...advanced, wallClock: { direction: 'forward' } };
+  const { elapsedMs, boostElapsedMs, wallMs } = step.time;
+  const advanced = advanceTime(state, { elapsedMs, wallMs, economy });
+  const boosted = consumeBoostTime(advanced.state, boostElapsedMs);
+  return { ...advanced, state: boosted, wallClock: { direction: 'forward' } };
 }
 
 function applyCommand<Type extends keyof CommandsByType>(
@@ -135,12 +154,18 @@ function applyCommand<Type extends keyof CommandsByType>(
   return COMMAND_HANDLERS[command.type](state, command.payload, content);
 }
 
+function boostedOnlyIfActive(command: GameCommand, before: GameState): GameCommand {
+  if (command.type !== 'TapBatch' || isBoostActive(before)) return command;
+  return { ...command, boosted: false };
+}
+
 function apply(
   state: GameState,
   change: { envelope: CommandEnvelope; time: CommandTime; economies: EconomyVersions },
 ): Committed {
-  const command = validCommand(change.envelope.command);
-  if (command === undefined) return { outcome: { ok: false, error: 'INVALID_QUANTITY' } };
+  const valid = validCommand(change.envelope.command);
+  if (valid === undefined) return { outcome: { ok: false, error: 'INVALID_QUANTITY' } };
+  const command = boostedOnlyIfActive(valid, state);
   const { content } = change.economies;
   const settling = contentAt(change.economies, state.economyVersion);
   const advanced = withMarket(

@@ -24,7 +24,11 @@ export function stateWithUnsavedIncome(snapshot: GameSnapshot, content: Content)
 export function selectCashCents(snapshot: GameSnapshot, content: Content): MoneyCents {
   const settled = stateWithUnsavedIncome(snapshot, content);
   const perTap = tapPayoutCents(settled.tap.walletLevel, content.economy.tap);
-  return moneyCents(settled.cashCents + perTap * BigInt(snapshot.pendingTaps));
+  const boostExtra = BigInt(content.economy.boost.tapMultiplier - 1);
+  const pendingCents =
+    perTap * BigInt(snapshot.pendingTaps) +
+    perTap * boostExtra * BigInt(snapshot.pendingBoostedTaps);
+  return moneyCents(settled.cashCents + pendingCents);
 }
 
 export function selectPassiveIncomePerMinuteCents(

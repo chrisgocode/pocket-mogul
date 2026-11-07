@@ -11,7 +11,11 @@ const fromLevel = z.number().int().nonnegative();
 const assetId = z.string().min(1);
 
 const gameCommandSchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('TapBatch'), taps: z.number().int().positive() }),
+  z.object({
+    type: z.literal('TapBatch'),
+    taps: z.number().int().positive(),
+    boosted: z.boolean().default(false),
+  }),
   z.object({ type: z.literal('UpgradeWallet'), fromLevel: z.number().int().nonnegative() }),
   z.object({ type: z.literal('BuyBusiness'), businessId }),
   z.object({
@@ -39,6 +43,8 @@ const gameCommandSchema = z.discriminatedUnion('type', [
     quotedTick: z.number().int().nonnegative(),
   }),
   z.object({ type: z.literal('SetWatchlist'), assetId, watched: z.boolean() }),
+  z.object({ type: z.literal('RecordAdReward'), presentationId: z.string().min(1) }),
+  z.object({ type: z.literal('ActivateBoost') }),
   z.object({ type: z.literal('AdvanceTime') }),
   z.object({ type: z.literal('SettleOffline') }),
   z.object({ type: z.literal('AcknowledgeReturnSummary') }),
