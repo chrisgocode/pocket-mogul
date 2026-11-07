@@ -16,6 +16,7 @@ import { backUpIfDue } from './saveBackups';
 import { serialQueue, type SerialQueue } from './serialQueue';
 import { snapshotStore, type SnapshotStore } from './snapshotStore';
 import { tapBatcher } from './tapBatcher';
+import { gameTelemetry, type TelemetryPort } from './telemetry';
 
 export type GamePorts = {
   clock: Clock;
@@ -24,6 +25,7 @@ export type GamePorts = {
   pastContent?: readonly Content[];
   createId: () => string;
   beforeWarmReturnSummary?: () => Promise<void>;
+  telemetry?: TelemetryPort;
 };
 
 export type GameSnapshot = {
@@ -134,6 +136,7 @@ function committer(ports: GamePorts, opened: Opened) {
   const queue = serialQueue();
   const live = feeds(ports, queue);
   const publish = publisher(snapshots, time);
+  const telemetry = gameTelemetry(ports);
   const commit = (step: CommitStep, options: RunOptions = {}) => {
     const wallMs = options.issuedAtWallMs ?? ports.clock.wallMs();
     return queue.run(async () => {
@@ -147,6 +150,7 @@ function committer(ports: GamePorts, opened: Opened) {
       }
       publish({ state: committed.state, settledTaps: options.settledTaps ?? 0 });
       announce(live.events, committed);
+      telemetry.committed(committed, snapshots.get().state);
       return committed.outcome;
     });
   };
@@ -294,5 +298,6 @@ export async function createGame(ports: GamePorts): Promise<OpenedGame> {
     supportsEconomy: supportsEconomy(ports),
   });
   if (opened.status === 'stopped') return opened;
+  gameTelemetry(ports).opened(opened);
   return { status: 'ready', game: await startGame(ports, opened) };
 }

@@ -174,7 +174,7 @@ function finish(previous: GameState, applied: Applied) {
   };
 }
 
-function apply(
+export function applyEnvelope(
   state: GameState,
   change: { envelope: CommandEnvelope; time: CommandTime; economies: EconomyVersions },
 ): Committed {
@@ -229,7 +229,7 @@ export async function commitCommand(
     return await context.store.transact(async (tx) => {
       const recorded = await tx.findOutcome(change.envelope.id);
       if (recorded !== undefined) return { outcome: recorded };
-      const applied = apply(change.current, {
+      const applied = applyEnvelope(change.current, {
         envelope: change.envelope,
         time: change.time,
         economies: context,
