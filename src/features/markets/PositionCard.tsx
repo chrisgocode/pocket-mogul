@@ -1,6 +1,6 @@
 import type { PositionView } from '@/application/positionView';
 import { formatMoneyExact, formatPrice, formatQuantity } from '@/domain/money';
-import { formatCashChange } from '@/features/game/priceFormat';
+import { cashTrend, formatCashChange } from '@/features/game/priceFormat';
 import { Card } from '@/ui/Card';
 import { DetailLine } from '@/ui/DetailLine';
 import { AppText } from '@/ui/Typography';
@@ -19,8 +19,16 @@ export function PositionCard({ position, units }: { position: PositionView; unit
         <DetailLine label="Average cost" value={formatPrice(averageCost)} />
       )}
       <DetailLine label="Current value" value={formatMoneyExact(position.valueCents)} emphasis />
-      <DetailLine label="Unrealized result" value={formatCashChange(position.unrealizedCents)} />
-      <DetailLine label="Realized result" value={formatCashChange(position.realizedProfitCents)} />
+      <DetailLine
+        label="Unrealized result"
+        value={formatCashChange(position.unrealizedCents)}
+        trend={cashTrend(position.unrealizedCents)}
+      />
+      <DetailLine
+        label="Realized result"
+        value={formatCashChange(position.realizedProfitCents)}
+        trend={cashTrend(position.realizedProfitCents)}
+      />
     </Card>
   );
 }

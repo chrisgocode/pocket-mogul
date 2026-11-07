@@ -34,7 +34,14 @@ import {
   applyUpgradeProperty,
 } from '@/domain/properties';
 import { applyTapBatch } from '@/domain/tapping';
+import { applyUpdateSettings } from '@/domain/settings';
 import { applyExecuteTrade, applySetWatchlist } from '@/domain/trades';
+import {
+  applySkipTutorial,
+  newTutorialSteps,
+  withTutorialProgress,
+  type TutorialStep,
+} from '@/domain/tutorial';
 import { applyWalletUpgrade } from '@/domain/wallet';
 
 import {
@@ -59,6 +66,7 @@ export type Committed = {
   history?: MarketHistory;
   activity?: readonly ActivityEntry[];
   completedGoalIds?: readonly string[];
+  completedTutorialSteps?: readonly TutorialStep[];
   rewardChange?: RewardChange | undefined;
 };
 
@@ -123,6 +131,8 @@ const COMMAND_HANDLERS: CommandHandlers = {
     state: { ...state, returnSummary: { status: 'none' } },
     cashChangeCents: moneyCents(0),
   }),
+  SkipTutorial: (state) => applySkipTutorial(state),
+  UpdateSettings: (state, command) => applyUpdateSettings(state, command.change),
 };
 
 type TimeStep = {
@@ -187,17 +197,19 @@ function finish(previous: GameState, applied: Applied) {
     withProgress(result.state, progressRules(content)),
     goalRules(content),
   );
+  const tutored = withTutorialProgress(goals.state);
   const logged = withCommittedActivity({
     command: applied.command,
     time: applied.advanced.passed,
     before: applied.progressed,
-    after: goals.state,
+    after: tutored,
     commandCashCents: result.cashChangeCents,
   });
   return {
     state: { ...logged.state, revision: previous.revision + 1 },
     activity: logged.entries,
     completedGoalIds: goals.completedGoalIds,
+    completedTutorialSteps: newTutorialSteps(previous.tutorial, tutored.tutorial),
     rewardChange: rewardChange(previous.reward.boost, logged.state.reward.boost),
   };
 }

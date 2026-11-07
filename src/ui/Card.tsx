@@ -1,10 +1,18 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
 
-import { colors, radius, spacing } from './tokens';
+import { colors, highlightWidth, radius, spacing } from './tokens';
 
-export function Card({ children, style }: { children: ReactNode; style?: ViewStyle }) {
-  return <View style={[styles.card, style]}>{children}</View>;
+export function Card({
+  children,
+  style,
+  highlighted = false,
+}: {
+  children: ReactNode;
+  style?: ViewStyle;
+  highlighted?: boolean;
+}) {
+  return <View style={[styles.card, highlighted && styles.highlighted, style]}>{children}</View>;
 }
 
 const styles = StyleSheet.create({
@@ -16,4 +24,5 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.sm,
   },
+  highlighted: { borderWidth: highlightWidth, borderColor: colors.highlight },
 });

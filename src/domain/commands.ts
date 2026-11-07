@@ -2,6 +2,7 @@ import type { UpgradeTrack } from './businessQuotes';
 import type { GameState } from './gameState';
 import type { MoneyCents, QuantityMicrounits } from './money';
 import type { PropertyTrack } from './propertyQuotes';
+import type { SettingsChange } from './settings';
 import type { TradeSide } from './tradeQuotes';
 
 export type TapBatch = {
@@ -65,6 +66,9 @@ export type SettleOffline = { readonly type: 'SettleOffline' };
 export type RecordAdReward = { readonly type: 'RecordAdReward'; readonly presentationId: string };
 
 export type ActivateBoost = { readonly type: 'ActivateBoost' };
+export type UpdateSettings = { readonly type: 'UpdateSettings'; readonly change: SettingsChange };
+
+export type SkipTutorial = { readonly type: 'SkipTutorial' };
 
 export type AcknowledgeReturnSummary = { readonly type: 'AcknowledgeReturnSummary' };
 
@@ -86,7 +90,9 @@ export type GameCommand =
   | PinGoal
   | AdvanceTime
   | SettleOffline
-  | AcknowledgeReturnSummary;
+  | AcknowledgeReturnSummary
+  | SkipTutorial
+  | UpdateSettings;
 
 export type CommandEnvelope = {
   readonly id: string;

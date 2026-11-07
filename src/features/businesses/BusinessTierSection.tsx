@@ -12,10 +12,12 @@ function tierNote(tier: TierView): string {
 
 export function BusinessTierSection({
   tier,
+  highlightedId,
   onReview,
   onManage,
 }: {
   tier: TierView;
+  highlightedId: string | undefined;
   onReview: (offer: BusinessOffer) => void;
   onManage: (offer: BusinessOffer) => void;
 }) {
@@ -26,6 +28,7 @@ export function BusinessTierSection({
           <BusinessOfferRow
             key={offer.business.id}
             offer={offer}
+            highlighted={offer.business.id === highlightedId}
             onReview={onReview}
             onManage={onManage}
           />

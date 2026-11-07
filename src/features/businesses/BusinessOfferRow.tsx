@@ -5,7 +5,7 @@ import { formatMoneyExact, formatRatePerMinute } from '@/domain/money';
 import { Button } from '@/ui/Button';
 import { ListRow } from '@/ui/ListRow';
 import { LogoMark } from '@/ui/LogoMark';
-import { spacing } from '@/ui/tokens';
+import { colors, highlightWidth, radius, spacing } from '@/ui/tokens';
 
 function buyLabel(offer: BusinessOffer): string {
   return offer.affordable
@@ -13,19 +13,23 @@ function buyLabel(offer: BusinessOffer): string {
     : `Need ${formatMoneyExact(offer.shortfallCents)} more`;
 }
 
-export function BusinessOfferRow({
-  offer,
-  onReview,
-  onManage,
-}: {
+type BusinessOfferRowProps = {
   offer: BusinessOffer;
+  highlighted: boolean;
   onReview: (offer: BusinessOffer) => void;
   onManage: (offer: BusinessOffer) => void;
-}) {
+};
+
+export function BusinessOfferRow({
+  offer,
+  highlighted,
+  onReview,
+  onManage,
+}: BusinessOfferRowProps) {
   const { business } = offer;
   const label = buyLabel(offer);
   return (
-    <View style={styles.offer}>
+    <View style={[styles.offer, highlighted && styles.highlighted]}>
       <ListRow
         leading={<LogoMark logo={business.logo} />}
         title={business.name}
@@ -55,4 +59,10 @@ export function BusinessOfferRow({
 
 const styles = StyleSheet.create({
   offer: { gap: spacing.sm },
+  highlighted: {
+    borderWidth: highlightWidth,
+    borderColor: colors.highlight,
+    borderRadius: radius.md,
+    padding: spacing.sm,
+  },
 });

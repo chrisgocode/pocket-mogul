@@ -4,6 +4,11 @@ export function formatCashChange(changeCents: MoneyCents): string {
   return changeCents > 0n ? `+${formatMoneyExact(changeCents)}` : formatMoneyExact(changeCents);
 }
 
+export function cashTrend(changeCents: MoneyCents): 'gain' | 'loss' | 'flat' {
+  if (changeCents === 0n) return 'flat';
+  return changeCents > 0n ? 'gain' : 'loss';
+}
+
 export function formatRateChange(from: MoneyCents, to: MoneyCents): string {
   return `${formatRatePerMinute(from, 'full')} → ${formatRatePerMinute(to, 'full')}`;
 }

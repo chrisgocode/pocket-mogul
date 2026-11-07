@@ -1,16 +1,16 @@
 import { useRouter } from 'expo-router';
 
-import { selectBusinesses, type BusinessOffer } from '@/application/businessesView';
+import { selectBusinesses, type BusinessOffer, type TierView } from '@/application/businessesView';
 import { getContent } from '@/content';
 import type { GameCommand } from '@/domain/commands';
-import { formatMoneyExact, formatRatePerMinute } from '@/domain/money';
 import { useGameSnapshot } from '@/features/game/GameContext';
 import { useGameAction } from '@/features/game/useGameAction';
-import { Card } from '@/ui/Card';
+import { TutorialHint } from '@/features/tutorial/TutorialHint';
+import { useTutorial } from '@/features/tutorial/useTutorial';
 import { EmptyState } from '@/ui/EmptyState';
 import { Screen } from '@/ui/Screen';
-import { AppText } from '@/ui/Typography';
 
+import { BusinessCashCard } from './BusinessCashCard';
 import { BusinessTierSection } from './BusinessTierSection';
 import { BuyBusinessSheet } from './BuyBusinessSheet';
 import { NextTierCard } from './NextTierCard';
@@ -20,28 +20,36 @@ const buyBusinessCommand = (offer: BusinessOffer): GameCommand => ({
   businessId: offer.business.id,
 });
 
-export function BusinessesScreen() {
-  const view = selectBusinesses(useGameSnapshot(), getContent());
-  const { confirmation, review, close, confirm } = useGameAction(buyBusinessCommand);
+const BUSINESS_STEPS = ['buyBusiness'] as const;
+
+const firstOfferId = (tiers: readonly TierView[]): string | undefined =>
+  tiers.flatMap((tier) => tier.offers).find((offer) => offer.status === 'available')?.business.id;
+
+function useManageBusiness(): (offer: BusinessOffer) => void {
   const router = useRouter();
-  const manage = (offer: BusinessOffer) =>
+  return (offer) =>
     router.push({
       pathname: '/businesses/[businessId]',
       params: { businessId: offer.business.id },
     });
-  const cash = formatMoneyExact(view.cashCents);
-  const income = formatRatePerMinute(view.incomePerMinuteCents, 'full');
+}
+
+function useFirstBusinessHighlight(tiers: readonly TierView[]): string | undefined {
+  return useTutorial().isOn('buyBusiness') ? firstOfferId(tiers) : undefined;
+}
+
+export function BusinessesScreen() {
+  const view = selectBusinesses(useGameSnapshot(), getContent());
+  const { confirmation, review, close, confirm } = useGameAction(buyBusinessCommand);
+  const manage = useManageBusiness();
+  const highlightedId = useFirstBusinessHighlight(view.tiers);
   return (
     <Screen>
-      <Card>
-        <AppText variant="caption" muted>
-          Cash
-        </AppText>
-        <AppText variant="number" accessibilityLabel={`Cash ${cash}`}>
-          {cash}
-        </AppText>
-        <AppText muted>Business income {income} net</AppText>
-      </Card>
+      <BusinessCashCard
+        cashCents={view.cashCents}
+        incomePerMinuteCents={view.incomePerMinuteCents}
+      />
+      <TutorialHint steps={BUSINESS_STEPS} />
       {view.nextUnlock === undefined ? null : <NextTierCard unlock={view.nextUnlock} />}
       {view.owned.length === 0 ? (
         <EmptyState
@@ -50,7 +58,13 @@ export function BusinessesScreen() {
         />
       ) : null}
       {view.tiers.map((tier) => (
-        <BusinessTierSection key={tier.tier} tier={tier} onReview={review} onManage={manage} />
+        <BusinessTierSection
+          key={tier.tier}
+          tier={tier}
+          highlightedId={highlightedId}
+          onReview={review}
+          onManage={manage}
+        />
       ))}
       <BuyBusinessSheet
         confirmation={confirmation}

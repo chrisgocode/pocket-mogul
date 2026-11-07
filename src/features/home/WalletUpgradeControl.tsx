@@ -15,9 +15,11 @@ function upgradeLabel(upgrade: AvailableWalletUpgrade): string {
 
 export function WalletUpgradeControl({
   upgrade,
+  highlighted,
   onReview,
 }: {
   upgrade: WalletUpgradeView;
+  highlighted: boolean;
   onReview: (upgrade: AvailableWalletUpgrade) => void;
 }) {
   const current = formatMoneyExact(upgrade.payoutCents);
@@ -33,7 +35,7 @@ export function WalletUpgradeControl({
   const next = formatMoneyExact(upgrade.nextPayoutCents);
   const label = upgradeLabel(upgrade);
   return (
-    <Card>
+    <Card highlighted={highlighted}>
       <View style={styles.heading}>
         <AppText variant="heading">Wallet level {upgrade.level}</AppText>
         <AppText variant="number">{formatMoneyExact(upgrade.priceCents)}</AppText>

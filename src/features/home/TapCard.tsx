@@ -2,7 +2,8 @@ import { Pressable, StyleSheet } from 'react-native';
 
 import { formatMoneyExact, type MoneyCents } from '@/domain/money';
 import { AppText } from '@/ui/Typography';
-import { colors, feedback, radius, spacing } from '@/ui/tokens';
+import { usePressedStyle } from '@/ui/pressFeedback';
+import { colors, highlightCardWidth, radius, spacing } from '@/ui/tokens';
 
 import type { WalletArtwork } from './walletArtwork';
 
@@ -11,15 +12,18 @@ export function TapCard({
   walletLevel,
   boosted,
   artwork,
+  highlight,
   onTap,
 }: {
   perTapCents: MoneyCents;
   walletLevel: number;
   boosted: boolean;
   artwork: WalletArtwork;
+  highlight: 'tutorial' | 'none';
   onTap: () => void;
 }) {
   const payout = formatMoneyExact(perTapCents);
+  const pressedStyle = usePressedStyle();
   return (
     <Pressable
       accessibilityRole="button"
@@ -28,7 +32,8 @@ export function TapCard({
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: artwork.color },
-        pressed && styles.pressed,
+        highlight === 'tutorial' && styles.highlighted,
+        pressed && pressedStyle,
       ]}
     >
       <AppText variant="title" style={styles.text}>
@@ -50,6 +55,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     gap: spacing.xs,
   },
-  pressed: { transform: [{ scale: feedback.pressedScale }] },
+  highlighted: { borderWidth: highlightCardWidth, borderColor: colors.highlight },
   text: { color: colors.textOnAccent },
 });
