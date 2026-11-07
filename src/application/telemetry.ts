@@ -4,6 +4,7 @@ import { boostRemainingMs, type RewardChange } from '@/domain/boost';
 import type { CommandOutcome } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
 import { serializeUnits } from '@/domain/money';
+import { TUTORIAL_STEPS, type TutorialStep } from '@/domain/tutorial';
 
 export type TelemetryEventName =
   | 'tutorial_step'
@@ -58,6 +59,7 @@ export type ObservedCommit = {
   readonly activity?: readonly ActivityEntry[] | undefined;
   readonly completedGoalIds?: readonly string[] | undefined;
   readonly rewardChange?: RewardChange | undefined;
+  readonly completedTutorialSteps?: readonly TutorialStep[] | undefined;
 };
 
 export type AdRequest = 'load' | 'show';
@@ -153,6 +155,12 @@ function rewardEvents(
   return [{ name: 'boost_activated', details }];
 }
 
+const tutorialEvents = (steps: readonly TutorialStep[] | undefined): Named[] =>
+  (steps ?? []).map((step) => ({
+    name: 'tutorial_step',
+    details: { step, number: TUTORIAL_STEPS.indexOf(step) + 1 },
+  }));
+
 type CommitView = { firstBusinessGoals: ReadonlySet<string>; content: Content; state: GameState };
 
 function committedEvents(observed: ObservedCommit, view: CommitView): Named[] {
@@ -167,7 +175,11 @@ function committedEvents(observed: ObservedCommit, view: CommitView): Named[] {
   const fromActivity = (observed.activity ?? [])
     .map((entry) => describe({ kind: entry.kind, payload: entry }, context))
     .filter((named) => named !== undefined);
-  return [...fromActivity, ...rewardEvents(observed.rewardChange, view)];
+  return [
+    ...tutorialEvents(observed.completedTutorialSteps),
+    ...fromActivity,
+    ...rewardEvents(observed.rewardChange, view),
+  ];
 }
 
 export function gameTelemetry(ports: { telemetry?: TelemetryPort; content: Content }) {
