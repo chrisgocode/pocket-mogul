@@ -50,6 +50,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: radius.sm,
   },
-  segmentSelected: { backgroundColor: colors.surface },
+  segmentSelected: { backgroundColor: colors.surfaceRaised },
   labelSelected: { color: colors.accent },
 });

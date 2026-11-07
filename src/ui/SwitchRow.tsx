@@ -27,7 +27,8 @@ export function SwitchRow({
         accessibilityHint={note}
         value={value}
         onValueChange={onChange}
-        trackColor={{ true: colors.accent, false: colors.border }}
+        trackColor={{ true: colors.accentDeep, false: colors.surfaceMuted }}
+        thumbColor={value ? colors.accent : colors.textMuted}
       />
     </View>
   );

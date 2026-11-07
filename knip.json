@@ -1,5 +1,9 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "rules": { "types": "off", "nsTypes": "off" },
-  "ignore": ["lint-rules/fixtures/**"]
+  "ignore": ["lint-rules/fixtures/**"],
+  "ignoreDependencies": [
+    "@expo-google-fonts/bricolage-grotesque",
+    "@expo-google-fonts/instrument-sans"
+  ]
 }
