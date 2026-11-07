@@ -1,4 +1,3 @@
-import { Stack } from 'expo-router';
 import { Suspense } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -10,7 +9,7 @@ import { ReturnSummarySheet } from '@/features/returnSummary/ReturnSummarySheet'
 import { DeviceGameProvider } from '@/features/startup/DeviceGameProvider';
 import { OpeningSaveScreen } from '@/features/startup/OpeningSaveScreen';
 import { RecoveryNoticeSheet } from '@/features/startup/RecoveryNoticeSheet';
-import { colors } from '@/ui/tokens';
+import { RootStack } from '@/ui/RootStack';
 
 export default function RootLayout() {
   return (
@@ -21,21 +20,7 @@ export default function RootLayout() {
       ) : (
         <Suspense fallback={<OpeningSaveScreen />}>
           <DeviceGameProvider>
-            <Stack
-              screenOptions={{
-                headerStyle: { backgroundColor: colors.background },
-                headerShadowVisible: false,
-                headerTintColor: colors.text,
-                contentStyle: { backgroundColor: colors.background },
-              }}
-            >
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="goals" options={{ title: 'Goals', presentation: 'modal' }} />
-              <Stack.Screen
-                name="settings"
-                options={{ title: 'Settings', presentation: 'modal' }}
-              />
-            </Stack>
+            <RootStack />
             <GoalCelebration />
             <ReturnSummarySheet />
             <RecoveryNoticeSheet />

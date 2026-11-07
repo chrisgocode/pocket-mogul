@@ -86,74 +86,78 @@ describe('a corrupt latest snapshot', () => {
   });
 });
 
-describe('a save from the previous schema', () => {
-  const v1Fixture = readFileSync(new URL('fixtures/save-v1.json', import.meta.url), 'utf8');
-  const fixtureWallMs = 1_799_990_000_000;
+const v1Fixture = readFileSync(new URL('fixtures/save-v1.json', import.meta.url), 'utf8');
+const fixtureWallMs = 1_799_990_000_000;
 
+const MIGRATED_V1_FIXTURE = {
+  saveId: '4f6c2a9e-legacy',
+  schemaVersion: 7,
+  economyVersion: 1,
+  revision: 1842,
+  cashCents: 1_208_925_819_614_629_174_706_176n,
+  peakNetWorthCents: 1_208_925_819_614_629_174_956_176n,
+  lifetimeTapEarningsCents: dollars('7315'),
+  clock: { simulationMs: 86_400_000, lastWallCheckpointMs: fixtureWallMs },
+  tap: { walletLevel: 7, totalAcceptedTaps: 48_211 },
+  businesses: [
+    {
+      definitionId: 'vending',
+      levels: { capacity: 3, quality: 1, efficiency: 0 },
+      managerOwned: true,
+      capitalizedSpendCents: dollars('1875'),
+    },
+    {
+      definitionId: 'food_cart',
+      levels: { capacity: 0, quality: 0, efficiency: 0 },
+      managerOwned: false,
+      capitalizedSpendCents: dollars('2500'),
+    },
+  ],
+  properties: [
+    {
+      definitionId: 'studio',
+      levels: { renovation: 0, furnishings: 0, systems: 0, expansion: 0 },
+      rented: true,
+      upgradeSpendCents: dollars('0'),
+    },
+  ],
+  income: {
+    businessRemainders: { vending: 41_999 },
+    businessEarningsCents: dollars('9123.45'),
+    rentRemainders: {},
+    rentEarningsCents: dollars('0'),
+    dividendEarningsCents: dollars('0'),
+  },
+  unlockedTiers: [1, 2],
+  returnSummary: {
+    status: 'pending',
+    summary: {
+      awayMs: 7_200_000,
+      creditedMs: 7_200_000,
+      earnings: { businesses: dollars('864'), rent: dollars('0'), dividends: dollars('0') },
+    },
+  },
+  market: { seed: '4f6c2a9e-legacy', tick: 1440, quotes: {}, candles: {} },
+  tradingUnlocked: true,
+  positions: [],
+  dividendAccruals: [],
+  watchlist: [],
+  reward: { boost: { status: 'none' }, processedRewardIds: [] },
+  goals: { completed: [], pinnedGoalId: null },
+  activity: EMPTY_ACTIVITY,
+  tutorial: { completedSteps: ['tap', 'upgradeWallet', 'buyBusiness'], explanations: 'shown' },
+  settings: { sound: 'on', haptics: 'on', reducedMotion: 'system', numberFormatting: 'compact' },
+};
+
+describe('a save from the previous schema', () => {
   it('migrates balances, assets, cost basis and time intact (AC25)', async () => {
     const { game } = await startTestGameFromDocument(v1Fixture, fixtureWallMs);
-    expect(game.getSnapshot().state).toEqual({
-      saveId: '4f6c2a9e-legacy',
-      schemaVersion: 6,
-      economyVersion: 1,
-      revision: 1842,
-      cashCents: 1_208_925_819_614_629_174_706_176n,
-      peakNetWorthCents: 1_208_925_819_614_629_174_956_176n,
-      lifetimeTapEarningsCents: dollars('7315'),
-      clock: { simulationMs: 86_400_000, lastWallCheckpointMs: fixtureWallMs },
-      tap: { walletLevel: 7, totalAcceptedTaps: 48_211 },
-      businesses: [
-        {
-          definitionId: 'vending',
-          levels: { capacity: 3, quality: 1, efficiency: 0 },
-          managerOwned: true,
-          capitalizedSpendCents: dollars('1875'),
-        },
-        {
-          definitionId: 'food_cart',
-          levels: { capacity: 0, quality: 0, efficiency: 0 },
-          managerOwned: false,
-          capitalizedSpendCents: dollars('2500'),
-        },
-      ],
-      properties: [
-        {
-          definitionId: 'studio',
-          levels: { renovation: 0, furnishings: 0, systems: 0, expansion: 0 },
-          rented: true,
-          upgradeSpendCents: dollars('0'),
-        },
-      ],
-      income: {
-        businessRemainders: { vending: 41_999 },
-        businessEarningsCents: dollars('9123.45'),
-        rentRemainders: {},
-        rentEarningsCents: dollars('0'),
-        dividendEarningsCents: dollars('0'),
-      },
-      unlockedTiers: [1, 2],
-      returnSummary: {
-        status: 'pending',
-        summary: {
-          awayMs: 7_200_000,
-          creditedMs: 7_200_000,
-          earnings: { businesses: dollars('864'), rent: dollars('0'), dividends: dollars('0') },
-        },
-      },
-      market: { seed: '4f6c2a9e-legacy', tick: 1440, quotes: {}, candles: {} },
-      tradingUnlocked: true,
-      positions: [],
-      dividendAccruals: [],
-      watchlist: [],
-      reward: { boost: { status: 'none' }, processedRewardIds: [] },
-      goals: { completed: [], pinnedGoalId: null },
-      activity: EMPTY_ACTIVITY,
-    });
+    expect(game.getSnapshot().state).toEqual(MIGRATED_V1_FIXTURE);
   });
 
   it('saves the migrated snapshot so the next launch opens it as current', async () => {
     const migrated = await startTestGameFromDocument(v1Fixture, fixtureWallMs);
-    expect(JSON.parse(migrated.saveDocument())).toMatchObject({ schemaVersion: 6, revision: 1842 });
+    expect(JSON.parse(migrated.saveDocument())).toMatchObject({ schemaVersion: 7, revision: 1842 });
     const again = await migrated.restart();
     expect(again.game.getSnapshot().state.revision).toBe(1842);
   });
@@ -163,7 +167,7 @@ describe('a save from the previous schema', () => {
     migrated.replaceSaveDocument('not json');
     const { game } = await migrated.restart();
     expect(game.getSnapshot().notice).toEqual({ kind: 'restoredFromBackup' });
-    expect(game.getSnapshot().state).toMatchObject({ schemaVersion: 6, revision: 1842 });
+    expect(game.getSnapshot().state).toMatchObject({ schemaVersion: 7, revision: 1842 });
   });
 });
 

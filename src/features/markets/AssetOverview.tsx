@@ -9,7 +9,7 @@ import { AppText } from '@/ui/Typography';
 import { spacing } from '@/ui/tokens';
 
 import { assetSubtitle, dividendLabel } from './AssetQuoteRow';
-import { changeBadge } from './marketFormat';
+import { changeBadge, trendOf } from './marketFormat';
 
 export type ListedAsset = Extract<AssetDetail, { status: 'listed' }>;
 
@@ -26,7 +26,11 @@ export function AssetOverview({ detail }: { detail: ListedAsset }) {
         </AppText>
       </View>
       <DetailLine label="Price" value={formatPrice(detail.price)} emphasis />
-      <DetailLine label="This market hour" value={changeBadge(detail.hourChangeBps)} />
+      <DetailLine
+        label="This market hour"
+        value={changeBadge(detail.hourChangeBps)}
+        trend={trendOf(detail.hourChangeBps)}
+      />
       {dividend === undefined ? null : <DetailLine label="Dividend" value={dividend} />}
     </Card>
   );

@@ -4,6 +4,7 @@ import { UPGRADE_TRACKS } from '@/domain/businessQuotes';
 import type { GameCommand } from '@/domain/commands';
 import { quantityMicrounits } from '@/domain/money';
 import { PROPERTY_TRACKS } from '@/domain/propertyQuotes';
+import { MOTION_PREFERENCES, NUMBER_FORMATS, SWITCH_VALUES } from '@/domain/settings';
 
 const businessId = z.string().min(1);
 const propertyId = z.string().min(1);
@@ -49,6 +50,16 @@ const gameCommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('AdvanceTime') }),
   z.object({ type: z.literal('SettleOffline') }),
   z.object({ type: z.literal('AcknowledgeReturnSummary') }),
+  z.object({ type: z.literal('SkipTutorial') }),
+  z.object({
+    type: z.literal('UpdateSettings'),
+    change: z.strictObject({
+      sound: z.enum(SWITCH_VALUES).exactOptional(),
+      haptics: z.enum(SWITCH_VALUES).exactOptional(),
+      reducedMotion: z.enum(MOTION_PREFERENCES).exactOptional(),
+      numberFormatting: z.enum(NUMBER_FORMATS).exactOptional(),
+    }),
+  }),
 ]);
 
 export function validCommand(command: GameCommand): GameCommand | undefined {

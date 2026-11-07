@@ -19,13 +19,19 @@ function confirmationLines(upgrade: AvailableWalletUpgrade): ConfirmationLine[] 
   ];
 }
 
-export function WalletUpgrade({ tapCard }: { tapCard: TapCardView }) {
+export function WalletUpgrade({
+  tapCard,
+  highlighted,
+}: {
+  tapCard: TapCardView;
+  highlighted: boolean;
+}) {
   const upgrade = selectWalletUpgrade(tapCard, getContent());
   const { confirmation, review, close, confirm } = useWalletUpgrade();
   const reviewed = confirmation.status === 'closed' ? undefined : confirmation.subject;
   return (
     <>
-      <WalletUpgradeControl upgrade={upgrade} onReview={review} />
+      <WalletUpgradeControl upgrade={upgrade} highlighted={highlighted} onReview={review} />
       <ConfirmationSheet
         confirmation={confirmation}
         title="Upgrade wallet"

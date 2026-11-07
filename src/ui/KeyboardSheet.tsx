@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { useSheetAnimation } from './motion';
 import { colors, radius, spacing } from './tokens';
 
 export function KeyboardSheet({
@@ -12,15 +15,22 @@ export function KeyboardSheet({
   onRequestClose: () => void;
   children: ReactNode;
 }) {
+  const insets = useSafeAreaInsets();
+  const bottomPadding = { paddingBottom: Math.max(insets.bottom, spacing.xl) };
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onRequestClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType={useSheetAnimation()}
+      onRequestClose={onRequestClose}
+    >
       <KeyboardAvoidingView
         style={styles.scrim}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.sheet}>
           <ScrollView
-            contentContainerStyle={styles.content}
+            contentContainerStyle={[styles.content, bottomPadding]}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
           >

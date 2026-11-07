@@ -227,7 +227,7 @@ describe('saves from before trading', () => {
     expect(owner).toMatchObject({
       status: 'migrated',
       fromVersion: 2,
-      state: { schemaVersion: 6, tradingUnlocked: true, positions: [], watchlist: [] },
+      state: { schemaVersion: 7, tradingUnlocked: true, positions: [], watchlist: [] },
     });
     expect(decodedState(schemaV2Save([]))?.tradingUnlocked).toBe(false);
   });

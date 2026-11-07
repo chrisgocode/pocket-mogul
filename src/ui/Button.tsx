@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet } from 'react-native';
 
+import { usePressedStyle } from './pressFeedback';
 import { AppText } from './Typography';
-import { colors, feedback, minimumTouchTarget, radius, spacing } from './tokens';
+import { colors, minimumTouchTarget, radius, spacing } from './tokens';
 
 type ButtonVariant = 'primary' | 'secondary';
 
@@ -18,6 +19,7 @@ export function Button({
   variant?: ButtonVariant;
   disabled?: boolean;
 }) {
+  const pressedStyle = usePressedStyle();
   return (
     <Pressable
       accessibilityRole="button"
@@ -28,7 +30,7 @@ export function Button({
       style={({ pressed }) => [
         styles.button,
         variant === 'primary' ? styles.primary : styles.secondary,
-        pressed && styles.pressed,
+        pressed && pressedStyle,
         disabled && styles.disabled,
       ]}
     >
@@ -49,7 +51,6 @@ const styles = StyleSheet.create({
   },
   primary: { backgroundColor: colors.accent },
   secondary: { backgroundColor: colors.surfaceMuted },
-  pressed: { transform: [{ scale: feedback.pressedScale }] },
   disabled: { backgroundColor: colors.locked },
   onAccent: { color: colors.textOnAccent },
   onSurface: { color: colors.text },

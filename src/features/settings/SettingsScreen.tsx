@@ -7,19 +7,13 @@ import { Screen } from '@/ui/Screen';
 import { Section } from '@/ui/Section';
 import { AppText } from '@/ui/Typography';
 
+import { PreferencesSection } from './PreferencesSection';
 import { ResetSaveSection } from './ResetSaveSection';
 
 export function SettingsScreen() {
   return (
     <Screen>
-      <Section title="Preferences" note="Saved settings arrive with the save system.">
-        <Card>
-          <ListRow title="Sound" detail="On" />
-          <ListRow title="Haptics" detail="On" />
-          <ListRow title="Reduced motion" detail="Follow system" />
-          <ListRow title="Number formatting" detail="Compact" />
-        </Card>
-      </Section>
+      <PreferencesSection />
       <ResetSaveSection />
       <Section title="About">
         <Card>
