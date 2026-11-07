@@ -29,6 +29,7 @@ function addIncome(earlier: IncomeBySource, later: IncomeBySource): IncomeBySour
   return {
     businesses: moneyCents(earlier.businesses + later.businesses),
     rent: moneyCents(earlier.rent + later.rent),
+    dividends: moneyCents(earlier.dividends + later.dividends),
   };
 }
 

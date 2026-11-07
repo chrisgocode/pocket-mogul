@@ -52,6 +52,11 @@ export function chartRangeText(chart: PriceChart): string {
   return `Past ${range}: ${move}. High ${formatPriceCompact(chart.high)}, low ${formatPriceCompact(chart.low)}.`;
 }
 
+export function payoutTiming(inMs: number): string {
+  if (inMs < MINUTE_MS) return 'in under a market minute';
+  return `in ${marketDuration(inMs)}`;
+}
+
 export function newsTiming(item: NewsItem): string {
   if (item.timing.status === 'live') {
     return `Live now · ends in ${marketDuration(item.timing.endsInMs)}`;

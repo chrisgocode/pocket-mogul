@@ -1,7 +1,7 @@
 import type { PriceMicros } from './money';
 import type { MarketRules } from './marketRules';
 
-const HOUR_MS = 3_600_000;
+export const SIMULATION_HOUR_MS = 3_600_000;
 
 export type Ohlc = {
   readonly open: PriceMicros;
@@ -27,7 +27,7 @@ export type MarketHistory = {
 export type Candles = Readonly<Record<string, Ohlc>>;
 
 export function hourOfTick(tick: number, rules: Pick<MarketRules, 'tickMs'>): number {
-  return Math.floor((tick * rules.tickMs) / HOUR_MS);
+  return Math.floor((tick * rules.tickMs) / SIMULATION_HOUR_MS);
 }
 
 const higher = (a: PriceMicros, b: PriceMicros) => (a > b ? a : b);
