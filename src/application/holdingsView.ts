@@ -1,5 +1,5 @@
 import type { Content } from '@/content';
-import { saleProceedsCents } from '@/domain/businessQuotes';
+import { carryingValueCents, saleProceedsCents } from '@/domain/business/core';
 import type { GameState } from '@/domain/gameState';
 import { quoteOf } from '@/domain/market';
 import type { MoneyCents, QuantityMicrounits } from '@/domain/money';
@@ -42,7 +42,7 @@ function businessHoldings(state: GameState, content: Content): OwnedHolding[] {
       {
         id: owned.definitionId,
         name: definition.name,
-        valueCents: owned.capitalizedSpendCents,
+        valueCents: carryingValueCents(owned),
         saleCents: saleProceedsCents(owned, content.economy.businessRules),
       },
     ];

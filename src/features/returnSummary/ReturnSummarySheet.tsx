@@ -27,6 +27,11 @@ export function ReturnSummarySheet() {
         <DetailLine key={line.label} label={line.label} value={formatMoneyExact(line.cents)} />
       ))}
       <DetailLine label="Total earned" value={formatMoneyExact(summary.totalCents)} emphasis />
+      {summary.closedBusinesses.map((name) => (
+        <AppText key={name} muted>
+          {`${name} closed: its treasury ran out. Deposit cash to reopen it.`}
+        </AppText>
+      ))}
       <Button label="Continue" onPress={dismiss} />
     </BottomSheet>
   );

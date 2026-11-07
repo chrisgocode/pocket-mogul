@@ -1,5 +1,6 @@
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
+import { ownedBusiness } from '@/domain/testRules';
 
 import { deferred, startTestGame, startTestGameFrom, type TestGame } from './testGame';
 
@@ -8,14 +9,7 @@ const LEFT_AT_MS = 1_800_000_000_000;
 
 const withVending: GameState = {
   ...freshGameState({ saveId: 'owner', economyVersion: 1, wallMs: LEFT_AT_MS }),
-  businesses: [
-    {
-      definitionId: 'vending',
-      levels: { capacity: 0, quality: 0, efficiency: 0 },
-      managerOwned: false,
-      capitalizedSpendCents: dollars('250'),
-    },
-  ],
+  businesses: [ownedBusiness('vending')],
 };
 
 const cash = (session: TestGame) => session.game.getSnapshot().state.cashCents;
@@ -28,16 +22,18 @@ async function awayWhileRunning(session: TestGame, awayMs: number): Promise<void
 }
 
 describe('relaunching after time away', () => {
-  it('credits exactly $4,800 for ten hours with one base Vending Machine (AC09)', async () => {
+  it('settles $4,800 for ten hours with one base Vending Machine: $2,400 cash and $2,400 treasury (AC09)', async () => {
     const left = await startTestGameFrom(withVending);
     const back = await left.restart({ awayMs: 10 * HOUR_MS });
-    expect<bigint>(cash(back)).toBe(dollars('4800'));
+    expect<bigint>(cash(back)).toBe(dollars('2400'));
+    expect(back.game.getSnapshot().state.businesses[0]?.treasuryCents).toBe(dollars('2400'));
     expect(summary(back)).toEqual({
       status: 'pending',
       summary: {
         awayMs: 10 * HOUR_MS,
         creditedMs: 8 * HOUR_MS,
-        earnings: { businesses: dollars('4800'), rent: dollars('0'), dividends: dollars('0') },
+        earnings: { businesses: dollars('2400'), rent: dollars('0'), dividends: dollars('0') },
+        closures: [],
       },
     });
   });
@@ -46,14 +42,14 @@ describe('relaunching after time away', () => {
     const left = await startTestGameFrom(withVending);
     const back = await left.restart({ awayMs: 10 * HOUR_MS });
     const again = await back.restart();
-    expect<bigint>(cash(again)).toBe(dollars('4800'));
+    expect<bigint>(cash(again)).toBe(dollars('2400'));
   });
 
   it('shows the summary again after a crash but never credits twice (AC10)', async () => {
     const left = await startTestGameFrom(withVending);
     const back = await left.restart({ awayMs: 10 * HOUR_MS });
     const afterCrash = await back.restart();
-    expect<bigint>(cash(afterCrash)).toBe(dollars('4800'));
+    expect<bigint>(cash(afterCrash)).toBe(dollars('2400'));
     expect(summary(afterCrash)).toMatchObject({ status: 'pending' });
   });
 
@@ -85,10 +81,11 @@ describe('rent while away', () => {
       summary: {
         awayMs: HOUR_MS,
         creditedMs: HOUR_MS,
-        earnings: { businesses: dollars('600'), rent: dollars('6000'), dividends: dollars('0') },
+        earnings: { businesses: dollars('300'), rent: dollars('6000'), dividends: dollars('0') },
+        closures: [],
       },
     });
-    expect<bigint>(cash(back)).toBe(dollars('6600'));
+    expect<bigint>(cash(back)).toBe(dollars('6300'));
   });
 });
 
@@ -103,7 +100,7 @@ describe('dismissing the return summary', () => {
     expect(outcome).toMatchObject({ ok: true, cashChangeCents: dollars('0') });
     const later = await back.restart();
     expect(summary(later)).toEqual({ status: 'none' });
-    expect<bigint>(cash(later)).toBe(dollars('4800'));
+    expect<bigint>(cash(later)).toBe(dollars('2400'));
   });
 });
 
@@ -112,7 +109,7 @@ describe('returning to the running app', () => {
     const session = await startTestGameFrom(withVending);
     await awayWhileRunning(session, 10 * HOUR_MS);
     await awayWhileRunning(session, 0);
-    expect<bigint>(cash(session)).toBe(dollars('4800'));
+    expect<bigint>(cash(session)).toBe(dollars('2400'));
     expect(summary(session)).toMatchObject({ status: 'pending' });
   });
 
@@ -146,7 +143,7 @@ describe('a pause checkpoint that saves late', () => {
     const resumed = session.game.resume();
     release();
     await Promise.all([paused, resumed]);
-    expect<bigint>(cash(session)).toBe(dollars('601'));
+    expect<bigint>(cash(session)).toBe(dollars('301'));
   });
 });
 
@@ -156,7 +153,7 @@ describe('an app open ad step that fails', () => {
       beforeWarmReturnSummary: () => Promise.reject(new Error('no fill')),
     });
     await awayWhileRunning(session, HOUR_MS);
-    expect<bigint>(cash(session)).toBe(dollars('600'));
+    expect<bigint>(cash(session)).toBe(dollars('300'));
     expect(summary(session)).toMatchObject({ status: 'pending' });
   });
 });
@@ -175,7 +172,7 @@ describe('a wall clock set backward', () => {
       },
     ]);
     const later = await back.restart({ awayMs: HOUR_MS });
-    expect<bigint>(cash(later)).toBe(dollars('600'));
+    expect<bigint>(cash(later)).toBe(dollars('300'));
   });
 });
 

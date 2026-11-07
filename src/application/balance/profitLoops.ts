@@ -1,5 +1,5 @@
 import type { Content } from '@/content';
-import { UPGRADE_TRACKS } from '@/domain/businessQuotes';
+import { BUSINESS_TRACKS } from '@/domain/business/definition';
 import type { GameCommand } from '@/domain/commands';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
@@ -15,6 +15,7 @@ export type LoopCheck = {
 };
 
 const PROBE_CASH_CENTS = moneyCents(10n ** 15n);
+const PROBE_TREASURY_CENTS = moneyCents(10n ** 14n);
 
 type Probe = {
   readonly asset: LoopCheck['asset'];
@@ -57,18 +58,29 @@ function runProbe(probe: Probe, content: Content): LoopCheck {
 const levels = (count: number) => Array.from({ length: count }, (_unused, level) => level);
 
 function businessProbe(businessId: string, content: Content): Probe {
-  const upgrades = levels(content.economy.businessRules.maxTrackLevel).flatMap((fromLevel) =>
-    UPGRADE_TRACKS.map((track): GameCommand => ({
+  const rules = content.economy.businessRules;
+  const units = levels((rules.unitCapByStage[0] ?? 1) - 1).map((index): GameCommand => ({
+    type: 'BuyUnit',
+    businessId,
+    fromUnits: index + 1,
+  }));
+  const upgrades = levels(rules.maxTrackLevel).flatMap((fromLevel) =>
+    BUSINESS_TRACKS.map((track): GameCommand => ({
       type: 'UpgradeBusiness',
       businessId,
       track,
       fromLevel,
     })),
   );
+  const deposit: GameCommand = {
+    type: 'DepositToTreasury',
+    businessId,
+    amountCents: PROBE_TREASURY_CENTS,
+  };
   return {
     asset: 'business',
     assetId: businessId,
-    steps: [{ type: 'BuyBusiness', businessId }, { type: 'HireManager', businessId }, ...upgrades],
+    steps: [{ type: 'BuyBusiness', businessId }, deposit, ...units, ...upgrades],
     sell: { type: 'SellBusiness', businessId },
   };
 }

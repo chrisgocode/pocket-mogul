@@ -1,61 +1,29 @@
-import type { BusinessDefinition } from './businessQuotes';
-import type { BusinessEconomy } from './businesses';
 import { freshGameState, type GameState } from './gameState';
 import { dollars, moneyCents } from './money';
 import { settleOffline } from './offline';
 import type { PassiveEconomy } from './passiveIncome';
-import { propertyRules } from './testRules';
+import { businessRules, ownedBusiness, propertyRules, vendingDefinition } from './testRules';
 
 const HOUR_MS = 3_600_000;
 const CAP_MS = 8 * HOUR_MS;
 const LEFT_AT_MS = 1_000_000;
 
-const vending: BusinessDefinition = {
-  id: 'vending',
-  tier: 1,
-  price: dollars('250'),
-  revenuePerMinute: dollars('14'),
-  costsPerMinute: dollars('4'),
-};
-
-const businesses: BusinessEconomy = {
-  catalog: [vending],
-  rules: {
-    maxTrackLevel: 20,
-    upgradeWeightBps: { capacity: 2000, quality: 2500, efficiency: 1500 },
-    upgradeGrowth: { numerator: 118, denominator: 100 },
-    levelEffectPercent: {
-      capacityRevenue: 10,
-      qualityRevenue: 10,
-      capacityCosts: 6,
-      efficiencySaving: 2,
-    },
-    managerPriceMultiplier: 2,
-    managerBonusBps: 1000,
-    milestoneEveryLevels: 15,
-    milestoneBonusBps: 1000,
-    saleReturnPercent: 60,
-    branchArtCapacityLevels: [5, 10, 15, 20],
-  },
-};
+const leaky = { ...vendingDefinition, id: 'leaky', upkeepPerUnitCents: dollars('132') };
 
 const economy: PassiveEconomy = {
-  businesses,
+  businesses: { catalog: [vendingDefinition, leaky], rules: businessRules },
   properties: { catalog: [], rules: propertyRules },
   dividendRates: {},
 };
 
-function leftWith(...definitions: BusinessDefinition[]): GameState {
+function leftWith(...businessIds: string[]): GameState {
   return {
     ...freshGameState({ saveId: 'away', economyVersion: 1, wallMs: LEFT_AT_MS }),
-    businesses: definitions.map((definition) => ({
-      definitionId: definition.id,
-      levels: { capacity: 0, quality: 0, efficiency: 0 },
-      managerOwned: false,
-      capitalizedSpendCents: definition.price,
-    })),
+    businesses: businessIds.map((businessId) => ownedBusiness(businessId)),
   };
 }
+
+const noEarnings = { businesses: dollars('0'), rent: dollars('0'), dividends: dollars('0') };
 
 const returnAfter = (state: GameState, awayMs: number) =>
   settleOffline(state, {
@@ -65,10 +33,11 @@ const returnAfter = (state: GameState, awayMs: number) =>
   });
 
 describe('settling an absence', () => {
-  it('credits $4,800 for ten hours away with one base Vending Machine (AC09)', () => {
-    const settled = returnAfter(leftWith(vending), 10 * HOUR_MS);
-    expect<bigint>(settled.earnedCents).toBe(dollars('4800'));
-    expect<bigint>(settled.state.cashCents).toBe(dollars('4800'));
+  it('settles $4,800 over 48 business days for ten hours away: $2,400 cash, $2,400 treasury (AC09)', () => {
+    const settled = returnAfter(leftWith('vending'), 10 * HOUR_MS);
+    expect<bigint>(settled.earnedCents).toBe(dollars('2400'));
+    expect<bigint>(settled.state.cashCents).toBe(dollars('2400'));
+    expect(settled.state.businesses[0]?.treasuryCents).toBe(dollars('2400'));
     expect(settled.state.clock).toEqual({
       simulationMs: CAP_MS,
       lastWallCheckpointMs: LEFT_AT_MS + 10 * HOUR_MS,
@@ -76,27 +45,28 @@ describe('settling an absence', () => {
   });
 
   it('pays nothing more for a second immediate return (AC09)', () => {
-    const first = returnAfter(leftWith(vending), 10 * HOUR_MS);
+    const first = returnAfter(leftWith('vending'), 10 * HOUR_MS);
     const second = returnAfter(first.state, 0);
     expect<bigint>(second.earnedCents).toBe(dollars('0'));
-    expect<bigint>(second.state.cashCents).toBe(dollars('4800'));
+    expect<bigint>(second.state.cashCents).toBe(dollars('2400'));
   });
 
   it('records time away, credited time and earnings by source in a pending summary (UX05)', () => {
-    const settled = returnAfter(leftWith(vending), 10 * HOUR_MS);
+    const settled = returnAfter(leftWith('vending'), 10 * HOUR_MS);
     expect(settled.state.returnSummary).toEqual({
       status: 'pending',
       summary: {
         awayMs: 10 * HOUR_MS,
         creditedMs: CAP_MS,
-        earnings: { businesses: dollars('4800'), rent: dollars('0'), dividends: dollars('0') },
+        earnings: { ...noEarnings, businesses: dollars('2400') },
+        closures: [],
       },
     });
   });
 
   it('credits a short absence without asking to show a summary', () => {
-    const settled = returnAfter(leftWith(vending), 30_000);
-    expect<bigint>(settled.earnedCents).toBe(dollars('5'));
+    const settled = returnAfter(leftWith('vending'), 30_000);
+    expect<bigint>(settled.earnedCents).toBe(dollars('2.50'));
     expect(settled.state.returnSummary).toEqual({ status: 'none' });
   });
 
@@ -106,14 +76,31 @@ describe('settling an absence', () => {
   });
 
   it('adds a later absence to a summary the player has not dismissed yet', () => {
-    const first = returnAfter(leftWith(vending), 2 * HOUR_MS);
+    const first = returnAfter(leftWith('vending'), 2 * HOUR_MS);
     const second = returnAfter(first.state, 30_000);
     expect(second.state.returnSummary).toEqual({
       status: 'pending',
       summary: {
         awayMs: 2 * HOUR_MS + 30_000,
         creditedMs: 2 * HOUR_MS + 30_000,
-        earnings: { businesses: dollars('1205'), rent: dollars('0'), dividends: dollars('0') },
+        earnings: { ...noEarnings, businesses: dollars('602.50') },
+        closures: [],
+      },
+    });
+  });
+});
+
+describe('a business that closes while the player is away (BUS12)', () => {
+  it('lists the closure in the return summary even when nothing was earned', () => {
+    const settled = returnAfter(leftWith('leaky'), 10 * HOUR_MS);
+    expect(settled.closures).toEqual([{ businessId: 'leaky', atMs: 0 }]);
+    expect(settled.state.returnSummary).toEqual({
+      status: 'pending',
+      summary: {
+        awayMs: 10 * HOUR_MS,
+        creditedMs: CAP_MS,
+        earnings: noEarnings,
+        closures: ['leaky'],
       },
     });
   });
@@ -121,7 +108,7 @@ describe('settling an absence', () => {
 
 describe('a wall clock that moved backward', () => {
   it('credits nothing, resets the wall baseline and reports it', () => {
-    const settled = returnAfter(leftWith(vending), -HOUR_MS);
+    const settled = returnAfter(leftWith('vending'), -HOUR_MS);
     expect<bigint>(settled.earnedCents).toBe(moneyCents(0));
     expect(settled.state.clock).toEqual({
       simulationMs: 0,
@@ -135,6 +122,6 @@ describe('a wall clock that moved backward', () => {
   });
 
   it('reports a forward clock otherwise', () => {
-    expect(returnAfter(leftWith(vending), HOUR_MS).clock).toEqual({ direction: 'forward' });
+    expect(returnAfter(leftWith('vending'), HOUR_MS).clock).toEqual({ direction: 'forward' });
   });
 });

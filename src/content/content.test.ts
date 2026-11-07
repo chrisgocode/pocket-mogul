@@ -1,7 +1,13 @@
-import { divideRoundingUp, formatMoneyExact, type MoneyCents } from '@/domain/money';
+import { divideRoundingUp, dollars, formatMoneyExact, type MoneyCents } from '@/domain/money';
 
 import { economyV1 } from './economy-v1';
-import { findContentIssues, getContent, ContentValidationError, validateContent } from './index';
+import {
+  businessDefinition,
+  findContentIssues,
+  getContent,
+  ContentValidationError,
+  validateContent,
+} from './index';
 
 const clone = () => structuredClone(economyV1);
 const issuesFor = (mutate: (c: ReturnType<typeof clone>) => void) => {
@@ -50,9 +56,43 @@ describe('bundled content', () => {
     expect([0, 1, 2, 3].map(price)).toEqual(['$100.00', '$145.00', '$210.25', '$304.87']);
   });
 
-  it('nets $10 per minute for a base Vending Machine (AC06 inputs)', () => {
-    const vending = getContent().businesses.find((b) => b.id === 'vending')!;
-    expect(vending.revenuePerMinute - vending.costsPerMinute).toBe(1000n);
+  it('derives the Vending Machine core figures from its catalog row (BUS09)', () => {
+    const content = getContent();
+    const vending = content.businesses.find((b) => b.id === 'vending')!;
+    expect(businessDefinition(vending, content.economy.businessRules)).toEqual({
+      id: 'vending',
+      tier: 1,
+      price: dollars('250'),
+      pricePerCustomerCents: dollars('1.40'),
+      capacityPerUnit: 100,
+      baseDemand: 110,
+      costPerCustomerCents: dollars('0.24'),
+      upkeepPerUnitCents: dollars('16'),
+      catalogRevenuePerDayCents: dollars('140'),
+      demandBps: { budget: 14500, value: 12000, standard: 10000, premium: 7500, luxury: 5500 },
+    });
+  });
+
+  it('derives whole core figures for every business in the catalog', () => {
+    const content = getContent();
+    const figures = content.businesses.map((business) => {
+      const core = businessDefinition(business, content.economy.businessRules);
+      return [business.id, core.capacityPerUnit, core.baseDemand];
+    });
+    expect(figures).toEqual([
+      ['vending', 100, 110],
+      ['food_cart', 80, 88],
+      ['coffee_kiosk', 500, 550],
+      ['laundromat', 500, 550],
+      ['car_wash', 500, 550],
+      ['bakery', 1000, 1100],
+      ['delivery', 10000, 11000],
+      ['gym_chain', 20000, 22000],
+      ['hotel_group', 8000, 8800],
+      ['manufacturer', 1600, 1760],
+      ['airline', 100000, 110000],
+      ['space_launch', 50, 55],
+    ]);
   });
 });
 
@@ -193,9 +233,23 @@ describe('validation catches bad edits', () => {
 
 describe('business rule validation rejects', () => {
   it('Efficiency that would push costs to zero', () => {
+    expect(issuesFor((c) => void (c.economy.businessRules.efficiencySavingPercent = 5))).toEqual([
+      'Efficiency at its max level must leave operating costs above zero',
+    ]);
+  });
+
+  it('a catalog row whose core figures do not come out whole', () => {
+    expect(issuesFor((c) => void (c.businesses[0]!.pricePerCustomer = dollars('1.30')))).toEqual([
+      'Business vending capacity per unit must come out whole',
+      'Business vending base demand must come out whole',
+      'Business vending cost per customer must come out whole',
+    ]);
+  });
+
+  it('unit caps that fall from one stage to the next', () => {
     expect(
-      issuesFor((c) => void (c.economy.businessRules.levelEffectPercent.efficiencySaving = 5)),
-    ).toEqual(['Efficiency at its max level must leave operating costs above zero']);
+      issuesFor((c) => void (c.economy.businessRules.unitCapByStage = [3, 2, 20, 50, 120])),
+    ).toEqual(['Unit caps must rise with each stage']);
   });
 });
 

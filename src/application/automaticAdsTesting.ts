@@ -1,6 +1,7 @@
 import { getContent, type Content } from '@/content';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
+import { ownedBusiness } from '@/domain/testRules';
 
 import type { AutomaticAdStage } from './automaticAds';
 import { scriptedAds, type AutomaticAdSetup } from './scriptedAds';
@@ -21,14 +22,7 @@ const pastTutorial: GameState = {
     ],
     pinnedGoalId: null,
   },
-  businesses: [
-    {
-      definitionId: 'vending',
-      levels: { capacity: 0, quality: 0, efficiency: 0 },
-      managerOwned: false,
-      capitalizedSpendCents: dollars('250'),
-    },
-  ],
+  businesses: [ownedBusiness('vending')],
 };
 
 function telemetryRecorder() {

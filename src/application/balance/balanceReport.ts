@@ -185,7 +185,7 @@ function profitLoops(report: BalanceReport): string[] {
   return [
     '## Buy/sell profit loops',
     '',
-    'Each asset is bought, then upgraded one level at a time on every track (and a manager hired, for businesses), with no time passing. After every step it is sold, and the cash compared with the cash before buying.',
+    'Each asset is bought, then upgraded one level at a time on every track (for businesses, after a deposit into the treasury, then every unit the first stage allows), with no time passing. After every step it is sold, and the cash compared with the cash before buying.',
     '',
     verdict,
     '',

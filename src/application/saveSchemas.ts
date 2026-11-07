@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { activityLog, goalProgress } from './activitySchemas';
 import { adSchedule, settings, tutorialProgress } from './preferenceSchemas';
+import { PRICE_LEVELS } from '@/domain/business/definition';
 import { parseMoneyCents, parsePriceMicros, parseQuantityMicrounits } from '@/domain/money';
 
 export const moneyText = z
@@ -23,9 +24,21 @@ const market = z.object({
   candles: z.record(z.string(), candle),
 });
 
+const positiveCount = z.number().int().positive();
+const WHOLE_PERCENT = 100;
+const nonNegativeMoneyText = z.string().regex(/^\d+$/).transform(parseMoneyCents);
+
 const business = definitionId.extend({
-  levels: z.object({ capacity: level, quality: level, efficiency: level }),
-  managerOwned: z.boolean(),
+  stage: positiveCount,
+  units: positiveCount,
+  priceLevel: z.enum(PRICE_LEVELS),
+  levels: z.object({ quality: level, efficiency: level }),
+  payoutPercent: z.number().int().min(0).max(WHOLE_PERCENT),
+  treasuryCents: nonNegativeMoneyText,
+  profitRemainder: count,
+  payoutRemainder: count,
+  status: z.enum(['open', 'closed']),
+  purchasedDay: count,
   capitalizedSpendCents: moneyText,
 });
 
@@ -36,7 +49,6 @@ const property = definitionId.extend({
 });
 
 const income = z.object({
-  businessRemainders: remainders,
   businessEarningsCents: moneyText,
   rentRemainders: remainders,
   rentEarningsCents: moneyText,
@@ -51,6 +63,7 @@ const returnSummary = z.discriminatedUnion('status', [
       awayMs: count,
       creditedMs: count,
       earnings: z.object({ businesses: moneyText, rent: moneyText, dividends: moneyText }),
+      closures: z.array(z.string().min(1)),
     }),
   }),
 ]);

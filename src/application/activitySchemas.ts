@@ -31,12 +31,21 @@ const activityEvent = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('sale'), ...assetDeal }),
   z.object({
     kind: z.literal('upgrade'),
-    target: z.enum(['wallet', 'business', 'property']),
+    target: z.enum(['wallet', 'property']),
     assetId,
     track: z.string().min(1),
     level: count,
     cashChangeCents: cents,
   }),
+  z.object({
+    kind: z.literal('improvement'),
+    assetId,
+    track: z.enum(['units', 'quality', 'efficiency']),
+    level: count,
+    treasuryChangeCents: cents,
+  }),
+  z.object({ kind: z.literal('treasury'), assetId, cashChangeCents: cents }),
+  z.object({ kind: z.literal('closure'), assetId, closedAtMs: count }),
   z.object({ kind: z.literal('rental'), assetId, rented: z.boolean() }),
   z.object({
     kind: z.literal('trade'),
@@ -52,6 +61,7 @@ const activityEvent = z.discriminatedUnion('kind', [
     awayMs: count,
     creditedMs: count,
     earnings: z.object({ businesses: cents, rent: cents, dividends: cents }),
+    closures: z.array(assetId),
   }),
 ]);
 
@@ -65,6 +75,9 @@ const byKind = z.object({
   purchase: count,
   sale: count,
   upgrade: count,
+  improvement: count,
+  treasury: count,
+  closure: count,
   rental: count,
   trade: count,
   dividend: count,

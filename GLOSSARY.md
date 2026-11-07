@@ -109,7 +109,7 @@ The SettleOffline commit made on launch and on returning to the app: it credits 
 _Avoid_: Catch-up, offline sync
 
 **Return summary**:
-The sheet that reports an Offline settlement: time away, credited time, earnings by source and whether the Offline cap was reached. It is saved with the settlement, so a crash shows it again without paying again, and Continue (AcknowledgeReturnSummary) only dismisses it. It appears only after at least a minute away that earned something.
+The sheet that reports an Offline settlement: time away, credited time, earnings by source and whether the Offline cap was reached. It is saved with the settlement, so a crash shows it again without paying again, and Continue (AcknowledgeReturnSummary) only dismisses it. It appears only after at least a minute away that earned something or closed a business.
 _Avoid_: Offline reward, idle bonus
 
 ## Economy
@@ -119,27 +119,47 @@ One of four permanent unlock levels for businesses, opened by reaching a peak ne
 _Avoid_: Level, stage, era
 
 **Income stream**:
-One source of constant-rate passive income, such as one business, with its own sub-cent remainder that survives selling the asset.
+One source of constant-rate passive income, such as one rental, with its own sub-cent remainder that survives selling the asset. A business settles its profit through its Treasury instead.
 _Avoid_: Income source, earner
 
+**Business day**:
+Ten minutes of simulation time, the period every business rate is quoted in. Day boundaries fall on multiples of 600,000 ms and are shared by all businesses; the 8-hour Offline cap is 48 business days.
+_Avoid_: Shift, round, turn
+
+**Unit**:
+One machine, cart, bay, van or the like that a business runs. Each adds full capacity and 60% of the base demand; the Stage caps how many a business has.
+_Avoid_: Branch, location, copy
+
+**Price level**:
+One of five settings, Budget, Value, Standard, Premium and Luxury, that set a business's price per customer and the demand for it. The details mark the level with the highest profit.
+_Avoid_: Price tier, markup
+
 **Upgrade track**:
-One of a business's three independent levels, 0 to 20: Capacity (more revenue and costs), Quality (more revenue) or Efficiency (lower costs).
+One of a business's two independent levels, 0 to 20, paid from its Treasury: Quality (more demand) or Efficiency (lower cost per customer served).
 _Avoid_: Stat, skill, upgrade slot
 
-**Milestone bonus**:
-An additive 10% net profit bonus a business earns for every 15 total levels across its upgrade tracks.
-_Avoid_: Level bonus, combo
+**Stage**:
+A business's growth level, Startup to Global. It caps the Unit count; every business is at Startup until stage upgrades ship.
+_Avoid_: Tier (that is the catalog unlock), level
 
-**Manager**:
-A one-time hire per business that adds 10% net profit; its price is an operating expense, not part of the carrying value.
-_Avoid_: Staff, employee, automation
+**Treasury**:
+A business's own money. Its profit lands here, and its units, upgrades and other running spending are paid from here, never from the player's cash. It never goes below zero.
+_Avoid_: Wallet, bank, balance
+
+**Payout**:
+The share of each settled profit, 0 to 100% in steps of 10 (50% at purchase), that moves from a business's Treasury to the player's cash.
+_Avoid_: Dividend, withdrawal
+
+**Closed business**:
+A business whose Treasury ran out under a loss. It earns and pays nothing, keeps its units and levels, and reopens when the player deposits cash into its Treasury. Personal cash is never taken automatically.
+_Avoid_: Bankrupt, paused, failed
 
 **Carrying value**:
-What a business counts for in net worth: its purchase price plus upgrade spending, excluding the manager.
+What a business counts for in net worth: its purchase price plus spending on units and upgrades, plus its Treasury.
 _Avoid_: Book value, asset value
 
 **Sale quote**:
-The cash a sale pays: 60% of a business's carrying value, after its income is settled.
+The cash a sale pays: 60% of a business's spending on its purchase, units and upgrades, plus its whole Treasury, after its income is settled.
 _Avoid_: Resale value, refund
 
 **Rental status**:

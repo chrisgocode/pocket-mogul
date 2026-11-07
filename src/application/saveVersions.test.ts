@@ -14,6 +14,7 @@ const baselineFixture = readFileSync(
   new URL('fixtures/save-baseline.json', import.meta.url),
   'utf8',
 );
+const versionOneFixture = readFileSync(new URL('fixtures/save-v1.json', import.meta.url), 'utf8');
 const fixtureWallMs = 1_799_990_000_000;
 const threeTaps = { id: 'batch-1', command: { type: 'TapBatch', taps: 3 } } as const;
 
@@ -22,8 +23,8 @@ const baselineDocument = (change: Record<string, unknown>) =>
 
 const BASELINE_STATE = {
   saveId: '4f6c2a9e-baseline',
-  schemaVersion: 1,
-  minReaderVersion: 1,
+  schemaVersion: 2,
+  minReaderVersion: 2,
   economyVersion: 1,
   revision: 1842,
   cashCents: 1_208_925_819_614_629_174_706_176n,
@@ -34,9 +35,17 @@ const BASELINE_STATE = {
   businesses: [
     {
       definitionId: 'vending',
-      levels: { capacity: 3, quality: 1, efficiency: 0 },
-      managerOwned: true,
-      capitalizedSpendCents: dollars('1875'),
+      stage: 1,
+      units: 2,
+      priceLevel: 'premium',
+      levels: { quality: 1, efficiency: 0 },
+      payoutPercent: 70,
+      treasuryCents: dollars('123.45'),
+      profitRemainder: 41_999,
+      payoutRemainder: 30,
+      status: 'open',
+      purchasedDay: 6,
+      capitalizedSpendCents: dollars('412.50'),
     },
   ],
   properties: [
@@ -48,7 +57,6 @@ const BASELINE_STATE = {
     },
   ],
   income: {
-    businessRemainders: { vending: 41_999 },
     businessEarningsCents: dollars('9123.45'),
     rentRemainders: { studio: 12 },
     rentEarningsCents: dollars('50'),
@@ -84,6 +92,9 @@ const BASELINE_STATE = {
         purchase: 0,
         sale: 0,
         upgrade: 0,
+        improvement: 0,
+        treasury: 0,
+        closure: 0,
         rental: 0,
         trade: 0,
         dividend: 0,
@@ -103,10 +114,10 @@ describe('the baseline save format', () => {
     expect(currentState(baselineFixture)).toEqual(BASELINE_STATE);
   });
 
-  it('writes every new save as version 1, readable by version 1 readers', () => {
+  it('writes every new save as version 2, readable by version 2 readers', () => {
     const fresh = freshGameState({ saveId: 'new', economyVersion: 1, wallMs: 0 });
     const written = JSON.parse(encodeSave(fresh)) as unknown;
-    expect(written).toMatchObject({ schemaVersion: 1, minReaderVersion: 1 });
+    expect(written).toMatchObject({ schemaVersion: 2, minReaderVersion: 2 });
   });
 
   it('rejects a save missing its cash instead of defaulting it to zero', () => {
@@ -126,7 +137,7 @@ describe('the automatic ad schedule field', () => {
   it('loads the baseline save with a fresh schedule and no version bump', () => {
     expect(JSON.parse(baselineFixture)).not.toHaveProperty('adSchedule');
     expect(currentState(baselineFixture)).toMatchObject({
-      schemaVersion: 1,
+      schemaVersion: 2,
       adSchedule: {
         foregroundMs: 0,
         sinceFullScreenAdMs: 0,
@@ -170,7 +181,7 @@ describe('an additive field', () => {
     const stored = baselineDocument({ throwawayIds: ['kept'] });
     expect(decodeSaveIn(withThrowaway, stored)).toMatchObject({
       status: 'current',
-      state: { schemaVersion: 1, throwawayIds: ['kept'] },
+      state: { schemaVersion: 2, throwawayIds: ['kept'] },
     });
   });
 });
@@ -179,12 +190,12 @@ describe('a save written by a newer build', () => {
   const futureFeature = { level: 3, ids: ['a', 'b'], unlocked: true };
 
   it('keeps fields this build does not know through a load and save', async () => {
-    const newer = baselineDocument({ schemaVersion: 2, futureFeature });
+    const newer = baselineDocument({ schemaVersion: 3, futureFeature });
     const session = await startTestGameFromDocument(newer, fixtureWallMs);
     await session.game.dispatch(threeTaps);
     expect(JSON.parse(session.saveDocument())).toMatchObject({
-      schemaVersion: 2,
-      minReaderVersion: 1,
+      schemaVersion: 3,
+      minReaderVersion: 2,
       revision: 1843,
       futureFeature,
     });
@@ -193,7 +204,7 @@ describe('a save written by a newer build', () => {
   it('stops safely when its minimum reader is newer than this build, keeping the save (AC23)', async () => {
     const first = await startTestGame();
     await first.game.dispatch(threeTaps);
-    const newer = baselineDocument({ schemaVersion: 2, minReaderVersion: 2 });
+    const newer = baselineDocument({ schemaVersion: 3, minReaderVersion: 3 });
     first.replaceSaveDocument(newer);
     expect(await first.reopen()).toEqual({ status: 'stopped', reason: 'UNSUPPORTED_SAVE_VERSION' });
     expect(first.saveDocument()).toBe(newer);
@@ -213,7 +224,7 @@ describe('a save from before the baseline format', () => {
     const { game } = await startTestGameFromDocument(preBaseline(), fixtureWallMs);
     const { notice, state } = game.getSnapshot();
     expect(notice).toEqual({ kind: 'none' });
-    expect(state).toMatchObject({ saveId: 'test-id-1', revision: 0, schemaVersion: 1 });
+    expect(state).toMatchObject({ saveId: 'test-id-1', revision: 0, schemaVersion: 2 });
     expect<bigint>(state.cashCents).toBe(dollars('0'));
   });
 
@@ -226,18 +237,36 @@ describe('a save from before the baseline format', () => {
   });
 });
 
-const VERSION_2 = 2;
+describe('a version 1 save from before deep businesses (AC44)', () => {
+  it('opens as a fresh game', async () => {
+    const { game } = await startTestGameFromDocument(versionOneFixture, fixtureWallMs);
+    const { notice, state } = game.getSnapshot();
+    expect(notice).toEqual({ kind: 'none' });
+    expect(state).toMatchObject({ saveId: 'test-id-1', revision: 0, schemaVersion: 2 });
+    expect(state.businesses).toEqual([]);
+    expect<bigint>(state.cashCents).toBe(dollars('0'));
+  });
+
+  it('keeps the old document as a diagnostic', async () => {
+    const session = await startTestGameFromDocument(versionOneFixture, fixtureWallMs);
+    expect(await session.diagnostics()).toContainEqual(
+      expect.objectContaining({ type: 'RETIRED_FORMAT_SAVE', document: versionOneFixture }),
+    );
+  });
+});
+
+const VERSION_3 = 3;
 
 const bumpedFormat: SaveFormat = {
-  readerVersion: VERSION_2,
-  schema: saveSchema,
+  ...SAVE_FORMAT,
+  readerVersion: VERSION_3,
   migrations: [
     {
-      fromVersion: 1,
+      fromVersion: 2,
       upgrade: (raw): GameState => ({
         ...saveSchema.parse(raw),
-        schemaVersion: VERSION_2,
-        minReaderVersion: VERSION_2,
+        schemaVersion: VERSION_3,
+        minReaderVersion: VERSION_3,
         watchlist: [],
       }),
     },
@@ -248,19 +277,19 @@ describe('a breaking change', () => {
   it('bumps the version and runs the upgrade step on an older save', () => {
     expect(decodeSaveIn(bumpedFormat, baselineFixture)).toEqual({
       status: 'migrated',
-      fromVersion: 1,
-      state: { ...BASELINE_STATE, schemaVersion: 2, minReaderVersion: 2, watchlist: [] },
+      fromVersion: 2,
+      state: { ...BASELINE_STATE, schemaVersion: 3, minReaderVersion: 3, watchlist: [] },
     });
   });
 
   it('backs up the original before saving the upgrade', async () => {
     const hooks = { saveFormat: bumpedFormat };
     const migrated = await startTestGameFromDocument(baselineFixture, fixtureWallMs, hooks);
-    expect(JSON.parse(migrated.saveDocument())).toMatchObject({ schemaVersion: 2, revision: 1842 });
+    expect(JSON.parse(migrated.saveDocument())).toMatchObject({ schemaVersion: 3, revision: 1842 });
     migrated.replaceSaveDocument('not json');
     const { game } = await migrated.restart({ saveFormat: SAVE_FORMAT });
     expect(game.getSnapshot().notice).toEqual({ kind: 'restoredFromBackup' });
-    expect(game.getSnapshot().state).toMatchObject({ schemaVersion: 1, revision: 1842 });
+    expect(game.getSnapshot().state).toMatchObject({ schemaVersion: 2, revision: 1842 });
   });
 
   it('is refused by an older reader once upgraded', async () => {

@@ -20,7 +20,6 @@ type Describers = {
 };
 
 const TRACK_NAMES: Readonly<Record<string, string>> = {
-  capacity: 'Capacity',
   quality: 'Quality',
   efficiency: 'Efficiency',
   renovation: 'Renovation',
@@ -47,9 +46,17 @@ const amountParts = (parts: readonly { label: string; cents: bigint }[]) =>
 function upgradeTitle(event: EventOf<'upgrade'>, content: Content): string {
   if (event.target === 'wallet') return `Wallet upgraded to level ${event.level}`;
   const name = assetName(content, event.assetId);
-  if (event.track === 'manager') return `Hired a manager for ${name}`;
   return `${name} ${TRACK_NAMES[event.track] ?? event.track} to level ${event.level}`;
 }
+
+function improvementTitle(event: EventOf<'improvement'>, content: Content): string {
+  const name = assetName(content, event.assetId);
+  if (event.track === 'units') return `${name} grew to ${event.level} units`;
+  return `${name} ${TRACK_NAMES[event.track] ?? event.track} to level ${event.level}`;
+}
+
+const fromTreasury = (cents: MoneyCents) =>
+  `Paid ${formatMoneyExact(moneyCents(0n - cents))} from its treasury`;
 
 const DESCRIBERS: Describers = {
   earnings: (event) => {
@@ -79,6 +86,20 @@ const DESCRIBERS: Describers = {
     title: upgradeTitle(event, content),
     cashChangeCents: event.cashChangeCents,
   }),
+  improvement: (event, content) => ({
+    title: improvementTitle(event, content),
+    detail: fromTreasury(event.treasuryChangeCents),
+    cashChangeCents: undefined,
+  }),
+  treasury: (event, content) => ({
+    title: `${event.cashChangeCents < 0n ? 'Deposited into' : 'Withdrew from'} ${assetName(content, event.assetId)}`,
+    cashChangeCents: event.cashChangeCents,
+  }),
+  closure: (event, content) => ({
+    title: `${assetName(content, event.assetId)} closed`,
+    detail: 'Its treasury ran out. Deposit cash to reopen it.',
+    cashChangeCents: undefined,
+  }),
   rental: (event, content) => ({
     title: `${event.rented ? 'Rented out' : 'Stopped renting'} ${assetName(content, event.assetId)}`,
     cashChangeCents: undefined,
@@ -91,7 +112,7 @@ const DESCRIBERS: Describers = {
     cashChangeCents: event.cashChangeCents,
   }),
   dividend: (event) => ({ title: 'Dividends paid', cashChangeCents: event.cashChangeCents }),
-  offline: (event) => ({
+  offline: (event, content) => ({
     title: 'Offline earnings',
     detail: [
       `${durationText(event.creditedMs)} credited`,
@@ -100,6 +121,7 @@ const DESCRIBERS: Describers = {
         { label: 'Rent', cents: event.earnings.rent },
         { label: 'Dividends', cents: event.earnings.dividends },
       ]),
+      ...event.closures.map((assetId) => `${assetName(content, assetId)} closed`),
     ].join(' · '),
     cashChangeCents: moneyCents(
       event.earnings.businesses + event.earnings.rent + event.earnings.dividends,

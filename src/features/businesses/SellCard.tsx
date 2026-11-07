@@ -1,10 +1,9 @@
 import type { BusinessSale } from '@/application/businessDetailView';
 import { formatMoneyExact } from '@/domain/money';
+import { formatCashChange } from '@/features/game/priceFormat';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { AppText } from '@/ui/Typography';
-
-import { formatCashChange } from '@/features/game/priceFormat';
 
 export function SellCard({
   name,
@@ -22,8 +21,8 @@ export function SellCard({
     <Card>
       <AppText variant="heading">Sell</AppText>
       <AppText muted>
-        Pays {returnPercent}% of the {formatMoneyExact(sale.carryingValueCents)} spent on purchase
-        and upgrades. Manager spending is not part of the sale.
+        Pays {returnPercent}% of the {formatMoneyExact(sale.spendCents)} spent on purchase, units
+        and upgrades, plus its {formatMoneyExact(sale.treasuryCents)} treasury.
       </AppText>
       <Button
         label={label}

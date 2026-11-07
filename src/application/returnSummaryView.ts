@@ -19,6 +19,7 @@ export type ReturnSummaryView = {
   readonly capReached: boolean;
   readonly earnings: readonly EarningsLine[];
   readonly totalCents: MoneyCents;
+  readonly closedBusinesses: readonly string[];
 };
 
 function earningsLines(earnings: IncomeBySource): EarningsLine[] {
@@ -41,5 +42,9 @@ export function selectReturnSummary(
     capReached: summary.awayMs > summary.creditedMs,
     earnings,
     totalCents: moneyCents(earnings.reduce<bigint>((total, line) => total + line.cents, 0n)),
+    closedBusinesses: summary.closures.map(
+      (businessId) =>
+        content.businesses.find((business) => business.id === businessId)?.name ?? businessId,
+    ),
   };
 }

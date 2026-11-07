@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { PRICE_LEVELS } from '@/domain/business/definition';
 import type { MoneyCents, PriceMicros } from '@/domain/money';
 
 const id = z.string().regex(/^[a-z][a-z0-9_]*$/, 'IDs are lowercase snake_case');
@@ -69,13 +70,27 @@ const SECTORS = [
 ] as const;
 const sectorSchema = z.enum(SECTORS);
 
+const byPriceLevel = z.object({
+  budget: positiveInt,
+  value: positiveInt,
+  standard: positiveInt,
+  premium: positiveInt,
+  luxury: positiveInt,
+});
+
+const wholePercent = z.number().int().min(0).max(100);
+
 const businessSchema = z.object({
   id,
   name: z.string().min(1),
   tier: tierSchema,
   price: positiveCents,
-  revenuePerMinute: positiveCents,
-  costsPerMinute: nonNegativeCents,
+  unitName: z.string().min(1),
+  customerName: z.string().min(1),
+  pricePerCustomer: positiveCents,
+  revenuePerDay: positiveCents,
+  costsPerDay: nonNegativeCents,
+  demandResponseBps: byPriceLevel.optional(),
   logo: logoSchema,
 });
 
@@ -166,25 +181,24 @@ const economySchema = z.object({
     durationMs: milliseconds,
   }),
   businessRules: z.object({
+    dayMs: milliseconds,
+    priceBps: byPriceLevel,
+    demandBps: byPriceLevel,
+    defaultPriceLevel: z.enum(PRICE_LEVELS),
+    baseDemandPercent: positiveInt,
+    costPerCustomerPercent: wholePercent,
+    extraUnitDemandPercent: nonNegativeInt,
+    unitPriceBps: positiveInt,
+    unitPriceGrowth: growthRatio,
+    unitCapByStage: z.array(positiveInt).min(1),
     maxTrackLevel: positiveInt,
-    upgradeWeightBps: z.object({
-      capacity: positiveInt,
-      quality: positiveInt,
-      efficiency: positiveInt,
-    }),
+    upgradeWeightBps: z.object({ quality: positiveInt, efficiency: positiveInt }),
     upgradeGrowth: growthRatio,
-    levelEffectPercent: z.object({
-      capacityRevenue: nonNegativeInt,
-      qualityRevenue: nonNegativeInt,
-      capacityCosts: nonNegativeInt,
-      efficiencySaving: nonNegativeInt,
-    }),
-    managerPriceMultiplier: positiveInt,
-    managerBonusBps: nonNegativeBps,
-    milestoneEveryLevels: positiveInt,
-    milestoneBonusBps: nonNegativeBps,
-    saleReturnPercent: z.number().int().min(0).max(100),
-    branchArtCapacityLevels: z.array(positiveInt),
+    qualityDemandPercent: nonNegativeInt,
+    efficiencySavingPercent: nonNegativeInt,
+    defaultPayoutPercent: wholePercent,
+    payoutStepPercent: positiveInt,
+    saleReturnPercent: wholePercent,
   }),
   tierUnlocks: z.object({
     2: positiveCents,
@@ -273,6 +287,7 @@ export const contentSchema = z.object({
 export type ContentInput = z.input<typeof contentSchema>;
 export type Content = z.output<typeof contentSchema>;
 export type Business = Content['businesses'][number];
+export type BusinessContentRules = Content['economy']['businessRules'];
 export type Stock = Content['stocks'][number];
 export type Coin = Content['coins'][number];
 export type Property = Content['properties'][number];

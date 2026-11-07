@@ -17,27 +17,27 @@ Times are active play; runs with offline gaps also show total elapsed time.
 
 | Milestone | cheapestNext | bestPayback | saveForNextBusiness |
 | --- | --- | --- | --- |
-| First wallet upgrade | 50 s | 50 s | 2.90 h |
+| First wallet upgrade | 50 s | 50 s | not reached |
 | First business | 3.4 min | 11.2 min | 2.1 min |
-| $1M peak net worth | 5.38 h | 3.43 h | 4.58 h |
-| $10M peak net worth | 10.91 h | 6.88 h | 9.69 h |
-| $1B peak net worth | 28.82 h | 21.72 h | 26.35 h |
-| Tier 2 unlocked | 17.4 min | 18.5 min | 31.1 min |
-| Tier 3 unlocked | 2.80 h | 1.95 h | 3.11 h |
-| Tier 4 unlocked | 10.28 h | 6.25 h | 8.64 h |
+| $1M peak net worth | 6.88 h | 3.06 h | 6.98 h |
+| $10M peak net worth | 16.56 h | 5.85 h | 13.77 h |
+| $1B peak net worth | not reached | 20.72 h | not reached |
+| Tier 2 unlocked | 17.4 min | 18.1 min | 31.3 min |
+| Tier 3 unlocked | 2.67 h | 1.65 h | 4.08 h |
+| Tier 4 unlocked | 15.64 h | 5.49 h | 12.67 h |
 
 ### Sessions with offline gaps
 
 | Milestone | cheapestNext | bestPayback | saveForNextBusiness |
 | --- | --- | --- | --- |
-| First wallet upgrade | 50 s | 50 s | 1.28 h active (7.28 h elapsed) |
+| First wallet upgrade | 50 s | 50 s | not reached |
 | First business | 3.4 min | 11.2 min | 2.1 min |
-| $1M peak net worth | 1.50 h active (19.50 h elapsed) | 1.00 h active (7.00 h elapsed) | 1.50 h active (19.50 h elapsed) |
-| $10M peak net worth | 2.67 h active (26.67 h elapsed) | 2.00 h active (23.00 h elapsed) | 2.41 h active (23.41 h elapsed) |
-| $1B peak net worth | 5.00 h active (62.00 h elapsed) | 3.50 h active (42.50 h elapsed) | 4.50 h active (58.50 h elapsed) |
-| Tier 2 unlocked | 17.4 min | 18.5 min | 30.0 min active (3.50 h elapsed) |
-| Tier 3 unlocked | 1.30 h active (7.30 h elapsed) | 1.00 h active (7.00 h elapsed) | 1.49 h active (7.49 h elapsed) |
-| Tier 4 unlocked | 2.50 h active (26.50 h elapsed) | 1.95 h active (19.95 h elapsed) | 2.00 h active (23.00 h elapsed) |
+| $1M peak net worth | 1.50 h active (19.50 h elapsed) | 1.25 h active (7.25 h elapsed) | 1.80 h active (19.80 h elapsed) |
+| $10M peak net worth | 3.00 h active (39.00 h elapsed) | 1.50 h active (19.50 h elapsed) | 2.89 h active (26.89 h elapsed) |
+| $1B peak net worth | 7.50 h active (97.50 h elapsed) | 4.01 h active (46.01 h elapsed) | 6.50 h active (81.50 h elapsed) |
+| Tier 2 unlocked | 17.4 min | 18.1 min | 30.0 min active (3.50 h elapsed) |
+| Tier 3 unlocked | 1.00 h active (7.00 h elapsed) | 52.5 min active (3.88 h elapsed) | 1.50 h active (19.50 h elapsed) |
+| Tier 4 unlocked | 3.00 h active (39.00 h elapsed) | 1.50 h active (19.50 h elapsed) | 2.50 h active (26.50 h elapsed) |
 
 ## Flags
 
@@ -45,12 +45,12 @@ A choice is dominant when one kind of purchase takes more than half of all spend
 
 | Run | Dominant choice | Longest wait between purchases |
 | --- | --- | --- |
-| Continuous active play, cheapestNext | none | 13.7 min from 20.54 h |
-| Continuous active play, bestPayback | business purchase (96% of spend) | **stall:** 5.73 h from 12.18 h |
-| Continuous active play, saveForNextBusiness | business purchase (100% of spend) | **stall:** 6.39 h from 15.93 h |
-| Sessions with offline gaps, cheapestNext | none | 8.7 min from 4.65 h |
-| Sessions with offline gaps, bestPayback | business purchase (96% of spend) | **stall:** 55.8 min from 2.00 h |
-| Sessions with offline gaps, saveForNextBusiness | business purchase (100% of spend) | **stall:** 1.00 h from 1.50 h |
+| Continuous active play, cheapestNext | none | **stall:** 58.1 min from 27.54 h |
+| Continuous active play, bestPayback | business purchase (52% of spend) | **stall:** 4.95 h from 14.72 h |
+| Continuous active play, saveForNextBusiness | business purchase (100% of spend) | **stall:** 11.08 h from 20.72 h |
+| Sessions with offline gaps, cheapestNext | none | 30.0 min from 6.00 h |
+| Sessions with offline gaps, bestPayback | business purchase (64% of spend) | **stall:** 1.00 h from 3.00 h |
+| Sessions with offline gaps, saveForNextBusiness | business purchase (100% of spend) | **stall:** 1.50 h from 3.00 h |
 
 ## Cash, allocation and net worth
 
@@ -58,45 +58,57 @@ At the end of each run (it stops at $1B peak net worth or 40 hours of active pla
 
 | Run | Ended at | Cash | Businesses | Properties | Markets | Net worth |
 | --- | --- | --- | --- | --- | --- | --- |
-| Continuous active play, cheapestNext | 28.82 h | $31.43M | $743.71M | $224.85M | $0.00 | $1.00B |
-| Continuous active play, bestPayback | 21.72 h | $676.06M | $323.95M | $0.00 | $0.00 | $1.00B |
-| Continuous active play, saveForNextBusiness | 26.35 h | $688.58M | $311.44M | $0.00 | $0.00 | $1.00B |
-| Sessions with offline gaps, cheapestNext | 5.00 h active (62.00 h elapsed) | $484.70M | $513.52M | $224.85M | $0.00 | $1.22B |
-| Sessions with offline gaps, bestPayback | 3.50 h active (42.50 h elapsed) | $718.70M | $323.95M | $0.00 | $0.00 | $1.04B |
-| Sessions with offline gaps, saveForNextBusiness | 4.50 h active (58.50 h elapsed) | $1.50B | $311.44M | $0.00 | $0.00 | $1.82B |
+| Continuous active play, cheapestNext | 40.00 h | $1.60M | $200.46M | $54.09M | $0.00 | $256.17M |
+| Continuous active play, bestPayback | 20.72 h | $15.39M | $984.69M | $0.00 | $0.00 | $1.00B |
+| Continuous active play, saveForNextBusiness | 40.00 h | $159.94M | $282.44M | $0.00 | $0.00 | $442.39M |
+| Sessions with offline gaps, cheapestNext | 7.50 h active (97.50 h elapsed) | $357.38M | $490.89M | $224.85M | $0.00 | $1.07B |
+| Sessions with offline gaps, bestPayback | 4.01 h active (46.01 h elapsed) | $28.02M | $972.03M | $0.00 | $0.00 | $1.00B |
+| Sessions with offline gaps, saveForNextBusiness | 6.50 h active (81.50 h elapsed) | $372.38M | $995.12M | $0.00 | $0.00 | $1.36B |
 
 Net worth after each hour of active play:
 
 | Active play | Continuous active play, cheapestNext | Continuous active play, bestPayback | Continuous active play, saveForNextBusiness | Sessions with offline gaps, cheapestNext | Sessions with offline gaps, bestPayback | Sessions with offline gaps, saveForNextBusiness |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 h | $28.21K | $49.53K | $15.36K | $56.64K | $179.17K | $33.28K |
-| 2 h | $93.01K | $216.45K | $62.59K | $1.55M | $8.14M | $3.62M |
-| 3 h | $230.56K | $694.41K | $164.14K | $11.68M | $68.78M | $20.33M |
-| 4 h | $477.94K | $1.40M | $585.17K | $128.38M |  | $249.18M |
-| 5 h | $841.08K | $4.02M | $1.29M | $748.90M |  |  |
-| 6 h | $1.32M | $7.19M | $2.95M |  |  |  |
-| 7 h | $2.18M | $10.37M | $4.86M |  |  |  |
-| 8 h | $3.20M | $14.98M | $6.77M |  |  |  |
-| 9 h | $4.80M | $27.27M | $8.69M |  |  |  |
-| 10 h | $7.14M | $39.60M | $10.60M |  |  |  |
-| 11 h | $10.44M | $51.93M | $16.53M |  |  |  |
-| 12 h | $15.91M | $64.25M | $25.64M |  |  |  |
-| 13 h | $23.05M | $103.89M | $34.75M |  |  |  |
-| 14 h | $31.11M | $147.53M | $43.87M |  |  |  |
-| 15 h | $44.84M | $191.17M | $52.98M |  |  |  |
-| 16 h | $61.06M | $234.82M | $64.22M |  |  |  |
-| 17 h | $80.92M | $278.46M | $103.33M |  |  |  |
-| 18 h | $104.84M | $334.88M | $142.44M |  |  |  |
-| 19 h | $133.64M | $513.56M | $181.55M |  |  |  |
-| 20 h | $164.80M | $692.24M | $220.66M |  |  |  |
-| 21 h | $199.93M | $870.92M | $259.78M |  |  |  |
-| 22 h | $262.45M |  | $298.89M |  |  |  |
-| 23 h | $343.24M |  | $427.61M |  |  |  |
-| 24 h | $431.21M |  | $598.72M |  |  |  |
-| 25 h | $507.30M |  | $769.83M |  |  |  |
-| 26 h | $615.02M |  | $940.94M |  |  |  |
-| 27 h | $721.50M |  |  |  |  |  |
-| 28 h | $885.19M |  |  |  |  |  |
+| 1 h | $34.67K | $65.01K | $13.57K | $82.77K | $229.94K | $29.55K |
+| 2 h | $114.28K | $285.84K | $46.13K | $1.13M | $14.07M | $1.12M |
+| 3 h | $237.02K | $937.96K | $103.23K | $3.47M | $102.81M | $10.20M |
+| 4 h | $369.82K | $2.48M | $192.63K | $18.38M | $694.41M | $60.73M |
+| 5 h | $518.67K | $5.32M | $337.70K | $78.44M |  | $183.85M |
+| 6 h | $721.07K | $10.79M | $595.10K | $149.87M |  | $456.93M |
+| 7 h | $1.04M | $16.27M | $1.01M | $445.86M |  |  |
+| 8 h | $1.35M | $21.75M | $1.62M |  |  |  |
+| 9 h | $1.71M | $29.78M | $2.24M |  |  |  |
+| 10 h | $2.08M | $50.77M | $3.15M |  |  |  |
+| 11 h | $2.46M | $74.33M | $4.96M |  |  |  |
+| 12 h | $3.32M | $97.89M | $6.78M |  |  |  |
+| 13 h | $4.04M | $121.44M | $8.60M |  |  |  |
+| 14 h | $4.85M | $153.32M | $10.42M |  |  |  |
+| 15 h | $6.61M | $234.00M | $12.23M |  |  |  |
+| 16 h | $8.76M | $334.93M | $14.05M |  |  |  |
+| 17 h | $10.98M | $435.86M | $15.87M |  |  |  |
+| 18 h | $12.74M | $536.79M | $17.69M |  |  |  |
+| 19 h | $14.70M | $637.72M | $19.50M |  |  |  |
+| 20 h | $17.75M | $781.91M | $21.32M |  |  |  |
+| 21 h | $22.86M |  | $25.14M |  |  |  |
+| 22 h | $29.42M |  | $34.16M |  |  |  |
+| 23 h | $35.94M |  | $43.17M |  |  |  |
+| 24 h | $43.02M |  | $52.19M |  |  |  |
+| 25 h | $48.60M |  | $61.21M |  |  |  |
+| 26 h | $54.63M |  | $70.23M |  |  |  |
+| 27 h | $59.69M |  | $79.24M |  |  |  |
+| 28 h | $63.28M |  | $88.26M |  |  |  |
+| 29 h | $71.70M |  | $97.28M |  |  |  |
+| 30 h | $80.25M |  | $106.30M |  |  |  |
+| 31 h | $89.52M |  | $115.31M |  |  |  |
+| 32 h | $99.34M |  | $130.25M |  |  |  |
+| 33 h | $110.09M |  | $169.26M |  |  |  |
+| 34 h | $121.43M |  | $208.28M |  |  |  |
+| 35 h | $127.86M |  | $247.30M |  |  |  |
+| 36 h | $143.84M |  | $286.32M |  |  |  |
+| 37 h | $167.32M |  | $325.33M |  |  |  |
+| 38 h | $202.72M |  | $364.35M |  |  |  |
+| 39 h | $231.43M |  | $403.37M |  |  |  |
+| 40 h | $256.17M |  | $442.39M |  |  |  |
 
 ## Spending and payback
 
@@ -106,63 +118,54 @@ Payback is price divided by the extra income per minute the purchase adds (walle
 
 | Purchase | Count | Share of spend | Median payback |
 | --- | --- | --- | --- |
-| business efficiency | 180 | 22.0% | 1298.8 min |
-| business capacity | 178 | 21.8% | 122.1 min |
-| business quality | 176 | 20.5% | 105.0 min |
-| wallet upgrade | 35 | 8.7% | 922.8 min |
-| property renovation | 60 | 7.7% | 508.6 min |
-| property furnishings | 60 | 6.2% | 915.9 min |
-| property systems | 60 | 4.6% | 5476.8 min |
-| property expansion | 16 | 3.3% | 169.8 min |
-| property purchase | 6 | 2.3% | 238.6 min |
-| manager | 9 | 2.0% | 74.9 min |
-| business purchase | 9 | 1.0% | 33.3 min |
+| business efficiency | 157 | 42.5% | 1286.7 min |
+| wallet upgrade | 33 | 18.7% | 636.4 min |
+| property renovation | 50 | 8.4% | 498.8 min |
+| property furnishings | 50 | 6.7% | 840.9 min |
+| property systems | 50 | 5.0% | 5057.2 min |
+| business purchase | 9 | 4.5% | 33.3 min |
+| business quality | 27 | 4.0% | 57.5 min |
+| business units | 18 | 3.9% | 18.2 min |
+| property expansion | 12 | 3.6% | 156.7 min |
+| property purchase | 5 | 2.5% | 227.3 min |
 
 ### Continuous active play, bestPayback
 
 | Purchase | Count | Share of spend | Median payback |
 | --- | --- | --- | --- |
-| business purchase | 11 | 96.1% | 35.7 min |
-| business quality | 87 | 2.1% | 77.2 min |
-| business capacity | 92 | 1.7% | 79.8 min |
-| manager | 5 | <0.1% | 91.4 min |
-| business efficiency | 7 | <0.1% | 12.5 min |
+| business purchase | 11 | 52.0% | 35.7 min |
+| business units | 22 | 44.8% | 24.6 min |
+| business quality | 27 | 3.2% | 43.0 min |
 | wallet upgrade | 12 | <0.1% | 13.1 min |
 
 ### Continuous active play, saveForNextBusiness
 
 | Purchase | Count | Share of spend | Median payback |
 | --- | --- | --- | --- |
-| business purchase | 11 | 100.0% | 35.7 min |
-| business capacity | 20 | <0.1% | 51.1 min |
-| business quality | 19 | <0.1% | 48.7 min |
-| wallet upgrade | 10 | <0.1% | 9.0 min |
+| business purchase | 10 | 100.0% | 34.5 min |
 
 ### Sessions with offline gaps, cheapestNext
 
 | Purchase | Count | Share of spend | Median payback |
 | --- | --- | --- | --- |
-| business quality | 174 | 20.3% | 104.5 min |
-| business capacity | 175 | 18.5% | 120.3 min |
-| business efficiency | 177 | 18.3% | 1279.5 min |
-| property renovation | 60 | 10.0% | 508.6 min |
-| property furnishings | 60 | 8.0% | 915.9 min |
-| wallet upgrade | 34 | 7.8% | 779.6 min |
-| property systems | 60 | 6.0% | 5476.8 min |
-| property expansion | 16 | 4.3% | 169.8 min |
-| property purchase | 6 | 3.0% | 238.6 min |
-| manager | 9 | 2.6% | 74.9 min |
-| business purchase | 9 | 1.3% | 33.3 min |
+| business efficiency | 162 | 36.6% | 1314.3 min |
+| property renovation | 60 | 14.9% | 508.6 min |
+| property furnishings | 60 | 11.9% | 915.9 min |
+| wallet upgrade | 34 | 11.6% | 779.6 min |
+| property systems | 60 | 8.9% | 5476.8 min |
+| property expansion | 16 | 6.4% | 169.8 min |
+| property purchase | 6 | 4.5% | 238.6 min |
+| business purchase | 9 | 1.9% | 33.3 min |
+| business quality | 27 | 1.7% | 57.5 min |
+| business units | 18 | 1.7% | 18.2 min |
 
 ### Sessions with offline gaps, bestPayback
 
 | Purchase | Count | Share of spend | Median payback |
 | --- | --- | --- | --- |
-| business purchase | 11 | 96.1% | 35.7 min |
-| business quality | 87 | 2.1% | 77.2 min |
-| business capacity | 92 | 1.7% | 79.8 min |
-| manager | 5 | <0.1% | 91.4 min |
-| business efficiency | 7 | <0.1% | 12.5 min |
+| business purchase | 11 | 64.4% | 35.7 min |
+| business units | 21 | 31.6% | 23.7 min |
+| business quality | 27 | 4.0% | 43.0 min |
 | wallet upgrade | 12 | <0.1% | 13.1 min |
 
 ### Sessions with offline gaps, saveForNextBusiness
@@ -170,30 +173,27 @@ Payback is price divided by the extra income per minute the purchase adds (walle
 | Purchase | Count | Share of spend | Median payback |
 | --- | --- | --- | --- |
 | business purchase | 11 | 100.0% | 35.7 min |
-| business capacity | 20 | <0.1% | 51.1 min |
-| business quality | 19 | <0.1% | 48.7 min |
-| wallet upgrade | 10 | <0.1% | 9.0 min |
 
 ## Buy/sell profit loops
 
-Each asset is bought, then upgraded one level at a time on every track (and a manager hired, for businesses), with no time passing. After every step it is sold, and the cash compared with the cash before buying.
+Each asset is bought, then upgraded one level at a time on every track (for businesses, after a deposit into the treasury, then every unit the first stage allows), with no time passing. After every step it is sold, and the cash compared with the cash before buying.
 
 No buy/sell profit loop: every sale loses money against what was spent.
 
 | Asset | Sale points tried | Best result of a buy, upgrade and sell |
 | --- | --- | --- |
-| business vending | 62 | -$100.00 |
-| business food_cart | 62 | -$500.00 |
-| business coffee_kiosk | 62 | -$1,600.00 |
-| business laundromat | 62 | -$3,000.00 |
-| business car_wash | 62 | -$12,000.00 |
-| business bakery | 62 | -$40,000.00 |
-| business delivery | 62 | -$100,000.00 |
-| business gym_chain | 62 | -$400,000.00 |
-| business hotel_group | 62 | -$4,000,000.00 |
-| business manufacturer | 62 | -$20,000,000.00 |
-| business airline | 62 | -$100,000,000.00 |
-| business space_launch | 62 | -$300,000,000.00 |
+| business vending | 44 | -$100.00 |
+| business food_cart | 44 | -$500.00 |
+| business coffee_kiosk | 44 | -$1,600.00 |
+| business laundromat | 44 | -$3,000.00 |
+| business car_wash | 44 | -$12,000.00 |
+| business bakery | 44 | -$40,000.00 |
+| business delivery | 44 | -$100,000.00 |
+| business gym_chain | 44 | -$400,000.00 |
+| business hotel_group | 44 | -$4,000,000.00 |
+| business manufacturer | 44 | -$20,000,000.00 |
+| business airline | 44 | -$100,000,000.00 |
+| business space_launch | 44 | -$300,000,000.00 |
 | property studio | 32 | -$1,000.00 |
 | property house | 32 | -$4,000.00 |
 | property duplex | 36 | -$12,500.00 |

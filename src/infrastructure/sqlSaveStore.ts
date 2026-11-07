@@ -38,7 +38,10 @@ const diagnosticDetail = z.union([
     checkpointWallMs: z.number(),
     observedWallMs: z.number(),
   }),
-  z.object({ type: z.enum(['DAMAGED_SAVE', 'PRE_BASELINE_SAVE']), document: z.string() }),
+  z.object({
+    type: z.enum(['DAMAGED_SAVE', 'PRE_BASELINE_SAVE', 'RETIRED_FORMAT_SAVE']),
+    document: z.string(),
+  }),
 ]);
 const detailFields = z.record(z.string(), z.unknown());
 const diagnosticRows = z.array(

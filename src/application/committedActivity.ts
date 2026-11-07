@@ -5,6 +5,7 @@ import {
   type ActivityEvent,
   type Earned,
 } from '@/domain/activity';
+import type { BusinessClosure } from '@/domain/business/treasury';
 import { commandActivity } from '@/domain/commandActivity';
 import type { GameCommand } from '@/domain/commands';
 import type { GameState, IncomeBySource, ReturnSummary } from '@/domain/gameState';
@@ -14,6 +15,7 @@ import { totalIncome } from '@/domain/passiveIncome';
 export type PassedTime = {
   readonly earnings: IncomeBySource;
   readonly absence: ReturnSummary | undefined;
+  readonly closures: readonly BusinessClosure[];
 };
 
 type ActivityChange = {
@@ -24,13 +26,22 @@ type ActivityChange = {
   readonly commandCashCents: MoneyCents;
 };
 
-function timeEvents(time: PassedTime): readonly ActivityEvent[] {
+function incomeEvents(time: PassedTime): readonly ActivityEvent[] {
   const { absence, earnings } = time;
   if (absence !== undefined) {
     if (totalIncome(absence.earnings) === 0n) return [];
     return [{ kind: 'offline', ...absence }];
   }
   return earnings.dividends > 0n ? [{ kind: 'dividend', cashChangeCents: earnings.dividends }] : [];
+}
+
+function timeEvents(time: PassedTime): readonly ActivityEvent[] {
+  const closures = time.closures.map((closure): ActivityEvent => ({
+    kind: 'closure',
+    assetId: closure.businessId,
+    closedAtMs: closure.atMs,
+  }));
+  return [...incomeEvents(time), ...closures];
 }
 
 function earnedOf(change: ActivityChange): Earned {

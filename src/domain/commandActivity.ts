@@ -18,6 +18,14 @@ type Describers = {
   ) => ActivityEvent;
 };
 
+function treasuryOf(state: GameState, businessId: string): bigint {
+  return state.businesses.find((owned) => owned.definitionId === businessId)?.treasuryCents ?? 0n;
+}
+
+function treasuryChange(change: Change, businessId: string): MoneyCents {
+  return moneyCents(treasuryOf(change.after, businessId) - treasuryOf(change.before, businessId));
+}
+
 function realizedOf(state: GameState, assetId: string): bigint {
   return state.positions.find((held) => held.instrumentId === assetId)?.realizedProfitCents ?? 0n;
 }
@@ -37,20 +45,28 @@ const DESCRIBERS: Describers = {
     assetId: command.businessId,
     cashChangeCents,
   }),
-  UpgradeBusiness: (command, { cashChangeCents }) => ({
-    kind: 'upgrade',
-    target: 'business',
+  BuyUnit: (command, change) => ({
+    kind: 'improvement',
+    assetId: command.businessId,
+    track: 'units',
+    level: command.fromUnits + 1,
+    treasuryChangeCents: treasuryChange(change, command.businessId),
+  }),
+  UpgradeBusiness: (command, change) => ({
+    kind: 'improvement',
     assetId: command.businessId,
     track: command.track,
     level: command.fromLevel + 1,
+    treasuryChangeCents: treasuryChange(change, command.businessId),
+  }),
+  DepositToTreasury: (command, { cashChangeCents }) => ({
+    kind: 'treasury',
+    assetId: command.businessId,
     cashChangeCents,
   }),
-  HireManager: (command, { cashChangeCents }) => ({
-    kind: 'upgrade',
-    target: 'business',
+  WithdrawFromTreasury: (command, { cashChangeCents }) => ({
+    kind: 'treasury',
     assetId: command.businessId,
-    track: 'manager',
-    level: 1,
     cashChangeCents,
   }),
   SellBusiness: (command, { cashChangeCents }) => ({

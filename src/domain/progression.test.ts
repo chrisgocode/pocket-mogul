@@ -1,9 +1,8 @@
-import { levelZeroBusiness } from './businessQuotes';
 import { freshGameState, type GameState } from './gameState';
 import { dollars } from './money';
 import { withProgress } from './progression';
 import { levelZeroProperty } from './propertyQuotes';
-import { propertyRules } from './testRules';
+import { ownedBusiness, propertyRules } from './testRules';
 
 const thresholds = {
   tierUnlocks: { 2: dollars('5,000'), 3: dollars('200,000'), 4: dollars('8,000,000') },
@@ -22,16 +21,21 @@ const thresholds = {
   instruments: [],
 };
 
-const holding = (cash: string, businessValue = '0'): GameState => ({
+const holding = (cash: string, businessValue = '0', treasury = '0'): GameState => ({
   ...freshGameState({ saveId: 'test', economyVersion: 1, wallMs: 0 }),
   cashCents: dollars(cash),
-  businesses: [{ ...levelZeroBusiness('vending'), capitalizedSpendCents: dollars(businessValue) }],
+  businesses: [
+    ownedBusiness('vending', {
+      capitalizedSpendCents: dollars(businessValue),
+      treasuryCents: dollars(treasury),
+    }),
+  ],
 });
 
 describe('peak net worth', () => {
-  it('counts cash plus business carrying value', () => {
-    expect<bigint>(withProgress(holding('10', '250'), thresholds).peakNetWorthCents).toBe(
-      dollars('260'),
+  it('counts cash plus business carrying value, treasury included (UX02)', () => {
+    expect<bigint>(withProgress(holding('10', '250', '40'), thresholds).peakNetWorthCents).toBe(
+      dollars('300'),
     );
   });
 

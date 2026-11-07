@@ -1,67 +1,80 @@
 import type {
-  AvailableBusinessUpgrade,
-  AvailableManager,
+  AvailableImprovement,
+  AvailableUnit,
   BusinessSale,
 } from '@/application/businessDetailView';
 import type { Business } from '@/content';
 import type { GameCommand } from '@/domain/commands';
-import { formatMoneyExact, formatRatePerMinute, moneyCents, type MoneyCents } from '@/domain/money';
+import { formatMoneyExact, moneyCents, type MoneyCents } from '@/domain/money';
 import type { ActionSheetText } from '@/features/game/ActionSheet';
-import { formatCashChange, formatRateChange } from '@/features/game/priceFormat';
+import { formatCashChange } from '@/features/game/priceFormat';
 
-import { TRACK_NAMES } from './businessFormat';
+import { formatPerDay, TRACK_NAMES } from './businessFormat';
 
 export type BusinessAction =
+  | { readonly kind: 'unit'; readonly business: Business; readonly unit: AvailableUnit }
   | {
-      readonly kind: 'upgrade';
+      readonly kind: 'improve';
       readonly business: Business;
-      readonly upgrade: AvailableBusinessUpgrade;
+      readonly improvement: AvailableImprovement;
     }
-  | { readonly kind: 'manager'; readonly business: Business; readonly manager: AvailableManager }
-  | {
-      readonly kind: 'sell';
-      readonly business: Business;
-      readonly sale: BusinessSale;
-      readonly netPerMinuteCents: MoneyCents;
-    };
+  | { readonly kind: 'withdraw'; readonly business: Business; readonly amountCents: MoneyCents }
+  | { readonly kind: 'sell'; readonly business: Business; readonly sale: BusinessSale };
 
 const spent = (priceCents: MoneyCents) => moneyCents(0n - priceCents);
 
 export function businessActionCommand(action: BusinessAction): GameCommand {
   const businessId = action.business.id;
-  if (action.kind === 'manager') return { type: 'HireManager', businessId };
   if (action.kind === 'sell') return { type: 'SellBusiness', businessId };
-  const { track, level } = action.upgrade;
+  if (action.kind === 'withdraw') {
+    return { type: 'WithdrawFromTreasury', businessId, amountCents: action.amountCents };
+  }
+  if (action.kind === 'unit') return { type: 'BuyUnit', businessId, fromUnits: action.unit.units };
+  const { track, level } = action.improvement;
   return { type: 'UpgradeBusiness', businessId, track, fromLevel: level };
 }
 
-function upgradeText(upgrade: AvailableBusinessUpgrade): ActionSheetText {
-  const track = TRACK_NAMES[upgrade.track];
+const profitChange = (from: MoneyCents, to: MoneyCents) =>
+  `${formatPerDay(from)} → ${formatPerDay(to)}`;
+
+function unitText(action: Extract<BusinessAction, { kind: 'unit' }>): ActionSheetText {
+  const { unit, business } = action;
   return {
-    title: `Upgrade ${track}`,
+    title: `Add a ${business.unitName}`,
     lines: [
-      { label: 'Cash change', value: formatCashChange(spent(upgrade.priceCents)) },
-      {
-        label: 'Net income',
-        value: formatRateChange(upgrade.netPerMinuteCents, upgrade.nextNetPerMinuteCents),
-      },
-      { label: `${track} level`, value: `${upgrade.level} → ${upgrade.level + 1}` },
+      { label: 'Treasury change', value: formatCashChange(spent(unit.priceCents)) },
+      { label: 'Profit', value: profitChange(unit.profitCents, unit.nextProfitCents) },
+      { label: 'Units', value: `${unit.units} → ${unit.units + 1}` },
     ],
-    confirmLabel: `Confirm upgrade · ${formatMoneyExact(upgrade.priceCents)}`,
+    confirmLabel: `Confirm · ${formatMoneyExact(unit.priceCents)}`,
   };
 }
 
-function managerText(manager: AvailableManager): ActionSheetText {
+function improvementText(improvement: AvailableImprovement): ActionSheetText {
+  const track = TRACK_NAMES[improvement.track];
   return {
-    title: 'Hire manager',
+    title: `Upgrade ${track}`,
     lines: [
-      { label: 'Cash change', value: formatCashChange(spent(manager.priceCents)) },
+      { label: 'Treasury change', value: formatCashChange(spent(improvement.priceCents)) },
       {
-        label: 'Net income',
-        value: formatRateChange(manager.netPerMinuteCents, manager.nextNetPerMinuteCents),
+        label: 'Profit',
+        value: profitChange(improvement.profitCents, improvement.nextProfitCents),
       },
+      { label: `${track} level`, value: `${improvement.level} → ${improvement.level + 1}` },
     ],
-    confirmLabel: `Confirm hire · ${formatMoneyExact(manager.priceCents)}`,
+    confirmLabel: `Confirm upgrade · ${formatMoneyExact(improvement.priceCents)}`,
+  };
+}
+
+function withdrawText(action: Extract<BusinessAction, { kind: 'withdraw' }>): ActionSheetText {
+  const amount = formatCashChange(action.amountCents);
+  return {
+    title: `Withdraw from ${action.business.name}`,
+    lines: [
+      { label: 'Cash change', value: amount },
+      { label: 'Treasury change', value: formatCashChange(spent(action.amountCents)) },
+    ],
+    confirmLabel: `Confirm withdrawal · ${amount}`,
   };
 }
 
@@ -71,7 +84,7 @@ function saleText(action: Extract<BusinessAction, { kind: 'sell' }>): ActionShee
     title: `Sell ${action.business.name}`,
     lines: [
       { label: 'Cash change', value: proceeds },
-      { label: 'Income', value: `-${formatRatePerMinute(action.netPerMinuteCents, 'full')} net` },
+      { label: 'Treasury paid out', value: formatMoneyExact(action.sale.treasuryCents) },
       { label: 'You will no longer own', value: action.business.name },
     ],
     confirmLabel: `Confirm sale · ${proceeds}`,
@@ -79,7 +92,8 @@ function saleText(action: Extract<BusinessAction, { kind: 'sell' }>): ActionShee
 }
 
 export function businessActionSheetText(action: BusinessAction): ActionSheetText {
-  if (action.kind === 'manager') return managerText(action.manager);
   if (action.kind === 'sell') return saleText(action);
-  return upgradeText(action.upgrade);
+  if (action.kind === 'withdraw') return withdrawText(action);
+  if (action.kind === 'unit') return unitText(action);
+  return improvementText(action.improvement);
 }

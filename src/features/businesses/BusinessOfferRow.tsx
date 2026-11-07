@@ -1,11 +1,13 @@
 import { StyleSheet, View } from 'react-native';
 
 import type { BusinessOffer } from '@/application/businessesView';
-import { formatMoneyExact, formatRatePerMinute } from '@/domain/money';
+import { formatMoneyExact } from '@/domain/money';
 import { Button } from '@/ui/Button';
 import { ListRow } from '@/ui/ListRow';
 import { LogoMark } from '@/ui/LogoMark';
 import { colors, highlightWidth, radius, spacing } from '@/ui/tokens';
+
+import { formatPerDay } from './businessFormat';
 
 function buyLabel(offer: BusinessOffer): string {
   return offer.affordable
@@ -33,7 +35,7 @@ export function BusinessOfferRow({
       <ListRow
         leading={<LogoMark logo={business.logo} />}
         title={business.name}
-        subtitle={`Earns ${formatRatePerMinute(offer.netPerMinuteCents, 'full')} net`}
+        subtitle={`Profit ${formatPerDay(offer.profitPerDayCents)}`}
         value={offer.status === 'owned' ? 'Owned' : formatMoneyExact(business.price)}
         dimmed={offer.status === 'locked'}
       />

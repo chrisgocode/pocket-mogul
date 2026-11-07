@@ -1,0 +1,87 @@
+{
+  "saveId": "4f6c2a9e-baseline",
+  "schemaVersion": 1,
+  "minReaderVersion": 1,
+  "economyVersion": 1,
+  "revision": 1842,
+  "cashCents": "1208925819614629174706176",
+  "peakNetWorthCents": "1208925819614629174956176",
+  "lifetimeTapEarningsCents": "731500",
+  "clock": { "simulationMs": 86400000, "lastWallCheckpointMs": 1799990000000 },
+  "tap": { "walletLevel": 7, "totalAcceptedTaps": 48211 },
+  "businesses": [
+    {
+      "definitionId": "vending",
+      "levels": { "capacity": 3, "quality": 1, "efficiency": 0 },
+      "managerOwned": true,
+      "capitalizedSpendCents": "187500"
+    }
+  ],
+  "properties": [
+    {
+      "definitionId": "studio",
+      "levels": { "renovation": 1, "furnishings": 0, "systems": 0, "expansion": 0 },
+      "rented": true,
+      "upgradeSpendCents": "40000"
+    }
+  ],
+  "income": {
+    "businessRemainders": { "vending": 41999 },
+    "businessEarningsCents": "912345",
+    "rentRemainders": { "studio": 12 },
+    "rentEarningsCents": "5000",
+    "dividendEarningsCents": "160"
+  },
+  "unlockedTiers": [1, 2],
+  "returnSummary": { "status": "none" },
+  "market": { "seed": "4f6c2a9e-baseline", "tick": 1440, "quotes": {}, "candles": {} },
+  "tradingUnlocked": true,
+  "positions": [
+    {
+      "instrumentId": "wag",
+      "quantity": "12500000",
+      "remainingBasisCents": "15000",
+      "realizedProfitCents": "-250"
+    }
+  ],
+  "dividendAccruals": [
+    { "instrumentId": "wag", "pendingCents": "3", "entitlementNumerator": "900000000000" }
+  ],
+  "watchlist": ["prism"],
+  "reward": {
+    "boost": { "status": "active", "grantId": "grant-7", "remainingMs": 41250 },
+    "processedRewardIds": ["grant-6", "grant-7"]
+  },
+  "goals": {
+    "completed": [{ "goalId": "first_business", "simulationMs": 3600000 }],
+    "pinnedGoalId": null
+  },
+  "activity": {
+    "open": null,
+    "lifetime": {
+      "entries": 0,
+      "byKind": {
+        "earnings": 0,
+        "purchase": 0,
+        "sale": 0,
+        "upgrade": 0,
+        "rental": 0,
+        "trade": 0,
+        "dividend": 0,
+        "offline": 0
+      },
+      "spentCents": "0",
+      "proceedsCents": "0"
+    }
+  },
+  "tutorial": {
+    "completedSteps": ["tap", "upgradeWallet", "buyBusiness"],
+    "explanations": "shown"
+  },
+  "settings": {
+    "sound": "on",
+    "haptics": "on",
+    "reducedMotion": "system",
+    "numberFormatting": "compact"
+  }
+}

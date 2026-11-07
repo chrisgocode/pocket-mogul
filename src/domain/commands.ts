@@ -1,4 +1,4 @@
-import type { UpgradeTrack } from './businessQuotes';
+import type { BusinessTrack, PriceLevel } from './business/definition';
 import type { GameState } from './gameState';
 import type { MoneyCents, QuantityMicrounits } from './money';
 import type { PropertyTrack } from './propertyQuotes';
@@ -15,14 +15,42 @@ export type UpgradeWallet = { readonly type: 'UpgradeWallet'; readonly fromLevel
 
 export type BuyBusiness = { readonly type: 'BuyBusiness'; readonly businessId: string };
 
+export type BuyUnit = {
+  readonly type: 'BuyUnit';
+  readonly businessId: string;
+  readonly fromUnits: number;
+};
+
 export type UpgradeBusiness = {
   readonly type: 'UpgradeBusiness';
   readonly businessId: string;
-  readonly track: UpgradeTrack;
+  readonly track: BusinessTrack;
   readonly fromLevel: number;
 };
 
-export type HireManager = { readonly type: 'HireManager'; readonly businessId: string };
+export type SetPriceLevel = {
+  readonly type: 'SetPriceLevel';
+  readonly businessId: string;
+  readonly priceLevel: PriceLevel;
+};
+
+export type SetPayout = {
+  readonly type: 'SetPayout';
+  readonly businessId: string;
+  readonly payoutPercent: number;
+};
+
+export type DepositToTreasury = {
+  readonly type: 'DepositToTreasury';
+  readonly businessId: string;
+  readonly amountCents: MoneyCents;
+};
+
+export type WithdrawFromTreasury = {
+  readonly type: 'WithdrawFromTreasury';
+  readonly businessId: string;
+  readonly amountCents: MoneyCents;
+};
 
 export type SellBusiness = { readonly type: 'SellBusiness'; readonly businessId: string };
 
@@ -76,8 +104,12 @@ export type GameCommand =
   | TapBatch
   | UpgradeWallet
   | BuyBusiness
+  | BuyUnit
   | UpgradeBusiness
-  | HireManager
+  | SetPriceLevel
+  | SetPayout
+  | DepositToTreasury
+  | WithdrawFromTreasury
   | SellBusiness
   | BuyProperty
   | UpgradeProperty
@@ -101,6 +133,9 @@ export type CommandEnvelope = {
 
 export const GAME_ERROR_CODES = [
   'INSUFFICIENT_CASH',
+  'INSUFFICIENT_TREASURY',
+  'BUSINESS_CLOSED',
+  'AT_CAP',
   'ALREADY_OWNED',
   'NOT_OWNED',
   'LOCKED_TIER',

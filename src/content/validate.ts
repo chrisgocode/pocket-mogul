@@ -1,5 +1,6 @@
 import { MICROS_PER_DOLLAR } from '@/domain/money';
 
+import { inexactCoreFigures } from './businessCore';
 import { contentSchema, TIERS, type Content } from './schema';
 
 export class ContentValidationError extends Error {
@@ -52,6 +53,8 @@ function crossChecks(content: Content): string[] {
     retiredIdsAreNeverReused,
     everyTierHasBusinessesAndRisingUnlocks,
     businessesAndPropertiesEarnAtBaseLevel,
+    businessCoreFiguresAreWhole,
+    businessStagesAndPayoutsFit,
     efficiencyKeepsCostsPositive,
     systemsKeepUpkeepPositive,
     stockClassesFollowTheirRules,
@@ -115,7 +118,7 @@ function everyTierHasBusinessesAndRisingUnlocks(content: Content): string[] {
 function businessesAndPropertiesEarnAtBaseLevel(content: Content): string[] {
   return [
     ...content.businesses
-      .filter((b) => b.costsPerMinute >= b.revenuePerMinute)
+      .filter((b) => b.costsPerDay >= b.revenuePerDay)
       .map((b) => `Business ${b.id} costs must be below revenue`),
     ...content.properties
       .filter((p) => p.upkeepPerMinute >= p.rentPerMinute)
@@ -141,9 +144,26 @@ function stockClassesFollowTheirRules(content: Content): string[] {
 
 const WHOLE_PERCENT = 100;
 
+function businessCoreFiguresAreWhole(content: Content): string[] {
+  const rules = content.economy.businessRules;
+  return content.businesses.flatMap((business) =>
+    inexactCoreFigures(business, rules).map(
+      (figure) => `Business ${business.id} ${figure} must come out whole`,
+    ),
+  );
+}
+
+function businessStagesAndPayoutsFit(content: Content): string[] {
+  const { unitCapByStage, defaultPayoutPercent, payoutStepPercent } = content.economy.businessRules;
+  return [
+    !isAscending(unitCapByStage) && 'Unit caps must rise with each stage',
+    defaultPayoutPercent % payoutStepPercent !== 0 && 'The default payout must be a payout step',
+  ].filter((issue) => issue !== false);
+}
+
 function efficiencyKeepsCostsPositive(content: Content): string[] {
-  const { maxTrackLevel, levelEffectPercent } = content.economy.businessRules;
-  return levelEffectPercent.efficiencySaving * maxTrackLevel < WHOLE_PERCENT
+  const { maxTrackLevel, efficiencySavingPercent } = content.economy.businessRules;
+  return efficiencySavingPercent * maxTrackLevel < WHOLE_PERCENT
     ? []
     : ['Efficiency at its max level must leave operating costs above zero'];
 }
@@ -156,15 +176,11 @@ function systemsKeepUpkeepPositive(content: Content): string[] {
 }
 
 function artworkLevelsFitTheirCaps(content: Content): string[] {
-  const { tap, businessRules } = content.economy;
-  const branchLevels = businessRules.branchArtCapacityLevels;
+  const { tap } = content.economy;
   return [
     tap.artworkLevels[0] !== 0 && 'Tap artwork must start at level 0',
     !isAscending(tap.artworkLevels) && 'Tap artwork levels must ascend',
     tap.artworkLevels.some((l) => l > tap.maxLevel) && 'Tap artwork level above the wallet cap',
-    !isAscending(branchLevels) && 'Branch art levels must ascend',
-    branchLevels.some((l) => l > businessRules.maxTrackLevel) &&
-      'Branch art level above the business track cap',
   ].filter((issue) => issue !== false);
 }
 
