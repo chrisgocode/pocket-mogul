@@ -30,6 +30,14 @@ const withBoost = (state: GameState, boost: Boost): GameState => ({
   reward: { ...state.reward, boost },
 });
 
+export type RewardChange = 'granted' | 'activated';
+
+export function rewardChange(before: Boost, after: Boost): RewardChange | undefined {
+  if (before.status === 'none' && after.status === 'pending') return 'granted';
+  if (before.status === 'pending' && after.status === 'active') return 'activated';
+  return undefined;
+}
+
 export function boostRemainingMs(boost: Boost): number {
   return boost.status === 'active' ? boost.remainingMs : 0;
 }

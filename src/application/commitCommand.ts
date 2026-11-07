@@ -4,6 +4,8 @@ import {
   applyRecordAdReward,
   consumeBoostTime,
   isBoostActive,
+  rewardChange,
+  type RewardChange,
 } from '@/domain/boost';
 import {
   applyBuyBusiness,
@@ -57,6 +59,7 @@ export type Committed = {
   history?: MarketHistory;
   activity?: readonly ActivityEntry[];
   completedGoalIds?: readonly string[];
+  rewardChange?: RewardChange | undefined;
 };
 
 type CommitContext = EconomyVersions & { readonly store: SaveStore };
@@ -195,6 +198,7 @@ function finish(previous: GameState, applied: Applied) {
     state: { ...logged.state, revision: previous.revision + 1 },
     activity: logged.entries,
     completedGoalIds: goals.completedGoalIds,
+    rewardChange: rewardChange(previous.reward.boost, logged.state.reward.boost),
   };
 }
 

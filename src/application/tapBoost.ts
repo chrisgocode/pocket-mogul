@@ -2,6 +2,7 @@ import type { BoostTime } from './boostTime';
 import type { GameSnapshot } from './game';
 import type { AdAvailability, FullScreenAd, FullScreenAdEvent } from './ports';
 import type { SnapshotStore } from './snapshotStore';
+import type { AdRequest } from './telemetry';
 import { boostExists } from './tapBoostView';
 
 type Presentation =
@@ -16,6 +17,7 @@ export type TapBoostDependencies = {
   readonly flushTaps: () => Promise<void>;
   readonly recordReward: (presentationId: string) => void;
   readonly activatePendingGrant: () => void;
+  readonly requested: (request: AdRequest) => void;
 };
 
 export type TapBoost = {
@@ -67,7 +69,22 @@ function adEvents(deps: TapBoostDependencies, ads: Presentations) {
   return { handle, finish };
 }
 
-export function tapBoost(deps: TapBoostDependencies): TapBoost {
+function requestingAd(deps: TapBoostDependencies): FullScreenAd {
+  return {
+    ...deps.ad,
+    load() {
+      deps.requested('load');
+      deps.ad.load();
+    },
+    show() {
+      deps.requested('show');
+      return deps.ad.show();
+    },
+  };
+}
+
+export function tapBoost(dependencies: TapBoostDependencies): TapBoost {
+  const deps = { ...dependencies, ad: requestingAd(dependencies) };
   const ads = presentations(deps.snapshots);
   const events = adEvents(deps, ads);
   deps.ad.subscribe(events.handle);

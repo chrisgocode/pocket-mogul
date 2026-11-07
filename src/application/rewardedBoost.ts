@@ -40,6 +40,7 @@ export function rewardedBoost(
         command: { type: 'RecordAdReward', presentationId },
       }),
     activatePendingGrant: () => void activatePendingGrant(),
+    requested: (request) => core.telemetry.adRequested(request, core.snapshots.get().state),
   });
   return { boost, activatePendingGrant };
 }
