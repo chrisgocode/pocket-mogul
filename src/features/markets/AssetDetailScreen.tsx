@@ -15,7 +15,7 @@ import { AssetOverview } from './AssetOverview';
 import { NewsList } from './NewsList';
 import { PositionCard } from './PositionCard';
 import { PriceChartCard } from './PriceChartCard';
-import { StockTrading } from './StockTrading';
+import { AssetTrading } from './AssetTrading';
 
 const NEWS_ITEMS = 3;
 
@@ -38,8 +38,10 @@ export function AssetDetailScreen() {
     <Screen>
       <Stack.Screen options={{ title: detail.asset.name }} />
       <AssetOverview detail={detail} />
-      {detail.position === undefined ? null : <PositionCard position={detail.position} />}
-      {detail.kind === 'stock' ? <StockTrading detail={detail} /> : null}
+      {detail.position === undefined ? null : (
+        <PositionCard position={detail.position} kind={detail.kind} />
+      )}
+      <AssetTrading detail={detail} />
       <PriceChartCard detail={detail} />
       <AssetAbout detail={detail} />
       <Section title="News" note={`Recent events that moved ${detail.asset.name}`}>

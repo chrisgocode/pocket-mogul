@@ -14,9 +14,11 @@ import { gameErrorMessage } from '@/features/game/gameErrorMessage';
 import { useConfirmation } from '@/ui/state/useConfirmation';
 import { useTradeDraft } from '@/ui/state/useTradeDraft';
 
+import type { AssetKind } from './tradeUnits';
+
 const BLANK = {
   side: 'buy',
-  mode: 'shares',
+  mode: 'quantity',
   text: '',
   order: { status: 'empty' },
   reviewedTick: 0,
@@ -57,7 +59,7 @@ function useTradeEntry(assetId: string) {
   const preset = (percent: number) => {
     const quantity = presetQuantity(snapshot, { assetId, side: draft.side, percent, content });
     change({
-      mode: 'shares',
+      mode: 'quantity',
       text: formatQuantity(quantity),
       order: { status: 'quantity', quantity },
     });
@@ -75,7 +77,7 @@ function useTradeEntry(assetId: string) {
   };
 }
 
-export function useTradeSheet(assetId: string) {
+export function useTradeSheet({ assetId, kind }: { assetId: string; kind: AssetKind }) {
   const { change, restart, ...entry } = useTradeEntry(assetId);
   const { confirmation, close, send, open } = useTradeSubmit(assetId);
   const { draft, ticket } = entry;
@@ -86,6 +88,7 @@ export function useTradeSheet(assetId: string) {
   };
   return {
     ...entry,
+    kind,
     stale,
     confirmation,
     close,

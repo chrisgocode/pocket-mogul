@@ -14,7 +14,7 @@ import { checkTrade, findInstrument, positionOf, tradePricing } from '@/domain/t
 import { tradeEconomy } from './economy';
 import type { GameSnapshot } from './game';
 
-export type TradeEntryMode = 'shares' | 'dollars';
+export type TradeEntryMode = 'quantity' | 'dollars';
 
 export type TradeEntry = {
   readonly side: TradeSide;
@@ -73,7 +73,7 @@ function enteredQuantity(
   request: TicketRequest & { readonly entry: TradeEntry },
 ): QuantityMicrounits | undefined {
   const { entry } = request;
-  if (entry.mode === 'shares') return parsed(() => units(entry.text));
+  if (entry.mode === 'quantity') return parsed(() => units(entry.text));
   const amount = parsed(() => dollars(entry.text));
   if (amount === undefined || amount < 0n) return undefined;
   return quantityForAmount(snapshot, { ...request, side: entry.side, amount });

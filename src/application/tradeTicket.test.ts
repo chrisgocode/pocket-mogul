@@ -39,7 +39,7 @@ describe('trade ticket', () => {
   it('quotes an entered share count at the current tick', () => {
     const result = ticket(snapshotWith({ cashCents: dollars('1,000') }), {
       side: 'buy',
-      mode: 'shares',
+      mode: 'quantity',
       text: '4',
     });
     expect(result).toMatchObject({
@@ -77,12 +77,12 @@ describe('trade ticket', () => {
 
   it('explains an entry it cannot read', () => {
     const snapshot = snapshotWith({ cashCents: dollars('1,000') });
-    expect(ticket(snapshot, { side: 'buy', mode: 'shares', text: '1.0000001' })).toEqual({
+    expect(ticket(snapshot, { side: 'buy', mode: 'quantity', text: '1.0000001' })).toEqual({
       status: 'invalid',
       tick: 0,
       error: 'INVALID_QUANTITY',
     });
-    expect(ticket(snapshot, { side: 'buy', mode: 'shares', text: '' })).toEqual({
+    expect(ticket(snapshot, { side: 'buy', mode: 'quantity', text: '' })).toEqual({
       status: 'empty',
       tick: 0,
     });
@@ -90,12 +90,12 @@ describe('trade ticket', () => {
 
   it('refuses with the same errors as the trade command', () => {
     const snapshot = snapshotWith({ cashCents: dollars('100'), ...holding('2') });
-    expect(ticket(snapshot, { side: 'buy', mode: 'shares', text: '4' })).toMatchObject({
+    expect(ticket(snapshot, { side: 'buy', mode: 'quantity', text: '4' })).toMatchObject({
       status: 'refused',
       error: 'INSUFFICIENT_CASH',
       quote: { cashChangeCents: dollars('-100.25') },
     });
-    expect(ticket(snapshot, { side: 'sell', mode: 'shares', text: '3' })).toMatchObject({
+    expect(ticket(snapshot, { side: 'sell', mode: 'quantity', text: '3' })).toMatchObject({
       status: 'refused',
       error: 'INSUFFICIENT_HOLDING',
     });

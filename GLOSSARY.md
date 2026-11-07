@@ -159,5 +159,5 @@ What the player holds of one stock or coin: quantity, remaining cost basis (purc
 _Avoid_: Holding (for the record), lot
 
 **Watchlist**:
-The stocks the player has marked to see at the top of Markets; it changes nothing about prices or trades.
+The stocks and coins the player has marked to see at the top of Markets; it changes nothing about prices or trades.
 _Avoid_: Favorites, starred

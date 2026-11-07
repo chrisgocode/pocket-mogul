@@ -9,7 +9,7 @@ const MESSAGES: Record<GameErrorCode, string> = {
   MAX_LEVEL: 'This is already at its max level.',
   UPGRADE_UNAVAILABLE: "This upgrade isn't available here.",
   INVALID_QUANTITY: "That amount isn't valid.",
-  INSUFFICIENT_HOLDING: "You don't own that many shares. Nothing was sold.",
+  INSUFFICIENT_HOLDING: "You don't own that much of it. Nothing was sold.",
   BELOW_MINIMUM: 'This trade is below the minimum trade size.',
   TRADING_LOCKED: 'Trading opens after you buy your first business.',
   STALE_QUOTE: 'The price changed. Check the new amount and try again.',

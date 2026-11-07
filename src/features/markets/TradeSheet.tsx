@@ -6,6 +6,7 @@ import { AppText } from '@/ui/Typography';
 import { TradeEntryFields } from './TradeEntryFields';
 import { confirmLabel, quoteLines, sideVerb } from './tradeFormat';
 import { TradeNotices } from './TradeNotices';
+import { tradeUnits } from './tradeUnits';
 import type { TradeSheetControls } from './useTradeSheet';
 
 function primaryLabel(sheet: TradeSheetControls): string {
@@ -28,7 +29,9 @@ export function TradeSheet({ name, sheet }: { name: string; sheet: TradeSheetCon
       <TradeEntryFields sheet={sheet} />
       {quoted === undefined
         ? null
-        : quoteLines(quoted, ticket.tick).map((line) => <DetailLine key={line.label} {...line} />)}
+        : quoteLines(quoted, { tick: ticket.tick, units: tradeUnits(sheet.kind) }).map((line) => (
+            <DetailLine key={line.label} {...line} />
+          ))}
       <TradeNotices sheet={sheet} />
       <Button
         label={primaryLabel(sheet)}
