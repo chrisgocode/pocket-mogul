@@ -27,6 +27,12 @@ export function BusinessOverviewCard({ detail }: { detail: OwnedBusinessDetail }
         label="Customer costs"
         value={formatPerDay(moneyCents(0n - day.customerCostsCents))}
       />
+      {day.wagesCents > 0n ? (
+        <DetailLine label="Wages" value={formatPerDay(moneyCents(0n - day.wagesCents))} />
+      ) : null}
+      {day.managerBonusCents > 0n ? (
+        <DetailLine label="Manager bonus" value={formatPerDay(day.managerBonusCents)} />
+      ) : null}
       <DetailLine label="Profit" value={formatPerDay(day.profitCents)} emphasis />
       <DetailLine
         label="To your cash"

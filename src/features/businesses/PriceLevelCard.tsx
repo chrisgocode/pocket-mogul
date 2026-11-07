@@ -6,6 +6,7 @@ import { ChoiceRow } from '@/ui/ChoiceRow';
 import { formatPerDay, PRICE_LEVEL_NAMES } from './businessFormat';
 
 function bestNote(detail: OwnedBusinessDetail): string {
+  if (detail.managerHired) return 'Your manager sets the best price at the start of each day';
   const best = detail.priceLevels.find((option) => option.best);
   if (best === undefined) return '';
   return `Best now: ${PRICE_LEVEL_NAMES[best.priceLevel]}, ${formatPerDay(best.profitCents)} profit`;

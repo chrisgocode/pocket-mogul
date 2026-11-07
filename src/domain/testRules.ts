@@ -18,8 +18,6 @@ export const propertyRules: PropertyRules = {
   saleValuePercent: 95,
 };
 
-const unitCaps = { startup: 3, local: 8, regional: 20, national: 50, global: 120 };
-
 export const businessRules: BusinessRules = {
   dayMs: 600_000,
   priceBps: { budget: 7000, value: 8500, standard: 10000, premium: 12500, luxury: 15000 },
@@ -27,7 +25,45 @@ export const businessRules: BusinessRules = {
   extraUnitDemandPercent: 60,
   unitPriceBps: 4000,
   unitPriceGrowth: { numerator: 115, denominator: 100 },
-  unitCapByStage: Object.values(unitCaps),
+  stages: [
+    {
+      unitCap: 3,
+      staffCap: { operations: 2, sales: 1, manager: 0 },
+      upgradePriceMultiple: 0,
+      daysOwnedToReach: 0,
+    },
+    {
+      unitCap: 8,
+      staffCap: { operations: 5, sales: 2, manager: 1 },
+      upgradePriceMultiple: 2,
+      daysOwnedToReach: 3,
+    },
+    {
+      unitCap: 20,
+      staffCap: { operations: 12, sales: 4, manager: 1 },
+      upgradePriceMultiple: 8,
+      daysOwnedToReach: 10,
+    },
+    {
+      unitCap: 50,
+      staffCap: { operations: 30, sales: 6, manager: 1 },
+      upgradePriceMultiple: 30,
+      daysOwnedToReach: 30,
+    },
+    {
+      unitCap: 120,
+      staffCap: { operations: 80, sales: 10, manager: 1 },
+      upgradePriceMultiple: 120,
+      daysOwnedToReach: 60,
+    },
+  ],
+  staff: {
+    operationsCapacityPercent: 20,
+    salesDemandPercent: 15,
+    managerProfitPercent: 10,
+    wagePercent: { operations: 4, sales: 6, manager: 10 },
+    signingFeeDays: 3,
+  },
   maxTrackLevel: 20,
   upgradeWeightBps: { quality: 2500, efficiency: 1500 },
   upgradeGrowth: { numerator: 118, denominator: 100 },
@@ -61,6 +97,7 @@ export function ownedBusiness(
     units: 1,
     priceLevel: 'standard',
     levels: { quality: 0, efficiency: 0 },
+    staff: { operations: 0, sales: 0, manager: 0 },
     payoutPercent: 50,
     treasuryCents: dollars('0'),
     profitRemainder: 0,

@@ -247,9 +247,21 @@ describe('business rule validation rejects', () => {
   });
 
   it('unit caps that fall from one stage to the next', () => {
+    expect(issuesFor((c) => void (c.economy.businessRules.stages[1]!.unitCap = 2))).toEqual([
+      'Unit caps must rise with each stage',
+    ]);
+  });
+
+  it('staff caps that fall from one stage to the next', () => {
+    expect(issuesFor((c) => void (c.economy.businessRules.stages[2]!.staffCap.sales = 1))).toEqual([
+      'Staff caps must never fall from one stage to the next',
+    ]);
+  });
+
+  it('stage upgrade prices that do not rise', () => {
     expect(
-      issuesFor((c) => void (c.economy.businessRules.unitCapByStage = [3, 2, 20, 50, 120])),
-    ).toEqual(['Unit caps must rise with each stage']);
+      issuesFor((c) => void (c.economy.businessRules.stages[3]!.upgradePriceMultiple = 8)),
+    ).toEqual(['Stage upgrade prices must rise with each stage']);
   });
 });
 

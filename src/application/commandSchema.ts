@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { BUSINESS_TRACKS, PRICE_LEVELS } from '@/domain/business/definition';
+import { BUSINESS_TRACKS, PRICE_LEVELS, STAFF_ROLES } from '@/domain/business/definition';
 import type { GameCommand } from '@/domain/commands';
 import { moneyCents, quantityMicrounits } from '@/domain/money';
 import { PROPERTY_TRACKS } from '@/domain/propertyQuotes';
@@ -9,6 +9,7 @@ import { MOTION_PREFERENCES, NUMBER_FORMATS, SWITCH_VALUES } from '@/domain/sett
 const businessId = z.string().min(1);
 const propertyId = z.string().min(1);
 const fromLevel = z.number().int().nonnegative();
+const fromCount = z.number().int().nonnegative();
 const assetId = z.string().min(1);
 const amountCents = z.bigint().positive().transform(moneyCents);
 
@@ -28,6 +29,13 @@ const gameCommandSchema = z.discriminatedUnion('type', [
     fromLevel,
   }),
   z.object({ type: z.literal('SetPriceLevel'), businessId, priceLevel: z.enum(PRICE_LEVELS) }),
+  z.object({ type: z.literal('HireStaff'), businessId, role: z.enum(STAFF_ROLES), fromCount }),
+  z.object({ type: z.literal('FireStaff'), businessId, role: z.enum(STAFF_ROLES), fromCount }),
+  z.object({
+    type: z.literal('UpgradeStage'),
+    businessId,
+    fromStage: z.number().int().positive(),
+  }),
   z.object({ type: z.literal('SetPayout'), businessId, payoutPercent: z.number().int() }),
   z.object({ type: z.literal('DepositToTreasury'), businessId, amountCents }),
   z.object({ type: z.literal('WithdrawFromTreasury'), businessId, amountCents }),

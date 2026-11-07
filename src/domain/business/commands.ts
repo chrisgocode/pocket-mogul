@@ -14,7 +14,7 @@ import {
 } from './definition';
 import { newBusiness, type OwnedBusiness } from './owned';
 
-type BusinessOrder = { readonly businessId: string; readonly economy: BusinessEconomy };
+export type BusinessOrder = { readonly businessId: string; readonly economy: BusinessEconomy };
 
 type Found = {
   readonly owned: OwnedBusiness;
@@ -36,7 +36,7 @@ export function findOwnedBusiness(
   return state.businesses.find((owned) => owned.definitionId === definitionId);
 }
 
-function lookUpOwned(state: GameState, order: BusinessOrder): OwnedLookup {
+export function lookUpOwned(state: GameState, order: BusinessOrder): OwnedLookup {
   const definition = findBusiness(order.economy.catalog, order.businessId);
   if (definition === undefined) return { ok: false, error: 'UNKNOWN_ASSET' };
   const owned = findOwnedBusiness(state, order.businessId);
@@ -53,21 +53,26 @@ function withBusiness(state: GameState, business: OwnedBusiness): GameState {
   };
 }
 
-function changed(state: GameState, business: OwnedBusiness): CommandResult {
+export function changed(state: GameState, business: OwnedBusiness): CommandResult {
   return { ok: true, state: withBusiness(state, business), cashChangeCents: NO_CASH_CHANGE };
 }
 
-function spendTreasury(
-  state: GameState,
-  spending: { owned: OwnedBusiness; priceCents: MoneyCents; improved: OwnedBusiness },
-): CommandResult {
+export type TreasurySpending = {
+  readonly owned: OwnedBusiness;
+  readonly priceCents: MoneyCents;
+  readonly improved: OwnedBusiness;
+  readonly expense: 'capital' | 'operating';
+};
+
+export function spendTreasury(state: GameState, spending: TreasurySpending): CommandResult {
   const { owned, priceCents, improved } = spending;
   if (owned.status === 'closed') return { ok: false, error: 'BUSINESS_CLOSED' };
   if (owned.treasuryCents < priceCents) return { ok: false, error: 'INSUFFICIENT_TREASURY' };
+  const capitalizedCents = spending.expense === 'capital' ? priceCents : 0n;
   return changed(state, {
     ...improved,
     treasuryCents: moneyCents(owned.treasuryCents - priceCents),
-    capitalizedSpendCents: moneyCents(owned.capitalizedSpendCents + priceCents),
+    capitalizedSpendCents: moneyCents(owned.capitalizedSpendCents + capitalizedCents),
   });
 }
 
@@ -99,6 +104,7 @@ export function applyBuyUnit(
     owned: found.owned,
     priceCents: quote.priceCents,
     improved: { ...found.owned, units: quote.units + 1 },
+    expense: 'capital',
   });
 }
 
@@ -116,6 +122,7 @@ export function applyImproveBusiness(
     owned,
     priceCents: quote.priceCents,
     improved: { ...owned, levels: { ...owned.levels, [order.track]: quote.level + 1 } },
+    expense: 'capital',
   });
 }
 

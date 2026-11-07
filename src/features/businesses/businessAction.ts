@@ -1,15 +1,19 @@
 import type {
+  AvailableHire,
   AvailableImprovement,
   AvailableUnit,
   BusinessSale,
+  ReadyStage,
 } from '@/application/businessDetailView';
 import type { Business } from '@/content';
+import type { StaffRole } from '@/domain/business/definition';
 import type { GameCommand } from '@/domain/commands';
-import { formatMoneyExact, moneyCents, type MoneyCents } from '@/domain/money';
+import { formatMoneyExact, type MoneyCents } from '@/domain/money';
 import type { ActionSheetText } from '@/features/game/ActionSheet';
 import { formatCashChange } from '@/features/game/priceFormat';
 
-import { formatPerDay, TRACK_NAMES } from './businessFormat';
+import { profitChange, spent, TRACK_NAMES } from './businessFormat';
+import { fireText, hireText, stageText } from './growthActionText';
 
 export type BusinessAction =
   | { readonly kind: 'unit'; readonly business: Business; readonly unit: AvailableUnit }
@@ -18,24 +22,71 @@ export type BusinessAction =
       readonly business: Business;
       readonly improvement: AvailableImprovement;
     }
+  | { readonly kind: 'hire'; readonly business: Business; readonly hire: AvailableHire }
+  | {
+      readonly kind: 'fire';
+      readonly business: Business;
+      readonly role: StaffRole;
+      readonly count: number;
+    }
+  | { readonly kind: 'stage'; readonly business: Business; readonly stage: ReadyStage }
   | { readonly kind: 'withdraw'; readonly business: Business; readonly amountCents: MoneyCents }
   | { readonly kind: 'sell'; readonly business: Business; readonly sale: BusinessSale };
 
-const spent = (priceCents: MoneyCents) => moneyCents(0n - priceCents);
+type ActionOf<Kind extends BusinessAction['kind']> = Extract<BusinessAction, { kind: Kind }>;
 
-export function businessActionCommand(action: BusinessAction): GameCommand {
-  const businessId = action.business.id;
-  if (action.kind === 'sell') return { type: 'SellBusiness', businessId };
-  if (action.kind === 'withdraw') {
-    return { type: 'WithdrawFromTreasury', businessId, amountCents: action.amountCents };
-  }
-  if (action.kind === 'unit') return { type: 'BuyUnit', businessId, fromUnits: action.unit.units };
-  const { track, level } = action.improvement;
-  return { type: 'UpgradeBusiness', businessId, track, fromLevel: level };
+type ActionHandlers<Result> = {
+  readonly [Kind in BusinessAction['kind']]: (action: ActionOf<Kind>) => Result;
+};
+
+function handle<Kind extends BusinessAction['kind'], Result>(
+  handlers: ActionHandlers<Result>,
+  action: ActionOf<Kind>,
+): Result {
+  const handler: (action: ActionOf<Kind>) => Result = handlers[action.kind];
+  return handler(action);
 }
 
-const profitChange = (from: MoneyCents, to: MoneyCents) =>
-  `${formatPerDay(from)} → ${formatPerDay(to)}`;
+const COMMANDS: ActionHandlers<GameCommand> = {
+  sell: ({ business }) => ({ type: 'SellBusiness', businessId: business.id }),
+  withdraw: ({ business, amountCents }) => ({
+    type: 'WithdrawFromTreasury',
+    businessId: business.id,
+    amountCents,
+  }),
+  unit: ({ business, unit }) => ({
+    type: 'BuyUnit',
+    businessId: business.id,
+    fromUnits: unit.units,
+  }),
+  improve: ({ business, improvement }) => ({
+    type: 'UpgradeBusiness',
+    businessId: business.id,
+    track: improvement.track,
+    fromLevel: improvement.level,
+  }),
+  hire: ({ business, hire }) => ({
+    type: 'HireStaff',
+    businessId: business.id,
+    role: hire.role,
+    fromCount: hire.count,
+  }),
+  fire: ({ business, role, count }) => ({
+    type: 'FireStaff',
+    businessId: business.id,
+    role,
+    fromCount: count,
+  }),
+  stage: ({ business, stage }) => ({
+    type: 'UpgradeStage',
+    businessId: business.id,
+    fromStage: stage.stage,
+  }),
+};
+
+export function businessActionCommand(action: BusinessAction): GameCommand {
+  return handle(COMMANDS, action);
+}
 
 function unitText(action: Extract<BusinessAction, { kind: 'unit' }>): ActionSheetText {
   const { unit, business } = action;
@@ -91,9 +142,16 @@ function saleText(action: Extract<BusinessAction, { kind: 'sell' }>): ActionShee
   };
 }
 
+const SHEET_TEXT: ActionHandlers<ActionSheetText> = {
+  sell: saleText,
+  withdraw: withdrawText,
+  unit: unitText,
+  improve: (action) => improvementText(action.improvement),
+  hire: (action) => hireText(action.hire),
+  fire: (action) => fireText(action.role),
+  stage: (action) => stageText(action.stage),
+};
+
 export function businessActionSheetText(action: BusinessAction): ActionSheetText {
-  if (action.kind === 'sell') return saleText(action);
-  if (action.kind === 'withdraw') return withdrawText(action);
-  if (action.kind === 'unit') return unitText(action);
-  return improvementText(action.improvement);
+  return handle(SHEET_TEXT, action);
 }

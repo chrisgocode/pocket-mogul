@@ -7,6 +7,8 @@ import { freshGameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 import { ownedBusiness } from '@/domain/testRules';
 
+const DAY_MS = 600_000;
+
 let mockGame: Promise<OpenedGame>;
 jest.mock('@/bootstrap/deviceGame', () => ({ loadDeviceGame: () => mockGame }));
 
@@ -15,10 +17,12 @@ async function openVending(
   {
     business = {},
     initialUrl = '/businesses/vending',
-  }: { business?: Partial<OwnedBusiness>; initialUrl?: string } = {},
+    day = 0,
+  }: { business?: Partial<OwnedBusiness>; initialUrl?: string; day?: number } = {},
 ): Promise<TestGame> {
   const session = await startTestGameFrom({
     ...freshGameState({ saveId: 'saver', economyVersion: 1, wallMs: 0 }),
+    clock: { simulationMs: day * DAY_MS, lastWallCheckpointMs: 0 },
     cashCents: dollars(cash),
     businesses: [ownedBusiness('vending', business)],
   });
@@ -100,6 +104,63 @@ describe('Business details', () => {
     expect(screen.getByText('+$200.00')).toBeOnTheScreen();
     await confirm();
     expect(await screen.findByText("You don't own Vending Machine")).toBeOnTheScreen();
+  });
+});
+
+describe('Business staff (BUS13)', () => {
+  it('hires operations staff from the treasury after confirming', async () => {
+    await openVending('0', { business: { treasuryCents: dollars('20') } });
+    await fireEvent.press(screen.getByRole('button', { name: 'Hire Operations, Hire · $16.80' }));
+    expect(screen.getByRole('header', { name: 'Hire operations staff' })).toBeOnTheScreen();
+    expect(screen.getByText('$100.00/day → $106.00/day')).toBeOnTheScreen();
+    await confirm();
+    expect(await findLine('Wages', '-$5.60/day')).toBeOnTheScreen();
+    expect(line('Treasury', '$3.20')).toBeOnTheScreen();
+    expect(screen.getByText('Operations 1/2')).toBeOnTheScreen();
+  });
+
+  it('lets staff go for free', async () => {
+    await openVending('0', { business: { staff: { operations: 0, sales: 1, manager: 0 } } });
+    await fireEvent.press(screen.getByRole('button', { name: 'Let go of one Sales' }));
+    expect(screen.getByText('Free')).toBeOnTheScreen();
+    await confirm();
+    expect(await screen.findByText('Sales 0/1')).toBeOnTheScreen();
+  });
+
+  it('keeps the manager locked until Local (BUS15)', async () => {
+    await openVending('0');
+    expect(
+      screen.getByLabelText(
+        'Manager, +10% profit and sets the best price each day, Unlocks at Local',
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('says the manager sets the price each day (BUS14)', async () => {
+    await openVending('0', {
+      business: { stage: 2, staff: { operations: 0, sales: 0, manager: 1 } },
+    });
+    expect(
+      screen.getByText('Your manager sets the best price at the start of each day'),
+    ).toBeOnTheScreen();
+    expect(line('Manager bonus', '$8.60/day')).toBeOnTheScreen();
+  });
+});
+
+describe('Business stages (BUS15)', () => {
+  it('shows what the next stage needs', async () => {
+    await openVending('0', { business: { treasuryCents: dollars('600') }, day: 1 });
+    expect(screen.getByText('Next: Local. Needs Units 1/3 · Days owned 1/3')).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Grow to Local · $500.00' })).toBeDisabled();
+  });
+
+  it('grows to Local from the treasury after confirming', async () => {
+    await openVending('0', { business: { units: 3, treasuryCents: dollars('600') }, day: 3 });
+    await fireEvent.press(screen.getByRole('button', { name: 'Grow to Local · $500.00' }));
+    expect(screen.getByRole('header', { name: 'Grow to Local' })).toBeOnTheScreen();
+    await confirm();
+    expect(await findLine('Status', 'Open · Local')).toBeOnTheScreen();
+    expect(screen.getByText('Units 3/8')).toBeOnTheScreen();
   });
 });
 

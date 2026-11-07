@@ -59,7 +59,7 @@ const levels = (count: number) => Array.from({ length: count }, (_unused, level)
 
 function businessProbe(businessId: string, content: Content): Probe {
   const rules = content.economy.businessRules;
-  const units = levels((rules.unitCapByStage[0] ?? 1) - 1).map((index): GameCommand => ({
+  const units = levels((rules.stages[0]?.unitCap ?? 1) - 1).map((index): GameCommand => ({
     type: 'BuyUnit',
     businessId,
     fromUnits: index + 1,

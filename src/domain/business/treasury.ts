@@ -3,6 +3,7 @@ import { moneyCents, type MoneyCents } from '@/domain/money';
 import { profitPerDayCents } from './core';
 import { findBusiness, type BusinessEconomy, type BusinessPricing } from './definition';
 import type { OwnedBusiness } from './owned';
+import { managerDecisions } from './staff';
 
 export type BusinessClosure = { readonly businessId: string; readonly atMs: number };
 
@@ -71,7 +72,7 @@ function settledProfit(business: OwnedBusiness, accrual: { settled: bigint; rema
   };
 }
 
-function settleBusiness(
+function settleSegment(
   business: OwnedBusiness,
   settlement: Period & { readonly pricing: BusinessPricing },
 ): Settled {
@@ -87,6 +88,43 @@ function settleBusiness(
   const numerator = profit * elapsedMs + BigInt(business.profitRemainder);
   const settled = floorDivide(numerator, dayMs);
   return settledProfit(business, { settled, remainder: numerator - settled * dayMs });
+}
+
+function segmentEnds(period: Period, dayMs: number): number[] {
+  const endMs = period.fromMs + period.elapsedMs;
+  const firstDay = Math.floor(period.fromMs / dayMs) + 1;
+  const boundaries = Array.from(
+    { length: Math.max(0, Math.floor(endMs / dayMs) - firstDay + 1) },
+    (_, index) => (firstDay + index) * dayMs,
+  );
+  return boundaries[boundaries.length - 1] === endMs ? boundaries : [...boundaries, endMs];
+}
+
+type Settling = Settled & { readonly atMs: number };
+
+function settleBusiness(
+  business: OwnedBusiness,
+  settlement: Period & { readonly pricing: BusinessPricing },
+): Settled {
+  const { pricing } = settlement;
+  const { dayMs } = pricing.rules;
+  const start: Settling = { business, toCashCents: 0n, atMs: settlement.fromMs };
+  return segmentEnds(settlement, dayMs).reduce<Settling>((settled, endMs) => {
+    if (settled.closedAtMs !== undefined) return settled;
+    const segment = settleSegment(settled.business, {
+      fromMs: settled.atMs,
+      elapsedMs: endMs - settled.atMs,
+      pricing,
+    });
+    const reachedBoundary = endMs > settled.atMs && endMs % dayMs === 0;
+    const atBoundary = reachedBoundary && segment.closedAtMs === undefined;
+    return {
+      ...segment,
+      business: atBoundary ? managerDecisions(segment.business, pricing) : segment.business,
+      toCashCents: settled.toCashCents + segment.toCashCents,
+      atMs: endMs,
+    };
+  }, start);
 }
 
 export function settleBusinesses(

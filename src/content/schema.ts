@@ -78,6 +78,12 @@ const byPriceLevel = z.object({
   luxury: positiveInt,
 });
 
+const staffCounts = z.object({
+  operations: nonNegativeInt,
+  sales: nonNegativeInt,
+  manager: nonNegativeInt,
+});
+
 const wholePercent = z.number().int().min(0).max(100);
 
 const businessSchema = z.object({
@@ -190,7 +196,23 @@ const economySchema = z.object({
     extraUnitDemandPercent: nonNegativeInt,
     unitPriceBps: positiveInt,
     unitPriceGrowth: growthRatio,
-    unitCapByStage: z.array(positiveInt).min(1),
+    stages: z
+      .array(
+        z.object({
+          unitCap: positiveInt,
+          staffCap: staffCounts,
+          upgradePriceMultiple: nonNegativeInt,
+          daysOwnedToReach: nonNegativeInt,
+        }),
+      )
+      .min(1),
+    staff: z.object({
+      operationsCapacityPercent: nonNegativeInt,
+      salesDemandPercent: nonNegativeInt,
+      managerProfitPercent: nonNegativeInt,
+      wagePercent: staffCounts,
+      signingFeeDays: nonNegativeInt,
+    }),
     maxTrackLevel: positiveInt,
     upgradeWeightBps: z.object({ quality: positiveInt, efficiency: positiveInt }),
     upgradeGrowth: growthRatio,

@@ -2,10 +2,12 @@ import { moneyCents, type MoneyCents } from '@/domain/money';
 
 import {
   businessDayOf,
+  NO_STAFF,
   type BusinessDefinition,
   type BusinessRules,
   type BusinessTrack,
   type PriceLevel,
+  type StaffCounts,
 } from './definition';
 
 export type BusinessStatus = 'open' | 'closed';
@@ -16,6 +18,7 @@ export type OwnedBusiness = {
   readonly units: number;
   readonly priceLevel: PriceLevel;
   readonly levels: Readonly<Record<BusinessTrack, number>>;
+  readonly staff: StaffCounts;
   readonly payoutPercent: number;
   readonly treasuryCents: MoneyCents;
   readonly profitRemainder: number;
@@ -37,6 +40,7 @@ export function newBusiness(
     units: 1,
     priceLevel: opening.rules.defaultPriceLevel,
     levels: { quality: 0, efficiency: 0 },
+    staff: NO_STAFF,
     payoutPercent: opening.rules.defaultPayoutPercent,
     treasuryCents: moneyCents(0),
     profitRemainder: 0,

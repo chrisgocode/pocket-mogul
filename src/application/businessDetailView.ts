@@ -15,13 +15,16 @@ import {
 import { findOwnedBusiness } from '@/domain/business/commands';
 import {
   BUSINESS_TRACKS,
-  businessDayOf,
   findBusiness,
   PRICE_LEVELS,
+  STAFF_ROLES,
   type BusinessPricing,
   type BusinessTrack,
   type PriceLevel,
+  type StaffRole,
 } from '@/domain/business/definition';
+import { quoteStaff, type StaffQuote } from '@/domain/business/staff';
+import { daysOwned, quoteStage, type StageQuote } from '@/domain/business/stages';
 import type { BusinessStatus, OwnedBusiness } from '@/domain/business/owned';
 import type { MoneyCents } from '@/domain/money';
 
@@ -36,6 +39,12 @@ export type UnitOption = Extract<UnitQuote, { status: 'at_cap' }> | AvailableUni
 export type AvailableImprovement = Extract<ImprovementQuote, { status: 'available' }> &
   Affordability;
 export type ImprovementOption = Extract<ImprovementQuote, { status: 'max' }> | AvailableImprovement;
+
+export type AvailableHire = Extract<StaffQuote, { status: 'available' }> & Affordability;
+export type StaffOption = Exclude<StaffQuote, { status: 'available' }> | AvailableHire;
+
+export type ReadyStage = Extract<StageQuote, { status: 'ready' }> & Affordability;
+export type StageOption = Exclude<StageQuote, { status: 'ready' }> | ReadyStage;
 
 export type PriceLevelOption = {
   readonly priceLevel: PriceLevel;
@@ -69,6 +78,9 @@ export type OwnedBusinessDetail = {
   readonly saleReturnPercent: number;
   readonly unit: UnitOption;
   readonly improvements: readonly ImprovementOption[];
+  readonly staff: readonly StaffOption[];
+  readonly managerHired: boolean;
+  readonly stageUpgrade: StageOption;
   readonly sale: BusinessSale;
 };
 
@@ -96,6 +108,18 @@ function improvementOption(track: BusinessTrack, context: DetailContext): Improv
   return { ...quote, ...affordability(quote.priceCents, context.owned.treasuryCents) };
 }
 
+function staffOption(role: StaffRole, context: DetailContext): StaffOption {
+  const quote = quoteStaff(context.owned, { ...context.pricing, role });
+  if (quote.status !== 'available') return quote;
+  return { ...quote, ...affordability(quote.signingFeeCents, context.owned.treasuryCents) };
+}
+
+function stageOption({ owned, pricing, simulationMs }: DetailContext): StageOption {
+  const quote = quoteStage(owned, { pricing, atMs: simulationMs });
+  if (quote.status !== 'ready') return quote;
+  return { ...quote, ...affordability(quote.priceCents, owned.treasuryCents) };
+}
+
 function priceLevelOptions({ owned, pricing }: DetailContext): PriceLevelOption[] {
   const best = bestPriceLevel(owned, pricing);
   return PRICE_LEVELS.map((priceLevel) => ({
@@ -114,7 +138,7 @@ function ownedDetail(business: Business, context: DetailContext): OwnedBusinessD
     operation: owned.status,
     stage: owned.stage,
     units: owned.units,
-    daysOwned: businessDayOf(context.simulationMs, rules) - owned.purchasedDay,
+    daysOwned: daysOwned(owned, { pricing, atMs: context.simulationMs }),
     day: quoteBusinessDay(owned, pricing),
     cashPerMinuteCents: cashPerMinuteCents(owned, pricing),
     priceLevel: owned.priceLevel,
@@ -127,6 +151,9 @@ function ownedDetail(business: Business, context: DetailContext): OwnedBusinessD
     saleReturnPercent: rules.saleReturnPercent,
     unit: unitOption(context),
     improvements: BUSINESS_TRACKS.map((track) => improvementOption(track, context)),
+    staff: STAFF_ROLES.map((role) => staffOption(role, context)),
+    managerHired: owned.staff.manager > 0,
+    stageUpgrade: stageOption(context),
     sale: {
       proceedsCents: saleProceedsCents(owned, rules),
       spendCents: owned.capitalizedSpendCents,
