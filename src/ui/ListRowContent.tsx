@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { OptionalCaption } from './OptionalCaption';
 import { AppText } from './Typography';
+import type { Trend } from './tokens';
 
 export type ListRowProps = {
   leading?: ReactNode;
@@ -10,12 +11,20 @@ export type ListRowProps = {
   subtitle?: string | undefined;
   value?: string | undefined;
   detail?: string | undefined;
+  detailTrend?: Trend;
   dimmed?: boolean;
   accessibilityLabel?: string;
   onPress?: () => void;
 };
 
-export function ListRowContent({ leading, title, subtitle, value, detail }: ListRowProps) {
+export function ListRowContent({
+  leading,
+  title,
+  subtitle,
+  value,
+  detail,
+  detailTrend,
+}: ListRowProps) {
   return (
     <>
       {leading}
@@ -27,7 +36,7 @@ export function ListRowContent({ leading, title, subtitle, value, detail }: List
       </View>
       <View style={styles.trailing}>
         {value === undefined ? null : <AppText variant="number">{value}</AppText>}
-        <OptionalCaption text={detail} />
+        <OptionalCaption text={detail} trend={detailTrend} />
       </View>
     </>
   );

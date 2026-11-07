@@ -13,8 +13,17 @@ export const colors = {
   gain: '#12805C',
   loss: '#C2362F',
   locked: '#8A909C',
+  highlight: '#D97706',
   scrim: 'rgba(20, 23, 31, 0.45)',
 } as const;
+
+export const trendColors = {
+  gain: colors.gain,
+  loss: colors.loss,
+  flat: colors.textMuted,
+} as const;
+
+export type Trend = keyof typeof trendColors;
 
 export const walletArt = {
   starter: '#2563EB',
@@ -30,7 +39,15 @@ export const radius = { sm: 8, md: 12, lg: 16, pill: 999 } as const;
 
 export const minimumTouchTarget = 44;
 
-export const feedback = { pressedScale: 0.97, hapticMinIntervalMs: 100 } as const;
+export const highlightWidth = 2;
+
+export const highlightCardWidth = 4;
+
+export const feedback = {
+  pressedScale: 0.97,
+  pressedOpacity: 0.7,
+  hapticMinIntervalMs: 100,
+} as const;
 
 const numeric: TextStyle = { fontVariant: ['tabular-nums'] };
 

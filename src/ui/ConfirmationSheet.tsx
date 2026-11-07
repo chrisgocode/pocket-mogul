@@ -1,9 +1,7 @@
-import { Modal, StyleSheet, View } from 'react-native';
-
+import { BottomSheet } from './BottomSheet';
 import { Button } from './Button';
 import { ConfirmationDetails, type ConfirmationLine } from './ConfirmationDetails';
 import type { Confirmation } from './state/useConfirmation';
-import { colors, radius, spacing } from './tokens';
 
 function confirmLabelFor(confirmation: Confirmation<unknown>, label: string): string {
   if (confirmation.status === 'pending') return 'Saving…';
@@ -27,34 +25,14 @@ export function ConfirmationSheet({
 }) {
   const pending = confirmation.status === 'pending';
   return (
-    <Modal
-      visible={confirmation.status !== 'closed'}
-      transparent
-      animationType="slide"
-      onRequestClose={onCancel}
-    >
-      <View style={styles.scrim}>
-        <View style={styles.sheet}>
-          <ConfirmationDetails title={title} lines={lines} confirmation={confirmation} />
-          <Button
-            label={confirmLabelFor(confirmation, confirmLabel)}
-            onPress={onConfirm}
-            disabled={pending}
-          />
-          <Button label="Cancel" variant="secondary" onPress={onCancel} disabled={pending} />
-        </View>
-      </View>
-    </Modal>
+    <BottomSheet visible={confirmation.status !== 'closed'} onRequestClose={onCancel}>
+      <ConfirmationDetails title={title} lines={lines} confirmation={confirmation} />
+      <Button
+        label={confirmLabelFor(confirmation, confirmLabel)}
+        onPress={onConfirm}
+        disabled={pending}
+      />
+      <Button label="Cancel" variant="secondary" onPress={onCancel} disabled={pending} />
+    </BottomSheet>
   );
 }
-
-const styles = StyleSheet.create({
-  scrim: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.scrim },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    padding: spacing.xl,
-    gap: spacing.md,
-  },
-});

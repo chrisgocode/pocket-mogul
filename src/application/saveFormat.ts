@@ -13,6 +13,8 @@ import { EMPTY_ACTIVITY } from '@/domain/activity';
 import { NO_REWARDS } from '@/domain/boost';
 import { NO_GOAL_PROGRESS } from '@/domain/goals';
 import { moneyCents } from '@/domain/money';
+import { defaultSettings } from '@/domain/settings';
+import { freshTutorial, observedTutorial } from '@/domain/tutorial';
 
 import {
   count,
@@ -23,6 +25,7 @@ import {
   saveSchemaV4,
   saveSchemaV5,
   saveSchemaV6,
+  saveSchemaV7,
 } from './saveSchemas';
 
 export type DecodedSave =
@@ -44,7 +47,9 @@ type SummaryBeforeDividends =
       };
     };
 
-type SaveBeforeRewards = Omit<GameState, 'reward'>;
+type SaveBeforeTutorial = Omit<GameState, 'tutorial' | 'settings'>;
+
+type SaveBeforeRewards = Omit<SaveBeforeTutorial, 'reward'>;
 
 type SaveBeforeGoals = Omit<SaveBeforeRewards, 'goals' | 'activity'>;
 
@@ -86,25 +91,30 @@ function withGoals(saved: SaveBeforeGoals): SaveBeforeRewards {
   return { ...saved, goals: NO_GOAL_PROGRESS, activity: EMPTY_ACTIVITY };
 }
 
-function withRewards(saved: SaveBeforeRewards): GameState {
-  return { ...saved, schemaVersion: SAVE_SCHEMA_VERSION, reward: NO_REWARDS };
+function withRewards(saved: SaveBeforeRewards): SaveBeforeTutorial {
+  return { ...saved, reward: NO_REWARDS };
 }
 
+function withTutorialAndSettings(saved: SaveBeforeTutorial): GameState {
+  return {
+    ...saved,
+    schemaVersion: SAVE_SCHEMA_VERSION,
+    tutorial: observedTutorial(freshTutorial(), saved),
+    settings: defaultSettings(),
+  };
+}
+
+const fromRewards = (saved: SaveBeforeRewards) => withTutorialAndSettings(withRewards(saved));
+const fromGoals = (saved: SaveBeforeGoals) => fromRewards(withGoals(saved));
+const fromDividends = (saved: SaveBeforeDividends) => fromGoals(withDividends(saved));
+
 const MIGRATIONS: readonly Migration[] = [
-  {
-    fromVersion: 1,
-    upgrade: (raw) => withRewards(withGoals(withDividends(withTrading(saveSchemaV1.parse(raw))))),
-  },
-  {
-    fromVersion: 2,
-    upgrade: (raw) => withRewards(withGoals(withDividends(withTrading(saveSchemaV2.parse(raw))))),
-  },
-  {
-    fromVersion: 3,
-    upgrade: (raw) => withRewards(withGoals(withDividends(saveSchemaV3.parse(raw)))),
-  },
-  { fromVersion: 4, upgrade: (raw) => withRewards(withGoals(saveSchemaV4.parse(raw))) },
-  { fromVersion: 5, upgrade: (raw) => withRewards(saveSchemaV5.parse(raw)) },
+  { fromVersion: 1, upgrade: (raw) => fromDividends(withTrading(saveSchemaV1.parse(raw))) },
+  { fromVersion: 2, upgrade: (raw) => fromDividends(withTrading(saveSchemaV2.parse(raw))) },
+  { fromVersion: 3, upgrade: (raw) => fromDividends(saveSchemaV3.parse(raw)) },
+  { fromVersion: 4, upgrade: (raw) => fromGoals(saveSchemaV4.parse(raw)) },
+  { fromVersion: 5, upgrade: (raw) => fromRewards(saveSchemaV5.parse(raw)) },
+  { fromVersion: 6, upgrade: (raw) => withTutorialAndSettings(saveSchemaV6.parse(raw)) },
 ];
 
 const versioned = z.object({ schemaVersion: z.number().int() });
@@ -141,7 +151,7 @@ function migrated(raw: unknown, fromVersion: number): DecodedSave {
 }
 
 function current(raw: unknown): DecodedSave {
-  const parsed = saveSchemaV6.safeParse(raw);
+  const parsed = saveSchemaV7.safeParse(raw);
   return parsed.success ? { status: 'current', state: parsed.data } : { status: 'corrupt' };
 }
 

@@ -1,12 +1,13 @@
 import { selectPassiveIncomePerMinuteCents } from '@/application/cashView';
 import { selectTapCard } from '@/application/tapCardView';
 import { getContent } from '@/content';
-import { formatMoneyExact, formatRatePerMinute } from '@/domain/money';
+import { TUTORIAL_STEPS } from '@/domain/tutorial';
 import { useGame, useGameSnapshot } from '@/features/game/GameContext';
-import { Card } from '@/ui/Card';
+import { TutorialHint } from '@/features/tutorial/TutorialHint';
+import { useTutorial } from '@/features/tutorial/useTutorial';
 import { Screen } from '@/ui/Screen';
-import { AppText } from '@/ui/Typography';
 
+import { HomeCashCard } from './HomeCashCard';
 import { PinnedGoalCard } from './PinnedGoalCard';
 import { TapBoostCard } from './TapBoostCard';
 import { TapCard } from './TapCard';
@@ -20,34 +21,29 @@ export function HomeScreen() {
   const content = getContent();
   const view = selectTapCard(snapshot, content);
   const playHaptic = useTapHaptics();
-  const cash = formatMoneyExact(view.cashCents);
-  const passive = formatRatePerMinute(selectPassiveIncomePerMinuteCents(snapshot, content), 'full');
+  const tutorial = useTutorial();
   const tap = () => {
     game.tap();
     playHaptic();
   };
   return (
     <Screen>
-      <Card>
-        <AppText variant="caption" muted>
-          Cash
-        </AppText>
-        <AppText variant="display" accessibilityLabel={`Cash ${cash}`}>
-          {cash}
-        </AppText>
-        <AppText muted>
-          {formatMoneyExact(view.perTapCents)} per tap · {passive} net passive
-        </AppText>
-      </Card>
+      <HomeCashCard
+        cashCents={view.cashCents}
+        perTapCents={view.perTapCents}
+        passivePerMinuteCents={selectPassiveIncomePerMinuteCents(snapshot, content)}
+      />
+      <TutorialHint steps={TUTORIAL_STEPS} />
       <TapCard
         perTapCents={view.perTapCents}
         walletLevel={view.walletLevel}
         boosted={view.boosted}
         artwork={walletArtwork(view.artworkStage)}
+        highlight={tutorial.isOn('tap') ? 'tutorial' : 'none'}
         onTap={tap}
       />
       <TapBoostCard />
-      <WalletUpgrade tapCard={view} />
+      <WalletUpgrade tapCard={view} highlighted={tutorial.isOn('upgradeWallet')} />
       <PinnedGoalCard />
     </Screen>
   );

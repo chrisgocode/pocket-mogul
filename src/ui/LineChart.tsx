@@ -1,22 +1,16 @@
 import { StyleSheet } from 'react-native';
 import Svg, { Polyline } from 'react-native-svg';
 
-import { colors } from './tokens';
+import { trendColors, type Trend } from './tokens';
 
 export type LinePoint = { readonly x: number; readonly y: number };
-export type LineTrend = 'gain' | 'loss' | 'flat';
+export type LineTrend = Trend;
 
 const VIEW_SIZE = 100;
 const VIEW_PADDING = 4;
 const VIEW_HEIGHT = VIEW_SIZE + VIEW_PADDING + VIEW_PADDING;
 const CHART_HEIGHT = 160;
 const STROKE_WIDTH = 2;
-
-const TREND_COLOR: Record<LineTrend, string> = {
-  gain: colors.gain,
-  loss: colors.loss,
-  flat: colors.textMuted,
-};
 
 function drawable(points: readonly LinePoint[]): readonly LinePoint[] {
   const [only] = points;
@@ -54,7 +48,7 @@ export function LineChart({
       <Polyline
         points={coordinates}
         fill="none"
-        stroke={TREND_COLOR[trend]}
+        stroke={trendColors[trend]}
         strokeWidth={STROKE_WIDTH}
         strokeLinejoin="round"
         vectorEffect="non-scaling-stroke"

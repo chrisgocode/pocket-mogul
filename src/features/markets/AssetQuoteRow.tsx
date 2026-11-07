@@ -5,7 +5,7 @@ import { formatMoneyExact, formatPriceCompact } from '@/domain/money';
 import { ListRow } from '@/ui/ListRow';
 import { LogoMark } from '@/ui/LogoMark';
 
-import { changeBadge, changeWords } from './marketFormat';
+import { changeBadge, changeWords, trendOf } from './marketFormat';
 
 const CLASS_LABEL = { standard: 'Stock', blue_chip: 'Blue chip', penny: 'Penny stock' } as const;
 
@@ -33,6 +33,7 @@ export function AssetQuoteRow({ quote }: { quote: AssetQuote }) {
       subtitle={assetSubtitle(quote)}
       value={price}
       detail={changeBadge(quote.hourChangeBps)}
+      detailTrend={trendOf(quote.hourChangeBps)}
       accessibilityLabel={`${asset.name}, ${asset.ticker}, ${price}, ${changeWords(quote.hourChangeBps)} this market hour`}
       onPress={() => router.push({ pathname: '/markets/[assetId]', params: { assetId: asset.id } })}
     />

@@ -14,7 +14,7 @@ function saveBeforeRewards(schemaVersion: number): string {
 describe('saves from before the Tap Boost', () => {
   it.each([4, 5])('migrate from schema %p with no grant, boost or processed rewards', (version) => {
     const state = migratedState(saveBeforeRewards(version));
-    expect(state.schemaVersion).toBe(6);
+    expect(state.schemaVersion).toBe(7);
     expect(state.reward).toEqual({ boost: { status: 'none' }, processedRewardIds: [] });
   });
 

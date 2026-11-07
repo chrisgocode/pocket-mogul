@@ -46,7 +46,7 @@ describe('Properties listings', () => {
     expect(sheet()).toHaveTextContent('Buy City Studio');
     expect(screen.getByText('-$20,000.00')).toBeOnTheScreen();
     await confirm();
-    expect(await screen.findByLabelText('Cash $5,000.00')).toBeOnTheScreen();
+    expect(await screen.findByLabelText('Cash $5.00K')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Manage City Studio' }));
     expect(await screen.findByLabelText('Status, Vacant')).toBeOnTheScreen();
   });

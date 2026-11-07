@@ -5,8 +5,10 @@ import { NO_GOAL_PROGRESS, type GoalProgress } from './goals';
 import { freshMarket, type MarketState } from './market';
 import { moneyCents, type MoneyCents } from './money';
 import type { Position } from './tradeQuotes';
+import { defaultSettings, type Settings } from './settings';
+import { freshTutorial, type TutorialProgress } from './tutorial';
 
-export const SAVE_SCHEMA_VERSION = 6;
+export const SAVE_SCHEMA_VERSION = 7;
 
 export type BusinessLevels = {
   readonly capacity: number;
@@ -81,6 +83,8 @@ export type GameState = {
   readonly reward: RewardState;
   readonly goals: GoalProgress;
   readonly activity: ActivityLog;
+  readonly tutorial: TutorialProgress;
+  readonly settings: Settings;
 };
 
 export function freshGameState(start: {
@@ -117,5 +121,7 @@ export function freshGameState(start: {
     reward: NO_REWARDS,
     goals: NO_GOAL_PROGRESS,
     activity: EMPTY_ACTIVITY,
+    tutorial: freshTutorial(),
+    settings: defaultSettings(),
   };
 }

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { SAVE_SCHEMA_VERSION } from '@/domain/gameState';
 
 import { activityLog, goalProgress } from './activitySchemas';
+import { settings, tutorialProgress } from './preferenceSchemas';
 import { parseMoneyCents, parsePriceMicros, parseQuantityMicrounits } from '@/domain/money';
 
 export const moneyText = z
@@ -197,8 +198,21 @@ const boost = z.discriminatedUnion('status', [
   z.object({ status: z.literal('active'), grantId, remainingMs: z.number().int().positive() }),
 ]);
 
-export const saveSchemaV6 = z.object({
+const SCHEMA_VERSION_BEFORE_TUTORIAL = 6;
+
+const saveSchemaV6Fields = {
   ...saveSchemaV5Fields,
-  schemaVersion: z.literal(SAVE_SCHEMA_VERSION),
   reward: z.object({ boost, processedRewardIds: z.array(grantId) }),
+};
+
+export const saveSchemaV6 = z.object({
+  ...saveSchemaV6Fields,
+  schemaVersion: z.literal(SCHEMA_VERSION_BEFORE_TUTORIAL),
+});
+
+export const saveSchemaV7 = z.object({
+  ...saveSchemaV6Fields,
+  schemaVersion: z.literal(SAVE_SCHEMA_VERSION),
+  tutorial: tutorialProgress,
+  settings,
 });
