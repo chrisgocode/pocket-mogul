@@ -14,7 +14,7 @@ export function DetailLine({
 }) {
   return (
     <View style={styles.line} accessible accessibilityLabel={`${label}, ${value}`}>
-      <AppText variant={emphasis ? 'heading' : 'body'} muted={!emphasis}>
+      <AppText variant={emphasis ? 'heading' : 'body'} muted={!emphasis} style={styles.label}>
         {label}
       </AppText>
       <AppText variant={emphasis ? 'heading' : 'number'}>{value}</AppText>
@@ -24,4 +24,5 @@ export function DetailLine({
 
 const styles = StyleSheet.create({
   line: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
+  label: { flexShrink: 1 },
 });

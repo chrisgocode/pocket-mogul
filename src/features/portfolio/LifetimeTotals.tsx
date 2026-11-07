@@ -14,7 +14,7 @@ export function LifetimeTotals() {
       </AppText>
       <DetailLine label="Entries recorded" value={lifetime.entries.toLocaleString('en-US')} />
       <DetailLine
-        label="Spent on purchases, upgrades and buys"
+        label="Spent on buys and upgrades"
         value={formatMoneyExact(lifetime.spentCents)}
       />
       <DetailLine label="Received from sales" value={formatMoneyExact(lifetime.proceedsCents)} />
