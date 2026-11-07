@@ -3,8 +3,7 @@ import { dollars, units, type QuantityMicrounits } from '@/domain/money';
 import type { TradeSide } from '@/domain/tradeQuotes';
 
 import type { Game } from './game';
-import { encodeSave } from './saveFormat';
-import { currentState, migratedState, startTestGameFrom, type TestGame } from './testGame';
+import { currentState, startTestGameFrom, type TestGame } from './testGame';
 
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
@@ -103,40 +102,6 @@ describe('stock dividends in play', () => {
         awayMs: 10 * HOUR_MS,
         creditedMs: 8 * HOUR_MS,
         earnings: { businesses: dollars('0'), rent: dollars('0'), dividends: dollars('1.60') },
-      },
-    });
-  });
-});
-
-function schemaV3Save(): string {
-  const fresh = freshGameState({ saveId: 'older', economyVersion: 1, wallMs: 0 });
-  const { dividendAccruals: _accruals, income, ...rest } = fresh;
-  const { dividendEarningsCents: _earned, ...olderIncome } = income;
-  const summary = {
-    awayMs: HOUR_MS,
-    creditedMs: HOUR_MS,
-    earnings: { businesses: 600n, rent: 0n },
-  };
-  return encodeSave({
-    ...rest,
-    schemaVersion: 3,
-    income: olderIncome,
-    returnSummary: { status: 'pending', summary },
-  } as unknown as GameState);
-}
-
-describe('saves from before dividends', () => {
-  it('migrate from schema 3 with no accrued or earned dividends', () => {
-    const state = migratedState(schemaV3Save());
-    expect(state.schemaVersion).toBe(7);
-    expect(state.dividendAccruals).toEqual([]);
-    expect<bigint>(state.income.dividendEarningsCents).toBe(dollars('0'));
-    expect(state.returnSummary).toEqual({
-      status: 'pending',
-      summary: {
-        awayMs: HOUR_MS,
-        creditedMs: HOUR_MS,
-        earnings: { businesses: dollars('6'), rent: dollars('0'), dividends: dollars('0') },
       },
     });
   });

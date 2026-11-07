@@ -4,8 +4,7 @@ import { isTutorialFinished } from '@/domain/tutorial';
 
 import type { Game } from './game';
 import { selectTutorial } from './tutorialView';
-import { encodeSave } from './saveFormat';
-import { migratedState, startTestGame, startTestGameFrom } from './testGame';
+import { startTestGame, startTestGameFrom } from './testGame';
 
 const tap = (taps: number) => ({ id: `tap-${taps}`, command: { type: 'TapBatch', taps } }) as const;
 const upgradeWallet = { id: 'wallet', command: { type: 'UpgradeWallet', fromLevel: 0 } } as const;
@@ -100,36 +99,5 @@ describe('skipping the tutorial', () => {
       'upgradeWallet',
       'buyBusiness',
     ]);
-  });
-});
-
-const activeBoost = {
-  boost: { status: 'active', grantId: 'grant-1', remainingMs: 30_000 },
-  processedRewardIds: ['grant-1'],
-} as const;
-
-function schemaV6Save(change: Partial<GameState>): string {
-  const fresh = freshGameState({ saveId: 'before-tutorial', economyVersion: 1, wallMs: 0 });
-  const { tutorial: _tutorial, settings: _settings, ...rest } = { ...fresh, ...change };
-  return JSON.stringify({ ...JSON.parse(encodeSave(rest as GameState)), schemaVersion: 6 });
-}
-
-describe('saves from before the tutorial', () => {
-  it('migrate from schema 6 with default settings, the steps already done and the boost kept', () => {
-    const state = migratedState(
-      schemaV6Save({ tap: { walletLevel: 2, totalAcceptedTaps: 900 }, reward: activeBoost }),
-    );
-    expect(state.schemaVersion).toBe(7);
-    expect(state.reward).toEqual(activeBoost);
-    expect(state.tutorial).toEqual({
-      completedSteps: ['tap', 'upgradeWallet'],
-      explanations: 'shown',
-    });
-    expect(state.settings).toEqual({
-      sound: 'on',
-      haptics: 'on',
-      reducedMotion: 'system',
-      numberFormatting: 'compact',
-    });
   });
 });

@@ -7,6 +7,8 @@ import { dollars } from '@/domain/money';
 import { localTelemetrySink } from '@/infrastructure/localTelemetrySink';
 
 import type { Game } from './game';
+import { SAVE_FORMAT, type SaveFormat } from './saveFormat';
+import { saveSchema } from './saveSchemas';
 import type { TelemetryEvent } from './telemetry';
 import { startObservedTestGame, startTestGameFrom, startTestGameFromDocument } from './testGame';
 
@@ -119,8 +121,15 @@ describe('telemetry for taps, saves and the development sink', () => {
 
   it('records a completed save migration', async () => {
     const { events, telemetry } = recorder();
-    const fixture = readFileSync(new URL('fixtures/save-v1.json', import.meta.url), 'utf8');
-    await startTestGameFromDocument(fixture, 1_799_990_000_000, { telemetry });
+    const fixture = readFileSync(new URL('fixtures/save-baseline.json', import.meta.url), 'utf8');
+    const saveFormat: SaveFormat = {
+      ...SAVE_FORMAT,
+      readerVersion: 2,
+      migrations: [
+        { fromVersion: 1, upgrade: (raw) => ({ ...saveSchema.parse(raw), schemaVersion: 2 }) },
+      ],
+    };
+    await startTestGameFromDocument(fixture, 1_799_990_000_000, { telemetry, saveFormat });
     expect(events[0]).toMatchObject({ name: 'migration_completed', details: { fromVersion: 1 } });
   });
 

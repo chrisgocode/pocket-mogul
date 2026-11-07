@@ -48,7 +48,7 @@ describe('opening a damaged save', () => {
 describe('opening a save from a newer version', () => {
   it('asks the player to update and leaves the save alone (AC23)', async () => {
     const first = await startTestGame();
-    const newer = JSON.stringify({ ...JSON.parse(first.saveDocument()), schemaVersion: 99 });
+    const newer = JSON.stringify({ ...JSON.parse(first.saveDocument()), minReaderVersion: 99 });
     first.replaceSaveDocument(newer);
     mockGame = first.reopen();
     await renderRouter('src/app', { initialUrl: '/home' });

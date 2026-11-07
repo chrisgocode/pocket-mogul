@@ -5,13 +5,7 @@ import { dollarPrice } from '@/domain/money';
 
 import { marketEconomy } from './economy';
 import { encodeSave } from './saveFormat';
-import {
-  currentState,
-  migratedState,
-  startTestGame,
-  startTestGameFrom,
-  type TestGame,
-} from './testGame';
+import { currentState, startTestGame, startTestGameFrom, type TestGame } from './testGame';
 
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
@@ -128,22 +122,7 @@ describe('a market history feed', () => {
   });
 });
 
-describe('saves from before markets', () => {
-  it('load with a market seeded from the save ID, starting at the current market minute', () => {
-    const fresh = freshGameState({ saveId: 'old', economyVersion: 1, wallMs: 0 });
-    const { market: _market, ...legacy } = {
-      ...fresh,
-      schemaVersion: 1,
-      clock: { simulationMs: 3 * HOUR_MS + 30_000, lastWallCheckpointMs: 0 },
-    };
-    expect(migratedState(encodeSave(legacy as typeof fresh)).market).toEqual({
-      seed: 'old',
-      tick: 180,
-      quotes: {},
-      candles: {},
-    });
-  });
-
+describe('market prices in a save', () => {
   it('round-trip prices and candles as exact microdollars', () => {
     const fresh = freshGameState({ saveId: 'saved', economyVersion: 1, wallMs: 0 });
     const price = dollarPrice('0.101');

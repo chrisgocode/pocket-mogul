@@ -63,8 +63,12 @@ The "Save restored" sheet shown when the latest snapshot was damaged or missing 
 _Avoid_: Error popup, crash dialog
 
 **Save migration**:
-An explicit, tested step that upgrades a save document from one schema version to the next. It never changes the economy; an economyVersion change settles at the old rates first instead.
+An explicit, tested step that upgrades a save document from one schema version to the next. Only a breaking change to the save format takes one; a new field with a neutral default doesn't. It never changes the economy; an economyVersion change settles at the old rates first instead.
 _Avoid_: Upgrade, conversion
+
+**Minimum reader version**:
+The `minReaderVersion` a save records: the lowest save-format reader that can open it without misreading. A build whose reader is older stops on the newer-save screen instead of opening it.
+_Avoid_: Compatibility version, min version
 
 **Reset Save**:
 The destructive Settings action that replaces the save with a fresh one and drops its backups, only after an explicit confirmation.

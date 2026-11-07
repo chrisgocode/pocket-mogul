@@ -1,7 +1,7 @@
 import { freshGameState, type GameState } from '@/domain/gameState';
 
 import type { SaveStore, SaveTransaction } from './ports';
-import { decodeSave, type DecodedSave } from './saveFormat';
+import { decodeSaveIn, type DecodedSave, type SaveFormat } from './saveFormat';
 
 export type SaveNotice = { readonly kind: 'none' } | { readonly kind: 'restoredFromBackup' };
 
@@ -22,6 +22,7 @@ export type SaveOpening = {
   readonly createId: () => string;
   readonly currentEconomyVersion: number;
   readonly supportsEconomy: (economyVersion: number) => boolean;
+  readonly format: SaveFormat;
 };
 
 type Readable = Extract<DecodedSave, { state: GameState }>;
@@ -52,7 +53,7 @@ async function restoreFromBackup(
 ): Promise<OpenedSave> {
   const backups = await tx.readBackups();
   const restorable = backups
-    .map((backup) => decodeSave(backup.document))
+    .map((backup) => decodeSaveIn(damaged.opening.format, backup.document))
     .filter(isReadable)
     .find((decoded) => damaged.opening.supportsEconomy(decoded.state.economyVersion));
   if (restorable === undefined) return { status: 'stopped', reason: 'DAMAGED_SAVE' };
@@ -65,6 +66,21 @@ async function restoreFromBackup(
   }
   await tx.writeState(restorable.state);
   return { status: 'ready', state: restorable.state, notice: { kind: 'restoredFromBackup' } };
+}
+
+async function replacePreBaseline(
+  tx: SaveTransaction,
+  saved: { document: string; opening: SaveOpening },
+): Promise<OpenedSave> {
+  await tx.writeDiagnostic({
+    type: 'PRE_BASELINE_SAVE',
+    document: saved.document,
+    recordedWallMs: saved.opening.wallMs,
+  });
+  await tx.clearBackups();
+  await tx.clearMarketHistory();
+  await tx.clearActivity();
+  return startFresh(tx, saved.opening);
 }
 
 async function openMissing(tx: SaveTransaction, opening: SaveOpening): Promise<OpenedSave> {
@@ -97,8 +113,9 @@ async function openDocument(
   tx: SaveTransaction,
   saved: { document: string; opening: SaveOpening },
 ): Promise<OpenedSave> {
-  const decoded = decodeSave(saved.document);
+  const decoded = decodeSaveIn(saved.opening.format, saved.document);
   if (decoded.status === 'newer') return { status: 'stopped', reason: 'UNSUPPORTED_SAVE_VERSION' };
+  if (decoded.status === 'preBaseline') return replacePreBaseline(tx, saved);
   if (decoded.status === 'corrupt') return restoreFromBackup(tx, saved);
   return openReadable(tx, { ...saved, decoded });
 }

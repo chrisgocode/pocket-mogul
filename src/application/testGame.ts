@@ -128,7 +128,10 @@ export type TestGame = {
   receiptIds: () => readonly string[];
 };
 
-type TestHooks = Pick<GamePorts, 'beforeWarmReturnSummary' | 'pastContent' | 'telemetry'> & {
+type TestHooks = Pick<
+  GamePorts,
+  'beforeWarmReturnSummary' | 'pastContent' | 'telemetry' | 'saveFormat'
+> & {
   content?: Content;
   ads?: ScriptedAds;
 };
@@ -248,13 +251,6 @@ export async function startTestGameFrom(
   const store = await openSqlSaveStore(nodeSqliteDriver(save.database));
   await store.transact((tx) => tx.writeState(saved));
   return startTestGame(save);
-}
-
-export function migratedState(document: string): GameState {
-  const decoded = decodeSave(document);
-  if (decoded.status !== 'migrated')
-    throw new Error(`Expected a migrated save, got ${decoded.status}`);
-  return decoded.state;
 }
 
 export async function startTestGameFromDocument(

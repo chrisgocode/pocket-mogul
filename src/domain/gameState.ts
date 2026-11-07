@@ -8,7 +8,9 @@ import type { Position } from './tradeQuotes';
 import { defaultSettings, type Settings } from './settings';
 import { freshTutorial, type TutorialProgress } from './tutorial';
 
-export const SAVE_SCHEMA_VERSION = 7;
+export const SAVE_SCHEMA_VERSION = 1;
+
+const SAVE_MIN_READER_VERSION = 1;
 
 export type BusinessLevels = {
   readonly capacity: number;
@@ -63,6 +65,7 @@ export type PendingReturnSummary =
 export type GameState = {
   readonly saveId: string;
   readonly schemaVersion: number;
+  readonly minReaderVersion: number;
   readonly economyVersion: number;
   readonly revision: number;
   readonly cashCents: MoneyCents;
@@ -95,6 +98,7 @@ export function freshGameState(start: {
   return {
     saveId: start.saveId,
     schemaVersion: SAVE_SCHEMA_VERSION,
+    minReaderVersion: SAVE_MIN_READER_VERSION,
     economyVersion: start.economyVersion,
     revision: 0,
     cashCents: moneyCents(0),

@@ -16,7 +16,11 @@ type BackwardWallClock = Omit<Extract<WallClockReading, { direction: 'backward' 
 
 export type Diagnostic =
   | (BackwardWallClock & { readonly type: 'BACKWARD_WALL_CLOCK'; readonly recordedWallMs: number })
-  | { readonly type: 'DAMAGED_SAVE'; readonly document: string; readonly recordedWallMs: number };
+  | {
+      readonly type: 'DAMAGED_SAVE' | 'PRE_BASELINE_SAVE';
+      readonly document: string;
+      readonly recordedWallMs: number;
+    };
 
 export type AssetHistory = {
   readonly minutes: readonly MinuteObservation[];

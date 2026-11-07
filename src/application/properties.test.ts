@@ -3,8 +3,7 @@ import { freshGameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 
 import type { Game } from './game';
-import { encodeSave } from './saveFormat';
-import { migratedState, startTestGameFrom, type TestGame } from './testGame';
+import { startTestGameFrom, type TestGame } from './testGame';
 
 const ONE_MINUTE_MS = 60_000;
 const HALF_MINUTE_MS = 30_000;
@@ -228,18 +227,5 @@ describe('property net worth', () => {
     await setRented(session.game, true);
     await waitAndSave(session, ONE_MINUTE_MS);
     expect<bigint>(session.game.getSnapshot().state.peakNetWorthCents).toBe(dollars('20,100'));
-  });
-});
-
-describe('saves from before properties', () => {
-  it('load with no rent remainders or earnings', () => {
-    const fresh = freshGameState({ saveId: 'old', economyVersion: 1, wallMs: 0 });
-    const saved = JSON.parse(encodeSave(fresh)) as Record<string, unknown>;
-    const old = JSON.stringify({
-      ...saved,
-      schemaVersion: 1,
-      income: { businessRemainders: {}, businessEarningsCents: '0' },
-    });
-    expect(migratedState(old).income).toEqual(fresh.income);
   });
 });

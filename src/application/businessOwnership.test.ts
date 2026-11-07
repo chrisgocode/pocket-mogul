@@ -2,8 +2,7 @@ import { freshGameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 
 import type { Game } from './game';
-import { encodeSave } from './saveFormat';
-import { migratedState, startTestGameFrom, type TestGame } from './testGame';
+import { startTestGameFrom, type TestGame } from './testGame';
 
 const ONE_MINUTE_MS = 60_000;
 
@@ -107,24 +106,5 @@ describe('tier unlocks (BUS07)', () => {
     expect<bigint>(state.cashCents).toBe(dollars('4,900.99'));
     expect(await buyLaundromat(game)).toEqual({ ok: false, error: 'INSUFFICIENT_CASH' });
     expect(game.getSnapshot().state.unlockedTiers).toEqual([1, 2]);
-  });
-});
-
-describe('saves from before business upgrades', () => {
-  it('load an owned business at level zero with no manager', () => {
-    const fresh = freshGameState({ saveId: 'old', economyVersion: 1, wallMs: 0 });
-    const legacy = {
-      ...(JSON.parse(encodeSave(fresh)) as object),
-      schemaVersion: 1,
-      businesses: [{ definitionId: 'vending', capitalizedSpendCents: '25000' }],
-    };
-    expect(migratedState(JSON.stringify(legacy)).businesses).toEqual([
-      {
-        definitionId: 'vending',
-        levels: { capacity: 0, quality: 0, efficiency: 0 },
-        managerOwned: false,
-        capitalizedSpendCents: dollars('250'),
-      },
-    ]);
   });
 });
