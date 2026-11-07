@@ -1,6 +1,4 @@
-import type { AssetQuote } from '@/application/marketsView';
-
-export type AssetKind = AssetQuote['kind'];
+import type { AssetKind } from '@/application/marketsView';
 
 export type TradeUnits = { readonly plural: string; readonly title: string };
 

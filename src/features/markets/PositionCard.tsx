@@ -5,16 +5,16 @@ import { Card } from '@/ui/Card';
 import { DetailLine } from '@/ui/DetailLine';
 import { AppText } from '@/ui/Typography';
 
-import { tradeUnits, type AssetKind } from './tradeUnits';
+import type { TradeUnits } from './tradeUnits';
 
-export function PositionCard({ position, kind }: { position: PositionView; kind: AssetKind }) {
+export function PositionCard({ position, units }: { position: PositionView; units: TradeUnits }) {
   const { averageCost } = position;
   return (
     <Card>
       <AppText variant="heading" accessibilityRole="header">
         Your position
       </AppText>
-      <DetailLine label={tradeUnits(kind).title} value={formatQuantity(position.quantity)} />
+      <DetailLine label={units.title} value={formatQuantity(position.quantity)} />
       {averageCost === undefined ? null : (
         <DetailLine label="Average cost" value={formatPrice(averageCost)} />
       )}

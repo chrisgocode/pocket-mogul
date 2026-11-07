@@ -4,7 +4,7 @@ import { SegmentedControl, type SegmentOption } from '@/ui/SegmentedControl';
 import { TextField } from '@/ui/TextField';
 
 import { TradePresets } from './TradePresets';
-import { tradeUnits, type TradeUnits } from './tradeUnits';
+import type { TradeUnits } from './tradeUnits';
 import type { TradeSheetControls } from './useTradeSheet';
 
 const SIDE_OPTIONS: readonly SegmentOption<TradeSide>[] = [
@@ -29,7 +29,7 @@ function fieldLabel(entry: { mode: TradeEntryMode; side: TradeSide; units: Trade
 
 export function TradeEntryFields({ sheet }: { sheet: TradeSheetControls }) {
   const { draft } = sheet;
-  const units = tradeUnits(sheet.kind);
+  const { units } = sheet;
   return (
     <>
       <SegmentedControl options={SIDE_OPTIONS} selected={draft.side} onSelect={sheet.selectSide} />

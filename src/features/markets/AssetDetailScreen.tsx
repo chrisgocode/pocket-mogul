@@ -15,6 +15,7 @@ import { AssetOverview } from './AssetOverview';
 import { NewsList } from './NewsList';
 import { PositionCard } from './PositionCard';
 import { PriceChartCard } from './PriceChartCard';
+import { tradeUnits } from './tradeUnits';
 import { AssetTrading } from './AssetTrading';
 
 const NEWS_ITEMS = 3;
@@ -33,15 +34,16 @@ export function AssetDetailScreen() {
     );
   }
   const market = detail.kind === 'stock' ? 'stocks' : 'crypto';
+  const units = tradeUnits(detail.kind);
   const news = selectMarketNews(snapshot.state, { market, content, assetId, limit: NEWS_ITEMS });
   return (
     <Screen>
       <Stack.Screen options={{ title: detail.asset.name }} />
       <AssetOverview detail={detail} />
       {detail.position === undefined ? null : (
-        <PositionCard position={detail.position} kind={detail.kind} />
+        <PositionCard position={detail.position} units={units} />
       )}
-      <AssetTrading detail={detail} />
+      <AssetTrading detail={detail} units={units} />
       <PriceChartCard detail={detail} />
       <AssetAbout detail={detail} />
       <Section title="News" note={`Recent events that moved ${detail.asset.name}`}>

@@ -14,7 +14,7 @@ import { gameErrorMessage } from '@/features/game/gameErrorMessage';
 import { useConfirmation } from '@/ui/state/useConfirmation';
 import { useTradeDraft } from '@/ui/state/useTradeDraft';
 
-import type { AssetKind } from './tradeUnits';
+import type { TradeUnits } from './tradeUnits';
 
 const BLANK = {
   side: 'buy',
@@ -77,7 +77,7 @@ function useTradeEntry(assetId: string) {
   };
 }
 
-export function useTradeSheet({ assetId, kind }: { assetId: string; kind: AssetKind }) {
+export function useTradeSheet({ assetId, units }: { assetId: string; units: TradeUnits }) {
   const { change, restart, ...entry } = useTradeEntry(assetId);
   const { confirmation, close, send, open } = useTradeSubmit(assetId);
   const { draft, ticket } = entry;
@@ -88,7 +88,7 @@ export function useTradeSheet({ assetId, kind }: { assetId: string; kind: AssetK
   };
   return {
     ...entry,
-    kind,
+    units,
     stale,
     confirmation,
     close,

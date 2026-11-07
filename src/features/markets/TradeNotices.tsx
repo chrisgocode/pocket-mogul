@@ -5,14 +5,13 @@ import { AppText } from '@/ui/Typography';
 import { colors } from '@/ui/tokens';
 
 import { marketClockText, ticketProblem } from './tradeFormat';
-import { tradeUnits } from './tradeUnits';
 import type { TradeSheetControls } from './useTradeSheet';
 
 export function TradeNotices({ sheet }: { sheet: TradeSheetControls }) {
   const { ticket, stale, confirmation } = sheet;
   const problem = ticketProblem(ticket, {
     minimum: getContent().economy.market.minBuyNotional,
-    units: tradeUnits(sheet.kind),
+    units: sheet.units,
   });
   return (
     <>
