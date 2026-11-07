@@ -8,7 +8,12 @@ export type SaveNotice = { readonly kind: 'none' } | { readonly kind: 'restoredF
 export type SaveStopReason = 'UNSUPPORTED_SAVE_VERSION' | 'DAMAGED_SAVE';
 
 export type OpenedSave =
-  | { readonly status: 'ready'; readonly state: GameState; readonly notice: SaveNotice }
+  | {
+      readonly status: 'ready';
+      readonly state: GameState;
+      readonly notice: SaveNotice;
+      readonly migratedFromSchema?: number;
+    }
   | { readonly status: 'stopped'; readonly reason: SaveStopReason };
 
 export type SaveOpening = {
@@ -78,6 +83,12 @@ async function openReadable(
   if (decoded.status === 'migrated') {
     await tx.writeBackup({ document, recordedWallMs: opening.wallMs });
     await tx.writeState(decoded.state);
+    return {
+      status: 'ready',
+      state: decoded.state,
+      notice: NO_NOTICE,
+      migratedFromSchema: decoded.fromVersion,
+    };
   }
   return { status: 'ready', state: decoded.state, notice: NO_NOTICE };
 }

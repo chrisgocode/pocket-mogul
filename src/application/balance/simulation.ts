@@ -1,0 +1,178 @@
+import type { Content } from '@/content';
+import { progressRules } from '@/application/economy';
+import type { GameCommand } from '@/domain/commands';
+import { freshGameState, type GameState } from '@/domain/gameState';
+import type { MoneyCents } from '@/domain/money';
+import { netWorthBreakdown, type NetWorthBreakdown } from '@/domain/progression';
+
+import { engineStep } from './engineStep';
+import type { OptionKind, PurchaseOption } from './options';
+import { chooseOption, paybackMinutes, type PolicyName } from './policies';
+
+export type Session = { readonly activeMs: number; readonly awayMs: number };
+
+export type BalanceScenario = {
+  readonly name: string;
+  readonly seed: string;
+  readonly policy: PolicyName;
+  readonly tapsPerSecond: number;
+  readonly stepMs: number;
+  readonly sessions: readonly Session[];
+  readonly maxActiveMs: number;
+  readonly stopAtPeakCents: MoneyCents;
+  readonly start?: GameState;
+};
+
+export type Moment = { readonly activeMs: number; readonly elapsedMs: number };
+
+export type Purchase = Moment & {
+  readonly kind: OptionKind;
+  readonly assetId: string;
+  readonly priceCents: MoneyCents;
+  readonly paybackMinutes: number;
+};
+
+export type Sample = Moment & { readonly worth: NetWorthBreakdown };
+
+export type BalanceRun = {
+  readonly scenario: BalanceScenario;
+  readonly goals: Readonly<Record<string, Moment>>;
+  readonly tiers: Readonly<Record<number, Moment>>;
+  readonly purchases: readonly Purchase[];
+  readonly samples: readonly Sample[];
+  readonly final: Sample;
+};
+
+const MS_PER_SECOND = 1000;
+const MS_PER_MINUTE = 60_000;
+const SAMPLE_EVERY_MS = 3_600_000;
+const SIMULATION_WALL_START_MS = 1_800_000_000_000;
+const MAX_PURCHASES_PER_STEP = 1000;
+
+type Simulation = {
+  readonly scenario: BalanceScenario;
+  readonly content: Content;
+  readonly wallStartMs: number;
+  state: GameState;
+  activeMs: number;
+  elapsedMs: number;
+  nextSampleMs: number;
+  readonly goals: Record<string, Moment>;
+  readonly tiers: Record<number, Moment>;
+  readonly purchases: Purchase[];
+  readonly samples: Sample[];
+};
+
+const momentOf = (sim: Simulation): Moment => ({
+  activeMs: sim.activeMs,
+  elapsedMs: sim.elapsedMs,
+});
+
+function noteProgress(sim: Simulation, completedGoalIds: readonly string[], next: GameState) {
+  for (const goalId of completedGoalIds) sim.goals[goalId] = momentOf(sim);
+  for (const tier of next.unlockedTiers) {
+    if (!sim.state.unlockedTiers.includes(tier)) sim.tiers[tier] = momentOf(sim);
+  }
+}
+
+function commit(sim: Simulation, command: GameCommand, elapsedMs = 0): boolean {
+  const committed = engineStep(sim.state, {
+    command,
+    content: sim.content,
+    elapsedMs,
+    wallMs: sim.wallStartMs + sim.elapsedMs,
+  });
+  if (committed.state === undefined) return false;
+  noteProgress(sim, committed.completedGoalIds ?? [], committed.state);
+  sim.state = committed.state;
+  return true;
+}
+
+function sample(sim: Simulation): Sample {
+  return { ...momentOf(sim), worth: netWorthBreakdown(sim.state, progressRules(sim.content)) };
+}
+
+const finished = (sim: Simulation) =>
+  sim.activeMs >= sim.scenario.maxActiveMs ||
+  sim.state.peakNetWorthCents >= sim.scenario.stopAtPeakCents;
+
+function buy(sim: Simulation, option: PurchaseOption): boolean {
+  if (option.priceCents > sim.state.cashCents) return false;
+  if (!option.commands.every((command) => commit(sim, command))) return false;
+  const { kind, assetId, priceCents } = option;
+  sim.purchases.push({
+    ...momentOf(sim),
+    kind,
+    assetId,
+    priceCents,
+    paybackMinutes: paybackMinutes(option),
+  });
+  return true;
+}
+
+function spend(sim: Simulation) {
+  const tapsPerMinute = sim.scenario.tapsPerSecond * (MS_PER_MINUTE / MS_PER_SECOND);
+  for (let attempt = 0; attempt < MAX_PURCHASES_PER_STEP; attempt += 1) {
+    const context = { state: sim.state, content: sim.content, tapsPerMinute };
+    const option = chooseOption(sim.scenario.policy, context);
+    if (option === undefined || !buy(sim, option)) return;
+  }
+}
+
+function playStep(sim: Simulation) {
+  const { stepMs, tapsPerSecond } = sim.scenario;
+  const taps = Math.round((tapsPerSecond * stepMs) / MS_PER_SECOND);
+  sim.activeMs += stepMs;
+  sim.elapsedMs += stepMs;
+  const command: GameCommand = taps > 0 ? { type: 'TapBatch', taps } : { type: 'AdvanceTime' };
+  commit(sim, command, stepMs);
+  spend(sim);
+  if (sim.activeMs < sim.nextSampleMs) return;
+  sim.samples.push(sample(sim));
+  sim.nextSampleMs += SAMPLE_EVERY_MS;
+}
+
+function playSession(sim: Simulation, session: Session) {
+  const sessionEndMs = sim.activeMs + session.activeMs;
+  while (sim.activeMs < sessionEndMs && !finished(sim)) playStep(sim);
+  if (session.awayMs === 0 || finished(sim)) return;
+  sim.elapsedMs += session.awayMs;
+  commit(sim, { type: 'SettleOffline' });
+  commit(sim, { type: 'AcknowledgeReturnSummary' });
+}
+
+function startingState(scenario: BalanceScenario, content: Content): GameState {
+  return (
+    scenario.start ??
+    freshGameState({
+      saveId: scenario.seed,
+      economyVersion: content.economyVersion,
+      wallMs: SIMULATION_WALL_START_MS,
+    })
+  );
+}
+
+export function simulateBalance(scenario: BalanceScenario, content: Content): BalanceRun {
+  if (!scenario.sessions.some((session) => session.activeMs > 0)) {
+    throw new Error(`Scenario ${scenario.name} has no active play`);
+  }
+  const state = startingState(scenario, content);
+  const sim: Simulation = {
+    scenario,
+    content,
+    wallStartMs: state.clock.lastWallCheckpointMs,
+    state,
+    activeMs: 0,
+    elapsedMs: 0,
+    nextSampleMs: SAMPLE_EVERY_MS,
+    goals: {},
+    tiers: {},
+    purchases: [],
+    samples: [],
+  };
+  while (!finished(sim)) {
+    for (const session of scenario.sessions) playSession(sim, session);
+  }
+  const { goals, tiers, purchases, samples } = sim;
+  return { scenario, goals, tiers, purchases, samples, final: sample(sim) };
+}
