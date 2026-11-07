@@ -17,6 +17,7 @@ import type { AdPort, AssetHistory, Clock, SaveStore } from './ports';
 import { commitReset } from './resetSave';
 import { rewardedBoost } from './rewardedBoost';
 import { backUpIfDue } from './saveBackups';
+import { SAVE_FORMAT, type SaveFormat } from './saveFormat';
 import { serialQueue } from './serialQueue';
 import { snapshotStore } from './snapshotStore';
 import { isTapBoosted, type TapBoostAd } from './tapBoostView';
@@ -31,6 +32,7 @@ export type GamePorts = {
   createId: () => string;
   beforeWarmReturnSummary?: () => Promise<void>;
   telemetry?: TelemetryPort;
+  saveFormat?: SaveFormat;
 };
 
 export type GameSnapshot = {
@@ -96,6 +98,11 @@ function observe(observers: Observers, committed: Committed): void {
   observers.telemetry.committed(committed, observers.state);
 }
 
+const saveFormatOf = (ports: GamePorts): SaveFormat => ports.saveFormat ?? SAVE_FORMAT;
+
+const backUp = (ports: GamePorts, saved: { revision: number; wallMs: number }) =>
+  backUpIfDue(ports.store, { ...saved, format: saveFormatOf(ports) });
+
 function committer(ports: GamePorts, opened: Opened) {
   const snapshots = snapshotStore<GameSnapshot>(openingSnapshot(opened));
   const clocks = gameClocks(ports.clock);
@@ -111,7 +118,7 @@ function committer(ports: GamePorts, opened: Opened) {
       live.record(committed);
       if (committed.state !== undefined) {
         clocks.saved(unsaved);
-        await backUpIfDue(ports.store, { revision: committed.state.revision, wallMs });
+        await backUp(ports, { revision: committed.state.revision, wallMs });
         await runBeforePublish(options.beforePublish);
       }
       publish({ state: committed.state, settled: options.settled ?? NO_SETTLED_TAPS });
@@ -197,7 +204,7 @@ function refreshWhileEarning(core: Committer) {
 async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
   const core = committer(ports, opened);
   const wallMs = ports.clock.wallMs();
-  await core.queue.run(() => backUpIfDue(ports.store, { revision: opened.state.revision, wallMs }));
+  await core.queue.run(() => backUp(ports, { revision: opened.state.revision, wallMs }));
   const offline = offlineSettlement(ports, core);
   await offline.onLaunch();
   const { dispatch, tap, flushTaps } = gameTaps({
@@ -240,6 +247,7 @@ export async function createGame(ports: GamePorts): Promise<OpenedGame> {
     createId: ports.createId,
     currentEconomyVersion: ports.content.economyVersion,
     supportsEconomy: supportsEconomy(ports),
+    format: saveFormatOf(ports),
   });
   if (opened.status === 'stopped') return opened;
   gameTelemetry(ports).opened(opened);

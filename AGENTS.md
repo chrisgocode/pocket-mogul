@@ -25,6 +25,7 @@ The v1 build follows `docs/spec.md` §19 in six phases. Each phase is a sub-issu
 Expo SDK 58. Expo changes between SDKs, so check the versioned docs at `https://docs.expo.dev/versions/v58.0.0/` (index: https://docs.expo.dev/llms.txt) before touching an Expo or React Native API.
 
 - No comments in code: lint rejects every comment (`lint-rules/pocket-mogul.mjs`). If code needs one, rename or restructure it until it explains itself. Context that belongs outside the code goes in the spec, README or an ADR.
+- Save format (`src/application/saveSchemas.ts`, `docs/spec.md` §14): add a field without bumping `SAVE_SCHEMA_VERSION`. Declare it at the top level of the save with a neutral default (empty list, `none`, "not started") and test that `src/application/fixtures/save-baseline.json` loads with it. Never default money or progress (cash, quantities, cost basis, time). Bump the version, add an upgrade step to `SAVE_FORMAT.migrations` and a fixture only for a breaking change (rename, removal, type or unit change, new meaning), and raise the minimum reader version when an older build would misread the result.
 - Content (`src/content/economy-v1.ts`) is the versioned economy from `docs/spec.md`. Retune it by bumping `economyVersion`, never reuse an ID (list retired ones in `retiredIds`), and keep names fictional: they nod at a sector, never a real brand.
 - Bun is the package manager (`bun.lock`). Use `bun install`, `bun run <script>` and `bunx`, never npm or npx.
 - Add packages with `bunx expo install <package>` so versions match the SDK.

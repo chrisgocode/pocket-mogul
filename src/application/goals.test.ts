@@ -3,8 +3,7 @@ import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars, units } from '@/domain/money';
 
 import type { Game, GameEvent } from './game';
-import { encodeSave } from './saveFormat';
-import { startTestGameFromDocument, startTestGameFrom, type TestGame } from './testGame';
+import { startTestGameFrom, type TestGame } from './testGame';
 
 const HOUR_MS = 3_600_000;
 
@@ -157,32 +156,5 @@ describe('goal completion event', () => {
     await game.dispatch(envelope);
     await game.dispatch(envelope);
     expect(events).toHaveLength(1);
-  });
-});
-
-describe('saves from before goals', () => {
-  const vending = {
-    definitionId: 'vending',
-    levels: { capacity: 0, quality: 0, efficiency: 0 },
-    managerOwned: false,
-    capitalizedSpendCents: dollars('250'),
-  };
-
-  function schemaV4Save(): string {
-    const fresh = freshGameState({ saveId: 'older', economyVersion: 1, wallMs: 0 });
-    const { goals: _goals, activity: _activity, ...rest } = fresh;
-    return encodeSave({ ...rest, schemaVersion: 4, businesses: [vending] } as unknown as GameState);
-  }
-
-  it('migrate from schema 4 with an empty history, then catch up on goals already earned', async () => {
-    const { game } = await startTestGameFromDocument(schemaV4Save(), 0);
-    expect(game.getSnapshot().state).toMatchObject({
-      schemaVersion: 7,
-      goals: { completed: [], pinnedGoalId: null },
-      activity: { open: null, lifetime: { entries: 0 } },
-    });
-    await game.checkpoint();
-    expect(completedGoals(game)).toEqual(['first_business']);
-    expect(await game.readActivity()).toEqual([]);
   });
 });

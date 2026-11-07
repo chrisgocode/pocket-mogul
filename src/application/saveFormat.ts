@@ -1,123 +1,38 @@
 import { z } from 'zod';
 
 import { GAME_ERROR_CODES, type CommandOutcome } from '@/domain/commands';
-import {
-  SAVE_SCHEMA_VERSION,
-  type GameState,
-  type IncomeBySource,
-  type IncomeState,
-  type PendingReturnSummary,
-  type ReturnSummary,
-} from '@/domain/gameState';
-import { EMPTY_ACTIVITY } from '@/domain/activity';
-import { NO_REWARDS } from '@/domain/boost';
-import { NO_GOAL_PROGRESS } from '@/domain/goals';
-import { moneyCents } from '@/domain/money';
-import { defaultSettings } from '@/domain/settings';
-import { freshTutorial, observedTutorial } from '@/domain/tutorial';
+import { SAVE_SCHEMA_VERSION, type GameState } from '@/domain/gameState';
 
-import {
-  count,
-  moneyText,
-  saveSchemaV1,
-  saveSchemaV2,
-  saveSchemaV3,
-  saveSchemaV4,
-  saveSchemaV5,
-  saveSchemaV6,
-  saveSchemaV7,
-} from './saveSchemas';
+import { count, formatVersion, moneyText, saveSchema } from './saveSchemas';
 
 export type DecodedSave =
   | { readonly status: 'current'; readonly state: GameState }
   | { readonly status: 'migrated'; readonly state: GameState; readonly fromVersion: number }
-  | { readonly status: 'newer'; readonly schemaVersion: number }
+  | { readonly status: 'newer' }
+  | { readonly status: 'preBaseline' }
   | { readonly status: 'corrupt' };
 
-type Migration = { readonly fromVersion: number; readonly upgrade: (raw: unknown) => GameState };
-
-type EarningsBeforeDividends = Omit<IncomeBySource, 'dividends'>;
-
-type SummaryBeforeDividends =
-  | { readonly status: 'none' }
-  | {
-      readonly status: 'pending';
-      readonly summary: Omit<ReturnSummary, 'earnings'> & {
-        readonly earnings: EarningsBeforeDividends;
-      };
-    };
-
-type SaveBeforeTutorial = Omit<GameState, 'tutorial' | 'settings'>;
-
-type SaveBeforeRewards = Omit<SaveBeforeTutorial, 'reward'>;
-
-type SaveBeforeGoals = Omit<SaveBeforeRewards, 'goals' | 'activity'>;
-
-type SaveBeforeDividends = Omit<
-  SaveBeforeGoals,
-  'income' | 'returnSummary' | 'dividendAccruals'
-> & {
-  readonly income: Omit<IncomeState, 'dividendEarningsCents'>;
-  readonly returnSummary: SummaryBeforeDividends;
+export type Migration = {
+  readonly fromVersion: number;
+  readonly upgrade: (raw: unknown) => GameState;
 };
 
-type SaveBeforeTrading = Omit<SaveBeforeDividends, 'tradingUnlocked' | 'positions' | 'watchlist'>;
+export type SaveFormat = {
+  readonly readerVersion: number;
+  readonly schema: z.ZodType<GameState>;
+  readonly migrations: readonly Migration[];
+};
 
-function withTrading(saved: SaveBeforeTrading): SaveBeforeDividends {
-  return {
-    ...saved,
-    tradingUnlocked: saved.businesses.length > 0,
-    positions: [],
-    watchlist: [],
-  };
-}
+export const SAVE_FORMAT: SaveFormat = {
+  readerVersion: SAVE_SCHEMA_VERSION,
+  schema: saveSchema,
+  migrations: [],
+};
 
-function summaryWithDividends(summary: SummaryBeforeDividends): PendingReturnSummary {
-  if (summary.status === 'none') return summary;
-  const earnings = { ...summary.summary.earnings, dividends: moneyCents(0) };
-  return { status: 'pending', summary: { ...summary.summary, earnings } };
-}
-
-function withDividends(saved: SaveBeforeDividends): SaveBeforeGoals {
-  return {
-    ...saved,
-    income: { ...saved.income, dividendEarningsCents: moneyCents(0) },
-    returnSummary: summaryWithDividends(saved.returnSummary),
-    dividendAccruals: [],
-  };
-}
-
-function withGoals(saved: SaveBeforeGoals): SaveBeforeRewards {
-  return { ...saved, goals: NO_GOAL_PROGRESS, activity: EMPTY_ACTIVITY };
-}
-
-function withRewards(saved: SaveBeforeRewards): SaveBeforeTutorial {
-  return { ...saved, reward: NO_REWARDS };
-}
-
-function withTutorialAndSettings(saved: SaveBeforeTutorial): GameState {
-  return {
-    ...saved,
-    schemaVersion: SAVE_SCHEMA_VERSION,
-    tutorial: observedTutorial(freshTutorial(), saved),
-    settings: defaultSettings(),
-  };
-}
-
-const fromRewards = (saved: SaveBeforeRewards) => withTutorialAndSettings(withRewards(saved));
-const fromGoals = (saved: SaveBeforeGoals) => fromRewards(withGoals(saved));
-const fromDividends = (saved: SaveBeforeDividends) => fromGoals(withDividends(saved));
-
-const MIGRATIONS: readonly Migration[] = [
-  { fromVersion: 1, upgrade: (raw) => fromDividends(withTrading(saveSchemaV1.parse(raw))) },
-  { fromVersion: 2, upgrade: (raw) => fromDividends(withTrading(saveSchemaV2.parse(raw))) },
-  { fromVersion: 3, upgrade: (raw) => fromDividends(saveSchemaV3.parse(raw)) },
-  { fromVersion: 4, upgrade: (raw) => fromGoals(saveSchemaV4.parse(raw)) },
-  { fromVersion: 5, upgrade: (raw) => fromRewards(saveSchemaV5.parse(raw)) },
-  { fromVersion: 6, upgrade: (raw) => withTutorialAndSettings(saveSchemaV6.parse(raw)) },
-];
-
-const versioned = z.object({ schemaVersion: z.number().int() });
+const header = z.object({
+  schemaVersion: formatVersion,
+  minReaderVersion: formatVersion.optional(),
+});
 
 const outcomeSchema = z.discriminatedUnion('ok', [
   z.object({ ok: z.literal(true), revision: count, cashChangeCents: moneyText }),
@@ -140,8 +55,9 @@ function parseJson(text: string): unknown {
   }
 }
 
-function migrated(raw: unknown, fromVersion: number): DecodedSave {
-  const migration = MIGRATIONS.find((step) => step.fromVersion === fromVersion);
+function migrated(format: SaveFormat, saved: { raw: unknown; fromVersion: number }): DecodedSave {
+  const { raw, fromVersion } = saved;
+  const migration = format.migrations.find((step) => step.fromVersion === fromVersion);
   if (migration === undefined) return { status: 'corrupt' };
   try {
     return { status: 'migrated', state: migration.upgrade(raw), fromVersion };
@@ -150,18 +66,25 @@ function migrated(raw: unknown, fromVersion: number): DecodedSave {
   }
 }
 
-function current(raw: unknown): DecodedSave {
-  const parsed = saveSchemaV7.safeParse(raw);
+function current(format: SaveFormat, raw: unknown): DecodedSave {
+  const parsed = format.schema.safeParse(raw);
   return parsed.success ? { status: 'current', state: parsed.data } : { status: 'corrupt' };
 }
 
-export function decodeSave(text: string): DecodedSave {
+export function decodeSaveIn(format: SaveFormat, text: string): DecodedSave {
   const raw = parseJson(text);
-  const header = versioned.safeParse(raw);
-  if (!header.success) return { status: 'corrupt' };
-  const { schemaVersion } = header.data;
-  if (schemaVersion > SAVE_SCHEMA_VERSION) return { status: 'newer', schemaVersion };
-  return schemaVersion === SAVE_SCHEMA_VERSION ? current(raw) : migrated(raw, schemaVersion);
+  const parsed = header.safeParse(raw);
+  if (!parsed.success) return { status: 'corrupt' };
+  const { schemaVersion, minReaderVersion } = parsed.data;
+  if (minReaderVersion === undefined) return { status: 'preBaseline' };
+  if (minReaderVersion > format.readerVersion) return { status: 'newer' };
+  if (schemaVersion < format.readerVersion)
+    return migrated(format, { raw, fromVersion: schemaVersion });
+  return current(format, raw);
+}
+
+export function decodeSave(text: string): DecodedSave {
+  return decodeSaveIn(SAVE_FORMAT, text);
 }
 
 export function encodeOutcome(outcome: CommandOutcome): string {

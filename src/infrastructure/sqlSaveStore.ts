@@ -32,13 +32,13 @@ const backupRows = z.array(
     .object({ document: z.string(), recorded_wall_ms: z.number() })
     .transform((row) => ({ document: row.document, recordedWallMs: row.recorded_wall_ms })),
 );
-const diagnosticDetail = z.discriminatedUnion('type', [
+const diagnosticDetail = z.union([
   z.object({
     type: z.literal('BACKWARD_WALL_CLOCK'),
     checkpointWallMs: z.number(),
     observedWallMs: z.number(),
   }),
-  z.object({ type: z.literal('DAMAGED_SAVE'), document: z.string() }),
+  z.object({ type: z.enum(['DAMAGED_SAVE', 'PRE_BASELINE_SAVE']), document: z.string() }),
 ]);
 const detailFields = z.record(z.string(), z.unknown());
 const diagnosticRows = z.array(

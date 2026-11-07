@@ -24,10 +24,7 @@ export const freshTutorial = (): TutorialProgress => ({
   explanations: 'shown',
 });
 
-export function observedTutorial(
-  tutorial: TutorialProgress,
-  state: ProgressSource,
-): TutorialProgress {
+function observedTutorial(tutorial: TutorialProgress, state: ProgressSource): TutorialProgress {
   const completedSteps = TUTORIAL_STEPS.filter(
     (step) => tutorial.completedSteps.includes(step) || STEP_DONE[step](state),
   );

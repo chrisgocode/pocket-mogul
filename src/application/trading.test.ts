@@ -1,11 +1,10 @@
 import type { TradeSide } from '@/domain/tradeQuotes';
-import { levelZeroBusiness } from '@/domain/businessQuotes';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars, units, type QuantityMicrounits } from '@/domain/money';
 
 import type { Game } from './game';
-import { decodeSave, encodeSave } from './saveFormat';
-import { startTestGameFrom, type TestGame } from './testGame';
+import { encodeSave } from './saveFormat';
+import { currentState, startTestGameFrom, type TestGame } from './testGame';
 
 const ONE_MINUTE_MS = 60_000;
 
@@ -205,33 +204,7 @@ describe('watchlist', () => {
   });
 });
 
-function schemaV2Save(businesses: GameState['businesses']): string {
-  const fresh = freshGameState({ saveId: 'old', economyVersion: 1, wallMs: 0 });
-  const {
-    tradingUnlocked: _unlocked,
-    positions: _positions,
-    watchlist: _watchlist,
-    ...older
-  } = { ...fresh, businesses, schemaVersion: 2 };
-  return encodeSave(older as GameState);
-}
-
-const decodedState = (text: string): GameState | undefined => {
-  const decoded = decodeSave(text);
-  return 'state' in decoded ? decoded.state : undefined;
-};
-
-describe('saves from before trading', () => {
-  it('migrate from schema 2, opening trading when a business is already owned', () => {
-    const owner = decodeSave(schemaV2Save([levelZeroBusiness('vending')]));
-    expect(owner).toMatchObject({
-      status: 'migrated',
-      fromVersion: 2,
-      state: { schemaVersion: 7, tradingUnlocked: true, positions: [], watchlist: [] },
-    });
-    expect(decodedState(schemaV2Save([]))?.tradingUnlocked).toBe(false);
-  });
-
+describe('positions in a save', () => {
   it('round-trip positions as exact microunits and cents', () => {
     const fresh = freshGameState({ saveId: 'saved', economyVersion: 1, wallMs: 0 });
     const positions = [
@@ -242,6 +215,6 @@ describe('saves from before trading', () => {
         realizedProfitCents: dollars('-3.50'),
       },
     ];
-    expect(decodedState(encodeSave({ ...fresh, positions }))?.positions).toEqual(positions);
+    expect(currentState(encodeSave({ ...fresh, positions })).positions).toEqual(positions);
   });
 });
