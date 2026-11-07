@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 
 import { useScreenAnimation } from './motion';
-import { colors } from './tokens';
+import { colors, type } from './tokens';
 
 export function RootStack() {
   const animation = useScreenAnimation();
@@ -11,7 +11,8 @@ export function RootStack() {
         animation,
         headerStyle: { backgroundColor: colors.background },
         headerShadowVisible: false,
-        headerTintColor: colors.text,
+        headerTintColor: colors.accent,
+        headerTitleStyle: { color: colors.text, fontFamily: type.title.fontFamily },
         contentStyle: { backgroundColor: colors.background },
       }}
     >

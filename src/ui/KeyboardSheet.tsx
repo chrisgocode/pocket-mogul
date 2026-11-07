@@ -4,7 +4,7 @@ import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } f
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useSheetAnimation } from './motion';
-import { colors, radius, spacing } from './tokens';
+import { colors, glow, radius, spacing } from './tokens';
 
 export function KeyboardSheet({
   visible,
@@ -46,8 +46,12 @@ const styles = StyleSheet.create({
   scrim: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.scrim },
   sheet: {
     backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    borderCurve: 'continuous',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    boxShadow: glow.sheet,
     maxHeight: '90%',
   },
   content: { padding: spacing.xl, gap: spacing.md },

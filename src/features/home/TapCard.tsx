@@ -3,7 +3,7 @@ import { Pressable, StyleSheet } from 'react-native';
 import { formatMoneyExact, type MoneyCents } from '@/domain/money';
 import { AppText } from '@/ui/Typography';
 import { usePressedStyle } from '@/ui/pressFeedback';
-import { colors, highlightCardWidth, radius, spacing } from '@/ui/tokens';
+import { colors, glow, highlightCardWidth, radius, spacing } from '@/ui/tokens';
 
 import type { WalletArtwork } from './walletArtwork';
 
@@ -51,10 +51,14 @@ const styles = StyleSheet.create({
   card: {
     aspectRatio: 1.6,
     borderRadius: radius.lg,
+    borderCurve: 'continuous',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.accentDeep,
+    boxShadow: glow.card,
     padding: spacing.xl,
     justifyContent: 'flex-end',
     gap: spacing.xs,
   },
   highlighted: { borderWidth: highlightCardWidth, borderColor: colors.highlight },
-  text: { color: colors.textOnAccent },
+  text: { color: colors.text },
 });

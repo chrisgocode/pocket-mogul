@@ -38,6 +38,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: radius.sm,
   },
-  choiceSelected: { backgroundColor: colors.surface },
+  choiceSelected: { backgroundColor: colors.surfaceRaised },
   labelSelected: { color: colors.accent },
 });

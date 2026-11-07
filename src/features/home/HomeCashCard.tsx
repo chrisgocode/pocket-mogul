@@ -16,7 +16,7 @@ export function HomeCashCard({
   const cash = format.money(cashCents);
   return (
     <Card>
-      <AppText variant="caption" muted>
+      <AppText variant="label" muted>
         Cash
       </AppText>
       <AppText variant="display" accessibilityLabel={`Cash ${cash}`}>
