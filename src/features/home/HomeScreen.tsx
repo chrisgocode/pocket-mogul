@@ -8,6 +8,7 @@ import { Screen } from '@/ui/Screen';
 import { AppText } from '@/ui/Typography';
 
 import { PinnedGoalCard } from './PinnedGoalCard';
+import { TapBoostCard } from './TapBoostCard';
 import { TapCard } from './TapCard';
 import { useTapHaptics } from './useTapHaptics';
 import { walletArtwork } from './walletArtwork';
@@ -41,9 +42,11 @@ export function HomeScreen() {
       <TapCard
         perTapCents={view.perTapCents}
         walletLevel={view.walletLevel}
+        boosted={view.boosted}
         artwork={walletArtwork(view.artworkStage)}
         onTap={tap}
       />
+      <TapBoostCard />
       <WalletUpgrade tapCard={view} />
       <PinnedGoalCard />
     </Screen>

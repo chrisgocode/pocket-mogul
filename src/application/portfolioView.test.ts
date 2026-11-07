@@ -31,7 +31,10 @@ const holder: GameState = {
 const snapshotOf = (state: GameState): GameSnapshot => ({
   state,
   pendingTaps: 0,
+  pendingBoostedTaps: 0,
   unsavedElapsedMs: 0,
+  unsavedBoostMs: 0,
+  tapBoostAd: 'loading',
   notice: { kind: 'none' },
 });
 

@@ -15,7 +15,10 @@ const HOUR_MS = 3_600_000;
 
 function recorder() {
   const events: TelemetryEvent[] = [];
-  return { events, telemetry: { record: (event: TelemetryEvent) => void events.push(event) } };
+  const recordGameplay = (event: TelemetryEvent) => {
+    if (event.name !== 'ad_requested') events.push(event);
+  };
+  return { events, telemetry: { record: recordGameplay } };
 }
 
 const names = (events: readonly TelemetryEvent[]) => events.map((event) => event.name);

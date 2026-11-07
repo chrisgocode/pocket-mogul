@@ -13,7 +13,15 @@ function snapshotWith(overrides: Partial<GameState>): GameSnapshot {
     tradingUnlocked: true,
     ...overrides,
   };
-  return { state, pendingTaps: 0, unsavedElapsedMs: 0, notice: { kind: 'none' } };
+  return {
+    state,
+    pendingTaps: 0,
+    pendingBoostedTaps: 0,
+    unsavedElapsedMs: 0,
+    unsavedBoostMs: 0,
+    tapBoostAd: 'loading',
+    notice: { kind: 'none' },
+  };
 }
 
 const holding = (quantity: string) => ({

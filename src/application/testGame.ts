@@ -12,6 +12,7 @@ import { openSqlSaveStore } from '@/infrastructure/sqlSaveStore';
 import { decodeSave } from './saveFormat';
 import { createGame, type Game, type GamePorts, type OpenedGame } from './game';
 import type { Clock, Diagnostic } from './ports';
+import { scriptedAds, type ScriptedAds } from './scriptedAds';
 
 const TEST_WALL_START_MS = 1_800_000_000_000;
 
@@ -113,6 +114,7 @@ function faultyDriver(driver: SqlDriver, faults: Faults, gate: SaveGate): SqlDri
 export type TestGame = {
   game: Game;
   clock: FakeClock;
+  ads: ScriptedAds;
   faults: WriteFaults;
   readFaults: ReadFaults;
   holdSaves: () => () => void;
@@ -128,6 +130,7 @@ export type TestGame = {
 
 type TestHooks = Pick<GamePorts, 'beforeWarmReturnSummary' | 'pastContent' | 'telemetry'> & {
   content?: Content;
+  ads?: ScriptedAds;
 };
 
 type Relaunch = { awayMs?: number } & TestHooks;
@@ -172,6 +175,7 @@ function rawSave(database: DatabaseSync) {
 type OpenedTestGame = {
   opened: OpenedGame;
   clock: FakeClock;
+  ads: ScriptedAds;
   faults: WriteFaults;
   readFaults: ReadFaults;
   holdSaves: () => () => void;
@@ -183,12 +187,14 @@ async function openTestGame(save: TestSave = freshTestSave()): Promise<OpenedTes
   const faults: WriteFaults = { failWrites: false };
   const readFaults: ReadFaults = { failReads: false };
   const gate = saveGate();
+  const ads = save.hooks.ads ?? scriptedAds();
   const store = await openSqlSaveStore(
     faultyDriver(nodeSqliteDriver(save.database), { writes: faults, reads: readFaults }, gate),
   );
   const opened = await createGame({
     content: getContent(),
     ...save.hooks,
+    ads,
     clock,
     store,
     createId: save.createId,
@@ -196,6 +202,7 @@ async function openTestGame(save: TestSave = freshTestSave()): Promise<OpenedTes
   return {
     opened,
     clock,
+    ads,
     faults,
     readFaults,
     holdSaves: gate.hold,

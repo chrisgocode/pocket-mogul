@@ -12,11 +12,10 @@ export function tapPayoutCents(walletLevel: number, rules: TapRules): MoneyCents
 
 export function applyTapBatch(
   state: GameState,
-  batch: { taps: number; rules: TapRules },
+  batch: { taps: number; rules: TapRules; multiplier: number },
 ): { state: GameState; earnedCents: MoneyCents } {
-  const earnedCents = moneyCents(
-    tapPayoutCents(state.tap.walletLevel, batch.rules) * BigInt(batch.taps),
-  );
+  const perTapCents = tapPayoutCents(state.tap.walletLevel, batch.rules) * BigInt(batch.multiplier);
+  const earnedCents = moneyCents(perTapCents * BigInt(batch.taps));
   const cashCents = moneyCents(state.cashCents + earnedCents);
   return {
     earnedCents,

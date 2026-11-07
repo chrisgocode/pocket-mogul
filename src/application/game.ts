@@ -1,27 +1,32 @@
 import type { Content } from '@/content';
-import { ACTIVITY_ENTRIES_KEPT, type ActivityEntry } from '@/domain/activity';
+import type { ActivityEntry } from '@/domain/activity';
 import type { CommandEnvelope, CommandOutcome } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
 
-import { activityFeed, type ActivityFeed } from './activityFeed';
+import type { ActivityFeed } from './activityFeed';
 import { supportsEconomy } from './economy';
 import { commitCommand, type CommandTime, type Committed } from './commitCommand';
-import { foregroundTime, type ForegroundTime } from './foregroundTime';
 import { foregroundLoops } from './foregroundLoops';
-import { marketHistoryFeeds, type HistoryFeed } from './marketHistoryFeed';
+import { announce, feeds } from './gameFeeds';
+import { lifecycle } from './gameLifecycle';
+import { gameClocks, openingSnapshot, publisher, type Opened } from './gameSnapshots';
+import { gameTaps, NO_SETTLED_TAPS, type SettledTaps } from './gameTaps';
+import type { HistoryFeed } from './marketHistoryFeed';
 import { openSave, type SaveNotice, type SaveStopReason } from './openSave';
-import type { AssetHistory, Clock, SaveStore } from './ports';
+import type { AdPort, AssetHistory, Clock, SaveStore } from './ports';
 import { commitReset } from './resetSave';
+import { rewardedBoost } from './rewardedBoost';
 import { backUpIfDue } from './saveBackups';
-import { serialQueue, type SerialQueue } from './serialQueue';
-import { snapshotStore, type SnapshotStore } from './snapshotStore';
-import { tapBatcher } from './tapBatcher';
+import { serialQueue } from './serialQueue';
+import { snapshotStore } from './snapshotStore';
+import { isTapBoosted, type TapBoostAd } from './tapBoostView';
 import { gameTelemetry, type TelemetryPort } from './telemetry';
 
 export type GamePorts = {
   clock: Clock;
   store: SaveStore;
   content: Content;
+  ads: AdPort;
   pastContent?: readonly Content[];
   createId: () => string;
   beforeWarmReturnSummary?: () => Promise<void>;
@@ -31,7 +36,10 @@ export type GamePorts = {
 export type GameSnapshot = {
   readonly state: GameState;
   readonly pendingTaps: number;
+  readonly pendingBoostedTaps: number;
   readonly unsavedElapsedMs: number;
+  readonly unsavedBoostMs: number;
+  readonly tapBoostAd: TapBoostAd;
   readonly notice: SaveNotice;
 };
 
@@ -44,6 +52,7 @@ export type Game = {
   dispatch: (envelope: CommandEnvelope) => Promise<CommandOutcome>;
   tap: () => void;
   flushTaps: () => Promise<void>;
+  pressTapBoost: () => Promise<void>;
   checkpoint: () => Promise<CommandOutcome>;
   pause: () => Promise<void>;
   resume: () => Promise<void>;
@@ -60,10 +69,8 @@ export type OpenedGame =
   | { readonly status: 'ready'; readonly game: Game }
   | { readonly status: 'stopped'; readonly reason: SaveStopReason };
 
-type Opened = { readonly state: GameState; readonly notice: SaveNotice };
-
 type RunOptions = {
-  settledTaps?: number;
+  settled?: SettledTaps;
   issuedAtWallMs?: number;
   beforePublish?: (() => Promise<void>) | undefined;
 };
@@ -78,79 +85,37 @@ async function runBeforePublish(step: (() => Promise<void>) | undefined): Promis
   }
 }
 
-type PublishedChange = { state?: GameState | undefined; settledTaps: number };
+type Observers = {
+  events: Parameters<typeof announce>[0];
+  telemetry: ReturnType<typeof gameTelemetry>;
+  state: GameState;
+};
 
-function publisher(snapshots: SnapshotStore<GameSnapshot>, time: ForegroundTime) {
-  return (change: PublishedChange) => {
-    const current = snapshots.get();
-    snapshots.set({
-      ...current,
-      state: change.state ?? current.state,
-      pendingTaps: current.pendingTaps - change.settledTaps,
-      unsavedElapsedMs: time.unsavedMs(),
-    });
-  };
-}
-
-function eventChannel() {
-  const listeners = new Set<(event: GameEvent) => void>();
-  return {
-    emit: (event: GameEvent) => {
-      for (const listener of listeners) listener(event);
-    },
-    subscribe: (listener: (event: GameEvent) => void) => {
-      listeners.add(listener);
-      return () => void listeners.delete(listener);
-    },
-  };
-}
-
-type EventChannel = ReturnType<typeof eventChannel>;
-
-function announce(events: EventChannel, committed: Committed): void {
-  const goalIds = committed.completedGoalIds ?? [];
-  if (goalIds.length > 0) events.emit({ type: 'goalsCompleted', goalIds });
-}
-
-function feeds(ports: GamePorts, queue: SerialQueue) {
-  const history = marketHistoryFeeds({ queue, load: ports.store.loadAssetHistory });
-  const activity = activityFeed({
-    queue,
-    load: ports.store.loadActivity,
-    kept: ACTIVITY_ENTRIES_KEPT,
-  });
-  return {
-    history,
-    activity,
-    events: eventChannel(),
-    record(committed: Committed) {
-      if (committed.history !== undefined) history.append(committed.history);
-      activity.append(committed.activity ?? []);
-    },
-  };
+function observe(observers: Observers, committed: Committed): void {
+  announce(observers.events, committed);
+  observers.telemetry.committed(committed, observers.state);
 }
 
 function committer(ports: GamePorts, opened: Opened) {
-  const snapshots = snapshotStore<GameSnapshot>({ ...opened, pendingTaps: 0, unsavedElapsedMs: 0 });
-  const time = foregroundTime(ports.clock);
+  const snapshots = snapshotStore<GameSnapshot>(openingSnapshot(opened));
+  const clocks = gameClocks(ports.clock);
   const queue = serialQueue();
   const live = feeds(ports, queue);
-  const publish = publisher(snapshots, time);
+  const publish = publisher(snapshots, clocks);
   const telemetry = gameTelemetry(ports);
   const commit = (step: CommitStep, options: RunOptions = {}) => {
     const wallMs = options.issuedAtWallMs ?? ports.clock.wallMs();
     return queue.run(async () => {
-      const elapsedMs = time.unsavedMs();
-      const committed = await step(snapshots.get().state, { elapsedMs, wallMs });
+      const unsaved = clocks.unsaved();
+      const committed = await step(snapshots.get().state, { ...unsaved, wallMs });
       live.record(committed);
       if (committed.state !== undefined) {
-        time.saved(elapsedMs);
+        clocks.saved(unsaved);
         await backUpIfDue(ports.store, { revision: committed.state.revision, wallMs });
         await runBeforePublish(options.beforePublish);
       }
-      publish({ state: committed.state, settledTaps: options.settledTaps ?? 0 });
-      announce(live.events, committed);
-      telemetry.committed(committed, snapshots.get().state);
+      publish({ state: committed.state, settled: options.settled ?? NO_SETTLED_TAPS });
+      observe({ events: live.events, telemetry, state: snapshots.get().state }, committed);
       return committed.outcome;
     });
   };
@@ -161,47 +126,21 @@ function committer(ports: GamePorts, opened: Opened) {
     );
   return {
     snapshots,
-    time,
+    time: clocks.time,
+    boostTime: clocks.boostTime,
     queue,
+    telemetry,
     ...live,
     run,
     commit,
-    refresh: () => publish({ settledTaps: 0 }),
+    refresh: () => publish({ settled: NO_SETTLED_TAPS }),
   };
 }
 
-type Committer = ReturnType<typeof committer>;
+export type Committer = ReturnType<typeof committer>;
 
 function earnsPassiveIncome(state: GameState): boolean {
   return state.businesses.length > 0 || state.properties.some((property) => property.rented);
-}
-
-function tapBatching(ports: GamePorts, core: Committer) {
-  const taps = tapBatcher({
-    clock: ports.clock,
-    windowMs: ports.content.economy.time.tapBatchMaxMs,
-    send: (count) =>
-      core.run(
-        { id: `tap-${ports.createId()}`, command: { type: 'TapBatch', taps: count } },
-        { settledTaps: count },
-      ),
-  });
-  return {
-    dispatch: async (envelope: CommandEnvelope) => {
-      const issuedAtWallMs = ports.clock.wallMs();
-      if (envelope.command.type !== 'TapBatch') await taps.close();
-      return core.run(envelope, { issuedAtWallMs });
-    },
-    tap: () => {
-      taps.add();
-      const current = core.snapshots.get();
-      core.snapshots.set({ ...current, pendingTaps: current.pendingTaps + 1 });
-    },
-    flushTaps: async () => {
-      await taps.close();
-      await core.queue.run(() => Promise.resolve());
-    },
-  };
 }
 
 function offlineSettlement(ports: GamePorts, core: Committer) {
@@ -248,22 +187,35 @@ function gameReads(ports: GamePorts, core: Committer) {
   };
 }
 
+function refreshWhileEarning(core: Committer) {
+  return () => {
+    const snapshot = core.snapshots.get();
+    if (earnsPassiveIncome(snapshot.state) || isTapBoosted(snapshot)) core.refresh();
+  };
+}
+
 async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
   const core = committer(ports, opened);
   const wallMs = ports.clock.wallMs();
   await core.queue.run(() => backUpIfDue(ports.store, { revision: opened.state.revision, wallMs }));
   const offline = offlineSettlement(ports, core);
   await offline.onLaunch();
-  const { dispatch, tap, flushTaps } = tapBatching(ports, core);
+  const { dispatch, tap, flushTaps } = gameTaps({
+    ...core,
+    clock: ports.clock,
+    windowMs: ports.content.economy.time.tapBatchMaxMs,
+    createId: ports.createId,
+    queueIdle: () => core.queue.run(() => Promise.resolve()),
+  });
+  const { boost, activatePendingGrant } = rewardedBoost(ports, { core, flushTaps });
+  await activatePendingGrant();
   const checkpoint = () =>
     dispatch({ id: `checkpoint-${ports.createId()}`, command: { type: 'AdvanceTime' } });
   const loops = foregroundLoops({
     clock: ports.clock,
     checkpointMs: ports.content.economy.time.foregroundCheckpointMs,
     checkpoint: () => void checkpoint(),
-    refresh: () => {
-      if (earnsPassiveIncome(core.snapshots.get().state)) core.refresh();
-    },
+    refresh: refreshWhileEarning(core),
   });
   return {
     getSnapshot: core.snapshots.get,
@@ -273,19 +225,11 @@ async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
     checkpoint,
     tap,
     flushTaps,
+    pressTapBoost: boost.press,
     createCommandId: ports.createId,
     ...saveControls(ports, { core, flushTaps }),
     ...gameReads(ports, core),
-    async pause() {
-      loops.stop();
-      core.time.pause();
-      await checkpoint();
-    },
-    async resume() {
-      core.time.resume();
-      loops.start();
-      await offline.onWarmResume();
-    },
+    ...lifecycle({ core, boost, checkpoint, loops, onWarmResume: offline.onWarmResume }),
   };
 }
 

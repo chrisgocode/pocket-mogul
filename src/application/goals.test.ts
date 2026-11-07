@@ -177,7 +177,7 @@ describe('saves from before goals', () => {
   it('migrate from schema 4 with an empty history, then catch up on goals already earned', async () => {
     const { game } = await startTestGameFromDocument(schemaV4Save(), 0);
     expect(game.getSnapshot().state).toMatchObject({
-      schemaVersion: 5,
+      schemaVersion: 6,
       goals: { completed: [], pinnedGoalId: null },
       activity: { open: null, lifetime: { entries: 0 } },
     });

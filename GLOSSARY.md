@@ -12,6 +12,18 @@ _Avoid_: Bonus ad, video ad
 A temporary multiplier on tap earnings granted by a rewarded ad; it affects taps only and never stacks.
 _Avoid_: Ad boost, double tap, power-up
 
+**Presentation**:
+One showing of a full-screen ad, named by a unique ID the app creates before it calls show. Every reward callback for that showing resolves to the same presentation, so a repeated or late callback grants at most once.
+_Avoid_: Impression, ad view
+
+**Reward grant**:
+A Tap Boost earned by a presentation's earned-reward callback and saved as pending until the game is interactive again, when it activates; a grant saved before a crash activates on the next launch without replaying the ad.
+_Avoid_: Reward claim, entitlement
+
+**AdPort**:
+The application's interface to an ad SDK: availability, load, show, earned-reward, closed and failed events. The Google Mobile Ads adapter and the scripted test mock both implement it.
+_Avoid_: Ad service, ad manager
+
 **Automatic ad**:
 Any ad shown without the player choosing it (interstitial, app open ad, banner).
 _Avoid_: Random ad, forced ad, popup
@@ -63,6 +75,10 @@ _Avoid_: New game, wipe
 **Simulation time**:
 The clock that drives passive income; it advances only by eligible elapsed time, never by render frames.
 _Avoid_: Game time, tick count
+
+**Boost time**:
+The clock that runs down an active Tap Boost; it counts foreground play only and pauses in the background and while a full-screen ad covers the game.
+_Avoid_: Boost timer (for the clock itself)
 
 **Checkpoint**:
 An AdvanceTime commit that saves the simulation time and wall time reached so far; the Game makes one at least every five seconds in the foreground and when the app leaves it.

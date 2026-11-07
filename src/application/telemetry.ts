@@ -1,5 +1,6 @@
 import type { Content } from '@/content';
 import type { ActivityEntry } from '@/domain/activity';
+import { boostRemainingMs, type RewardChange } from '@/domain/boost';
 import type { CommandOutcome } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
 import { serializeUnits } from '@/domain/money';
@@ -56,7 +57,12 @@ export type ObservedCommit = {
   readonly outcome: CommandOutcome;
   readonly activity?: readonly ActivityEntry[] | undefined;
   readonly completedGoalIds?: readonly string[] | undefined;
+  readonly rewardChange?: RewardChange | undefined;
 };
+
+export type AdRequest = 'load' | 'show';
+
+const TAP_BOOST_PLACEMENT = 'tap_boost';
 
 type EntryContext = { readonly firstBusiness: boolean };
 
@@ -133,16 +139,35 @@ function firstBusinessGoalIds(content: Content): ReadonlySet<string> {
   return new Set(goals.map((goal) => goal.id));
 }
 
-function committedEvents(observed: ObservedCommit, firstBusinessGoals: ReadonlySet<string>) {
+function rewardEvents(
+  change: RewardChange | undefined,
+  after: { state: GameState; content: Content },
+): Named[] {
+  if (change === 'granted')
+    return [{ name: 'ad_rewarded', details: { placement: TAP_BOOST_PLACEMENT } }];
+  if (change === undefined) return [];
+  const details = {
+    tapMultiplier: after.content.economy.boost.tapMultiplier,
+    durationMs: boostRemainingMs(after.state.reward.boost),
+  };
+  return [{ name: 'boost_activated', details }];
+}
+
+type CommitView = { firstBusinessGoals: ReadonlySet<string>; content: Content; state: GameState };
+
+function committedEvents(observed: ObservedCommit, view: CommitView): Named[] {
   if (!observed.outcome.ok) {
     const failed = observed.outcome.error === 'SAVE_FAILED';
-    return failed ? [{ name: 'save_failed', details: {} } as const] : [];
+    return failed ? [{ name: 'save_failed', details: {} }] : [];
   }
   const completed = observed.completedGoalIds ?? [];
-  const context = { firstBusiness: completed.some((goalId) => firstBusinessGoals.has(goalId)) };
-  return (observed.activity ?? [])
+  const context = {
+    firstBusiness: completed.some((goalId) => view.firstBusinessGoals.has(goalId)),
+  };
+  const fromActivity = (observed.activity ?? [])
     .map((entry) => describe({ kind: entry.kind, payload: entry }, context))
     .filter((named) => named !== undefined);
+  return [...fromActivity, ...rewardEvents(observed.rewardChange, view)];
 }
 
 export function gameTelemetry(ports: { telemetry?: TelemetryPort; content: Content }) {
@@ -165,7 +190,9 @@ export function gameTelemetry(ports: { telemetry?: TelemetryPort; content: Conte
   };
   return {
     committed: (observed: ObservedCommit, state: GameState) =>
-      send(committedEvents(observed, firstBusinessGoals), state),
+      send(committedEvents(observed, { firstBusinessGoals, content: ports.content, state }), state),
+    adRequested: (request: AdRequest, state: GameState) =>
+      send([{ name: 'ad_requested', details: { placement: TAP_BOOST_PLACEMENT, request } }], state),
     opened: (opened: { state: GameState; migratedFromSchema?: number }) => {
       if (opened.migratedFromSchema === undefined) return;
       const details = { fromVersion: opened.migratedFromSchema };

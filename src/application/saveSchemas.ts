@@ -162,6 +162,8 @@ const dividendAccrual = z.object({
 
 const SCHEMA_VERSION_BEFORE_GOALS = 4;
 
+const SCHEMA_VERSION_BEFORE_REWARDS = 5;
+
 const saveSchemaV4Fields = {
   ...saveSchemaV2Fields,
   ...tradingFields,
@@ -177,9 +179,26 @@ export const saveSchemaV4 = z.object({
   schemaVersion: z.literal(SCHEMA_VERSION_BEFORE_GOALS),
 });
 
-export const saveSchemaV5 = z.object({
+const saveSchemaV5Fields = {
   ...saveSchemaV4Fields,
-  schemaVersion: z.literal(SAVE_SCHEMA_VERSION),
   goals: goalProgress,
   activity: activityLog,
+};
+
+export const saveSchemaV5 = z.object({
+  ...saveSchemaV5Fields,
+  schemaVersion: z.literal(SCHEMA_VERSION_BEFORE_REWARDS),
+});
+
+const grantId = z.string().min(1);
+const boost = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('none') }),
+  z.object({ status: z.literal('pending'), grantId }),
+  z.object({ status: z.literal('active'), grantId, remainingMs: z.number().int().positive() }),
+]);
+
+export const saveSchemaV6 = z.object({
+  ...saveSchemaV5Fields,
+  schemaVersion: z.literal(SAVE_SCHEMA_VERSION),
+  reward: z.object({ boost, processedRewardIds: z.array(grantId) }),
 });

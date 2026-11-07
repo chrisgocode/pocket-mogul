@@ -22,7 +22,19 @@
       },
       "predictiveBackGestureEnabled": false
     },
-    "plugins": ["expo-router", "expo-font", "expo-sqlite"],
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-sqlite",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511",
+          "userTrackingUsageDescription": "Pocket Mogul uses this to show ads that are more relevant to you. The game works the same either way."
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true
     },

@@ -10,6 +10,7 @@ import {
   type ReturnSummary,
 } from '@/domain/gameState';
 import { EMPTY_ACTIVITY } from '@/domain/activity';
+import { NO_REWARDS } from '@/domain/boost';
 import { NO_GOAL_PROGRESS } from '@/domain/goals';
 import { moneyCents } from '@/domain/money';
 
@@ -21,6 +22,7 @@ import {
   saveSchemaV3,
   saveSchemaV4,
   saveSchemaV5,
+  saveSchemaV6,
 } from './saveSchemas';
 
 export type DecodedSave =
@@ -42,7 +44,9 @@ type SummaryBeforeDividends =
       };
     };
 
-type SaveBeforeGoals = Omit<GameState, 'goals' | 'activity'>;
+type SaveBeforeRewards = Omit<GameState, 'reward'>;
+
+type SaveBeforeGoals = Omit<SaveBeforeRewards, 'goals' | 'activity'>;
 
 type SaveBeforeDividends = Omit<
   SaveBeforeGoals,
@@ -78,26 +82,29 @@ function withDividends(saved: SaveBeforeDividends): SaveBeforeGoals {
   };
 }
 
-function withGoals(saved: SaveBeforeGoals): GameState {
-  return {
-    ...saved,
-    schemaVersion: SAVE_SCHEMA_VERSION,
-    goals: NO_GOAL_PROGRESS,
-    activity: EMPTY_ACTIVITY,
-  };
+function withGoals(saved: SaveBeforeGoals): SaveBeforeRewards {
+  return { ...saved, goals: NO_GOAL_PROGRESS, activity: EMPTY_ACTIVITY };
+}
+
+function withRewards(saved: SaveBeforeRewards): GameState {
+  return { ...saved, schemaVersion: SAVE_SCHEMA_VERSION, reward: NO_REWARDS };
 }
 
 const MIGRATIONS: readonly Migration[] = [
   {
     fromVersion: 1,
-    upgrade: (raw) => withGoals(withDividends(withTrading(saveSchemaV1.parse(raw)))),
+    upgrade: (raw) => withRewards(withGoals(withDividends(withTrading(saveSchemaV1.parse(raw))))),
   },
   {
     fromVersion: 2,
-    upgrade: (raw) => withGoals(withDividends(withTrading(saveSchemaV2.parse(raw)))),
+    upgrade: (raw) => withRewards(withGoals(withDividends(withTrading(saveSchemaV2.parse(raw))))),
   },
-  { fromVersion: 3, upgrade: (raw) => withGoals(withDividends(saveSchemaV3.parse(raw))) },
-  { fromVersion: 4, upgrade: (raw) => withGoals(saveSchemaV4.parse(raw)) },
+  {
+    fromVersion: 3,
+    upgrade: (raw) => withRewards(withGoals(withDividends(saveSchemaV3.parse(raw)))),
+  },
+  { fromVersion: 4, upgrade: (raw) => withRewards(withGoals(saveSchemaV4.parse(raw))) },
+  { fromVersion: 5, upgrade: (raw) => withRewards(saveSchemaV5.parse(raw)) },
 ];
 
 const versioned = z.object({ schemaVersion: z.number().int() });
@@ -134,7 +141,7 @@ function migrated(raw: unknown, fromVersion: number): DecodedSave {
 }
 
 function current(raw: unknown): DecodedSave {
-  const parsed = saveSchemaV5.safeParse(raw);
+  const parsed = saveSchemaV6.safeParse(raw);
   return parsed.success ? { status: 'current', state: parsed.data } : { status: 'corrupt' };
 }
 
