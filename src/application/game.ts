@@ -7,22 +7,18 @@ import type { GameState } from '@/domain/gameState';
 import type { ActivityFeed } from './activityFeed';
 import { automaticAds, type AutomaticAdStage } from './automaticAds';
 import { supportsEconomy } from './economy';
-import { commitCommand, type CommandTime, type Committed } from './commitCommand';
+import { committer, type Committer } from './gameCommitter';
 import { foregroundLoops } from './foregroundLoops';
-import { announce, feeds } from './gameFeeds';
 import { lifecycle } from './gameLifecycle';
-import { gameClocks, openingSnapshot, publisher, type Opened } from './gameSnapshots';
-import { gameTaps, NO_SETTLED_TAPS, type SettledTaps } from './gameTaps';
+import type { Opened } from './gameSnapshots';
+import { gameTaps } from './gameTaps';
 import type { HistoryFeed } from './marketHistoryFeed';
 import { openSave, type SaveNotice, type SaveStopReason } from './openSave';
 import type { AdPort, AssetHistory, Clock, SaveStore } from './ports';
 import { commitReset } from './resetSave';
 import { rewardedBoost } from './rewardedBoost';
 import type { TapBoost } from './tapBoost';
-import { backUpIfDue } from './saveBackups';
 import { SAVE_FORMAT, type SaveFormat } from './saveFormat';
-import { serialQueue } from './serialQueue';
-import { snapshotStore } from './snapshotStore';
 import { isTapBoosted, type TapBoostAd } from './tapBoostView';
 import { gameTelemetry, type TelemetryPort } from './telemetry';
 
@@ -75,80 +71,6 @@ export type Game = {
 export type OpenedGame =
   | { readonly status: 'ready'; readonly game: Game }
   | { readonly status: 'stopped'; readonly reason: SaveStopReason };
-
-type RunOptions = {
-  settled?: SettledTaps;
-  issuedAtWallMs?: number;
-  beforePublish?: (() => Promise<void>) | undefined;
-};
-
-type CommitStep = (current: GameState, time: CommandTime) => Promise<Committed>;
-
-async function runBeforePublish(step: (() => Promise<void>) | undefined): Promise<void> {
-  try {
-    await step?.();
-  } catch {
-    return;
-  }
-}
-
-type Observers = {
-  events: Parameters<typeof announce>[0];
-  telemetry: ReturnType<typeof gameTelemetry>;
-  state: GameState;
-};
-
-function observe(observers: Observers, committed: Committed): void {
-  announce(observers.events, committed);
-  observers.telemetry.committed(committed, observers.state);
-}
-
-const saveFormatOf = (ports: GamePorts): SaveFormat => ports.saveFormat ?? SAVE_FORMAT;
-
-const backUp = (ports: GamePorts, saved: { revision: number; wallMs: number }) =>
-  backUpIfDue(ports.store, { ...saved, format: saveFormatOf(ports) });
-
-function committer(ports: GamePorts, opened: Opened) {
-  const snapshots = snapshotStore<GameSnapshot>(openingSnapshot(opened));
-  const clocks = gameClocks(ports.clock, opened.state.adSchedule);
-  const queue = serialQueue();
-  const live = feeds(ports, queue);
-  const publish = publisher(snapshots, clocks);
-  const telemetry = gameTelemetry(ports);
-  const commit = (step: CommitStep, options: RunOptions = {}) => {
-    const wallMs = options.issuedAtWallMs ?? ports.clock.wallMs();
-    return queue.run(async () => {
-      const unsaved = clocks.unsaved();
-      const committed = await step(clocks.scheduled(snapshots.get().state), { ...unsaved, wallMs });
-      live.record(committed);
-      if (committed.state !== undefined) {
-        clocks.saved(unsaved);
-        await backUp(ports, { revision: committed.state.revision, wallMs });
-        await runBeforePublish(options.beforePublish);
-      }
-      publish({ state: committed.state, settled: options.settled ?? NO_SETTLED_TAPS });
-      observe({ events: live.events, telemetry, state: snapshots.get().state }, committed);
-      return committed.outcome;
-    });
-  };
-  const run = (envelope: CommandEnvelope, options: RunOptions = {}) =>
-    commit(
-      (current, stepTime) => commitCommand(ports, { current, envelope, time: stepTime }),
-      options,
-    );
-  return {
-    snapshots,
-    ...clocks,
-    queue,
-    telemetry,
-    ...live,
-    run,
-    commit,
-    refresh: () => publish({ settled: NO_SETTLED_TAPS }),
-  };
-}
-
-export type Committer = ReturnType<typeof committer>;
 
 function earnsPassiveIncome(state: GameState): boolean {
   return state.businesses.length > 0 || state.properties.some((property) => property.rented);
@@ -221,7 +143,7 @@ function adsAroundPlay(
 async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
   const core = committer(ports, opened);
   const wallMs = ports.clock.wallMs();
-  await core.queue.run(() => backUp(ports, { revision: opened.state.revision, wallMs }));
+  await core.backUp({ revision: opened.state.revision, wallMs });
   const offline = offlineSettlement(ports, core);
   await offline.onLaunch();
   const { dispatch, tap, flushTaps } = gameTaps({
@@ -265,9 +187,11 @@ export async function createGame(ports: GamePorts): Promise<OpenedGame> {
     createId: ports.createId,
     currentEconomyVersion: ports.content.economyVersion,
     supportsEconomy: supportsEconomy(ports),
-    format: saveFormatOf(ports),
+    format: ports.saveFormat ?? SAVE_FORMAT,
   });
   if (opened.status === 'stopped') return opened;
   gameTelemetry(ports).opened(opened);
   return { status: 'ready', game: await startGame(ports, opened) };
 }
+
+export type { Committer } from './gameCommitter';

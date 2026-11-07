@@ -157,3 +157,20 @@ describe('the ad schedule across launches', () => {
     });
   });
 });
+
+describe('app open ads after a failed settlement', () => {
+  it('does not show an ad while backgrounding when a delayed retry succeeds', async () => {
+    const session = await startAdSession();
+    await thirdSession(session);
+    await session.game.pause();
+    session.clock.advance(LONG_AWAY_MS);
+    session.faults.failWrites = true;
+    await session.game.resume();
+    expect(appOpenShows(session)).toBe(0);
+    session.faults.failWrites = false;
+    session.clock.advance(10 * MINUTE_MS);
+    await session.game.pause();
+    expect(appOpenShows(session)).toBe(0);
+    expect(summary(session)).toMatchObject({ status: 'pending' });
+  });
+});
