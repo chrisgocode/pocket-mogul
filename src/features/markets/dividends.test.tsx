@@ -43,6 +43,14 @@ describe('Stock dividends', () => {
     expect(screen.getByLabelText('Next payout, in 40 market minutes')).toBeOnTheScreen();
   });
 
+  it('says a payout under a minute away is less than a market minute off', async () => {
+    await open('/markets/prism', {
+      positions: [heldPrism],
+      clock: { simulationMs: 59 * MINUTE_MS + 30_000, lastWallCheckpointMs: 0 },
+    });
+    expect(await screen.findByLabelText('Next payout, in under a market minute')).toBeOnTheScreen();
+  });
+
   it('still shows pending dividends after every share is sold (AC18)', async () => {
     await open('/markets/prism', { dividendAccruals: [pendingPrism] });
     expect(await screen.findByLabelText('Pending dividends, $0.06')).toBeOnTheScreen();

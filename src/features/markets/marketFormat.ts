@@ -53,6 +53,7 @@ export function chartRangeText(chart: PriceChart): string {
 }
 
 export function payoutTiming(inMs: number): string {
+  if (inMs < MINUTE_MS) return 'in under a market minute';
   return `in ${marketDuration(inMs)}`;
 }
 
