@@ -12,7 +12,7 @@ This browser artifact sits next to the native Businesses feature. It reproduces 
 - **B — Command Center:** scene and cash flow first, followed by the next operational action. On detail, the mechanic appears first, with jump links to all six sections. Tests a deliberate departure from the specified Overview-first order.
 - **C — Empire Journey:** stage progression first, with businesses along a vertical path. Detail leads with Grow. Tests motivation and discovery against the extra distance to routine management.
 
-The original study used Vault green-black, gold and ivory. After owner feedback about the colors, the current study defaults to neutral Graphite/mint, with Midnight/blue and Ash/ivory alternatives. The production checkout's tokens remain unchanged. A/B/C still compare hierarchy; the palette selector is independent of those layouts. All five tabs are now navigable. Markets and Properties have sample lists, details and confirmation flows.
+The original study used Vault green-black, gold and ivory. After owner feedback about the colors, the study explored Graphite/mint, Midnight/blue and Ash/ivory; it now defaults to Studio with distinct category accents (see latest iteration below). The production checkout's tokens remain unchanged. A/B/C still compare hierarchy; the palette selector is independent of those layouts. All five tabs are now navigable. Markets and Properties have sample lists, details and confirmation flows.
 
 ## Drive it
 
@@ -72,3 +72,23 @@ Our five-tab order is now **Businesses / Markets / Earn / Properties / Wealth**.
 Properties replaces the tiny generic house glyph rows with original SVG architectural scenes, status badges, names and paired value/rent figures. Each of the four sample property types has its own illustration. Details reuse the matching scene. These are scalable original vector studies, not MOGUL images or production art.
 
 Palette comparison is independent of the original layout variants: `?palette=graphite|midnight|ash`. Graphite is a neutral charcoal base with mint reserved for actions and gains. Midnight uses a blue accent; Ash uses warm neutral surfaces and ivory. The previous green surfaces, gold-dominant styling and colorful allocation are toned down. This is an exploration, not an owner-approved replacement for the production theme.
+
+## Mixed colors, independent properties and market workspace
+
+Owner feedback: colors can vary across categories; properties should have their own identity rather than repeat MOGUL's image-card composition; consider MOGUL's market organization.
+
+### Design patterns researched
+
+- [Carbon: categorical, sequential and alert color](https://www.carbondesignsystem.com/building-blocks/data-visualization/color-palettes): distinguish categories with different hues; do not treat categories like a numerical scale of one hue. We apply that principle to asset categories and keep gain/loss signs alongside semantic colors. This is our adaptation, not a claim that Carbon prescribes our specific colors or their accessibility.
+- [Carbon: structured lists](https://www.carbondesignsystem.com/building-blocks/core/components/structured-list/guidelines): stacked information in scannable rows, clear hierarchy and short labels. We use a compact property register with an asset identifier, small illustration and a consistent figures strip.
+- [Carbon: tabs](https://www.carbondesignsystem.com/building-blocks/core/components/tabs/guidelines): tabs organize related tasks; content filters live at a lower hierarchy. Markets now separates Portfolio / Explore / Watchlist from the Stocks / Crypto filters within Explore.
+
+### Current direction
+
+**Studio** (`palette=mixed`, now the default) uses a neutral graphite shell with amber for Earn, teal for Businesses, lavender for Markets, terracotta for Properties and sky blue for Wealth. Asset allocation uses those same category hues. Gain/loss remains green/red with signs; prices and totals stay mostly neutral. The center Earn button stays amber across sections. Business identity colors are attached to the business ID so filtering does not change them. The older palettes remain selectable for comparison.
+
+Properties is now a numbered **asset register**, not a large landscape-image listing. Each entry has a P01-style identifier, ownership status outside the artwork, original small building art, a prominent value and a bottom strip for net/gross rent. Property types use different scene palettes. Details use a small elevation alongside the heading rather than repeating a full-width hero image. The same purchase, rent, renovation and sale flows remain. This is a deliberate composition change from the earlier MOGUL-inspired cards.
+
+MOGUL market source inspected: retained `/root/.t3/research/mogul-decompiled/bundle.js`, `MarketScreenInner` starting around line 2165584 and market rendering around 2173000–2189690. Observed portfolio/search modes, a watchlist area, class filters, search, holding badges and aligned price/change rows. Our adaptation stays within v1 Stocks/Crypto and uses three task views: Portfolio with cost basis and P&L; Explore with text search, class filters, 24h mover summaries and sorting; Watchlist with saved assets. Compact sparklines and ticker marks are original sample visuals. No source code, brands, copy, mechanics or assets imported.
+
+Search matches name/ticker, sorting supports name/price/24h change, watchlist edits persist in sample memory, and market trades continue to update Wealth. Prices, percentage changes and sparklines remain static illustrative fixtures, not live simulation. Earn still occupies the center and is the landing page on every load.

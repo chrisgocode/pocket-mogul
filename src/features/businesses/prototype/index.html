@@ -928,6 +928,348 @@
         display: grid;
         place-items: center;
       }
+
+      .phone[data-palette='mixed'] {
+        --bg: #16171c;
+        --panel: #202229;
+        --raised: #2c2f39;
+        --line: #393d49;
+        --ink: #f3f0eb;
+        --dim: #b0b2be;
+        --earn: #eabb72;
+        --businesses: #76d5c0;
+        --markets: #b6a5ef;
+        --properties: #edab91;
+        --wealth: #9ac6f1;
+        --gold: var(--earn);
+        --green: #7dd8ab;
+        --red: #f49ba0;
+        --asset-0: #a7aab5;
+        --asset-1: var(--businesses);
+        --asset-2: var(--markets);
+        --asset-3: var(--earn);
+        --asset-4: var(--properties);
+      }
+      .phone[data-palette='mixed'][data-section='businesses'] {
+        --gold: var(--businesses);
+      }
+      .phone[data-palette='mixed'][data-section='markets'] {
+        --gold: var(--markets);
+      }
+      .phone[data-palette='mixed'][data-section='properties'] {
+        --gold: var(--properties);
+      }
+      .phone[data-palette='mixed'][data-section='wealth'] {
+        --gold: var(--wealth);
+      }
+      .phone[data-palette='mixed'] .cash {
+        color: var(--ink);
+      }
+      .phone[data-palette='mixed'] .nav .center-tab {
+        color: var(--earn);
+      }
+      .phone[data-palette='mixed'] .nav .center-tab span {
+        color: var(--earn);
+      }
+      .phone[data-palette='mixed'] .nav .center-tab.active span {
+        background: var(--earn);
+        color: var(--bg);
+        border-color: var(--earn);
+      }
+      .phone[data-palette='mixed'] .tap-zone {
+        background: linear-gradient(125deg, #332b26, #25242f);
+        border-color: #5a4836;
+      }
+      .phone[data-palette='mixed'] .home-summary button:nth-child(1) b {
+        color: var(--businesses);
+      }
+      .phone[data-palette='mixed'] .home-summary button:nth-child(2) b {
+        color: var(--markets);
+      }
+      .phone[data-palette='mixed'] .home-summary button:nth-child(3) b {
+        color: var(--properties);
+      }
+      .phone[data-palette='mixed'] .business-visual {
+        color: var(--businesses);
+      }
+      .phone[data-palette='mixed'] .business-visual[data-business='food_cart'] {
+        color: var(--earn);
+      }
+      .phone[data-palette='mixed'] .business-visual[data-business='coffee_kiosk'] {
+        color: var(--properties);
+      }
+      .phone[data-palette='mixed'] .business-visual.illustrated svg {
+        stroke: currentColor;
+      }
+      .register-summary {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--line);
+      }
+      .register-summary b {
+        display: block;
+        font-size: 22px;
+        letter-spacing: -0.5px;
+      }
+      .register-summary > div:last-child b {
+        color: var(--gold);
+      }
+      .register-tools {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .register-tools .chips {
+        margin: 14px 0;
+      }
+      .property-record {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--gold);
+        border-radius: 4px 14px 14px 4px;
+        margin-bottom: 12px;
+        overflow: hidden;
+      }
+      .phone .register-entry {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        text-align: left;
+      }
+      .register-top {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        font-size: 10px;
+      }
+      .register-top .muted {
+        font-size: 10px;
+      }
+      .record-number {
+        font: 11px var(--font-mono, monospace);
+        color: var(--gold);
+        letter-spacing: 1px;
+      }
+      .record-state {
+        margin-left: auto;
+        color: var(--dim);
+        font-size: 10px;
+      }
+      .register-body {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 12px 0;
+      }
+      .register-body h3 {
+        font-size: 16px;
+      }
+      .register-price {
+        font-size: 22px;
+        font-weight: 700;
+        margin: 5px 0 0;
+        letter-spacing: -0.5px;
+      }
+      .register-body .muted {
+        font-size: 10px;
+      }
+      .register-drawing {
+        width: 96px;
+        height: 82px;
+        flex-shrink: 0;
+        border-radius: 10px;
+        overflow: hidden;
+        background: var(--scene-sky);
+      }
+      .register-drawing svg {
+        width: 146px;
+        height: 82px;
+        margin-left: -23px;
+      }
+      .register-data {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 10px;
+        align-items: end;
+        border-top: 1px solid var(--line);
+        padding-top: 9px;
+      }
+      .register-data b {
+        display: block;
+        font-size: 13px;
+      }
+      .register-data .muted {
+        font-size: 10px;
+      }
+      .record-link {
+        font-size: 11px;
+        color: var(--gold);
+      }
+      .property-record[data-property='studio'] {
+        --scene-sky: #473b47;
+        --scene-wall: #d7b6ad;
+        --scene-side: #a2828e;
+        --scene-roof: #685269;
+        --scene-land: #586556;
+      }
+      .property-record[data-property='house'] {
+        --scene-sky: #344c49;
+        --scene-wall: #c6d4bb;
+        --scene-side: #8b9d86;
+        --scene-roof: #586d67;
+        --scene-land: #648369;
+      }
+      .property-record[data-property='duplex'] {
+        --scene-sky: #3a3d58;
+        --scene-wall: #c6c4db;
+        --scene-side: #8889ab;
+        --scene-roof: #5b6083;
+        --scene-land: #65766a;
+      }
+      .property-record[data-property='apartments'] {
+        --scene-sky: #4f4335;
+        --scene-wall: #d8c5a6;
+        --scene-side: #a29477;
+        --scene-roof: #706955;
+        --scene-land: #65735b;
+      }
+      .property-detail-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 12px 0;
+        gap: 8px;
+      }
+      .property-detail-heading h2 {
+        margin: 5px 0;
+      }
+      .market-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .market-header h2 {
+        margin: 0;
+        font-size: 24px;
+      }
+      .market-modes {
+        display: flex;
+        border-bottom: 1px solid var(--line);
+        margin: 12px 0 16px;
+      }
+      .market-modes button {
+        flex: 1;
+        padding: 6px;
+        font-size: 12px;
+        color: var(--dim);
+      }
+      .market-modes .selected {
+        color: var(--gold);
+        border-bottom: 2px solid var(--gold);
+        font-weight: 700;
+      }
+      .market-account {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .market-account h1 {
+        font-size: 30px;
+        margin: 2px 0;
+        color: var(--ink);
+      }
+      .market-account > span {
+        font-size: 12px;
+      }
+      .market-mini {
+        width: 38px;
+        height: 29px;
+        flex-shrink: 0;
+      }
+      .market-row {
+        gap: 8px;
+      }
+      .market-row .ticker-mark {
+        background: #393247;
+        color: #d1c0f1;
+      }
+      .market-row[data-kind='Crypto'] .ticker-mark {
+        background: #42392b;
+        color: #ebc47e;
+      }
+      .market-row .held {
+        font-size: 10px;
+        color: var(--gold);
+      }
+      .market-row .change-badge {
+        padding: 2px 5px;
+        background: #26372f;
+        border-radius: 4px;
+        text-align: center;
+        margin-top: 3px;
+        font-size: 10px;
+      }
+      .market-row .change-badge.red {
+        background: #402c34;
+      }
+      .search-label {
+        display: block;
+        font-size: 11px;
+        color: var(--dim);
+        margin: 4px 0 6px;
+      }
+      .phone input.market-search {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--panel);
+        color: var(--ink);
+        font-size: 13px;
+        min-height: 44px;
+      }
+      .mover-strip {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .mover-strip button {
+        text-align: left;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--panel);
+      }
+      .mover-strip b {
+        display: block;
+        font-size: 21px;
+        letter-spacing: -0.5px;
+      }
+      .mover-strip small {
+        font-size: 11px;
+        color: var(--dim);
+      }
+      .sort-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 12px 0;
+        font-size: 11px;
+      }
+      .sort-row select {
+        color: var(--ink);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        padding: 8px;
+        border-radius: 6px;
+        min-height: 44px;
+      }
     </style>
   </head>
   <body>
@@ -945,6 +1287,7 @@
           <option value="diversified">Diversified holdings</option></select
         ><button data-action="reset">Reset sample</button>
         <select id="palette" aria-label="Color palette">
+          <option value="mixed">Studio · mixed accents</option>
           <option value="graphite">Graphite · mint</option>
           <option value="midnight">Midnight · blue</option>
           <option value="ash">Ash · ivory</option>
@@ -982,9 +1325,9 @@
       let businessArt = ['outline', 'none'].includes(query.get('art'))
         ? query.get('art')
         : 'illustrated';
-      let palette = ['midnight', 'ash'].includes(query.get('palette'))
+      let palette = ['graphite', 'midnight', 'ash'].includes(query.get('palette'))
         ? query.get('palette')
-        : 'graphite';
+        : 'mixed';
       const makeState = (scenario) => ({
         scenario,
         screen: 'earn',
@@ -992,6 +1335,9 @@
         filter: 'Owned',
         cash: scenario === 'first' ? 0 : scenario === 'diversified' ? 28420 : 4820,
         marketFilter: 'Stocks',
+        marketMode: scenario === 'diversified' ? 'Portfolio' : 'Explore',
+        marketQuery: '',
+        marketSort: 'Name',
         propertyFilter: 'All',
         wealthTab: 'Summary',
         selectedAsset: 'prism',
@@ -1072,7 +1418,7 @@
       };
       function businessVisual(id) {
         if (businessArt === 'none') return '';
-        return `<div class="business-visual ${businessArt}" aria-hidden="true"><svg viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${artwork[id]}</svg></div>`;
+        return `<div class="business-visual ${businessArt}" data-business="${id}" aria-hidden="true"><svg viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${artwork[id]}</svg></div>`;
       }
       function header() {
         return `<div class="status"><span>9:41</span><span>POCKET MOGUL &nbsp; ▰</span></div><header class="top"><div class="topline"><div><div class="eyebrow">Available cash</div><div class="cash">${money(state.cash)}</div></div><div><div class="income">+${money(income() + rentalIncome())}/min</div><div class="muted">To your cash</div></div></div><div class="goal"><span>Tier 2 ${state.scenario === 'first' ? 'locked' : 'unlocked'}</span><span class="meter"><i style="width:${state.scenario === 'first' ? 0 : 100}%"></i></span><span>◇ Goals</span></div></header>`;
@@ -1319,13 +1665,60 @@
             .join('') || '<p class="muted">None owned.</p>'
         }`;
       }
-      function markets() {
-        const list = assets.filter((a) =>
-          state.marketFilter === 'Watchlist'
-            ? state.watchlist.includes(a.id)
-            : a.kind === state.marketFilter,
+      const escapeHtml = (value) =>
+        value.replace(
+          /[&<>"']/g,
+          (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
         );
-        return `<div class="wealth-head"><span class="muted">Market holdings</span><h1>${money(marketWorth())}</h1></div><div class="row"><span class="muted">Unrealized P&L</span><b class="${marketWorth() >= investedCost() ? 'green' : 'red'}">${signedMoney(marketWorth() - investedCost())}</b></div>${selectedChips(['Stocks', 'Crypto', 'Watchlist'], state.marketFilter, 'marketFilter')}<div class="table-head"><span>Asset</span><span>Price / 24h</span></div>${list.map((a) => `<button class="market-row" data-action="asset:${a.id}"><span class="ticker-mark">${a.symbol.slice(0, 2)}</span><span class="name"><b>${a.symbol}</b><small>${a.name}</small></span><span class="quote"><b>${money(a.price)}</b><small class="${a.change >= 0 ? 'green' : 'red'}">${a.change >= 0 ? '+' : ''}${a.change.toFixed(1)}%</small></span></button>`).join('') || '<p class="muted">No watched assets.</p>'}<p class="footnote">All companies and coins are fictional.</p>`;
+      function marketList() {
+        const query = state.marketQuery.toLowerCase().trim();
+        return assets
+          .filter(
+            (a) =>
+              (state.marketMode === 'Portfolio'
+                ? Boolean(state.positions[a.id])
+                : state.marketMode === 'Watchlist'
+                  ? state.watchlist.includes(a.id)
+                  : a.kind === state.marketFilter) &&
+              (a.name + ' ' + a.symbol).toLowerCase().includes(query),
+          )
+          .sort((a, b) =>
+            state.marketSort === 'Change'
+              ? b.change - a.change
+              : state.marketSort === 'Price'
+                ? b.price - a.price
+                : a.name.localeCompare(b.name),
+          );
+      }
+      function miniChart(a) {
+        const paths = [
+          'M1 25L7 20L13 23L20 10L27 15L34 7L43 3',
+          'M1 25L7 16L14 19L21 13L27 16L35 5L43 3',
+          'M1 26L8 21L15 23L22 15L29 17L36 11L43 2',
+        ];
+        return `<svg class="market-mini ${a.change < 0 ? 'red' : 'green'}" viewBox="0 0 44 30" aria-hidden="true"><path d="${paths[assets.indexOf(a) % paths.length]}" transform="${a.change < 0 ? 'translate(0 30) scale(1 -1)' : ''}" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>`;
+      }
+      function marketRow(a) {
+        const p = state.positions[a.id];
+        return `<button class="market-row" data-action="asset:${a.id}" data-kind="${a.kind}"><span class="ticker-mark">${a.symbol.slice(0, 2)}</span><span class="name"><b>${a.symbol}</b><small>${a.name}</small>${p ? `<small class="held">${p.quantity} held</small>` : ''}</span>${miniChart(a)}<span class="quote"><b>${money(a.price)}</b><small class="change-badge ${a.change >= 0 ? 'green' : 'red'}">${a.change >= 0 ? '+' : ''}${a.change.toFixed(1)}%</small></span></button>`;
+      }
+      function marketResults() {
+        const list = marketList();
+        return `<div class="table-head"><span>${list.length} ${state.marketMode === 'Portfolio' ? 'positions' : 'assets'}</span><span>Price / 24h</span></div>${list.map(marketRow).join('') || '<p class="empty muted">No matching assets.</p>'}`;
+      }
+      function marketPortfolio() {
+        return `<div class="market-account"><div><span class="muted">Market value</span><h1>${money(marketWorth())}</h1></div><span class="${marketWorth() >= investedCost() ? 'green' : 'red'}">${signedMoney(marketWorth() - investedCost())}</span></div><div class="home-stats">${stat('Cost basis', money(investedCost()))}${stat('Realized P&L', signedMoney(state.realized))}</div>${marketResults()}`;
+      }
+      function marketExplore() {
+        const movers = assets
+          .filter((a) => a.kind === state.marketFilter)
+          .slice()
+          .sort((a, b) => Math.abs(b.change) - Math.abs(a.change))
+          .slice(0, 2);
+        return `${selectedChips(['Stocks', 'Crypto'], state.marketFilter, 'marketFilter')}<label class="search-label" for="market-search">Search assets</label><input id="market-search" class="market-search" type="search" value="${escapeHtml(state.marketQuery)}" placeholder="Name or ticker" autocomplete="off"><div class="mover-strip">${movers.map((a) => `<button data-action="asset:${a.id}"><span class="muted">${a.symbol}</span><b class="${a.change >= 0 ? 'green' : 'red'}">${a.change >= 0 ? '+' : ''}${a.change}%</b><small>${money(a.price)}</small></button>`).join('')}</div><div class="sort-row"><span class="muted">24h movers</span><label>Sort <select id="market-sort">${['Name', 'Change', 'Price'].map((v) => `<option ${state.marketSort === v ? 'selected' : ''}>${v}</option>`).join('')}</select></label></div><div id="market-results">${marketResults()}</div>`;
+      }
+      function markets() {
+        return `<div class="market-header"><h2>Markets</h2><span class="muted">Stocks & crypto</span></div><div class="market-modes">${['Portfolio', 'Explore', 'Watchlist'].map((mode) => button(mode, 'marketMode:' + mode, state.marketMode === mode ? 'selected' : '')).join('')}</div>${state.marketMode === 'Portfolio' ? marketPortfolio() : state.marketMode === 'Explore' ? marketExplore() : marketResults()}<p class="footnote">All companies and coins are fictional.</p>`;
       }
       function assetDetail() {
         const a = assetOf(),
@@ -1348,19 +1741,20 @@
         return `<svg viewBox="0 0 300 155" class="property-scene" role="img" aria-label="Original illustration of ${h.name}"><rect width="300" height="155" fill="var(--scene-sky)"/><circle cx="251" cy="30" r="14" fill="var(--scene-sun)"/><path d="M0 105l35-10 35 7 45-6 65 8 50-9 70 12v48H0z" fill="var(--scene-land)"/><path d="M0 133h300v22H0z" fill="var(--scene-road)"/>${buildings[h.id]}<path d="M0 140h300" stroke="var(--dim)" stroke-opacity=".3"/><path d="M18 135v-22m-8 5q8-30 16 0" fill="var(--scene-land)" stroke="var(--scene-land)" stroke-width="8"/><path d="M274 135v-22m-8 5q8-30 16 0" fill="var(--scene-land)" stroke="var(--scene-land)" stroke-width="8"/></svg>`;
       }
       function propertyCard(h) {
-        const p = state.properties[h.id];
-        return `<article class="property-card"><button class="property-open" data-action="property:${h.id}"><div class="property-picture">${propertyScene(h)}<span class="property-status">${p ? (p.rented ? 'Rented' : 'Vacant') : 'For sale'}</span></div><div class="property-caption"><h3>${h.name}<span aria-hidden="true">↗</span></h3><div class="property-figures">${stat(p ? 'Property value' : 'Purchase price', money(p ? homeValue(h) : h.price))}${stat(p?.rented ? 'Net rent' : 'Potential net rent', money(homeRent(h) - h.upkeep) + '/min')}</div></div></button></article>`;
+        const p = state.properties[h.id],
+          index = homes.indexOf(h) + 1;
+        return `<article class="property-record" data-property="${h.id}"><button class="register-entry" data-action="property:${h.id}"><div class="register-top"><span class="record-number">P0${index}</span><span class="muted">${h.id === 'apartments' ? 'Multi-unit' : 'Residential'}</span><span class="record-state">${p ? (p.rented ? '● Rented' : '○ Vacant') : 'For sale'}</span></div><div class="register-body"><div><h3>${h.name}</h3><div class="register-price">${money(p ? homeValue(h) : h.price)}</div><span class="muted">${p ? 'Current value' : 'Purchase price'}</span></div><div class="register-drawing">${propertyScene(h)}</div></div><div class="register-data">${stat(p ? 'Net / min' : 'Potential net / min', money(p && !p.rented ? 0 : homeRent(h) - h.upkeep))}${stat('Gross / min', money(p && !p.rented ? 0 : homeRent(h)))}<span class="record-link">${p ? 'Manage' : 'Inspect'} ↗</span></div></button></article>`;
       }
       function properties() {
         const list = homes.filter(
           (h) => state.propertyFilter !== 'Owned' || state.properties[h.id],
         );
-        return `<div class="property-totals">${stat('Property value', money(propertyWorth()))}${stat('Net rent', money(rentalIncome()) + '/min')}</div>${selectedChips(['All', 'Owned'], state.propertyFilter, 'propertyFilter')}${list.map(propertyCard).join('') || '<p class="muted">No properties owned.</p>'}`;
+        return `<div class="register-summary"><div><span class="muted">Property value</span><b>${money(propertyWorth())}</b></div><div><span class="muted">Net rent / min</span><b>${money(rentalIncome())}</b></div></div><div class="register-tools">${selectedChips(['All', 'Owned'], state.propertyFilter, 'propertyFilter')}<span class="muted">${list.length} properties</span></div>${list.map(propertyCard).join('') || '<p class="muted">No properties owned.</p>'}`;
       }
       function propertyDetail() {
         const h = homeOf(),
           p = state.properties[h.id];
-        return `${button('← Properties', 'tab:properties', 'back')}<div class="detail-property-picture">${propertyScene(h)}</div><h2>${h.name}</h2><div class="price-heading">${money(p ? homeValue(h) : h.price)}</div><div class="stats-grid">${stat('Gross rent', money(homeRent(h)) + '/min')}${stat('Upkeep while rented', money(h.upkeep) + '/min')}${stat('Net rent', money(homeRent(h) - h.upkeep) + '/min')}${stat('Status', p ? (p.rented ? 'Rented' : 'Vacant') : 'Available')}</div>${p ? `${button(p.rented ? 'Stop renting' : 'Rent out', 'rent', 'primary wide')}<h2>Renovation</h2><div class="dense-line row"><span>Level ${p.renovation} / 1</span><b>+${money(h.rent * 0.1)}/min</b></div>${button('Renovate · ' + money(homeUpgradeCost(h)) + ' cash', 'renovate', 'secondary wide', p.renovation === 1 || state.cash < homeUpgradeCost(h))}<p class="footnote">Value +${money(homeUpgradeCost(h) * 0.8)} · upkeep unchanged.</p>${button('Sell · ' + money(homeValue(h) * 0.95), 'propertySell', 'wide red')}` : button('Buy · ' + money(h.price), 'propertyBuy', 'primary wide', state.cash < h.price)}`;
+        return `${button('← Properties', 'tab:properties', 'back')}<div class="property-detail-heading"><div><span class="record-number">P0${homes.indexOf(h) + 1}</span><h2>${h.name}</h2></div><div class="register-drawing">${propertyScene(h)}</div></div><div class="price-heading">${money(p ? homeValue(h) : h.price)}</div><div class="stats-grid">${stat('Gross rent', money(homeRent(h)) + '/min')}${stat('Upkeep while rented', money(h.upkeep) + '/min')}${stat('Net rent', money(homeRent(h) - h.upkeep) + '/min')}${stat('Status', p ? (p.rented ? 'Rented' : 'Vacant') : 'Available')}</div>${p ? `${button(p.rented ? 'Stop renting' : 'Rent out', 'rent', 'primary wide')}<h2>Renovation</h2><div class="dense-line row"><span>Level ${p.renovation} / 1</span><b>+${money(h.rent * 0.1)}/min</b></div>${button('Renovate · ' + money(homeUpgradeCost(h)) + ' cash', 'renovate', 'secondary wide', p.renovation === 1 || state.cash < homeUpgradeCost(h))}<p class="footnote">Value +${money(homeUpgradeCost(h) * 0.8)} · upkeep unchanged.</p>${button('Sell · ' + money(homeValue(h) * 0.95), 'propertySell', 'wide red')}` : button('Buy · ' + money(h.price), 'propertyBuy', 'primary wide', state.cash < h.price)}`;
       }
       function transactionSheet() {
         const kind = state.confirmation;
@@ -1410,7 +1804,14 @@
         state.confirmation = null;
       }
       function navigateSample(type, value) {
-        if (type === 'marketFilter') state.marketFilter = value;
+        if (type === 'marketMode') {
+          state.marketMode = value;
+          state.marketQuery = '';
+        }
+        if (type === 'marketFilter') {
+          state.marketFilter = value;
+          state.marketQuery = '';
+        }
         if (type === 'propertyFilter') state.propertyFilter = value;
         if (type === 'wealthTab') state.wealthTab = value;
         if (type === 'quantity') state.orderQuantity = Number(value);
@@ -1431,7 +1832,10 @@
             Crypto: 'markets',
             Properties: 'properties',
           }[value];
-          if (value === 'Stocks' || value === 'Crypto') state.marketFilter = value;
+          if (value === 'Stocks' || value === 'Crypto') {
+            state.marketFilter = value;
+            state.marketMode = 'Explore';
+          }
         }
         if (type === 'watch') {
           const id = assetOf().id;
@@ -1464,6 +1868,9 @@
       }
       function render() {
         document.getElementById('phone').dataset.palette = palette;
+        document.getElementById('phone').dataset.section =
+          { detail: 'businesses', asset: 'markets', property: 'properties' }[state.screen] ??
+          state.screen;
         document.getElementById('phone').innerHTML =
           header() +
           (state.notice ? `<div class="toast" role="status">${state.notice}</div>` : '') +
@@ -1595,7 +2002,22 @@
         const target = event.target.closest('[data-action]');
         if (target && !target.disabled) act(target.dataset.action);
       });
+      document.addEventListener('input', (event) => {
+        if (event.target.id === 'market-search') {
+          state.marketQuery = event.target.value;
+          document.getElementById('market-results').innerHTML = marketResults();
+          document.getElementById('state').textContent = JSON.stringify(
+            { variant, palette, businessArt, ...state },
+            null,
+            2,
+          );
+        }
+      });
       document.addEventListener('change', (event) => {
+        if (event.target.id === 'market-sort') {
+          state.marketSort = event.target.value;
+          render();
+        }
         if (event.target.id === 'palette') {
           palette = event.target.value;
           const url = new URL(location.href);
