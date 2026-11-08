@@ -93,6 +93,7 @@ describe('the Locations section (BUS20a)', () => {
     await fireEvent.press(screen.getByRole('radio', { name: 'School mix: Snacks ★' }));
     expect(await screen.findByText('Match 136% · Best here: Snacks')).toBeOnTheScreen();
     expect(spotsOf(session)?.school).toEqual({ machines: 1, mix: 'snacks', stock: 300 });
+    expect(button('School is fully stocked')).toBeDisabled();
   });
 
   it('offers card readers at Global and installs them after confirming', async () => {

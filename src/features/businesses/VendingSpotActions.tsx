@@ -13,6 +13,11 @@ function restockLabel(spot: VendingSpotView): string {
   return `Restock · ${formatMoneyExact(spot.restock.priceCents)}`;
 }
 
+function restockA11y(spot: VendingSpotView, name: string): string {
+  if (spot.stock >= spot.fullStock) return `${name} is fully stocked`;
+  return `Restock ${name}, ${formatMoneyExact(spot.restock.priceCents)}`;
+}
+
 export function VendingSpotActions({
   spot,
   actions,
@@ -27,7 +32,7 @@ export function VendingSpotActions({
       {spot.machines > 0 ? (
         <Button
           label={restockLabel(spot)}
-          accessibilityLabel={`Restock ${name}, ${formatMoneyExact(spot.restock.priceCents)}`}
+          accessibilityLabel={restockA11y(spot, name)}
           onPress={() => actions.restock(spot.location)}
           disabled={!needsStock || !spot.restock.affordable}
         />
