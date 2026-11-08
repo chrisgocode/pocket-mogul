@@ -522,20 +522,160 @@
         padding: 5px;
         color: var(--dim);
       }
+      .phone {
+        --asset-0: #a0b3a6;
+        --asset-1: #f4cf6b;
+        --asset-2: #9ae6b3;
+        --asset-3: #849be2;
+        --asset-4: #e5a98b;
+      }
+      .wealth-head h1 {
+        font-size: 32px;
+        color: var(--gold);
+        font-variant-numeric: tabular-nums;
+        margin: 2px 0 12px;
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 16px;
+        padding: 10px 0;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+      .stats-grid b {
+        display: block;
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
+      }
+      .dense-line {
+        padding: 8px 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 12px;
+      }
+      .phone .allocation-row,
+      .phone .holding-row {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        text-align: left;
+        gap: 8px;
+      }
+      .allocation-row span:last-child,
+      .holding-row span:last-child {
+        text-align: right;
+      }
+      .dense-line small,
+      .market-row small,
+      .property-row small {
+        display: block;
+        font-size: 11px;
+        color: var(--dim);
+      }
+      .dense-line small.green,
+      .market-row small.green {
+        color: var(--green);
+      }
+      .dense-line small.red,
+      .market-row small.red {
+        color: var(--red);
+      }
+      .swatch {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        border-radius: 2px;
+        margin-right: 8px;
+      }
+      .table-head {
+        display: flex;
+        justify-content: space-between;
+        color: var(--dim);
+        font-size: 10px;
+        border-bottom: 1px solid var(--line);
+        padding: 0 0 7px;
+      }
+      .live-allocation {
+        margin: 10px 0 14px;
+        height: 7px;
+      }
+      .live-allocation i {
+        flex-shrink: 0;
+      }
+      .valuation,
+      .footnote {
+        font-size: 11px;
+        color: var(--dim);
+        margin-top: 14px;
+      }
+      .valuation p {
+        margin-top: 8px;
+      }
+      .market-row,
+      .property-row {
+        display: flex;
+        width: 100%;
+        gap: 10px;
+        align-items: center;
+        text-align: left;
+        border-bottom: 1px solid var(--line) !important;
+        padding: 12px 0;
+      }
+      .ticker-mark {
+        width: 32px;
+        height: 32px;
+        display: grid;
+        place-items: center;
+        background: var(--raised);
+        border-radius: 8px;
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .quote {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        font-size: 12px;
+      }
+      .property-row svg {
+        width: 32px;
+        height: 40px;
+        flex-shrink: 0;
+        color: var(--gold);
+      }
+      .price-heading {
+        font-size: 28px;
+        font-weight: 750;
+        margin: 12px 0;
+      }
+      .price-heading small {
+        font-size: 12px;
+      }
+      .price-chart {
+        width: 100%;
+        height: 100px;
+        color: var(--green);
+        margin: 8px 0;
+      }
+      .price-chart.negative {
+        color: var(--red);
+      }
     </style>
   </head>
   <body>
     <main class="study">
       <p class="intro">
         <b>THROWAWAY · ISSUE #82</b><br />Which layout makes twelve deep businesses feel manageable?
-        Three Vault directions, same sample state. Browser study of the native Businesses surface,
-        with Earn and Wealth for context. Figures are illustrative; no engine or save writes.
+        Five interactive tabs. Compact Wealth, market orders and property management use sample
+        data. Figures are illustrative; no engine or save writes.
       </p>
       <div class="tools">
         <select id="scenario" aria-label="Sample scenario">
           <option value="operating">Operating empire</option>
           <option value="first">First session</option>
-          <option value="attention">Needs attention</option></select
+          <option value="attention">Needs attention</option>
+          <option value="diversified">Diversified holdings</option></select
         ><button data-action="reset">Reset sample</button>
         <select id="business-art" aria-label="Business row artwork">
           <option value="illustrated">Two-tone illustrations</option>
@@ -574,7 +714,21 @@
         scenario,
         screen: 'businesses',
         filter: 'Owned',
-        cash: scenario === 'first' ? 0 : 4820,
+        cash: scenario === 'first' ? 0 : scenario === 'diversified' ? 28420 : 4820,
+        marketFilter: 'Stocks',
+        propertyFilter: 'All',
+        wealthTab: 'Summary',
+        selectedAsset: 'prism',
+        selectedProperty: 'studio',
+        orderQuantity: 1,
+        positions:
+          scenario === 'diversified'
+            ? { prism: { quantity: 10, cost: 1100 }, block: { quantity: 2, cost: 520 } }
+            : {},
+        properties: scenario === 'diversified' ? { studio: { rented: true, renovation: 0 } } : {},
+        watchlist: ['prism'],
+        realized: 0,
+        activity: [],
         treasury: scenario === 'first' ? 0 : 620,
         units: scenario === 'first' ? 1 : 3,
         capitalizedSpend: scenario === 'first' ? {} : { vending: 965, food_cart: 1250 },
@@ -584,7 +738,16 @@
         notice: '',
         confirmation: null,
       });
-      let state = makeState('operating');
+      let state = makeState(
+        ['first', 'operating', 'attention', 'diversified'].includes(query.get('scenario'))
+          ? query.get('scenario')
+          : 'diversified',
+      );
+      state.screen = ['earn', 'businesses', 'markets', 'properties', 'wealth'].includes(
+        query.get('screen'),
+      )
+        ? query.get('screen')
+        : 'wealth';
       const catalog = [
         { id: 'vending', name: 'Vending Machine', icon: '▥', price: 250, profit: 100, tier: 1 },
         { id: 'food_cart', name: 'Food Cart', icon: '♨', price: 1250, profit: 500, tier: 1 },
@@ -640,7 +803,7 @@
         return `<div class="business-visual ${businessArt}" aria-hidden="true"><svg viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${artwork[id]}</svg></div>`;
       }
       function header() {
-        return `<div class="status"><span>9:41</span><span>POCKET MOGUL &nbsp; ▰</span></div><header class="top"><div class="topline"><div><div class="eyebrow">Available cash</div><div class="cash">${money(state.cash)}</div></div><div><div class="income">+${money(income())}/min</div><div class="muted">To your cash</div></div></div><div class="goal"><span>Tier 2 ${state.scenario === 'first' ? 'locked' : 'unlocked'}</span><span class="meter"><i style="width:${state.scenario === 'first' ? 0 : 100}%"></i></span><span>◇ Goals</span></div></header>`;
+        return `<div class="status"><span>9:41</span><span>POCKET MOGUL &nbsp; ▰</span></div><header class="top"><div class="topline"><div><div class="eyebrow">Available cash</div><div class="cash">${money(state.cash)}</div></div><div><div class="income">+${money(income() + rentalIncome())}/min</div><div class="muted">To your cash</div></div></div><div class="goal"><span>Tier 2 ${state.scenario === 'first' ? 'locked' : 'unlocked'}</span><span class="meter"><i style="width:${state.scenario === 'first' ? 0 : 100}%"></i></span><span>◇ Goals</span></div></header>`;
       }
       function tabs() {
         return `<nav class="nav" aria-label="Game tabs">${[
@@ -713,11 +876,281 @@
       function earn() {
         return `${variant === 'A' ? '' : `<div class="eyebrow">Every empire starts here</div><h1>${variant === 'C' ? 'Make your first move.' : 'Make it happen.'}</h1>`}<div class="${variant === 'B' ? 'hero' : 'card'}"><span class="badge">STARTER WALLET · LEVEL 0</span><button class="wallet" data-action="tap" aria-label="Tap wallet to earn one dollar">▰</button><div class="row"><b>$1.00 / tap</b><span class="muted">Tap to earn</span></div></div><div class="notice"><h3>Next step · First Vending Machine</h3><p class="muted">${money(Math.max(0, 250 - state.cash))} to go · starts earning immediately.</p>${button(state.cash >= 250 ? 'See businesses →' : 'Keep building', 'filter:Tier 1', 'primary wide', state.cash < 250)}</div><p class="muted">Boost and wallet upgrades are outside this study.</p>`;
       }
+      const assets = [
+        {
+          id: 'prism',
+          name: 'Prism Devices',
+          symbol: 'PRSM',
+          kind: 'Stocks',
+          price: 120,
+          change: 2.4,
+          dividend: 0.12,
+        },
+        {
+          id: 'parcelvine',
+          name: 'Parcelvine Logistics',
+          symbol: 'PVLG',
+          kind: 'Stocks',
+          price: 85,
+          change: -1.2,
+          dividend: 0.085,
+        },
+        {
+          id: 'ironclad',
+          name: 'Ironclad Industries',
+          symbol: 'IRCL',
+          kind: 'Stocks',
+          price: 410,
+          change: 0.8,
+          dividend: 0.41,
+        },
+        {
+          id: 'willowbrook',
+          name: 'Willowbrook Health',
+          symbol: 'WLBH',
+          kind: 'Stocks',
+          price: 320,
+          change: 1.6,
+          dividend: 0.32,
+        },
+        {
+          id: 'block',
+          name: 'Block Crown',
+          symbol: 'BKC',
+          kind: 'Crypto',
+          price: 250,
+          change: 4.1,
+          dividend: 0,
+        },
+        {
+          id: 'ether',
+          name: 'Ember Chain',
+          symbol: 'EMB',
+          kind: 'Crypto',
+          price: 80,
+          change: -3.2,
+          dividend: 0,
+        },
+        {
+          id: 'moss',
+          name: 'Moss Network',
+          symbol: 'MOS',
+          kind: 'Crypto',
+          price: 5,
+          change: 1.9,
+          dividend: 0,
+        },
+      ];
+      const homes = [
+        { id: 'studio', name: 'City Studio', price: 20000, rent: 120, upkeep: 20 },
+        { id: 'house', name: 'Starter House', price: 80000, rent: 450, upkeep: 70 },
+        { id: 'duplex', name: 'Duplex', price: 250000, rent: 1300, upkeep: 200 },
+        { id: 'apartments', name: 'Apartment Building', price: 1000000, rent: 4800, upkeep: 800 },
+      ];
+      const assetOf = () => assets.find((a) => a.id === state.selectedAsset);
+      const homeOf = () => homes.find((h) => h.id === state.selectedProperty);
+      const homeUpgradeCost = (h) => h.price * 0.1;
+      const homeValue = (h) =>
+        h.price + (state.properties[h.id]?.renovation ?? 0) * homeUpgradeCost(h) * 0.8;
+      const homeRent = (h) => h.rent * (1 + (state.properties[h.id]?.renovation ?? 0) * 0.1);
+      const propertyWorth = () =>
+        homes.reduce((total, h) => total + (state.properties[h.id] ? homeValue(h) : 0), 0);
+      const marketWorth = () =>
+        assets.reduce((total, a) => total + (state.positions[a.id]?.quantity ?? 0) * a.price, 0);
+      const investedCost = () =>
+        Object.values(state.positions).reduce((total, p) => total + p.cost, 0);
+      const rentalIncome = () =>
+        homes.reduce(
+          (total, h) => total + (state.properties[h.id]?.rented ? homeRent(h) - h.upkeep : 0),
+          0,
+        );
+      const dividends = () =>
+        assets.reduce((total, a) => total + (state.positions[a.id]?.quantity ?? 0) * a.dividend, 0);
+      const netWorth = () => state.cash + businessWorth() + propertyWorth() + marketWorth();
+      const signedMoney = (n) => (n < 0 ? '−' : '+') + money(Math.abs(n));
+      const log = (text) => {
+        state.notice = text;
+        state.activity.unshift(text);
+      };
+      const selectedChips = (values, current, action) =>
+        `<div class="chips">${values.map((v) => button(v, action + ':' + v, current === v ? 'active' : '')).join('')}</div>`;
+      const stat = (label, value) =>
+        `<div><span class="muted">${label}</span><b>${value}</b></div>`;
       function wealth() {
-        return `${variant === 'A' ? '' : `<div class="eyebrow">The bigger picture</div><h1>${variant === 'C' ? 'Look how far you’ve come.' : 'Your wealth.'}</h1>`}<div class="${variant === 'A' ? 'metric' : 'hero'}"><span class="muted">Net worth · illustrative</span><div class="${variant === 'A' ? 'cash' : 'big gold'}">${money(state.cash + businessWorth())}</div><p class="muted">Includes cash, treasury and sample business valuations.</p></div><div class="allocation" role="img" aria-label="Illustrative allocation: businesses 55%, cash 30%, treasury 15%"><i></i><i></i><i></i></div><p class="muted">Example allocation · business 55% / cash 30% / treasury 15%</p><div class="line row"><span>Available cash</span><b>${money(state.cash)}</b></div><div class="line row"><span>Business treasuries</span><b>${money(state.treasury)}</b></div><div class="line row"><span>Income to cash</span><b class="green">+${money(income())}/min</b></div><h2>Recent activity</h2><p class="muted">${state.notice || 'No actions in this session yet.'}</p>`;
+        const unrealized = marketWorth() - investedCost();
+        const categories = [
+          ['Cash', state.cash, 'earn'],
+          ['Businesses', businessWorth(), 'businesses'],
+          [
+            'Stocks',
+            assets
+              .filter((a) => a.kind === 'Stocks')
+              .reduce((t, a) => t + (state.positions[a.id]?.quantity ?? 0) * a.price, 0),
+            'markets',
+          ],
+          [
+            'Crypto',
+            assets
+              .filter((a) => a.kind === 'Crypto')
+              .reduce((t, a) => t + (state.positions[a.id]?.quantity ?? 0) * a.price, 0),
+            'markets',
+          ],
+          ['Properties', propertyWorth(), 'properties'],
+        ];
+        return `<div class="wealth-head"><span class="muted">Net worth</span><h1>${money(netWorth())}</h1></div><div class="stats-grid">${stat('Income to cash', money(income() + rentalIncome()) + '/min')}${stat('Market value', money(marketWorth()))}${stat('Unrealized P&L', signedMoney(unrealized))}${stat('Realized P&L', signedMoney(state.realized))}</div>${selectedChips(['Summary', 'Holdings', 'Activity'], state.wealthTab, 'wealthTab')}${state.wealthTab === 'Summary' ? wealthSummary(categories) : state.wealthTab === 'Holdings' ? wealthHoldings() : `<h2>Activity</h2>${state.activity.length ? state.activity.map((text) => `<div class="dense-line">${text}</div>`).join('') : '<p class="muted">No transactions yet.</p>'}`}`;
+      }
+      function wealthSummary(categories) {
+        const total = netWorth();
+        return `<h2>Allocation</h2><div class="allocation live-allocation" role="img" aria-label="Allocation by current holding value">${categories.map(([name, value], i) => `<i style="width:${total ? (value / total) * 100 : 0}%;background:var(--asset-${i})" title="${name}: ${money(value)}"></i>`).join('')}</div><div class="table-head"><span>Asset</span><span>Value / share</span></div>${categories.map(([name, value, tab], i) => `<button class="dense-line allocation-row" data-action="category:${name}"><span><i class="swatch" style="background:var(--asset-${i})"></i>${name}</span><span><b>${money(value)}</b><small>${total ? ((value / total) * 100).toFixed(1) : '0.0'}%</small></span></button>`).join('')}<h2>Income</h2><div class="dense-line row"><span>Business payouts</span><b>${money(income())}/min</b></div><div class="dense-line row"><span>Net rent</span><b>${money(rentalIncome())}/min</b></div><div class="dense-line row"><span>Dividends</span><b>${money(dividends())}/hour</b></div><details class="valuation"><summary>Valuation basis</summary><p>Cash + private business investment and treasury + properties + market holdings. Listed business stakes count at market value once. No pending dividends in this sample.</p></details>`;
+      }
+      function wealthHoldings() {
+        return `<h2>Businesses</h2>${
+          catalog
+            .filter((b) => owned(b.id))
+            .map(
+              (b) =>
+                `<button class="dense-line allocation-row" data-action="open:${b.id}"><span>${b.name}</span><b>${money((state.capitalizedSpend[b.id] ?? 0) + (b.id === 'vending' ? state.treasury : 0))}</b></button>`,
+            )
+            .join('') || '<p class="muted">None owned.</p>'
+        }<h2>Market positions</h2>${
+          assets
+            .filter((a) => state.positions[a.id])
+            .map((a) => {
+              const p = state.positions[a.id];
+              return `<button class="dense-line holding-row" data-action="asset:${a.id}"><span><b>${a.symbol} · ${p.quantity}</b><small>Avg ${money(p.cost / p.quantity)}</small></span><span><b>${money(p.quantity * a.price)}</b><small class="${p.quantity * a.price >= p.cost ? 'green' : 'red'}">${signedMoney(p.quantity * a.price - p.cost)}</small></span></button>`;
+            })
+            .join('') || '<p class="muted">No market positions.</p>'
+        }<h2>Properties</h2>${
+          homes
+            .filter((h) => state.properties[h.id])
+            .map(
+              (h) =>
+                `<button class="dense-line allocation-row" data-action="property:${h.id}"><span>${h.name}</span><b>${money(homeValue(h))}</b></button>`,
+            )
+            .join('') || '<p class="muted">None owned.</p>'
+        }`;
+      }
+      function markets() {
+        const list = assets.filter((a) =>
+          state.marketFilter === 'Watchlist'
+            ? state.watchlist.includes(a.id)
+            : a.kind === state.marketFilter,
+        );
+        return `<div class="wealth-head"><span class="muted">Market holdings</span><h1>${money(marketWorth())}</h1></div><div class="row"><span class="muted">Unrealized P&L</span><b class="${marketWorth() >= investedCost() ? 'green' : 'red'}">${signedMoney(marketWorth() - investedCost())}</b></div>${selectedChips(['Stocks', 'Crypto', 'Watchlist'], state.marketFilter, 'marketFilter')}<div class="table-head"><span>Asset</span><span>Price / 24h</span></div>${list.map((a) => `<button class="market-row" data-action="asset:${a.id}"><span class="ticker-mark">${a.symbol.slice(0, 2)}</span><span class="name"><b>${a.symbol}</b><small>${a.name}</small></span><span class="quote"><b>${money(a.price)}</b><small class="${a.change >= 0 ? 'green' : 'red'}">${a.change >= 0 ? '+' : ''}${a.change.toFixed(1)}%</small></span></button>`).join('') || '<p class="muted">No watched assets.</p>'}<p class="footnote">All companies and coins are fictional.</p>`;
+      }
+      function assetDetail() {
+        const a = assetOf(),
+          p = state.positions[a.id];
+        return `${button('← Markets', 'tab:markets', 'back')}<div class="row"><div><h2>${a.name}</h2><span class="muted">${a.symbol} · ${a.kind}</span></div>${button(state.watchlist.includes(a.id) ? '★' : '☆', 'watch', 'secondary')}</div><div class="price-heading">${money(a.price)} <small class="${a.change >= 0 ? 'green' : 'red'}">${a.change >= 0 ? '+' : ''}${a.change}% / 24h</small></div><svg class="price-chart ${a.change < 0 ? 'negative' : ''}" viewBox="0 0 320 90" role="img" aria-label="Illustrative price history; current sample price ${money(a.price)}"><g transform="${a.change < 0 ? 'translate(0 90) scale(1 -1)' : ''}"><path d="M0 72L20 67L40 73L60 48L80 53L100 39L120 44L140 26L160 40L180 30L200 35L220 15L240 28L260 10L280 18L320 8" fill="none" stroke="currentColor" stroke-width="2"/></g></svg><p class="muted">24h sample · ${a.change >= 0 ? '+' : ''}${a.change}%</p><div class="stats-grid">${stat('Quantity', p?.quantity ?? 0)}${stat('Average cost', p ? money(p.cost / p.quantity) : '—')}${stat('Position value', money((p?.quantity ?? 0) * a.price))}${stat('Unrealized P&L', signedMoney((p?.quantity ?? 0) * a.price - (p?.cost ?? 0)))}</div><h2>Order quantity</h2>${selectedChips(['1', '10'], String(state.orderQuantity), 'quantity')}<div class="split">${button('Buy · ' + money(a.price * state.orderQuantity), 'trade:buy', 'primary', !state.owned.length)}${button('Sell · ' + money(a.price * state.orderQuantity), 'trade:sell', 'secondary', !p || p.quantity < state.orderQuantity)}</div>${!state.owned.length ? '<p class="footnote">Trading unlocks with your first business.</p>' : ''}<div class="dense-line row"><span>Dividend / share</span><b>${money(a.dividend)}/hour</b></div>`;
+      }
+      function properties() {
+        const list = homes.filter(
+          (h) => state.propertyFilter !== 'Owned' || state.properties[h.id],
+        );
+        return `<div class="wealth-head"><span class="muted">Property value</span><h1>${money(propertyWorth())}</h1></div><div class="row"><span class="muted">${Object.keys(state.properties).length} owned</span><b class="green">${money(rentalIncome())}/min net rent</b></div>${selectedChips(['All', 'Owned'], state.propertyFilter, 'propertyFilter')}${list.map((h) => `<button class="property-row" data-action="property:${h.id}"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 23L24 8l18 15M11 20v22h26V20M20 42V29h9v13M16 23h3m10 0h3" fill="none" stroke="currentColor" stroke-width="2"/></svg><span class="name"><b>${h.name}</b><small>${state.properties[h.id] ? (state.properties[h.id].rented ? 'Rented' : 'Vacant') : 'Available'} · ${money(h.rent - h.upkeep)}/min base net</small></span><span class="quote"><b>${money(state.properties[h.id] ? homeValue(h) : h.price)}</b><small>View →</small></span></button>`).join('') || '<p class="muted">No properties owned.</p>'}`;
+      }
+      function propertyDetail() {
+        const h = homeOf(),
+          p = state.properties[h.id];
+        return `${button('← Properties', 'tab:properties', 'back')}<h2>${h.name}</h2><div class="price-heading">${money(p ? homeValue(h) : h.price)}</div><div class="stats-grid">${stat('Gross rent', money(homeRent(h)) + '/min')}${stat('Upkeep while rented', money(h.upkeep) + '/min')}${stat('Net rent', money(homeRent(h) - h.upkeep) + '/min')}${stat('Status', p ? (p.rented ? 'Rented' : 'Vacant') : 'Available')}</div>${p ? `${button(p.rented ? 'Stop renting' : 'Rent out', 'rent', 'primary wide')}<h2>Renovation</h2><div class="dense-line row"><span>Level ${p.renovation} / 1</span><b>+${money(h.rent * 0.1)}/min</b></div>${button('Renovate · ' + money(homeUpgradeCost(h)) + ' cash', 'renovate', 'secondary wide', p.renovation === 1 || state.cash < homeUpgradeCost(h))}<p class="footnote">Value +${money(homeUpgradeCost(h) * 0.8)} · upkeep unchanged.</p>${button('Sell · ' + money(homeValue(h) * 0.95), 'propertySell', 'wide red')}` : button('Buy · ' + money(h.price), 'propertyBuy', 'primary wide', state.cash < h.price)}`;
+      }
+      function transactionSheet() {
+        const kind = state.confirmation;
+        if (!['tradeBuy', 'tradeSell', 'propertyBuy', 'propertySell'].includes(kind)) return '';
+        const trade = kind.startsWith('trade'),
+          buy = kind.endsWith('Buy'),
+          a = assetOf(),
+          h = homeOf();
+        const gross = trade ? a.price * state.orderQuantity : buy ? h.price : homeValue(h) * 0.95;
+        const fee = trade ? gross * (a.kind === 'Crypto' ? 0.02 : 0.01) : 0;
+        const total = buy ? gross + fee : gross - fee;
+        return `<div class="sheet" role="dialog" aria-label="Review transaction"><h3>${buy ? 'Buy' : 'Sell'} ${trade ? state.orderQuantity + ' ' + a.symbol : h.name}</h3><div class="dense-line row"><span>Cash ${buy ? 'cost' : 'received'}</span><b>${money(total)}</b></div>${trade ? `<p class="muted">Fee ${money(fee)} · holdings after: ${(state.positions[a.id]?.quantity ?? 0) + (buy ? state.orderQuantity : -state.orderQuantity)}</p>` : `<p class="muted">${buy ? 'Becomes owned and vacant; rent is $0 until rented.' : 'Ownership and rental income are removed.'}</p>`}<p class="muted">Cash after: ${money(state.cash + (buy ? -total : total))}</p><div class="split">${button('Cancel', 'cancel')}${button('Confirm', 'confirm', 'primary', buy && state.cash < total)}</div></div>`;
+      }
+      function confirmAssetTransaction() {
+        const kind = state.confirmation,
+          a = assetOf(),
+          h = homeOf();
+        if (kind === 'propertyBuy' && state.cash >= h.price) {
+          state.cash -= h.price;
+          state.properties[h.id] = { rented: false, renovation: 0 };
+          log(h.name + ' bought · ' + money(h.price));
+        }
+        if (kind === 'propertySell' && state.properties[h.id]) {
+          state.cash += homeValue(h) * 0.95;
+          delete state.properties[h.id];
+          log(h.name + ' sold');
+        }
+        if (kind === 'tradeBuy' || kind === 'tradeSell') {
+          const qty = state.orderQuantity,
+            gross = qty * a.price,
+            fee = gross * (a.kind === 'Crypto' ? 0.02 : 0.01),
+            p = state.positions[a.id] ?? { quantity: 0, cost: 0 };
+          if (kind === 'tradeBuy' && state.owned.length && state.cash >= gross + fee) {
+            state.cash -= gross + fee;
+            state.positions[a.id] = { quantity: p.quantity + qty, cost: p.cost + gross + fee };
+            log('Bought ' + qty + ' ' + a.symbol + ' · ' + money(gross + fee));
+          }
+          if (kind === 'tradeSell' && p.quantity >= qty) {
+            const basis = (p.cost * qty) / p.quantity;
+            state.cash += gross - fee;
+            state.realized += gross - fee - basis;
+            state.positions[a.id] = { quantity: p.quantity - qty, cost: p.cost - basis };
+            if (state.positions[a.id].quantity === 0) delete state.positions[a.id];
+            log('Sold ' + qty + ' ' + a.symbol + ' · ' + money(gross - fee));
+          }
+        }
+        state.confirmation = null;
+      }
+      function navigateSample(type, value) {
+        if (type === 'marketFilter') state.marketFilter = value;
+        if (type === 'propertyFilter') state.propertyFilter = value;
+        if (type === 'wealthTab') state.wealthTab = value;
+        if (type === 'quantity') state.orderQuantity = Number(value);
+        if (type === 'asset') {
+          state.selectedAsset = value;
+          state.screen = 'asset';
+          state.orderQuantity = 1;
+        }
+        if (type === 'property') {
+          state.selectedProperty = value;
+          state.screen = 'property';
+        }
+        if (type === 'category') {
+          state.screen = {
+            Cash: 'earn',
+            Businesses: 'businesses',
+            Stocks: 'markets',
+            Crypto: 'markets',
+            Properties: 'properties',
+          }[value];
+          if (value === 'Stocks' || value === 'Crypto') state.marketFilter = value;
+        }
+        if (type === 'watch') {
+          const id = assetOf().id;
+          state.watchlist = state.watchlist.includes(id)
+            ? state.watchlist.filter((x) => x !== id)
+            : [...state.watchlist, id];
+        }
+        if (type === 'trade') state.confirmation = value === 'buy' ? 'tradeBuy' : 'tradeSell';
+        if (type === 'propertyBuy' || type === 'propertySell') state.confirmation = type;
+        if (type === 'rent') {
+          const p = state.properties[homeOf().id];
+          p.rented = !p.rented;
+          log(homeOf().name + (p.rented ? ' rented' : ' vacated'));
+        }
+        if (type === 'renovate') {
+          const p = state.properties[homeOf().id];
+          if (p && p.renovation === 0 && state.cash >= homeUpgradeCost(homeOf())) {
+            state.cash -= homeUpgradeCost(homeOf());
+            p.renovation = 1;
+            log(homeOf().name + ' renovated · ' + money(homeUpgradeCost(homeOf())));
+          }
+        }
       }
       function sheet() {
         if (!state.confirmation) return '';
+        if (['tradeBuy', 'tradeSell', 'propertyBuy', 'propertySell'].includes(state.confirmation))
+          return transactionSheet();
         const withdraw = state.confirmation === 'withdraw';
         return `<div class="sheet" role="dialog" aria-label="Review transaction"><h3>${withdraw ? 'Withdraw the whole treasury?' : 'Sell Vending Machine?'}</h3><p class="muted">${withdraw ? money(state.treasury) + ' to cash; treasury becomes $0.00. Ownership and income unchanged.' : 'Sample sale value $150 plus remaining treasury to cash. You lose this business and its income.'}</p><div class="split">${button('Cancel', 'cancel')}${button('Confirm', 'confirm', 'primary')}</div></div>`;
       }
@@ -725,7 +1158,7 @@
         document.getElementById('phone').innerHTML =
           header() +
           (state.notice ? `<div class="toast" role="status">${state.notice}</div>` : '') +
-          `<div class="content">${sheet()}${state.screen === 'detail' ? detail() : state.screen === 'earn' ? earn() : state.screen === 'wealth' ? wealth() : { A: variantA, B: variantB, C: variantC }[variant]()}</div>` +
+          `<div class="content">${sheet()}${state.screen === 'detail' ? detail() : state.screen === 'earn' ? earn() : state.screen === 'wealth' ? wealth() : state.screen === 'markets' ? markets() : state.screen === 'asset' ? assetDetail() : state.screen === 'properties' ? properties() : state.screen === 'property' ? propertyDetail() : { A: variantA, B: variantB, C: variantC }[variant]()}</div>` +
           (state.screen === 'detail' ? '' : tabs());
         document.getElementById('variant-label').textContent = variant + ' · ' + names[variant];
         document.getElementById('hypothesis').textContent = hypotheses[variant];
@@ -776,6 +1209,10 @@
         }
       }
       function confirm() {
+        if (['tradeBuy', 'tradeSell', 'propertyBuy', 'propertySell'].includes(state.confirmation)) {
+          confirmAssetTransaction();
+          return;
+        }
         if (state.confirmation === 'withdraw') {
           state.cash += state.treasury;
           state.treasury = 0;
@@ -798,13 +1235,14 @@
         }
         if (type === 'reset') state = makeState(state.scenario);
         if (type === 'tab') {
-          if (value === 'markets' || value === 'properties') {
-            state.notice = 'This study focuses on Earn, Businesses and Wealth.';
-          } else {
-            state.screen = value;
-            state.confirmation = null;
-          }
+          state.screen = value;
+          state.confirmation = null;
+          state.notice = '';
+          const url = new URL(location.href);
+          url.searchParams.set('screen', value);
+          history.replaceState(null, '', url);
         }
+        navigateSample(type, value);
         if (type === 'filter') {
           state.screen = 'businesses';
           state.filter = value;
@@ -830,6 +1268,8 @@
         if (type === 'cancel') state.confirmation = null;
         if (type === 'confirm') confirm();
         transact(type);
+        if (state.notice && state.activity[0] !== state.notice)
+          state.activity.unshift(state.notice);
         render();
       }
       document.addEventListener('click', (event) => {
@@ -845,7 +1285,16 @@
           render();
         }
         if (event.target.id === 'scenario') {
+          const tab = ['earn', 'businesses', 'markets', 'properties', 'wealth'].includes(
+            state.screen,
+          )
+            ? state.screen
+            : 'wealth';
           state = makeState(event.target.value);
+          state.screen = tab;
+          const url = new URL(location.href);
+          url.searchParams.set('scenario', state.scenario);
+          history.replaceState(null, '', url);
           render();
         }
         if (event.target.id === 'payout') {
@@ -862,6 +1311,7 @@
         }
       });
       if (query.get('mode') === 'production') document.querySelector('.switcher').hidden = true;
+      document.getElementById('scenario').value = state.scenario;
       document.getElementById('business-art').value = businessArt;
       render();
     </script>
