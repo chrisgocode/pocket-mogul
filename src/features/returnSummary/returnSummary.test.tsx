@@ -1,7 +1,7 @@
 import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
 import type { OpenedGame } from '@/application/game';
-import { getContent, type Content } from '@/content';
+import { CURRENT_ECONOMY_VERSION, getContent, type Content } from '@/content';
 import {
   startTestGameFrom,
   withBusinessCosts,
@@ -20,7 +20,11 @@ let mockGame: Promise<OpenedGame>;
 jest.mock('@/bootstrap/deviceGame', () => ({ loadDeviceGame: () => mockGame }));
 
 const withVending: GameState = {
-  ...freshGameState({ saveId: 'owner', economyVersion: 1, wallMs: 1_800_000_000_000 }),
+  ...freshGameState({
+    saveId: 'owner',
+    economyVersion: CURRENT_ECONOMY_VERSION,
+    wallMs: 1_800_000_000_000,
+  }),
   businesses: [ownedBusiness('vending')],
 };
 

@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import type { GameCommand } from '@/domain/commands';
 import { dollars } from '@/domain/money';
@@ -11,7 +12,11 @@ const LEFT_AT_MS = 1_800_000_000_000;
 
 function startWith(business: ReturnType<typeof vendingBusiness>): Promise<TestGame> {
   const state: GameState = {
-    ...freshGameState({ saveId: 'vending', economyVersion: 1, wallMs: LEFT_AT_MS }),
+    ...freshGameState({
+      saveId: 'vending',
+      economyVersion: CURRENT_ECONOMY_VERSION,
+      wallMs: LEFT_AT_MS,
+    }),
     businesses: [business],
   };
   return startTestGameFrom(state);

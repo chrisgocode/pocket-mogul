@@ -1,4 +1,4 @@
-import { getContent } from '@/content';
+import { CURRENT_ECONOMY_VERSION, getContent } from '@/content';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars, dollarPrice, units } from '@/domain/money';
 import { ownedBusiness } from '@/domain/testRules';
@@ -8,7 +8,11 @@ import { selectStockQuotes } from './marketsView';
 import { startTestGameFrom } from './testGame';
 
 const listed: GameState = {
-  ...freshGameState({ saveId: 'valuation', economyVersion: 1, wallMs: 1_800_000_000_000 }),
+  ...freshGameState({
+    saveId: 'valuation',
+    economyVersion: CURRENT_ECONOMY_VERSION,
+    wallMs: 1_800_000_000_000,
+  }),
   cashCents: dollars('1000000'),
   tradingUnlocked: true,
   market: {
@@ -55,7 +59,7 @@ describe('listed valuation', () => {
     ).toBe(dollarPrice('2'));
   });
 
-  it('sells the retained stake at market price plus its share of treasury', async () => {
+  it('sells the retained stake after its stock fee with Treasury counted once', async () => {
     const session = await startTestGameFrom(listed);
     expect(
       await session.game.dispatch({
@@ -65,7 +69,7 @@ describe('listed valuation', () => {
           businessId: 'coffee_kiosk',
         },
       }),
-    ).toMatchObject({ ok: true, cashChangeCents: dollars('1600800') });
+    ).toMatchObject({ ok: true, cashChangeCents: dollars('1596000') });
     expect(session.game.getSnapshot().state.businesses).toEqual([]);
     expect(session.game.getSnapshot().state.positions).toEqual([]);
   });

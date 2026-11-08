@@ -2,7 +2,7 @@ import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 import { ownedBusiness } from '@/domain/testRules';
 
-import { getContent } from '@/content';
+import { CURRENT_ECONOMY_VERSION, getContent } from '@/content';
 
 import {
   deferred,
@@ -16,7 +16,11 @@ const HOUR_MS = 3_600_000;
 const LEFT_AT_MS = 1_800_000_000_000;
 
 const withVending: GameState = {
-  ...freshGameState({ saveId: 'owner', economyVersion: 1, wallMs: LEFT_AT_MS }),
+  ...freshGameState({
+    saveId: 'owner',
+    economyVersion: CURRENT_ECONOMY_VERSION,
+    wallMs: LEFT_AT_MS,
+  }),
   businesses: [ownedBusiness('vending')],
 };
 

@@ -1,3 +1,7 @@
+import { revalueChangedListings } from './listingMarket';
+import { withCommandTax } from '@/domain/tax/commandAccounting';
+import { fileTaxReturn } from '@/domain/tax/filing';
+import { collectTaxDebt, taxRestricted } from '@/domain/tax/collection';
 import { applyGoPublic } from '@/domain/business/listingCommands';
 import type { Content } from '@/content';
 import { applyActivateBoost, applyRecordAdReward } from '@/domain/boost';
@@ -65,6 +69,14 @@ type CommandHandlers = {
 };
 
 const COMMAND_HANDLERS: CommandHandlers = {
+  FileTaxReturn: (state, command, content) =>
+    content.economy.taxes === undefined
+      ? { ok: false, error: 'TAX_RETURN_UNAVAILABLE' }
+      : fileTaxReturn(state, { ...command, rules: content.economy.taxes }),
+  PayTaxDebt: (state, command) => {
+    const paid = collectTaxDebt(state, command.amountCents);
+    return { ok: true, state: paid, cashChangeCents: moneyCents(paid.cashCents - state.cashCents) };
+  },
   TapBatch: (state, command, content) => {
     const multiplier = command.boosted === true ? content.economy.boost.tapMultiplier : 1;
     const paid = applyTapBatch(state, {
@@ -157,7 +169,14 @@ const COMMAND_HANDLERS: CommandHandlers = {
   SettleOffline: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),
   AcknowledgeReturnSummary: (state) => ({
     ok: true,
-    state: { ...state, returnSummary: { status: 'none' } },
+    state: {
+      ...state,
+      returnSummary: { status: 'none' },
+      tax:
+        state.tax.status === 'notStarted'
+          ? state.tax
+          : { ...state.tax, absence: { status: 'none' } },
+    },
     cashChangeCents: moneyCents(0),
   }),
   SkipTutorial: (state) => applySkipTutorial(state),
@@ -169,5 +188,49 @@ export function applyCommand<Type extends keyof CommandsByType>(
   command: { type: Type; payload: CommandsByType[Type] },
   content: Content,
 ): CommandResult {
-  return COMMAND_HANDLERS[command.type](state, command.payload, content);
+  if (staleTaxQuote(state, command.payload)) return { ok: false, error: 'STALE_QUOTE' };
+  if (taxRestricted(state.tax) && restrictedInvestment(command.payload))
+    return { ok: false, error: 'TAX_ACTION_REQUIRED' };
+  const result = withCommandTax(state, {
+    result: COMMAND_HANDLERS[command.type](state, command.payload, content),
+    command: command.payload,
+    economy: {
+      dayMs: content.economy.businessRules.dayMs,
+      trades: tradeEconomy(content, state),
+      rules: content.economy.taxes,
+    },
+  });
+  return result.ok
+    ? { ...result, state: revalueChangedListings(state, result.state, content) }
+    : result;
+}
+
+const INVESTMENTS = new Set<GameCommand['type']>([
+  'BuyBusiness',
+  'BuyProperty',
+  'BuyUnit',
+  'UpgradeBusiness',
+  'UpgradeProperty',
+  'UpgradeStage',
+  'UpgradeWallet',
+  'HireStaff',
+  'GoPublic',
+  'MakeTakeoverOffer',
+  'InstallCardReaders',
+  'InstallDetailing',
+  'InstallSortingHub',
+]);
+
+function restrictedInvestment(command: GameCommand): boolean {
+  return (
+    INVESTMENTS.has(command.type) || (command.type === 'ExecuteTrade' && command.side === 'buy')
+  );
+}
+
+function staleTaxQuote(state: GameState, command: GameCommand): boolean {
+  return (
+    'quotedRevision' in command &&
+    command.quotedRevision !== undefined &&
+    command.quotedRevision !== state.revision
+  );
 }

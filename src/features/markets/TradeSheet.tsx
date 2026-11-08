@@ -1,3 +1,4 @@
+import { TradeTaxLines } from './TradeTaxLines';
 import { Button } from '@/ui/Button';
 import { DetailLine } from '@/ui/DetailLine';
 import { KeyboardSheet } from '@/ui/KeyboardSheet';
@@ -31,6 +32,7 @@ export function TradeSheet({ name, sheet }: { name: string; sheet: TradeSheetCon
         : quoteLines(quoted, { tick: ticket.tick, units: sheet.units }).map((line) => (
             <DetailLine key={line.label} {...line} />
           ))}
+      <TradeTaxLines sheet={sheet} />
       <TradeNotices sheet={sheet} />
       <Button
         label={primaryLabel(sheet)}

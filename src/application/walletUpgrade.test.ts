@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { freshGameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 
@@ -58,7 +59,11 @@ describe('upgrading the wallet', () => {
   });
 
   it('refuses to go past level 100 (MAX_LEVEL)', async () => {
-    const fresh = freshGameState({ saveId: 'maxed', economyVersion: 1, wallMs: 0 });
+    const fresh = freshGameState({
+      saveId: 'maxed',
+      economyVersion: CURRENT_ECONOMY_VERSION,
+      wallMs: 0,
+    });
     const { game } = await startTestGameFrom({
       ...fresh,
       cashCents: dollars('1000000000'),

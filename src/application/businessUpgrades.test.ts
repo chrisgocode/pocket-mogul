@@ -1,4 +1,4 @@
-import { getContent, type Content } from '@/content';
+import { CURRENT_ECONOMY_VERSION, getContent, type Content } from '@/content';
 import type { GameCommand } from '@/domain/commands';
 import { freshGameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
@@ -20,7 +20,7 @@ async function owningVending(
 ): Promise<TestGame> {
   return startTestGameFrom(
     {
-      ...freshGameState({ saveId: 'saver', economyVersion: 1, wallMs: 0 }),
+      ...freshGameState({ saveId: 'saver', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
       cashCents: dollars(change.cash ?? '0'),
       businesses: [
         ownedBusiness(businessId, {

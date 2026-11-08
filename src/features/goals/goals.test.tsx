@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
 import type { OpenedGame } from '@/application/game';
@@ -12,7 +13,11 @@ let session: TestGame;
 
 beforeEach(async () => {
   session = await startTestGameFrom({
-    ...freshGameState({ saveId: 'goals-screen', economyVersion: 1, wallMs: 0 }),
+    ...freshGameState({
+      saveId: 'goals-screen',
+      economyVersion: CURRENT_ECONOMY_VERSION,
+      wallMs: 0,
+    }),
     cashCents: dollars('250'),
   });
   mockGame = Promise.resolve({ status: 'ready', game: session.game });

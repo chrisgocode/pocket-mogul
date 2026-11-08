@@ -1,3 +1,4 @@
+import { commitTaxEntitlement, type TaxEntitlementPort } from './taxEntitlement';
 import type { Content } from '@/content';
 import type { NaturalBreak } from '@/domain/adSchedule';
 import type { ActivityEntry } from '@/domain/activity';
@@ -32,6 +33,7 @@ export type GamePorts = {
   beforeWarmReturnSummary?: () => Promise<void>;
   telemetry?: TelemetryPort;
   saveFormat?: SaveFormat;
+  taxEntitlement?: TaxEntitlementPort;
 };
 
 export type GameSnapshot = {
@@ -61,6 +63,7 @@ export type Game = {
   resume: () => Promise<void>;
   createCommandId: () => string;
   dismissNotice: () => void;
+  restoreTaxExemption: () => Promise<CommandOutcome>;
   resetSave: (attemptId: string) => Promise<CommandOutcome>;
   readMarketHistory: (assetId: string) => Promise<AssetHistory>;
   readActivity: () => Promise<readonly ActivityEntry[]>;
@@ -101,6 +104,7 @@ function saveControls(ports: GamePorts, game: { core: Committer; flushTaps: () =
         commitReset(ports, { attemptId, current, wallMs }),
       );
       if (outcome.ok) {
+        await restoreEntitlement(ports, core);
         core.history.reload();
         core.activity.reload();
       }
@@ -144,8 +148,7 @@ async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
   const core = committer(ports, opened);
   const wallMs = ports.clock.wallMs();
   await core.backUp({ revision: opened.state.revision, wallMs });
-  const offline = offlineSettlement(ports, core);
-  await offline.onLaunch();
+  const { offline, restoreTaxExemption } = await beginOffline(ports, core);
   const { dispatch, tap, flushTaps } = gameTaps({
     ...core,
     clock: ports.clock,
@@ -165,6 +168,7 @@ async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
     refresh: refreshWhileEarning(core),
   });
   return {
+    restoreTaxExemption,
     getSnapshot: core.snapshots.get,
     subscribe: core.snapshots.subscribe,
     subscribeEvents: core.events.subscribe,
@@ -195,3 +199,28 @@ export async function createGame(ports: GamePorts): Promise<OpenedGame> {
 }
 
 export type { Committer } from './gameCommitter';
+
+async function restoreEntitlement(ports: GamePorts, core: Committer): Promise<CommandOutcome> {
+  if (ports.taxEntitlement === undefined) return { ok: false, error: 'TAX_RETURN_UNAVAILABLE' };
+  try {
+    const entitlement = await ports.taxEntitlement.current();
+    if (entitlement.status === 'revoked') {
+      const settled = await core.run({
+        id: `tax-reconcile-${ports.createId()}`,
+        command: { type: 'SettleOffline' },
+      });
+      if (!settled.ok) return settled;
+    }
+    return core.commit((current) => commitTaxEntitlement(ports, { current, entitlement }));
+  } catch {
+    return { ok: false, error: 'SAVE_FAILED' };
+  }
+}
+
+async function beginOffline(ports: GamePorts, core: Committer) {
+  const restoreTaxExemption = () => restoreEntitlement(ports, core);
+  await restoreTaxExemption();
+  const offline = offlineSettlement(ports, core);
+  await offline.onLaunch();
+  return { offline, restoreTaxExemption };
+}

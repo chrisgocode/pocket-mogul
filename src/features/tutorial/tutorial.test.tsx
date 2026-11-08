@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
 import type { OpenedGame } from '@/application/game';
@@ -47,7 +48,7 @@ describe('the tutorial on Businesses', () => {
   it('points at the first business once the wallet is upgraded', async () => {
     const saved = freshGameState({
       saveId: 'step-3',
-      economyVersion: 1,
+      economyVersion: CURRENT_ECONOMY_VERSION,
       wallMs: 1_800_000_000_000,
     });
     const session = await startTestGameFrom({

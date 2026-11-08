@@ -1,3 +1,7 @@
+import { hasFinancialReview } from './reviewedCommands';
+import { withTaxAbsence } from './taxOffline';
+import { advanceTaxTime } from './taxTime';
+import { activateTaxes } from './taxActivation';
 import { listingValuesAt } from './listingMarket';
 import type { Content } from '@/content';
 import { consumeBoostTime, isBoostActive, rewardChange, type RewardChange } from '@/domain/boost';
@@ -13,7 +17,6 @@ import { withCompletedGoals } from '@/domain/goals';
 import { advanceMarket, type MarketHistory } from '@/domain/market';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 import { settleOffline, type WallClockReading } from '@/domain/offline';
-import { advanceTime } from '@/domain/passiveIncome';
 import { withProgress } from '@/domain/progression';
 import { newTutorialSteps, withTutorialProgress, type TutorialStep } from '@/domain/tutorial';
 
@@ -54,6 +57,7 @@ type TimeStep = {
   readonly earnedCents: MoneyCents;
   readonly wallClock: WallClockReading;
   readonly passed: PassedTime;
+  readonly history?: MarketHistory;
 };
 
 function withMarket(
@@ -70,7 +74,18 @@ function withMarket(
       listingValuesAt: listingValuesAt(previous, content),
     },
   });
-  return { ...step, state: { ...state, market }, history };
+  return {
+    ...step,
+    state: { ...state, market },
+    history:
+      step.history === undefined
+        ? history
+        : {
+            ...history,
+            minutes: [...step.history.minutes, ...history.minutes],
+            hours: [...step.history.hours, ...history.hours],
+          },
+  };
 }
 
 function passTime(
@@ -80,13 +95,23 @@ function passTime(
   const economy = passiveEconomy(step.content);
   if (step.command.type === 'SettleOffline') {
     const capMs = step.content.economy.time.offlineCapMs;
-    const settled = settleOffline(state, { wallMs: step.time.wallMs, capMs, economy });
+    const settled = settleOffline(state, {
+      wallMs: step.time.wallMs,
+      capMs,
+      economy,
+      advance: (current, span) => advanceTaxTime(current, { ...span, content: step.content }),
+    });
     const { absence, closures, incidents } = settled;
     const passed = { earnings: absence.earnings, absence, closures, incidents };
-    return { ...settled, wallClock: settled.clock, passed };
+    return {
+      ...settled,
+      state: withTaxAbsence(state, settled.state),
+      wallClock: settled.clock,
+      passed,
+    };
   }
   const { elapsedMs, boostElapsedMs, wallMs } = step.time;
-  const advanced = advanceTime(state, { elapsedMs, wallMs, economy });
+  const advanced = advanceTaxTime(state, { elapsedMs, wallMs, content: step.content });
   const boosted = consumeBoostTime(advanced.state, boostElapsedMs);
   const { earnings, closures, incidents } = advanced;
   const passed = { earnings, absence: undefined, closures, incidents };
@@ -137,13 +162,18 @@ export function applyEnvelope(
   if (valid === undefined) return { outcome: { ok: false, error: 'INVALID_QUANTITY' } };
   const command = boostedOnlyIfActive(valid, state);
   const { content } = change.economies;
+  if (hasFinancialReview(command))
+    return applyReviewedCommand(state, { command, content, time: change.time });
   const settling = contentAt(change.economies, state.economyVersion);
   const advanced = withMarket(
     passTime(state, { command, time: change.time, content: settling }),
     settling,
     state,
   );
-  const adopted = { ...advanced.state, economyVersion: content.economyVersion };
+  const adopted = activateTaxes(
+    { ...advanced.state, economyVersion: content.economyVersion },
+    content,
+  );
   const progressed = withProgress(adopted, progressRules(content));
   const result = applyCommand(progressed, { type: command.type, payload: command }, content);
   if (!result.ok) return { outcome: result };
@@ -197,4 +227,41 @@ export async function commitCommand(
   } catch {
     return { outcome: { ok: false, error: 'SAVE_FAILED' } };
   }
+}
+
+function applyReviewedCommand(
+  state: GameState,
+  step: { command: GameCommand; content: Content; time: CommandTime },
+): Committed {
+  const { command, content, time } = step;
+  const expiresAt = (state.market.tick + 1) * content.economy.market.tickMs;
+  if (
+    state.economyVersion !== content.economyVersion ||
+    state.clock.simulationMs + time.elapsedMs >= expiresAt
+  )
+    return { outcome: { ok: false, error: 'STALE_QUOTE' } };
+  const result = applyCommand(state, { type: command.type, payload: command }, content);
+  if (!result.ok) return { outcome: result };
+  const advanced = withMarket(
+    passTime(result.state, { command, content, time }),
+    content,
+    result.state,
+  );
+  const next = finish(state, {
+    command,
+    content,
+    advanced,
+    progressed: state,
+    result: { ...result, state: advanced.state },
+  });
+  return {
+    ...next,
+    outcome: {
+      ok: true,
+      revision: next.state.revision,
+      cashChangeCents: moneyCents(result.cashChangeCents + advanced.earnedCents),
+    },
+    wallClock: advanced.wallClock,
+    history: advanced.history,
+  };
 }

@@ -1,3 +1,4 @@
+import { TaxIncomeNote } from '@/features/taxes/TaxIncomeNote';
 import type { MoneyCents } from '@/domain/money';
 import { useMoneyFormat } from '@/features/game/useMoneyFormat';
 import { Card } from '@/ui/Card';
@@ -23,8 +24,9 @@ export function HomeCashCard({
         {cash}
       </AppText>
       <AppText muted>
-        {format.money(perTapCents)} per tap · {format.rate(passivePerMinuteCents)} net passive
+        {format.money(perTapCents)} per tap · {format.rate(passivePerMinuteCents)} passive cash
       </AppText>
+      <TaxIncomeNote />
     </Card>
   );
 }

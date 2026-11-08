@@ -21,9 +21,18 @@ export function ConfirmationDetails({
         {title}
       </AppText>
       {lines.map((line) => (
-        <View key={line.label} style={styles.line}>
-          <AppText muted>{line.label}</AppText>
-          <AppText variant="number">{line.value}</AppText>
+        <View
+          key={line.label}
+          style={styles.line}
+          accessible
+          accessibilityLabel={`${line.label}, ${line.value}`}
+        >
+          <AppText muted style={styles.label}>
+            {line.label}
+          </AppText>
+          <AppText variant="number" style={styles.value}>
+            {line.value}
+          </AppText>
         </View>
       ))}
       {confirmation.status === 'failed' ? (
@@ -37,5 +46,7 @@ export function ConfirmationDetails({
 
 const styles = StyleSheet.create({
   line: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
+  label: { flexShrink: 1 },
+  value: { flexShrink: 1, textAlign: 'right' },
   error: { color: colors.loss },
 });

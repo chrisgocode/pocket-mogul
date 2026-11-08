@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import type { TradeSide } from '@/domain/tradeQuotes';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars, units, type QuantityMicrounits } from '@/domain/money';
@@ -25,7 +26,7 @@ const trade = (
 
 function startWith(cash: string, overrides: Partial<GameState> = {}): Promise<TestGame> {
   return startTestGameFrom({
-    ...freshGameState({ saveId: 'trader', economyVersion: 1, wallMs: 0 }),
+    ...freshGameState({ saveId: 'trader', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
     cashCents: dollars(cash),
     tradingUnlocked: true,
     ...overrides,
@@ -206,7 +207,11 @@ describe('watchlist', () => {
 
 describe('positions in a save', () => {
   it('round-trip positions as exact microunits and cents', () => {
-    const fresh = freshGameState({ saveId: 'saved', economyVersion: 1, wallMs: 0 });
+    const fresh = freshGameState({
+      saveId: 'saved',
+      economyVersion: CURRENT_ECONOMY_VERSION,
+      wallMs: 0,
+    });
     const positions = [
       {
         instrumentId: 'wag',

@@ -28,7 +28,12 @@ const BLANK = {
 function useTradeSubmit(assetId: string) {
   const game = useGame();
   const { confirmation, open, close, submit } = useConfirmation<TradeSide>(useSheetBreak());
-  const send = (order: { side: TradeSide; quantity: QuantityMicrounits; quotedTick: number }) =>
+  const send = (order: {
+    side: TradeSide;
+    quantity: QuantityMicrounits;
+    quotedTick: number;
+    quotedRevision: number;
+  }) =>
     submit(async ({ attemptId }) => {
       const outcome = await game.dispatch({
         id: attemptId,
@@ -85,7 +90,12 @@ export function useTradeSheet({ assetId, units }: { assetId: string; units: Trad
   const stale = ticket.tick !== draft.reviewedTick;
   const confirm = () => {
     if (stale || ticket.status !== 'ready') return;
-    void send({ side: draft.side, quantity: ticket.quote.quantity, quotedTick: ticket.tick });
+    void send({
+      side: draft.side,
+      quantity: ticket.quote.quantity,
+      quotedTick: ticket.tick,
+      quotedRevision: ticket.revision,
+    });
   };
   return {
     ...entry,

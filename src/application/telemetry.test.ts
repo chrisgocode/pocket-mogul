@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { readFileSync } from 'node:fs';
 
 import type { GameCommand } from '@/domain/commands';
@@ -34,7 +35,14 @@ const run = (game: Game, command: GameCommand) =>
 function startWith(overrides: Partial<GameState>) {
   const sink = recorder();
   const started = startTestGameFrom(
-    { ...freshGameState({ saveId: 'secret-save-id', economyVersion: 1, wallMs: 0 }), ...overrides },
+    {
+      ...freshGameState({
+        saveId: 'secret-save-id',
+        economyVersion: CURRENT_ECONOMY_VERSION,
+        wallMs: 0,
+      }),
+      ...overrides,
+    },
     { telemetry: sink.telemetry },
   );
   return { sink, started };
@@ -60,7 +68,7 @@ describe('telemetry', () => {
     expect(names(sink.events)).toEqual(['wallet_upgrade', 'first_business', 'business_upgrade']);
     expect(gameplay(sink.events)[2]).toEqual({
       name: 'business_upgrade',
-      economyVersion: 1,
+      economyVersion: CURRENT_ECONOMY_VERSION,
       schemaVersion: game.getSnapshot().state.schemaVersion,
       simulationMs: 0,
       details: { businessId: 'vending', track: 'quality', level: 1 },
@@ -121,7 +129,7 @@ describe('telemetry for taps, saves and the development sink', () => {
     faults.failWrites = true;
     await run(game, { type: 'AdvanceTime' });
     expect(names(events)).toEqual(['save_failed']);
-    expect(events[0]?.economyVersion).toBe(1);
+    expect(events[0]?.economyVersion).toBe(CURRENT_ECONOMY_VERSION);
   });
 
   it('records a completed save migration', async () => {
@@ -150,7 +158,7 @@ describe('telemetry for taps, saves and the development sink', () => {
     const sink = localTelemetrySink(2);
     const { game } = await startTestGameFrom(
       {
-        ...freshGameState({ saveId: 'sink', economyVersion: 1, wallMs: 0 }),
+        ...freshGameState({ saveId: 'sink', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
         cashCents: dollars('1,000'),
       },
       { telemetry: sink },

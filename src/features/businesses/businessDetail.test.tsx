@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
 import type { OpenedGame } from '@/application/game';
@@ -21,7 +22,7 @@ async function openVending(
   }: { business?: Partial<OwnedBusiness>; initialUrl?: string; day?: number } = {},
 ): Promise<TestGame> {
   const session = await startTestGameFrom({
-    ...freshGameState({ saveId: 'saver', economyVersion: 1, wallMs: 0 }),
+    ...freshGameState({ saveId: 'saver', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
     clock: { simulationMs: day * DAY_MS, lastWallCheckpointMs: 0 },
     cashCents: dollars(cash),
     businesses: [ownedBusiness('vending', business)],

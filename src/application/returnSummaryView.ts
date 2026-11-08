@@ -1,3 +1,4 @@
+import type { TaxAbsence } from '@/domain/tax/types';
 import type { Content } from '@/content';
 import type { AbsenceIncident, GameState, IncomeBySource } from '@/domain/gameState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
@@ -20,6 +21,7 @@ export type IncidentLine = {
 export type EarningsLine = { readonly label: string; readonly cents: MoneyCents };
 
 export type ReturnSummaryView = {
+  readonly taxes: TaxAbsence | undefined;
   readonly awayLabel: string;
   readonly creditedLabel: string;
   readonly capLabel: string;
@@ -49,6 +51,10 @@ export function selectReturnSummary(
   const { summary } = state.returnSummary;
   const earnings = earningsLines(summary.earnings);
   return {
+    taxes:
+      state.tax.status !== 'notStarted' && state.tax.absence.status === 'pending'
+        ? state.tax.absence.summary
+        : undefined,
     awayLabel: durationText(summary.awayMs),
     creditedLabel: durationText(summary.creditedMs),
     capLabel: durationText(content.economy.time.offlineCapMs),
