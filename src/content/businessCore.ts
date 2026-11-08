@@ -60,6 +60,7 @@ export function businessDefinition(
     demandBps: business.demandResponseBps ?? rules.demandBps,
     incidents: business.incidents,
     mechanic: mechanicOf(business),
+    rivals: business.rivals.map(({ id, units, quality }) => ({ id, units, quality })),
   };
 }
 

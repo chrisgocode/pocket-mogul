@@ -19,6 +19,8 @@ import { profitChange, spent, TRACK_NAMES } from './businessFormat';
 import { fireText, hireText, stageText } from './growthActionText';
 import { detailingText } from './carWashActionText';
 import { contractText, sortingHubText } from './deliveryActionText';
+import { takeoverText } from './takeoverActionText';
+import type { TakeoverChoice } from './takeoverFormat';
 import { cardReaderText } from './vendingActionText';
 
 export type BusinessAction =
@@ -48,6 +50,7 @@ export type BusinessAction =
     }
   | { readonly kind: 'contract'; readonly business: Business; readonly offer: OfferView }
   | { readonly kind: 'sorting_hub'; readonly business: Business; readonly hub: AvailableSortingHub }
+  | { readonly kind: 'takeover'; readonly business: Business; readonly choice: TakeoverChoice }
   | { readonly kind: 'withdraw'; readonly business: Business; readonly amountCents: MoneyCents }
   | { readonly kind: 'sell'; readonly business: Business; readonly sale: BusinessSale };
 
@@ -108,6 +111,12 @@ const COMMANDS: ActionHandlers<GameCommand> = {
     offerId: offer.id,
   }),
   sorting_hub: ({ business }) => ({ type: 'InstallSortingHub', businessId: business.id }),
+  takeover: ({ business, choice }) => ({
+    type: 'MakeTakeoverOffer',
+    businessId: business.id,
+    rivalId: choice.rival.id,
+    amountCents: choice.offer.priceCents,
+  }),
 };
 
 export function businessActionCommand(action: BusinessAction): GameCommand {
@@ -180,6 +189,7 @@ const SHEET_TEXT: ActionHandlers<ActionSheetText> = {
   detailing: (action) => detailingText(action.detailing),
   contract: (action) => contractText(action.offer),
   sorting_hub: (action) => sortingHubText(action.hub),
+  takeover: (action) => takeoverText(action.choice, action.business),
 };
 
 export function businessActionSheetText(action: BusinessAction): ActionSheetText {

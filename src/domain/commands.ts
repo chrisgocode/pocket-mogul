@@ -131,6 +131,13 @@ export type InstallSortingHub = {
   readonly businessId: string;
 };
 
+export type MakeTakeoverOffer = {
+  readonly type: 'MakeTakeoverOffer';
+  readonly businessId: string;
+  readonly rivalId: string;
+  readonly amountCents: MoneyCents;
+};
+
 export type DismissCoachMark = { readonly type: 'DismissCoachMark'; readonly coachMark: CoachMark };
 
 export type SetPayout = {
@@ -221,6 +228,7 @@ export type GameCommand =
   | AcceptContract
   | DeclineContract
   | InstallSortingHub
+  | MakeTakeoverOffer
   | DismissCoachMark
   | SetPayout
   | DepositToTreasury
@@ -259,6 +267,8 @@ export const GAME_ERROR_CODES = [
   'UPGRADE_UNAVAILABLE',
   'STAGE_LOCKED',
   'STAGE_NOT_READY',
+  'OFFER_PENDING',
+  'OFFER_LOCKED',
   'INVALID_QUANTITY',
   'INSUFFICIENT_HOLDING',
   'BELOW_MINIMUM',

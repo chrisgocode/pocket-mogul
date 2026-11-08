@@ -5,6 +5,7 @@ import { adSchedule, settings, tutorialProgress } from './preferenceSchemas';
 import { fromSaveDocument } from './saveDocument';
 import { savedCarWash } from './carWashSaveSchema';
 import { savedDelivery } from './deliverySaveSchema';
+import { savedTakeovers } from './takeoverSaveSchema';
 import { savedVending } from './vendingSaveSchema';
 import { PRICE_LEVELS } from '@/domain/business/definition';
 import { parseMoneyCents, parsePriceMicros, parseQuantityMicrounits } from '@/domain/money';
@@ -153,6 +154,7 @@ export const saveDocumentSchema = z.looseObject({
   vending: z.record(z.string().min(1), savedVending).default({}),
   carWash: z.record(z.string().min(1), savedCarWash).default({}),
   delivery: z.record(z.string().min(1), savedDelivery).default({}),
+  takeovers: z.record(z.string().min(1), savedTakeovers).default({}),
   seenCoachMarks: z.array(z.string().min(1)).default([]),
 });
 

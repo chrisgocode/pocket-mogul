@@ -191,3 +191,27 @@ describe('delivery contracts and reputation (BUS20c)', () => {
     expect(document.businesses[0]).not.toHaveProperty('delivery');
   });
 });
+
+describe('takeover offers, locks and merged rivals (BUS18)', () => {
+  const takeovers = {
+    offer: { status: 'pending', rivalId: 'coinbright', amountCents: '1320000' },
+    locks: [{ rivalId: 'hallway_treats', untilDay: 12 }],
+    merged: ['snackpoint'],
+  } as const;
+
+  it('loads a baseline save with no offer, no locks and nothing merged', () => {
+    expect(currentState(baselineFixture)).toMatchObject({
+      businesses: [{ takeovers: { offer: { status: 'none' }, locks: [], merged: [] } }],
+    });
+  });
+
+  it('keeps takeovers in a top-level record and round-trips the offer as cents', () => {
+    const loaded = currentState(baselineDocument({ takeovers: { vending: takeovers } }));
+    expect(loaded).toMatchObject({
+      businesses: [{ takeovers: { offer: { amountCents: dollars('13,200') } } }],
+    });
+    const document = JSON.parse(encodeSave(loaded)) as { businesses: readonly object[] };
+    expect(document).toMatchObject({ takeovers: { vending: takeovers } });
+    expect(document.businesses[0]).not.toHaveProperty('takeovers');
+  });
+});

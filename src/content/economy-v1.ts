@@ -77,6 +77,14 @@ export const economyV1 = {
         premiumPercent: 2,
         coveredLossPercent: 80,
       },
+      takeovers: {
+        fromStage: 3,
+        acceptFromPercent: 80,
+        acceptAllPercent: 140,
+        lockDays: 5,
+        offerPercents: [90, 105, 120, 140],
+      },
+      sectorMultipleDays: 10,
       maxTrackLevel: 20,
       upgradeWeightBps: { quality: 2500, efficiency: 1500 },
       upgradeGrowth: { numerator: 118, denominator: 100 },
@@ -240,6 +248,11 @@ export const economyV1 = {
         },
         cardReaders: { stage: 5, priceMultiple: 150, demandPercent: 20 },
       },
+      rivals: [
+        { id: 'snackpoint', name: 'Snackpoint Machines', units: 5, quality: 2 },
+        { id: 'coinbright', name: 'Coinbright Vending', units: 12, quality: 6 },
+        { id: 'hallway_treats', name: 'Hallway Treats Co.', units: 25, quality: 10 },
+      ],
       logo: { glyph: 'square', color: '#2F80ED' },
     },
     {
@@ -274,6 +287,11 @@ export const economyV1 = {
           chanceBps: 200,
           effect: { kind: 'cost', percent: 30, days: 4 },
         },
+      ],
+      rivals: [
+        { id: 'curbside_bites', name: 'Curbside Bites', units: 4, quality: 3 },
+        { id: 'rolling_skillet', name: 'Rolling Skillet', units: 11, quality: 5 },
+        { id: 'street_spoon', name: 'Street Spoon Carts', units: 24, quality: 9 },
       ],
       logo: { glyph: 'circle', color: '#F2994A' },
     },
@@ -310,6 +328,11 @@ export const economyV1 = {
           effect: { kind: 'cost', percent: 25, days: 6 },
         },
       ],
+      rivals: [
+        { id: 'morning_grind', name: 'Morning Grind Kiosks', units: 6, quality: 2 },
+        { id: 'steam_and_bean', name: 'Steam & Bean', units: 13, quality: 6 },
+        { id: 'crema_corner', name: 'Crema Corner', units: 22, quality: 11 },
+      ],
       logo: { glyph: 'drop', color: '#8B5E3C' },
     },
     {
@@ -344,6 +367,11 @@ export const economyV1 = {
           chanceBps: 200,
           effect: { kind: 'cost', percent: 25, days: 4 },
         },
+      ],
+      rivals: [
+        { id: 'suds_station', name: 'Suds Station', units: 5, quality: 3 },
+        { id: 'spin_cycle', name: 'Spin Cycle Laundry', units: 10, quality: 5 },
+        { id: 'fresh_fold', name: 'Fresh Fold Co.', units: 26, quality: 8 },
       ],
       logo: { glyph: 'ring', color: '#56CCF2' },
     },
@@ -408,6 +436,11 @@ export const economyV1 = {
           sharePercent: 10,
         },
       },
+      rivals: [
+        { id: 'glossline', name: 'Glossline Wash', units: 4, quality: 2 },
+        { id: 'bubble_bay', name: 'Bubble Bay Wash', units: 12, quality: 7 },
+        { id: 'shinewell', name: 'Shinewell Auto Spa', units: 23, quality: 10 },
+      ],
       logo: { glyph: 'wave', color: '#2D9CDB' },
     },
     {
@@ -442,6 +475,11 @@ export const economyV1 = {
           chanceBps: 200,
           effect: { kind: 'cost', percent: 25, days: 6 },
         },
+      ],
+      rivals: [
+        { id: 'rising_crust', name: 'Rising Crust Bakery', units: 6, quality: 3 },
+        { id: 'golden_oven', name: 'Golden Oven Co.', units: 11, quality: 6 },
+        { id: 'flourish_bakehouse', name: 'Flourish Bakehouse', units: 25, quality: 9 },
       ],
       logo: { glyph: 'arch', color: '#E0A458' },
     },
@@ -513,6 +551,11 @@ export const economyV1 = {
         },
         sortingHub: { stage: 5, priceMultiple: 150, capacityPercent: 30 },
       },
+      rivals: [
+        { id: 'swiftroute', name: 'Swiftroute Couriers', units: 5, quality: 2 },
+        { id: 'boxtrail', name: 'Boxtrail Logistics', units: 12, quality: 6 },
+        { id: 'doorstep_dash', name: 'Doorstep Dash', units: 24, quality: 10 },
+      ],
       logo: { glyph: 'diamond', color: '#9B51E0' },
     },
     {
@@ -547,6 +590,11 @@ export const economyV1 = {
           chanceBps: 200,
           effect: { kind: 'cost', percent: 30, days: 4 },
         },
+      ],
+      rivals: [
+        { id: 'ironworks_fitness', name: 'Ironworks Fitness', units: 4, quality: 3 },
+        { id: 'pulse_studio', name: 'Pulse Studio Gyms', units: 13, quality: 5 },
+        { id: 'peak_form', name: 'Peak Form Clubs', units: 22, quality: 11 },
       ],
       logo: { glyph: 'bars', color: '#EB5757' },
     },
@@ -583,6 +631,11 @@ export const economyV1 = {
           effect: { kind: 'cost', percent: 20, days: 6 },
         },
       ],
+      rivals: [
+        { id: 'lanternstay', name: 'Lanternstay Hotels', units: 6, quality: 2 },
+        { id: 'harborview_inns', name: 'Harborview Inns', units: 10, quality: 7 },
+        { id: 'silver_key', name: 'Silver Key Resorts', units: 26, quality: 9 },
+      ],
       logo: { glyph: 'hexagon', color: '#BB6BD9' },
     },
     {
@@ -617,6 +670,11 @@ export const economyV1 = {
           chanceBps: 200,
           effect: { kind: 'cost', percent: 20, days: 6 },
         },
+      ],
+      rivals: [
+        { id: 'forgeline', name: 'Forgeline Industries', units: 5, quality: 3 },
+        { id: 'steelbridge', name: 'Steelbridge Works', units: 12, quality: 6 },
+        { id: 'cogwell', name: 'Cogwell Manufacturing', units: 23, quality: 10 },
       ],
       logo: { glyph: 'cross', color: '#4F4F4F' },
     },
@@ -653,6 +711,11 @@ export const economyV1 = {
           effect: { kind: 'cost', percent: 20, days: 6 },
         },
       ],
+      rivals: [
+        { id: 'skylark_air', name: 'Skylark Air', units: 4, quality: 2 },
+        { id: 'crosswind', name: 'Crosswind Airways', units: 11, quality: 6 },
+        { id: 'blue_horizon', name: 'Blue Horizon Airlines', units: 25, quality: 10 },
+      ],
       logo: { glyph: 'triangle', color: '#2F6FDB' },
     },
     {
@@ -687,6 +750,11 @@ export const economyV1 = {
           chanceBps: 200,
           effect: { kind: 'cost', percent: 20, days: 6 },
         },
+      ],
+      rivals: [
+        { id: 'orbitforge', name: 'Orbitforge Launch', units: 5, quality: 3 },
+        { id: 'starward', name: 'Starward Rockets', units: 12, quality: 5 },
+        { id: 'highsky', name: 'Highsky Payloads', units: 24, quality: 11 },
       ],
       logo: { glyph: 'star', color: '#1B1F3B' },
     },

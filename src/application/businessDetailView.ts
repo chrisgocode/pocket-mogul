@@ -36,6 +36,7 @@ import type { GameSnapshot } from './game';
 import { selectVending, type VendingView } from './vendingView';
 import { selectCarWash, type CarWashView } from './carWashView';
 import { selectDelivery, type DeliveryView } from './deliveryView';
+import { selectDeals, type DealsView } from './takeoverView';
 import { runningDelivery } from '@/domain/business/deliveryDemand';
 import {
   flagshipUnlockAt,
@@ -104,6 +105,7 @@ export type OwnedBusinessDetail = {
   readonly vending: VendingView | undefined;
   readonly carWash: CarWashView | undefined;
   readonly delivery: DeliveryView | undefined;
+  readonly deals: DealsView;
   readonly sale: BusinessSale;
 };
 
@@ -195,6 +197,7 @@ function ownedDetail(business: Business, context: DetailContext): OwnedBusinessD
     vending: selectVending(context),
     carWash: selectCarWash(context),
     delivery: selectDelivery(context),
+    deals: selectDeals({ ...context, business }),
     sale: {
       proceedsCents: saleProceedsCents(owned, rules),
       spendCents: owned.capitalizedSpendCents,

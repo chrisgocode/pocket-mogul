@@ -12,6 +12,7 @@ import {
 } from './definition';
 import { NO_CAR_WASH, type CarWashOperation } from './carWashState';
 import { NO_DELIVERY, type DeliveryOperation } from './deliveryState';
+import { NO_TAKEOVERS, type Takeovers } from './takeoverState';
 import { NO_VENDING, type VendingOperation } from './vendingRules';
 
 export type BusinessStatus = 'open' | 'closed';
@@ -52,6 +53,7 @@ export type OwnedBusiness = {
   readonly vending: VendingOperation;
   readonly carWash: CarWashOperation;
   readonly delivery: DeliveryOperation;
+  readonly takeovers: Takeovers;
 };
 
 const FIRST_STAGE = 1;
@@ -79,5 +81,6 @@ export function newBusiness(
     vending: NO_VENDING,
     carWash: NO_CAR_WASH,
     delivery: NO_DELIVERY,
+    takeovers: NO_TAKEOVERS,
   };
 }

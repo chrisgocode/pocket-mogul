@@ -18,6 +18,8 @@ export const propertyRules: PropertyRules = {
   saleValuePercent: 95,
 };
 
+const OFFER_PERCENTS = { low: 90, fair: 105, high: 120, sure: 140 } as const;
+
 export const businessRules: BusinessRules = {
   dayMs: 600_000,
   priceBps: { budget: 7000, value: 8500, standard: 10000, premium: 12500, luxury: 15000 },
@@ -71,6 +73,14 @@ export const businessRules: BusinessRules = {
     premiumPercent: 2,
     coveredLossPercent: 80,
   },
+  takeovers: {
+    fromStage: 3,
+    acceptFromPercent: 80,
+    acceptAllPercent: 140,
+    lockDays: 5,
+    offerPercents: Object.values(OFFER_PERCENTS),
+  },
+  sectorMultipleDays: 10,
   maxTrackLevel: 20,
   upgradeWeightBps: { quality: 2500, efficiency: 1500 },
   upgradeGrowth: { numerator: 118, denominator: 100 },
@@ -113,6 +123,11 @@ export const vendingDefinition: BusinessDefinition = {
     },
   ],
   mechanic: { kind: 'shared_core' },
+  rivals: [
+    { id: 'snackpoint', units: 5, quality: 2 },
+    { id: 'coinbright', units: 12, quality: 6 },
+    { id: 'hallway_treats', units: 25, quality: 10 },
+  ],
 };
 
 export function ownedBusiness(
@@ -138,6 +153,7 @@ export function ownedBusiness(
     vending: { status: 'inactive' },
     carWash: { status: 'inactive' },
     delivery: { status: 'inactive' },
+    takeovers: { offer: { status: 'none' }, locks: [], merged: [] },
     ...change,
   };
 }

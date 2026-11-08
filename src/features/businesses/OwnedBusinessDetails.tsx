@@ -3,6 +3,7 @@ import type { PriceLevel } from '@/domain/business/definition';
 
 import type { BusinessAction } from './businessAction';
 import { BusinessOverviewCard } from './BusinessOverviewCard';
+import { DealsSection } from './DealsSection';
 import { FlagshipSections, type FlagshipActions } from './FlagshipSections';
 import { GrowSection } from './GrowSection';
 import { PriceLevelCard } from './PriceLevelCard';
@@ -43,6 +44,7 @@ export function OwnedBusinessDetails({
       />
       <StaffSection detail={detail} onReview={onReview} />
       <RisksSection detail={detail} onInsurance={onInsurance} />
+      <DealsSection detail={detail} onReview={onReview} />
       <SellCard
         name={business.name}
         sale={detail.sale}
