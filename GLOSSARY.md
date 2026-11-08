@@ -337,3 +337,29 @@ _Avoid_: Ledger (for the screen), log, transactions
 **Earnings group**:
 One activity entry that sums taps and business and rent income between other activities, so the history never lists every tap or checkpoint.
 _Avoid_: Tap entry, income tick
+
+## Taxes
+
+**Tax return**:
+A statement of the player's taxable earnings and deductions for a filing period, which the player reports in full or reports as zero.
+_Avoid_: Tax reward, daily payment
+
+**Blended tax rate**:
+The profit-tax percentage obtained by weighting portions of the player's net worth across wealth bands; it does not charge tax on the assets themselves.
+_Avoid_: Wealth levy, bracket cliff
+
+**Tax audit**:
+The one-time check attached to a zero return that can assess the avoided tax and an additional fine.
+_Avoid_: Random recurring penalty, late fee
+
+**Tax debt**:
+Assessed tax or audit fines still unpaid, recoverable through installments or voluntary payments without freezing existing earnings.
+_Avoid_: Negative cash, bankruptcy
+
+**Tax basis**:
+The investment cost and recognized ownership adjustments still available against an asset's disposal proceeds, distinct from performance-reporting basis.
+_Avoid_: Sale proceeds, gross profit
+
+**Permanent tax exemption**:
+A restorable purchase benefit that waives unpaid tax obligations and exempts future earnings across the player's saves on that store account.
+_Avoid_: Subscription, ad removal, tax token

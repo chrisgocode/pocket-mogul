@@ -142,6 +142,7 @@ export function BusinessDetailScreen() {
       ) : null}
       <ActionSheet
         confirmation={confirmation}
+        taxCommand={businessActionCommand}
         describe={businessActionSheetText}
         onConfirm={() => void confirm()}
         onCancel={close}

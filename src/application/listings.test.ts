@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { freshGameState } from '@/domain/gameState';
 import { dollars, units } from '@/domain/money';
 import { ownedBusiness } from '@/domain/testRules';
@@ -5,7 +6,11 @@ import { ownedBusiness } from '@/domain/testRules';
 import { startTestGameFrom } from './testGame';
 
 const regional = {
-  ...freshGameState({ saveId: 'listing', economyVersion: 1, wallMs: 1_800_000_000_000 }),
+  ...freshGameState({
+    saveId: 'listing',
+    economyVersion: CURRENT_ECONOMY_VERSION,
+    wallMs: 1_800_000_000_000,
+  }),
   cashCents: dollars('1000000'),
   tradingUnlocked: true,
   businesses: [ownedBusiness('coffee_kiosk', { stage: 4, payoutPercent: 100 })],
@@ -180,8 +185,8 @@ describe('listing reader safety', () => {
     });
     expect(session.game.getSnapshot().state).toMatchObject({
       schemaVersion: 2,
-      minReaderVersion: 3,
+      minReaderVersion: 4,
     });
-    expect((await session.restart()).game.getSnapshot().state.minReaderVersion).toBe(3);
+    expect((await session.restart()).game.getSnapshot().state.minReaderVersion).toBe(4);
   });
 });

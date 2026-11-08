@@ -1,6 +1,6 @@
 import type { GameState } from '@/domain/gameState';
 import { listingInstruments } from '@/domain/business/listings';
-import { businessDefinition, type Content, type Stock } from '@/content';
+import { getPastContent, businessDefinition, type Content, type Stock } from '@/content';
 import type { BusinessEconomy } from '@/domain/business/definition';
 import type { DividendRates } from '@/domain/dividends';
 import type { MarketEconomy, MarketInstrument } from '@/domain/market';
@@ -13,6 +13,7 @@ import type { TradeEconomy } from '@/domain/trades';
 export function businessEconomy(content: Content): BusinessEconomy {
   const rules = content.economy.businessRules;
   return {
+    listedSaleFeeBps: content.economy.market.stocks.feeBps,
     catalog: content.businesses.map((business) => businessDefinition(business, rules)),
     rules,
   };
@@ -53,7 +54,10 @@ export type EconomyVersions = {
   readonly pastContent?: readonly Content[];
 };
 
-const bundled = (versions: EconomyVersions) => [versions.content, ...(versions.pastContent ?? [])];
+const bundled = (versions: EconomyVersions) => [
+  versions.content,
+  ...(versions.pastContent ?? getPastContent()),
+];
 
 export function contentAt(versions: EconomyVersions, economyVersion: number): Content {
   return (

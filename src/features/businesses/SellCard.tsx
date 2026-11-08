@@ -22,7 +22,7 @@ export function SellCard({
       <AppText variant="heading">Sell</AppText>
       <AppText muted>
         {sale.listed === true
-          ? 'Pays your stake at market price plus your share of the treasury.'
+          ? 'Pays your stake at market price after the stock sell fee. Treasury is already included in that share value.'
           : `Pays ${returnPercent}% of the ${formatMoneyExact(sale.spendCents)} spent on purchase, units and upgrades, plus its ${formatMoneyExact(sale.treasuryCents)} treasury.`}
       </AppText>
       <Button

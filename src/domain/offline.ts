@@ -1,3 +1,4 @@
+import type { MarketHistory } from './marketHistory';
 import type { GameState, IncomeBySource, PendingReturnSummary, ReturnSummary } from './gameState';
 import { moneyCents, type MoneyCents } from './money';
 import type { StruckIncident } from './business/risks';
@@ -15,6 +16,7 @@ export type WallClockReading =
     };
 
 export type OfflineSettlement = {
+  readonly history?: MarketHistory;
   readonly state: GameState;
   readonly earnedCents: MoneyCents;
   readonly clock: WallClockReading;
@@ -62,12 +64,12 @@ function summarize(pending: PendingReturnSummary, absence: ReturnSummary): Pendi
 
 export function settleOffline(
   state: GameState,
-  settle: { wallMs: number; capMs: number; economy: PassiveEconomy },
+  settle: { wallMs: number; capMs: number; economy: PassiveEconomy; advance?: typeof advanceTime },
 ): OfflineSettlement {
   const clock = readWallClock(state, settle.wallMs);
   const awayMs = Math.max(0, settle.wallMs - state.clock.lastWallCheckpointMs);
   const creditedMs = Math.min(awayMs, settle.capMs);
-  const advanced = advanceTime(state, {
+  const advanced = (settle.advance ?? advanceTime)(state, {
     elapsedMs: creditedMs,
     wallMs: settle.wallMs,
     economy: settle.economy,
@@ -76,6 +78,7 @@ export function settleOffline(
   const { incidents } = advanced;
   const absence = { awayMs, creditedMs, earnings: advanced.earnings, closures, incidents };
   return {
+    ...(advanced.history === undefined ? {} : { history: advanced.history }),
     clock,
     absence,
     closures: advanced.closures,

@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import type { PropertyTrack } from '@/domain/propertyQuotes';
 import { freshGameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
@@ -36,7 +37,7 @@ const upgrade = (
 
 async function startWith(cash: string): Promise<TestGame> {
   return startTestGameFrom({
-    ...freshGameState({ saveId: 'saver', economyVersion: 1, wallMs: 0 }),
+    ...freshGameState({ saveId: 'saver', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
     cashCents: dollars(cash),
   });
 }
@@ -158,7 +159,7 @@ describe('upgrading a property (RE03, RE04)', () => {
 
   it('refuses a track past its max level with MAX_LEVEL', async () => {
     const { game } = await startTestGameFrom({
-      ...freshGameState({ saveId: 'saver', economyVersion: 1, wallMs: 0 }),
+      ...freshGameState({ saveId: 'saver', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
       cashCents: dollars('1,000,000'),
       properties: [
         {
@@ -226,6 +227,6 @@ describe('property net worth', () => {
     await buy(session.game);
     await setRented(session.game, true);
     await waitAndSave(session, ONE_MINUTE_MS);
-    expect<bigint>(session.game.getSnapshot().state.peakNetWorthCents).toBe(dollars('20,100'));
+    expect<bigint>(session.game.getSnapshot().state.peakNetWorthCents).toBe(dollars('20,097.50'));
   });
 });

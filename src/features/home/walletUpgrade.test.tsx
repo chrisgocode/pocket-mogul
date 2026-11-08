@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
 import type { OpenedGame } from '@/application/game';
@@ -77,7 +78,11 @@ describe('Home wallet upgrade', () => {
   });
 
   it('shows Max level and the final card art at level 100', async () => {
-    const fresh = freshGameState({ saveId: 'maxed', economyVersion: 1, wallMs: 0 });
+    const fresh = freshGameState({
+      saveId: 'maxed',
+      economyVersion: CURRENT_ECONOMY_VERSION,
+      wallMs: 0,
+    });
     const session = await startTestGameFrom({
       ...fresh,
       cashCents: dollars('5'),

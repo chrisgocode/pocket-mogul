@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 import { isTutorialFinished } from '@/domain/tutorial';
@@ -66,7 +67,11 @@ describe('the first-session tutorial', () => {
 
   it('records a business bought before the wallet upgrade and still asks for the upgrade', async () => {
     const funded = {
-      ...freshGameState({ saveId: 'early-buyer', economyVersion: 1, wallMs: 1_800_000_000_000 }),
+      ...freshGameState({
+        saveId: 'early-buyer',
+        economyVersion: CURRENT_ECONOMY_VERSION,
+        wallMs: 1_800_000_000_000,
+      }),
       cashCents: dollars('300'),
     };
     const { game } = await startTestGameFrom(funded);

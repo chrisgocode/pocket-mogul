@@ -1,4 +1,4 @@
-import { getContent } from '@/content';
+import { CURRENT_ECONOMY_VERSION, getContent } from '@/content';
 import { freshGameState } from '@/domain/gameState';
 import { advanceMarket, freshMarket } from '@/domain/market';
 import { dollarPrice } from '@/domain/money';
@@ -52,7 +52,11 @@ describe('the seeded market', () => {
 
   it('settles a market for at most the offline cap', async () => {
     const left = await startTestGameFrom(
-      freshGameState({ saveId: 'away', economyVersion: 1, wallMs: 1_800_000_000_000 }),
+      freshGameState({
+        saveId: 'away',
+        economyVersion: CURRENT_ECONOMY_VERSION,
+        wallMs: 1_800_000_000_000,
+      }),
     );
     const back = await left.restart({ awayMs: 10 * HOUR_MS });
     expect(back.game.getSnapshot().state.market.tick).toBe(480);
@@ -75,7 +79,11 @@ describe('market history', () => {
 
   it('keeps 480 minutes and 720 hours, trimming the oldest by tick and hour', async () => {
     const left = await startTestGameFrom(
-      freshGameState({ saveId: 'long', economyVersion: 1, wallMs: 1_800_000_000_000 }),
+      freshGameState({
+        saveId: 'long',
+        economyVersion: CURRENT_ECONOMY_VERSION,
+        wallMs: 1_800_000_000_000,
+      }),
     );
     const back = await left.restart({ awayMs: 8 * HOUR_MS });
     const later = await back.restart({ awayMs: 10 * MINUTE_MS });
@@ -124,7 +132,11 @@ describe('a market history feed', () => {
 
 describe('market prices in a save', () => {
   it('round-trip prices and candles as exact microdollars', () => {
-    const fresh = freshGameState({ saveId: 'saved', economyVersion: 1, wallMs: 0 });
+    const fresh = freshGameState({
+      saveId: 'saved',
+      economyVersion: CURRENT_ECONOMY_VERSION,
+      wallMs: 0,
+    });
     const price = dollarPrice('0.101');
     const market = {
       ...fresh.market,

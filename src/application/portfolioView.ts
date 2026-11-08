@@ -64,7 +64,9 @@ function worthOf(state: GameState, content: Content): Worth {
   const breakdown = netWorthBreakdown(state, progressRules(content));
   return {
     ...breakdown,
-    assetsCents: moneyCents(breakdown.netWorthCents - breakdown.cashCents),
+    assetsCents: moneyCents(
+      breakdown.netWorthCents - breakdown.cashCents + breakdown.taxLiabilityCents,
+    ),
   };
 }
 

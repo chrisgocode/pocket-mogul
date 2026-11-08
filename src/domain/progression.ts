@@ -1,3 +1,4 @@
+import { taxLiabilityCents } from './tax/assessment';
 import { carryingValueCents } from './business/core';
 import { pendingDividendsCents } from './dividends';
 import type { GameState } from './gameState';
@@ -54,6 +55,7 @@ export type NetWorthBreakdown = {
   readonly positionsCents: MoneyCents;
   readonly pendingDividendsCents: MoneyCents;
   readonly netWorthCents: MoneyCents;
+  readonly taxLiabilityCents: MoneyCents;
 };
 
 export function netWorthBreakdown(state: GameState, rules: ProgressRules): NetWorthBreakdown {
@@ -65,9 +67,10 @@ export function netWorthBreakdown(state: GameState, rules: ProgressRules): NetWo
     pendingDividendsCents: moneyCents(pendingDividends(state, rules)),
   };
   const netWorthCents = moneyCents(
-    Object.values(parts).reduce<bigint>((total, value) => total + value, 0n),
+    Object.values(parts).reduce<bigint>((total, value) => total + value, 0n) -
+      taxLiabilityCents(state.tax),
   );
-  return { ...parts, netWorthCents };
+  return { ...parts, netWorthCents, taxLiabilityCents: taxLiabilityCents(state.tax) };
 }
 
 function withPeakNetWorth(state: GameState, rules: ProgressRules): GameState {

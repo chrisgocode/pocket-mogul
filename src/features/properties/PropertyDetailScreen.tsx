@@ -39,6 +39,7 @@ export function PropertyDetailScreen() {
       ) : null}
       <ActionSheet
         confirmation={confirmation}
+        taxCommand={propertyActionCommand}
         describe={propertyActionSheetText}
         onConfirm={() => void confirm()}
         onCancel={close}

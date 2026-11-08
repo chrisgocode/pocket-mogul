@@ -1,4 +1,4 @@
-import { getContent } from '@/content';
+import { CURRENT_ECONOMY_VERSION, getContent } from '@/content';
 import { freshGameState } from '@/domain/gameState';
 
 import {
@@ -55,7 +55,11 @@ describe('natural-break interstitials', () => {
   });
 
   it('shows nothing during the tutorial (AC32)', async () => {
-    const state = freshGameState({ saveId: 'new', economyVersion: 1, wallMs: 1_800_000_000_000 });
+    const state = freshGameState({
+      saveId: 'new',
+      economyVersion: CURRENT_ECONOMY_VERSION,
+      wallMs: 1_800_000_000_000,
+    });
     const session = await startAdSession({ state });
     await breakAfterIdle(session);
     expect(session.ads.automatic.interstitial.shows()).toBe(0);

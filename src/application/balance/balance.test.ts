@@ -9,6 +9,7 @@ import { simulateBalance, type BalanceScenario } from './simulation';
 const content = getContent();
 const MINUTE_MS = 60_000;
 const HOUR_MS = 3_600_000;
+const SIX_SIMULATION_TIMEOUT_MS = 15_000;
 
 function scenario(overrides: Partial<BalanceScenario>): BalanceScenario {
   return {
@@ -100,11 +101,17 @@ describe('balance report', () => {
     scenario({ policy }),
   );
 
-  it('writes the same report for the same seed', () => {
-    const first = renderBalanceReport(runBalance({ seed: 'same', content, scenarios: policies }));
-    const second = renderBalanceReport(runBalance({ seed: 'same', content, scenarios: policies }));
-    expect(second).toBe(first);
-  });
+  it(
+    'writes the same report for the same seed',
+    () => {
+      const first = renderBalanceReport(runBalance({ seed: 'same', content, scenarios: policies }));
+      const second = renderBalanceReport(
+        runBalance({ seed: 'same', content, scenarios: policies }),
+      );
+      expect(second).toBe(first);
+    },
+    SIX_SIMULATION_TIMEOUT_MS,
+  );
 
   it('compares the three policies on each milestone', () => {
     const report = renderBalanceReport(

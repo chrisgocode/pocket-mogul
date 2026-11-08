@@ -1,4 +1,4 @@
-import { getContent } from '@/content';
+import { CURRENT_ECONOMY_VERSION, getContent } from '@/content';
 import { freshGameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 import { ownedBusiness } from '@/domain/testRules';
@@ -85,7 +85,11 @@ describe('a write failure during a purchase', () => {
     command: { type: 'BuyBusiness', businessId: 'vending' },
   } as const;
   const funded = {
-    ...freshGameState({ saveId: 'buyer', economyVersion: 1, wallMs: 1_800_000_000_000 }),
+    ...freshGameState({
+      saveId: 'buyer',
+      economyVersion: CURRENT_ECONOMY_VERSION,
+      wallMs: 1_800_000_000_000,
+    }),
     cashCents: dollars('1000'),
   };
 
@@ -114,12 +118,16 @@ describe('an economy update while away', () => {
   const HOUR_MS = 3_600_000;
   const economyV1 = getContent();
   const economyV2 = withBusinessPrice(economyV1, {
-    economyVersion: 2,
+    economyVersion: CURRENT_ECONOMY_VERSION + 1,
     businessId: 'vending',
     pricePerCustomer: dollars('2.40'),
   });
   const withVending = {
-    ...freshGameState({ saveId: 'owner', economyVersion: 1, wallMs: 1_800_000_000_000 }),
+    ...freshGameState({
+      saveId: 'owner',
+      economyVersion: CURRENT_ECONOMY_VERSION,
+      wallMs: 1_800_000_000_000,
+    }),
     businesses: [ownedBusiness('vending')],
   };
   const update = { content: economyV2, pastContent: [economyV1] };
@@ -128,7 +136,7 @@ describe('an economy update while away', () => {
     const left = await startTestGameFrom(withVending);
     const back = await left.restart({ awayMs: HOUR_MS, ...update });
     expect<bigint>(back.game.getSnapshot().state.cashCents).toBe(dollars('300'));
-    expect(back.game.getSnapshot().state.economyVersion).toBe(2);
+    expect(back.game.getSnapshot().state.economyVersion).toBe(CURRENT_ECONOMY_VERSION + 1);
   });
 
   it('pays the new rate only for time after the update (AC30)', async () => {
@@ -143,7 +151,7 @@ describe('an economy update while away', () => {
     const left = await startTestGameFrom(withVending);
     const back = await left.restart(update);
     const again = await back.restart(update);
-    expect(again.game.getSnapshot().state.economyVersion).toBe(2);
+    expect(again.game.getSnapshot().state.economyVersion).toBe(CURRENT_ECONOMY_VERSION + 1);
     expect(again.game.getSnapshot().state.businesses).toEqual(withVending.businesses);
   });
 });

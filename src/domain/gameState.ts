@@ -1,3 +1,4 @@
+import type { TaxState } from './tax/types';
 import type { ShareholderPayout } from './business/listingState';
 import { freshAdSchedule, type AdScheduleState } from './adSchedule';
 import { EMPTY_ACTIVITY, type ActivityLog } from './activity';
@@ -65,6 +66,7 @@ export type PendingReturnSummary =
   | { readonly status: 'pending'; readonly summary: ReturnSummary };
 
 export type GameState = {
+  readonly tax: TaxState;
   readonly shareholderPayouts: readonly ShareholderPayout[];
   readonly saveId: string;
   readonly schemaVersion: number;
@@ -104,6 +106,7 @@ export function freshGameState(start: {
 }): GameState {
   return {
     ...INITIAL_SHAREHOLDER_PAYOUTS,
+    tax: { status: 'notStarted' },
     saveId: start.saveId,
     schemaVersion: SAVE_SCHEMA_VERSION,
     minReaderVersion: SAVE_MIN_READER_VERSION,

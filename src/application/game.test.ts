@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { freshGameState } from '@/domain/gameState';
 import { dollars, formatMoneyExact, moneyCents } from '@/domain/money';
 
@@ -97,7 +98,7 @@ describe('very large money values', () => {
   it('taps, saves and reloads cash beyond Number precision exactly (AC24)', async () => {
     const fortune = moneyCents(2n ** 80n);
     const first = await startTestGameFrom({
-      ...freshGameState({ saveId: 'rich', economyVersion: 1, wallMs: 0 }),
+      ...freshGameState({ saveId: 'rich', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
       cashCents: fortune,
     });
     await first.game.dispatch({ id: 'batch-1', command: { type: 'TapBatch', taps: 1 } });

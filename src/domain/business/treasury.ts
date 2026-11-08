@@ -1,9 +1,10 @@
+import { TOTAL_SHARES } from './listingState';
 import { splitListedPayout } from './listingPayout';
 import type { ShareholderPayout } from './listingState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 
 import { startCarWashDay } from './carWash';
-import { profitPerDayCents } from './core';
+import { profitPerDayCents, quoteBusinessDay } from './core';
 import { endedDeliveryDay, startDeliveryDay } from './delivery';
 import { findBusiness, type BusinessEconomy, type BusinessPricing } from './definition';
 import type { OwnedBusiness } from './owned';
@@ -14,7 +15,18 @@ import { restockedByStaff, soldVendingDay, withVendingUnlocked } from './vending
 
 export type BusinessClosure = { readonly businessId: string; readonly atMs: number };
 
+export type BusinessAccounting = {
+  readonly businessId: string;
+  readonly phase: 'income' | 'boundary';
+  readonly elapsedMs: number;
+  readonly grossPerDayCents: bigint;
+  readonly profitCents: bigint;
+  readonly shares: bigint;
+  readonly payoutCents: bigint;
+};
+
 export type BusinessSettlement = {
+  readonly accounting: readonly BusinessAccounting[];
   readonly outsidePayouts: readonly ShareholderPayout[];
   readonly businesses: readonly OwnedBusiness[];
   readonly toCashCents: MoneyCents;
@@ -30,6 +42,7 @@ type Settled = {
   readonly toOutsideCents?: bigint;
   readonly closedAtMs?: number;
   readonly incidents?: readonly StruckIncident[];
+  readonly accounting?: readonly BusinessAccounting[];
 };
 
 type Settlement = Period & { readonly pricing: BusinessPricing; readonly seed: string };
@@ -119,7 +132,11 @@ function segmentEnds(period: Period, dayMs: number): number[] {
   return boundaries[boundaries.length - 1] === endMs ? boundaries : [...boundaries, endMs];
 }
 
-type Settling = Settled & { readonly atMs: number; readonly incidents: readonly StruckIncident[] };
+type Settling = Settled & {
+  readonly atMs: number;
+  readonly incidents: readonly StruckIncident[];
+  readonly accounting: readonly BusinessAccounting[];
+};
 
 function dayStarted(segment: Settled, boundary: { settlement: Settlement; endMs: number }) {
   const { pricing, seed } = boundary.settlement;
@@ -134,24 +151,77 @@ function dayStarted(segment: Settled, boundary: { settlement: Settlement; endMs:
   return { ...started, business: answerTakeover(offered, { pricing, seed, day }) };
 }
 
+function segmentAccounting(
+  before: OwnedBusiness,
+  step: { segment: Settled; after: OwnedBusiness; elapsedMs: number; pricing: BusinessPricing },
+): BusinessAccounting[] {
+  const { segment, after, pricing } = step;
+  const quote = quoteBusinessDay(before, pricing);
+  const gross =
+    quote.revenueCents +
+    quote.memberFeesCents +
+    quote.contractRevenueCents +
+    quote.managerBonusCents;
+  const shares = before.listing.status === 'private' ? TOTAL_SHARES : before.listing.sharesHeld;
+  const cash = segment.toCashCents + (segment.toOutsideCents ?? 0n);
+  return [
+    {
+      businessId: before.definitionId,
+      phase: 'income',
+      elapsedMs: step.elapsedMs,
+      grossPerDayCents: before.status === 'closed' ? 0n : gross,
+      shares,
+      payoutCents: segment.toCashCents,
+      profitCents: segment.business.treasuryCents - before.treasuryCents + cash,
+    },
+    {
+      businessId: before.definitionId,
+      phase: 'boundary',
+      elapsedMs: 0,
+      grossPerDayCents: 0n,
+      shares,
+      payoutCents: 0n,
+      profitCents:
+        after.treasuryCents -
+        segment.business.treasuryCents +
+        after.capitalizedSpendCents -
+        segment.business.capitalizedSpendCents,
+    },
+  ];
+}
+
 function settleBusiness(business: OwnedBusiness, settlement: Settlement): Settled {
   const { pricing } = settlement;
-  const { dayMs } = pricing.rules;
-  const start: Settling = { business, toCashCents: 0n, atMs: settlement.fromMs, incidents: [] };
-  return segmentEnds(settlement, dayMs).reduce<Settling>((settled, endMs) => {
+  const start: Settling = {
+    business,
+    toCashCents: 0n,
+    atMs: settlement.fromMs,
+    incidents: [],
+    accounting: [],
+  };
+  return segmentEnds(settlement, pricing.rules.dayMs).reduce<Settling>((settled, endMs) => {
     if (settled.closedAtMs !== undefined) return settled;
     const segment = settleSegment(settled.business, {
       fromMs: settled.atMs,
       elapsedMs: endMs - settled.atMs,
       pricing,
     });
-    const reachedBoundary = endMs > settled.atMs && endMs % dayMs === 0;
+    const reachedBoundary = endMs > settled.atMs && endMs % pricing.rules.dayMs === 0;
     const atBoundary = reachedBoundary && segment.closedAtMs === undefined;
     const day = atBoundary
       ? dayStarted(segment, { settlement, endMs })
       : { business: segment.business, incidents: [] };
     return {
       ...segment,
+      accounting: [
+        ...settled.accounting,
+        ...segmentAccounting(settled.business, {
+          segment,
+          after: day.business,
+          pricing,
+          elapsedMs: (segment.closedAtMs ?? endMs) - settled.atMs,
+        }),
+      ],
       business: day.business,
       toCashCents: settled.toCashCents + segment.toCashCents,
       toOutsideCents: (settled.toOutsideCents ?? 0n) + (segment.toOutsideCents ?? 0n),
@@ -172,6 +242,7 @@ export function settleBusinesses(
     return settleBusiness(business, { ...settlement, pricing: { definition, rules } });
   });
   return {
+    accounting: settled.flatMap((each) => each.accounting ?? []),
     outsidePayouts: settled
       .filter((each) => (each.toOutsideCents ?? 0n) > 0n)
       .map((each) => ({

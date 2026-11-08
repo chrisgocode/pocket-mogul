@@ -2,7 +2,7 @@ import type { GameState } from '@/domain/gameState';
 import type { MarketInstrument } from '@/domain/market';
 import { moneyCents, priceMicros, type MoneyCents, type PriceMicros } from '@/domain/money';
 import { drawInt } from '@/domain/marketRandom';
-import { markPosition } from '@/domain/tradeQuotes';
+import { markPosition, quoteTrade } from '@/domain/tradeQuotes';
 
 import { findBusiness, type BusinessEconomy } from './definition';
 import { listingId, TOTAL_SHARES } from './listingState';
@@ -50,13 +50,20 @@ export function listingInstruments(state: GameState, economy: BusinessEconomy): 
   });
 }
 
-export function listedSaleCents(business: OwnedBusiness, state: GameState): MoneyCents | undefined {
+export function listedSaleCents(
+  business: OwnedBusiness,
+  state: GameState,
+  feeBps = 0,
+): MoneyCents | undefined {
   if (business.listing.status === 'private') return undefined;
   const price = state.market.quotes[listingId(business.definitionId)];
   const position = state.positions.find(
     (held) => held.instrumentId === listingId(business.definitionId),
   );
   if (price === undefined || position === undefined) return undefined;
+  if (state.economyVersion > 1)
+    return quoteTrade({ side: 'sell', quantity: position.quantity }, { price, feeBps })
+      .cashChangeCents;
   return moneyCents(
     markPosition(position, price).valueCents +
       (business.treasuryCents * business.listing.sharesHeld) / TOTAL_SHARES,

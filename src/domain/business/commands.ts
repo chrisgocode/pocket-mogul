@@ -1,5 +1,6 @@
 import { listedSaleCents } from './listings';
-import { listingId } from './listingState';
+import { accumulatedPayouts } from './listingPayout';
+import { listingId, TOTAL_SHARES } from './listingState';
 import type { CommandResult, GameErrorCode } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
@@ -175,15 +176,21 @@ export function applyWithdrawFromTreasury(
   if (!found.ok) return found;
   const { owned } = found;
   if (owned.treasuryCents < order.amountCents) return { ok: false, error: 'INSUFFICIENT_TREASURY' };
+  const shares = owned.listing.status === 'listed' ? owned.listing.sharesHeld : TOTAL_SHARES;
+  const toOwner = moneyCents((order.amountCents * shares) / TOTAL_SHARES);
+  const outside = moneyCents(order.amountCents - toOwner);
   return {
     ok: true,
-    cashChangeCents: order.amountCents,
+    cashChangeCents: toOwner,
     state: {
       ...withBusiness(state, {
         ...owned,
         treasuryCents: moneyCents(owned.treasuryCents - order.amountCents),
       }),
-      cashCents: moneyCents(state.cashCents + order.amountCents),
+      cashCents: moneyCents(state.cashCents + toOwner),
+      shareholderPayouts: accumulatedPayouts(state.shareholderPayouts, [
+        { businessId: owned.definitionId, paidCents: outside },
+      ]),
     },
   };
 }
@@ -192,7 +199,8 @@ export function applySellBusiness(state: GameState, order: BusinessOrder): Comma
   const found = lookUpOwned(state, order);
   if (!found.ok) return found;
   const proceedsCents =
-    listedSaleCents(found.owned, state) ?? saleProceedsCents(found.owned, order.economy.rules);
+    listedSaleCents(found.owned, state, order.economy.listedSaleFeeBps) ??
+    saleProceedsCents(found.owned, order.economy.rules);
   return {
     ok: true,
     cashChangeCents: proceedsCents,

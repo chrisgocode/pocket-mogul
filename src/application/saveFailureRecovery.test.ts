@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { ownedBusiness } from '@/domain/testRules';
 import { freshGameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
@@ -10,7 +11,7 @@ const SECOND_MS = 1000;
 
 async function failedReturn() {
   const session = await startTestGameFrom({
-    ...freshGameState({ saveId: 'recovery', economyVersion: 1, wallMs: 0 }),
+    ...freshGameState({ saveId: 'recovery', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
     businesses: [ownedBusiness('vending', { payoutPercent: 100 })],
   });
   await session.game.pause();

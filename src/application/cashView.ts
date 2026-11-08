@@ -1,8 +1,8 @@
+import { advanceTaxTime } from './taxTime';
 import type { Content } from '@/content';
 import type { GameState } from '@/domain/gameState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 import {
-  advanceTime,
   businessIncomePerMinuteCents,
   passiveIncomePerMinuteCents,
   rentIncomePerMinuteCents,
@@ -14,10 +14,10 @@ import type { GameSnapshot } from './game';
 
 export function stateWithUnsavedIncome(snapshot: GameSnapshot, content: Content): GameState {
   const { state } = snapshot;
-  return advanceTime(state, {
+  return advanceTaxTime(state, {
     elapsedMs: snapshot.unsavedElapsedMs,
     wallMs: state.clock.lastWallCheckpointMs,
-    economy: passiveEconomy(content),
+    content,
   }).state;
 }
 

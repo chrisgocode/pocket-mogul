@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
 import type { OpenedGame } from '@/application/game';
@@ -12,7 +13,7 @@ const MINUTE_MS = 60_000;
 
 async function open(initialUrl: string, overrides: Partial<GameState> = {}): Promise<TestGame> {
   const session = await startTestGameFrom({
-    ...freshGameState({ saveId: 'trader', economyVersion: 1, wallMs: 0 }),
+    ...freshGameState({ saveId: 'trader', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
     cashCents: dollars('1,000'),
     tradingUnlocked: true,
     ...overrides,

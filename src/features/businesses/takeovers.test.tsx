@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
 import type { OpenedGame } from '@/application/game';
@@ -22,7 +23,7 @@ const regional = (change: Partial<OwnedBusiness> = {}) =>
 
 async function openVending(business: OwnedBusiness): Promise<TestGame> {
   const session = await startTestGameFrom({
-    ...freshGameState({ saveId: 'rivals', economyVersion: 1, wallMs: 0 }),
+    ...freshGameState({ saveId: 'rivals', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
     clock: { simulationMs: 4 * DAY_MS, lastWallCheckpointMs: 0 },
     businesses: [business],
     seenCoachMarks: ['vending'],

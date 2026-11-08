@@ -1,3 +1,4 @@
+import { getPastContent } from '@/content';
 import { readFileSync } from 'node:fs';
 
 import { z } from 'zod';
@@ -23,6 +24,7 @@ const baselineDocument = (change: Record<string, unknown>) =>
   JSON.stringify({ ...(JSON.parse(baselineFixture) as object), ...change });
 
 const BASELINE_STATE = {
+  tax: { status: 'notStarted' },
   shareholderPayouts: [],
   saveId: '4f6c2a9e-baseline',
   schemaVersion: 2,
@@ -209,8 +211,8 @@ describe('a save written by a newer build', () => {
     await session.game.dispatch(threeTaps);
     expect(JSON.parse(session.saveDocument())).toMatchObject({
       schemaVersion: 3,
-      minReaderVersion: 2,
-      revision: 1843,
+      minReaderVersion: 4,
+      revision: 1844,
       futureFeature,
     });
   });
@@ -218,7 +220,7 @@ describe('a save written by a newer build', () => {
   it('stops safely when its minimum reader is newer than this build, keeping the save (AC23)', async () => {
     const first = await startTestGame();
     await first.game.dispatch(threeTaps);
-    const newer = baselineDocument({ schemaVersion: 4, minReaderVersion: 4 });
+    const newer = baselineDocument({ schemaVersion: 5, minReaderVersion: 5 });
     first.replaceSaveDocument(newer);
     expect(await first.reopen()).toEqual({ status: 'stopped', reason: 'UNSUPPORTED_SAVE_VERSION' });
     expect(first.saveDocument()).toBe(newer);
@@ -298,7 +300,7 @@ describe('a breaking change', () => {
   });
 
   it('backs up the original before saving the upgrade', async () => {
-    const hooks = { saveFormat: bumpedFormat };
+    const hooks = { saveFormat: bumpedFormat, content: getPastContent()[0]! };
     const migrated = await startTestGameFromDocument(baselineFixture, fixtureWallMs, hooks);
     expect(JSON.parse(migrated.saveDocument())).toMatchObject({ schemaVersion: 3, revision: 1842 });
     migrated.replaceSaveDocument('not json');
@@ -310,6 +312,7 @@ describe('a breaking change', () => {
   it('is refused by an older reader once upgraded', async () => {
     const migrated = await startTestGameFromDocument(baselineFixture, fixtureWallMs, {
       saveFormat: bumpedFormat,
+      content: getPastContent()[0]!,
     });
     expect(await migrated.reopen({ saveFormat: { ...SAVE_FORMAT, readerVersion: 2 } })).toEqual({
       status: 'stopped',

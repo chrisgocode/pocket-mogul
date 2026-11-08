@@ -3,7 +3,7 @@
 Planning ticket: [#93 — taxes](https://github.com/chrisgocode/pocket-mogul/issues/93).
 
 Research date: 2026-11-08. Scope: retained source inspection, not runtime verification or real-world tax advice.
-This records source observations and design proposals. Tax rules remain unapproved; the current spec and economy are unchanged.
+Historical research note: its proposals were superseded by the owner-approved manual tax model merged in [#94](https://github.com/chrisgocode/pocket-mogul/pull/94). Use docs/spec.md TAX01–TAX12 and docs/tax-proposal.md for current rules. This note preserves observations, not the current implementation contract.
 
 ## Evidence and confidence
 

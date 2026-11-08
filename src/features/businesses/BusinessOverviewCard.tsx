@@ -1,3 +1,4 @@
+import { BusinessTaxLines } from '@/features/taxes/BusinessTaxLines';
 import type { OwnedBusinessDetail } from '@/application/businessDetailView';
 import { formatMoneyExact, formatRatePerMinute, moneyCents } from '@/domain/money';
 import { BranchArt } from '@/ui/BranchArt';
@@ -35,6 +36,7 @@ export function BusinessOverviewCard({ detail }: { detail: OwnedBusinessDetail }
       />
       <OptionalDayLines day={day} />
       <DetailLine label="Profit" value={formatPerDay(day.profitCents)} emphasis />
+      <BusinessTaxLines businessId={business.id} />
       <DetailLine
         label="To your cash"
         value={formatRatePerMinute(detail.cashPerMinuteCents, 'full')}

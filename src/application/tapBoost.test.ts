@@ -1,4 +1,4 @@
-import { getContent } from '@/content';
+import { CURRENT_ECONOMY_VERSION, getContent } from '@/content';
 import type { Boost } from '@/domain/boost';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
@@ -22,7 +22,11 @@ const boostOf = (session: { game: { getSnapshot: () => { state: GameState } } })
 
 function savedWithBoost(boost: Boost, overrides: Partial<GameState> = {}): GameState {
   return {
-    ...freshGameState({ saveId: 'boosted', economyVersion: 1, wallMs: 1_800_000_000_000 }),
+    ...freshGameState({
+      saveId: 'boosted',
+      economyVersion: CURRENT_ECONOMY_VERSION,
+      wallMs: 1_800_000_000_000,
+    }),
     reward: { boost, processedRewardIds: [] },
     ...overrides,
   };

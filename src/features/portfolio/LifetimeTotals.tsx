@@ -1,3 +1,4 @@
+import { TaxActivitySummary } from '@/features/taxes/TaxActivitySummary';
 import { ACTIVITY_ENTRIES_KEPT } from '@/domain/activity';
 import { formatMoneyExact } from '@/domain/money';
 import { useGameSnapshot } from '@/features/game/GameContext';
@@ -18,6 +19,7 @@ export function LifetimeTotals() {
         value={formatMoneyExact(lifetime.spentCents)}
       />
       <DetailLine label="Received from sales" value={formatMoneyExact(lifetime.proceedsCents)} />
+      <TaxActivitySummary />
       <AppText variant="caption" muted>
         {`History keeps the newest ${ACTIVITY_ENTRIES_KEPT.toLocaleString('en-US')} entries. Lifetime totals keep counting.`}
       </AppText>

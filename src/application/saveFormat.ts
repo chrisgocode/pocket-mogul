@@ -1,4 +1,4 @@
-import { LISTING_READER_VERSION } from '@/domain/business/listingState';
+import { TAX_READER_VERSION } from '@/domain/tax/types';
 import { z } from 'zod';
 
 import { GAME_ERROR_CODES, type CommandOutcome } from '@/domain/commands';
@@ -32,7 +32,7 @@ export type SaveFormat = {
 const DEEP_BUSINESS_VERSION = 2;
 
 export const SAVE_FORMAT: SaveFormat = {
-  readerVersion: LISTING_READER_VERSION,
+  readerVersion: TAX_READER_VERSION,
   schemaVersion: SAVE_SCHEMA_VERSION,
   schema: saveSchema,
   migrations: [],

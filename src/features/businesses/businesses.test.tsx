@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
 import type { OpenedGame } from '@/application/game';
@@ -10,7 +11,7 @@ jest.mock('@/bootstrap/deviceGame', () => ({ loadDeviceGame: () => mockGame }));
 
 async function openWith(cash: string, initialUrl = '/businesses'): Promise<TestGame> {
   const session = await startTestGameFrom({
-    ...freshGameState({ saveId: 'saver', economyVersion: 1, wallMs: 0 }),
+    ...freshGameState({ saveId: 'saver', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
     cashCents: dollars(cash),
   });
   mockGame = Promise.resolve({ status: 'ready', game: session.game });
@@ -39,7 +40,7 @@ describe('Businesses tab', () => {
     await fireEvent.press(screen.getByRole('button', { name: /^Confirm purchase/ }));
     expect(await screen.findByLabelText('Cash $50.00')).toBeOnTheScreen();
     expect(screen.getByText('Owned')).toBeOnTheScreen();
-    expect(screen.getByText('Business income $5.00/min net')).toBeOnTheScreen();
+    expect(screen.getByText('Business income $5.00/min cash')).toBeOnTheScreen();
 
     await act(async () => {
       session.clock.advance(30_000);
@@ -63,6 +64,6 @@ describe('Businesses tab', () => {
     await act(() =>
       session.game.dispatch({ id: 'buy', command: { type: 'BuyBusiness', businessId: 'vending' } }),
     );
-    expect(screen.getByText(/\$5\.00\/min net passive/)).toBeOnTheScreen();
+    expect(screen.getByText(/\$5\.00\/min passive cash/)).toBeOnTheScreen();
   });
 });

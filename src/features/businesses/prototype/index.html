@@ -1671,6 +1671,141 @@
           scroll-behavior: auto;
         }
       }
+
+      .profile-hub-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .profile-hub-title h2 {
+        margin: 0;
+        font-size: 23px;
+      }
+      .profile-hub-title .muted {
+        font-size: 10px;
+      }
+      .profile-shortcuts {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+      .profile-shortcuts button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        border-radius: 10px;
+        font-size: 12px;
+        position: relative;
+      }
+      .profile-shortcuts i {
+        position: absolute;
+        right: 6px;
+        top: 6px;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--red);
+      }
+      .phone .tax-alert {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
+        text-align: left;
+        background: var(--panel);
+        border: 1px solid var(--properties, #edab91);
+        padding: 11px;
+        border-radius: 10px;
+        margin-bottom: 14px;
+        font-size: 11px;
+      }
+      .tax-alert b {
+        display: block;
+      }
+      .tax-alert small {
+        display: block;
+        font-size: 10px;
+        color: var(--dim);
+        margin-top: 3px;
+      }
+      .tax-alert > span:last-child {
+        color: var(--gold);
+        white-space: nowrap;
+      }
+      .tax-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 12px 0;
+      }
+      .tax-title h1 {
+        margin: 0;
+      }
+      .tax-state {
+        color: var(--gold);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 5px 9px;
+        font-size: 10px;
+      }
+      .tax-panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 15px;
+        padding: 16px;
+        margin: 14px 0;
+      }
+      .tax-panel h2 {
+        margin: 6px 0 10px;
+      }
+      .tax-panel p {
+        font-size: 12px;
+        line-height: 1.6;
+        margin-top: 10px;
+      }
+      .tax-total {
+        font-size: 35px;
+        letter-spacing: -1px;
+        font-weight: 750;
+        color: var(--ink);
+        margin: 5px 0;
+      }
+      .tax-rate-strip {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        border-bottom: 1px solid var(--line);
+        padding: 12px 0;
+      }
+      .tax-rate-strip b {
+        display: block;
+        font-size: 16px;
+      }
+      .tax-rate-strip .muted {
+        font-size: 10px;
+      }
+      .tax-detail {
+        border-bottom: 1px solid var(--line);
+        font-size: 12px;
+        padding: 15px 0;
+      }
+      .tax-detail summary {
+        min-height: 24px;
+        cursor: pointer;
+      }
+      .tax-detail > p {
+        margin-top: 10px;
+        line-height: 1.6;
+      }
+      .tax-source {
+        padding-top: 14px;
+      }
     </style>
   </head>
   <body>
@@ -1688,6 +1823,16 @@
           <option value="diversified">Diversified holdings</option></select
         ><button data-action="reset">Reset sample</button>
 
+        <select id="tax-sample" aria-label="Tax sample state">
+          <option value="current">Tax: current estimate</option>
+          <option value="ready">Tax: return ready</option>
+          <option value="pending">Tax: audit pending</option>
+          <option value="debt">Tax: debt recovery</option>
+          <option value="exempt">Tax: exempt</option>
+          <option value="paid">Tax: resolved</option></select
+        ><button data-action="auditSample" id="audit-sample-button" hidden>
+          Advance audit sample 10 minutes
+        </button>
         <select id="business-art" aria-label="Business row artwork">
           <option value="illustrated">Two-tone illustrations</option>
           <option value="outline">Outline icons</option>
@@ -1784,6 +1929,7 @@
         screen: 'earn',
         walletLevel: 0,
         screenStack: [],
+        tax: { status: 'current', amount: scenario === 'first' ? 0 : 10, paid: 0 },
         goalFilter: 'All',
         completedGoals: [],
         pinnedGoal: null,
@@ -1846,7 +1992,7 @@
       const money = (n) =>
         '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const button = (label, action, kind = 'secondary', disabled = false) =>
-        `<button class="${kind}" data-action="${action}" ${disabled ? 'disabled' : ''}>${label}</button>`;
+        `<button class="${kind}" data-action="${action}" ${disabled || (purchasesBlocked() && isDiscretionary(action)) ? 'disabled' : ''}>${label}</button>`;
       const owned = (id) => state.owned.includes(id);
       const income = () =>
         catalog
@@ -1942,7 +2088,7 @@
           check: () => state.peakWorth >= threshold,
         })),
       ];
-      const utilityScreens = ['profile', 'goals', 'settings', 'about'];
+      const utilityScreens = ['goals', 'settings', 'about', 'taxes'];
       const screenLabel = (screen) =>
         ({
           earn: 'Earn',
@@ -1957,6 +2103,7 @@
           goals: 'Goals',
           settings: 'Settings',
           about: 'About',
+          taxes: 'Taxes',
         })[screen] ?? 'Earn';
       const summaryMoney = (amount) =>
         state.settings.numberFormatting === 'compact' && amount >= 1000
@@ -1978,6 +2125,7 @@
           profile: '<circle cx="12" cy="8" r="4"/><path d="M4 22v-3a8 8 0 0116 0v3"/>',
           goals:
             '<path d="M8 3h8v6a4 4 0 01-8 0zM8 5H4v3a4 4 0 004 4m8-7h4v3a4 4 0 01-4 4M12 13v6m-4 2h8"/>',
+          taxes: '<path d="M6 2h12v20l-3-2-3 2-3-2-3 2zM9 7h6M9 11h6M9 15h4"/>',
           settings:
             '<path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="10" cy="18" r="2"/>',
         };
@@ -1994,6 +2142,13 @@
       }
       function openUtility(screen) {
         if (state.screen === screen) return;
+        if (screen === 'profile') {
+          state.screen = 'profile';
+          state.screenStack = [];
+          state.confirmation = null;
+          state.notice = '';
+          return;
+        }
         const index = state.screenStack.indexOf(screen);
         state.screenStack =
           index >= 0 ? state.screenStack.slice(0, index) : [...state.screenStack, state.screen];
@@ -2007,8 +2162,106 @@
           'utilityBack',
           'back',
         );
+      function taxFixture(status) {
+        return {
+          status,
+          amount:
+            status === 'debt'
+              ? 3000
+              : status === 'ready' || status === 'pending'
+                ? 1000
+                : status === 'current'
+                  ? 10
+                  : 0,
+          paid: status === 'paid' ? 1000 : 0,
+          fine: status === 'debt' ? 2000 : 0,
+        };
+      }
+      const taxLiability = () =>
+        ['current', 'ready', 'debt'].includes(state.tax.status) ? state.tax.amount : 0;
+      const purchasesBlocked = () =>
+        ['ready', 'debt'].includes(state.tax.status) && state.tax.amount > 0;
+      const isDiscretionary = (action) =>
+        ['buy', 'unit', 'walletUpgrade', 'renovate', 'propertyBuy'].includes(
+          action.split(':')[0],
+        ) || action === 'trade:buy';
+      const taxRate = () =>
+        state.tax.status === 'exempt' || (state.tax.status === 'current' && state.tax.amount === 0)
+          ? 0
+          : 0.04;
+      function taxNotice() {
+        return purchasesBlocked() && state.screen !== 'taxes'
+          ? `<button class="tax-alert" data-action="utility:taxes"><span><b>${state.tax.status === 'ready' ? 'Tax return ready to file' : 'Tax debt · ' + money(state.tax.amount)}</b><small>Purchases paused · earnings and operating actions continue</small></span><span>Review →</span></button>`
+          : '';
+      }
+      function creditCash(amount) {
+        const recovered =
+          state.tax.status === 'debt'
+            ? Math.min(state.tax.amount, Math.floor(amount * 25) / 100)
+            : 0;
+        state.cash += amount - recovered;
+        if (recovered) {
+          state.tax.amount -= recovered;
+          state.tax.paid += recovered;
+          if (state.tax.amount === 0) state.tax.status = 'paid';
+        }
+      }
+      function taxesScreen() {
+        const t = state.tax,
+          estimate = t.status === 'current',
+          due = t.status === 'ready',
+          debt = t.status === 'debt',
+          pending = t.status === 'pending',
+          exempt = t.status === 'exempt';
+        return `${utilityBack()}<div class="tax-title"><h1>Taxes</h1><span class="tax-state">${{ current: 'Accruing', ready: 'Ready to file', pending: 'Audit pending', debt: 'Recovery', paid: 'Resolved', exempt: 'Exempt' }[t.status]}</span></div>${exempt ? '<div class="tax-panel"><h2>Permanent exemption active</h2><p class="muted">No filing or tax payments required.</p></div>' : debt ? taxDebtView() : pending ? `<div class="tax-panel"><span class="muted">Return 01 · reported zero</span><h2>Audit decision pending</h2><p>Check in 10 credited minutes</p><div class="dense-line row"><span>Possible assessment</span><b>$3,000.00</b></div><p class="muted">$1,000 original tax + $2,000 fine. Purchases remain available while pending.</p></div>` : due ? `<div class="tax-panel"><span class="muted">Return 01 · 36 business days / 6 credited hours</span><div class="tax-total">$1,000.00</div><p class="muted">File this return to resume purchases.</p>${button('Report everything · $1,000', 'taxReview:full', 'primary wide')}${button('Report nothing…', 'taxReview:zero', 'secondary wide')}</div>` : estimate ? `<div class="tax-panel"><span class="muted">Current estimate · not paid yet</span><div class="tax-total">${money(t.amount)}</div><p class="muted">Next return in 2 credited hours</p></div>` : '<div class="tax-panel"><h2>Return resolved</h2><p class="muted">No outstanding tax or fine in this sample.</p></div>'}${exempt ? '' : `<div class="tax-rate-strip">${stat('Saved blended rate', (taxRate() * 100).toFixed(2) + '%')}${stat('Day-opening wealth', taxRate() === 0 ? '$0' : '$50,000')}</div><details class="tax-detail"><summary>Source accounting</summary>${taxSourceTable(estimate)}<div class="dense-line row"><span>Losses carried forward</span><b>$0.00</b></div><p class="muted">Company profit includes retained earnings. Payout and treasury transfers are not new income. Taps and Tap Boost are exempt.</p></details><details class="tax-detail"><summary>How the rate works</summary><p class="muted">Wealth bands blend the profit-tax rate, saved at each business-day opening. The first $10,000 of wealth is protected. Unrealized appreciation is not itself taxed.</p></details>`}<h2>History</h2><div class="dense-line row"><span>Collected · tax + fines</span><b>${money(t.paid)}</b></div>`;
+      }
+      function taxSourceTable(current) {
+        const gross = current ? (state.tax.amount === 0 ? 0 : 300) : 30000,
+          cost = current ? (state.tax.amount === 0 ? 0 : 50) : 5000;
+        return `<div class="tax-source"><b>Vending Machine · owner share</b><div class="dense-line row"><span>Gross receipts</span><b>${money(gross)}</b></div><div class="dense-line row"><span>Operating costs</span><b>−${money(cost)}</b></div><div class="dense-line row"><span>Taxable profit</span><b>${money(gross - cost)}</b></div><div class="dense-line row"><span>Estimated tax · ${(taxRate() * 100).toFixed(2)}%</span><b>${money((gross - cost) * taxRate())}</b></div></div>`;
+      }
+      function taxDebtView() {
+        return `<div class="tax-panel"><span class="muted">Assessed balance</span><div class="tax-total">${money(state.tax.amount)}</div><div class="dense-line row"><span>Original tax</span><b>$1,000.00</b></div><div class="dense-line row"><span>Original fine · 2× tax</span><b>${money(state.tax.fine ?? 0)}</b></div><p class="muted">25% of eligible new cash credits pays this down. Taps are excluded from automatic recovery. No interest or repeating penalties.</p>${button('Pay from cash · ' + money(Math.min(state.cash, state.tax.amount)), 'payTaxDebt', 'primary wide', state.cash === 0)}</div>`;
+      }
+      function taxConfirmation() {
+        const full = state.confirmation === 'taxFull',
+          zero = state.confirmation === 'taxZero';
+        const due = state.confirmation === 'taxDebt' ? state.tax.amount : 1000,
+          paid = Math.min(state.cash, due);
+        return `<div class="sheet" role="dialog" aria-label="Review tax action"><h3>${zero ? 'Report nothing?' : full ? 'Report all income?' : 'Pay assessed debt?'}</h3>${zero ? '<div class="dense-line row"><span>Pay now</span><b>$0.00</b></div><div class="dense-line row"><span>Audit chance</span><b>40%</b></div><p class="muted">If audited: $1,000 tax + $2,000 fine = $3,000. Check after 10 credited minutes. Filing cannot be changed or rerolled.</p>' : `<div class="dense-line row"><span>Pay now from cash</span><b>${money(paid)}</b></div><div class="dense-line row"><span>Cash after</span><b>${money(state.cash - paid)}</b></div><div class="dense-line row"><span>Installment balance after</span><b>${money(due - paid)}</b></div>`}<div class="split">${button('Cancel', 'cancel')}${button(zero ? 'Submit zero report' : 'Confirm payment', 'confirm', 'primary')}</div></div>`;
+      }
+      function confirmTax() {
+        if (state.confirmation === 'taxZero' && state.tax.status === 'ready') {
+          state.tax = { status: 'pending', amount: 1000, paid: 0, fine: 2000 };
+          log('Return 01 · zero report submitted');
+        } else if (
+          (state.confirmation === 'taxFull' && state.tax.status === 'ready') ||
+          (state.confirmation === 'taxDebt' && state.tax.status === 'debt')
+        ) {
+          const due = state.tax.amount,
+            paid = Math.min(due, state.cash);
+          state.cash -= paid;
+          state.tax = {
+            ...state.tax,
+            status: due > paid ? 'debt' : 'paid',
+            amount: due - paid,
+            paid: state.tax.paid + paid,
+          };
+          log('Tax payment · ' + money(paid));
+        }
+        state.confirmation = null;
+      }
       function profile() {
-        return `${utilityBack()}<div class="profile-heading"><span class="profile-avatar">${utilityIcon('profile')}</span><div><h1>Profile</h1><span class="muted">${state.completedGoals.length} of ${goals.length} achievements</span></div></div><div class="profile-stat">${stat('Peak net worth', summaryMoney(state.peakWorth))}${stat('Businesses owned', state.owned.length)}</div><div class="profile-menu">${profileLink('Goals & achievements', state.completedGoals.length + ' / ' + goals.length + ' earned', 'goals')}${profileLink('Settings', 'Preferences, progress and about', 'settings')}</div>`;
+        return `<div class="profile-hub-title"><h2>Profile</h2><span class="muted">${state.completedGoals.length}/${goals.length} achievements</span></div><div class="profile-shortcuts">${[
+          ['goals', 'Goals'],
+          ['taxes', 'Taxes'],
+          ['settings', 'Settings'],
+        ]
+          .map(
+            ([page, label]) =>
+              `<button data-action="utility:${page}">${utilityIcon(page)}<span>${label}</span>${page === 'taxes' && purchasesBlocked() ? '<i aria-label="Action needed"></i>' : ''}</button>`,
+          )
+          .join('')}</div>${wealth()}`;
       }
       function profileLink(title, subtitle, destination) {
         return `<button class="profile-link" data-action="utility:${destination}"><span class="menu-icon">${utilityIcon(destination)}</span><span><b>${title}</b><small>${subtitle}</small></span><span aria-hidden="true">→</span></button>`;
@@ -2060,6 +2313,12 @@
           : '';
       }
       function utilityAction(type, value) {
+        if (type === 'taxReview') state.confirmation = value === 'full' ? 'taxFull' : 'taxZero';
+        if (type === 'payTaxDebt') state.confirmation = 'taxDebt';
+        if (type === 'auditSample' && state.tax.status === 'pending') {
+          state.tax = { status: 'debt', amount: 3000, paid: 0, fine: 2000 };
+          log('Audit assessed · $1,000 tax + $2,000 fine');
+        }
         if (type === 'utility') openUtility(value);
         if (type === 'utilityBack') {
           state.screen = state.screenStack.pop() ?? 'earn';
@@ -2080,6 +2339,7 @@
           markets: '<path d="M4 20V10m8 10V4m8 16v-8M2 21h20"/>',
           earn: '<path d="M13 2L5 13h6l-1 9 9-12h-6z"/>',
           properties: '<path d="M3 11l9-8 9 8M5 10v11h14V10M10 21v-7h4v7"/>',
+          profile: '<circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0116 0v3"/>',
           wealth: '<path d="M11 3a9 9 0 109 10h-9zM14 2v8h8a9 9 0 00-8-8z"/>',
         };
         return `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${paths[id]}</svg>`;
@@ -2090,7 +2350,7 @@
           ['markets', '↗', 'Markets'],
           ['earn', 'ϟ', 'Earn'],
           ['properties', '⌂', 'Properties'],
-          ['wealth', '◎', 'Wealth'],
+          ['profile', '◎', 'Profile'],
         ]
           .map(
             ([id, icon, label]) =>
@@ -2135,7 +2395,7 @@
         }<div class="stop locked"><span class="eyebrow">On the horizon</span><h3>Regional business</h3><p class="muted">Grow to unlock takeovers.</p></div></div>`;
       }
       function overview() {
-        return `<section class="section" id="overview"><h2>Overview</h2><div class="split"><div class="metric"><span class="muted">Profit / business day</span><b class="green">$300.00</b></div><div class="metric"><span class="muted">Treasury</span><b>${money(state.treasury)}</b></div></div><p class="muted">Illustrative Local snapshot · 1 business day = 10 minutes.<br>Revenue $420 · costs $120 · 300 snacks/day</p><div class="line row"><span>Price per snack</span><b>$1.40 · Standard</b></div><label class="label" for="payout">Payout to your cash: ${state.payout}% · remainder stays here</label><input id="payout" type="range" min="0" max="100" step="10" value="${state.payout}"><div class="split">${button('Deposit $100', 'deposit', 'secondary', state.cash < 100)}${button('Withdraw all', 'withdraw', 'secondary', state.treasury === 0)}</div>${button('Sell business…', 'sell', 'wide red')}</section>`;
+        return `<section class="section" id="overview"><h2>Overview</h2><div class="split"><div class="metric"><span class="muted">Profit / business day</span><b class="green">$300.00</b></div><div class="metric"><span class="muted">Treasury</span><b>${money(state.treasury)}</b></div></div><p class="muted">Illustrative Local snapshot · 1 business day = 10 minutes.<br>Revenue $420 · costs $120 · 300 snacks/day</p><div class="line row"><span>Price per snack</span><b>$1.40 · Standard</b></div><div class="dense-line row"><span>Owner tax forecast / day</span><b>${money(300 * taxRate())}</b></div><p class="muted">Estimate paid at filing; Payout does not withhold tax.</p><label class="label" for="payout">Payout to your cash: ${state.payout}% · remainder stays here</label><input id="payout" type="range" min="0" max="100" step="10" value="${state.payout}"><div class="split">${button('Deposit $100', 'deposit', 'secondary', state.cash < 100)}${button('Withdraw all', 'withdraw', 'secondary', state.treasury === 0)}</div>${button('Sell business…', 'sell', 'wide red')}</section>`;
       }
       function mechanic() {
         return `<section class="section" id="mechanic"><h2>Placement & stock</h2><div class="row"><div><h3>Office · ${state.units} machines</h3><p class="muted">Balanced mix · ${state.stock}% stock remaining</p></div><span class="${state.stock === 0 ? 'red' : 'green'}">${state.stock === 0 ? '! Empty' : '● Serving'}</span></div><div class="meter" style="margin-top:14px"><i style="width:${state.stock}%"></i></div>${button('Restock all · $30 treasury', 'restock', 'primary wide', state.treasury < 30 || state.stock === 100)}<p class="muted">Sample restock fee. Restockers automate this daily.</p></section>`;
@@ -2251,7 +2511,8 @@
         );
       const dividends = () =>
         assets.reduce((total, a) => total + (state.positions[a.id]?.quantity ?? 0) * a.dividend, 0);
-      const netWorth = () => state.cash + businessWorth() + propertyWorth() + marketWorth();
+      const grossAssets = () => state.cash + businessWorth() + propertyWorth() + marketWorth();
+      const netWorth = () => grossAssets() - taxLiability();
       const signedMoney = (n) => (n < 0 ? '−' : '+') + money(Math.abs(n));
       const log = (text) => {
         state.notice = text;
@@ -2285,8 +2546,8 @@
         return `<div class="wealth-head"><span class="muted">Net worth</span><h1>${money(netWorth())}</h1></div><div class="stats-grid">${stat('Income to cash', money(income() + rentalIncome()) + '/min')}${stat('Market value', money(marketWorth()))}${stat('Unrealized P&L', signedMoney(unrealized))}${stat('Realized P&L', signedMoney(state.realized))}</div>${selectedChips(['Summary', 'Holdings', 'Activity'], state.wealthTab, 'wealthTab')}${state.wealthTab === 'Summary' ? wealthSummary(categories) : state.wealthTab === 'Holdings' ? wealthHoldings() : `<h2>Activity</h2>${state.activity.length ? state.activity.map((text) => `<div class="dense-line">${text}</div>`).join('') : '<p class="muted">No transactions yet.</p>'}`}`;
       }
       function wealthSummary(categories) {
-        const total = netWorth();
-        return `<h2>Allocation</h2><div class="allocation live-allocation" role="img" aria-label="Allocation by current holding value">${categories.map(([name, value], i) => `<i style="width:${total ? (value / total) * 100 : 0}%;background:var(--asset-${i})" title="${name}: ${money(value)}"></i>`).join('')}</div><div class="table-head"><span>Asset</span><span>Value / share</span></div>${categories.map(([name, value, tab], i) => `<button class="dense-line allocation-row" data-action="category:${name}"><span><i class="swatch" style="background:var(--asset-${i})"></i>${name}</span><span><b>${money(value)}</b><small>${total ? ((value / total) * 100).toFixed(1) : '0.0'}%</small></span></button>`).join('')}<h2>Income</h2><div class="dense-line row"><span>Business payouts</span><b>${money(income())}/min</b></div><div class="dense-line row"><span>Net rent</span><b>${money(rentalIncome())}/min</b></div><div class="dense-line row"><span>Dividends</span><b>${money(dividends())}/hour</b></div><details class="valuation"><summary>Valuation basis</summary><p>Cash + private business investment and treasury + properties + market holdings. Listed business stakes count at market value once. No pending dividends in this sample.</p></details>`;
+        const total = grossAssets();
+        return `<h2>Allocation</h2><div class="allocation live-allocation" role="img" aria-label="Allocation by current holding value">${categories.map(([name, value], i) => `<i style="width:${total ? (value / total) * 100 : 0}%;background:var(--asset-${i})" title="${name}: ${money(value)}"></i>`).join('')}</div><div class="table-head"><span>Asset</span><span>Value / share</span></div>${categories.map(([name, value, tab], i) => `<button class="dense-line allocation-row" data-action="category:${name}"><span><i class="swatch" style="background:var(--asset-${i})"></i>${name}</span><span><b>${money(value)}</b><small>${total ? ((value / total) * 100).toFixed(1) : '0.0'}%</small></span></button>`).join('')}<div class="dense-line row"><span>Tax liability</span><b>−${money(taxLiability())}</b></div><h2>Income</h2><div class="dense-line row"><span>Business payouts</span><b>${money(income())}/min</b></div><div class="dense-line row"><span>Net rent</span><b>${money(rentalIncome())}/min</b></div><div class="dense-line row"><span>Dividends</span><b>${money(dividends())}/hour</b></div><details class="valuation"><summary>Valuation basis</summary><p>Cash + private business investment and treasury + properties + market holdings. Listed business stakes count at market value once. No pending dividends in this sample.</p></details>`;
       }
       function wealthHoldings() {
         return `<h2>Businesses</h2>${
@@ -2428,7 +2689,7 @@
           log(h.name + ' bought · ' + money(h.price));
         }
         if (kind === 'propertySell' && state.properties[h.id]) {
-          state.cash += homeValue(h) * 0.95;
+          creditCash(homeValue(h) * 0.95);
           delete state.properties[h.id];
           log(h.name + ' sold');
         }
@@ -2444,7 +2705,7 @@
           }
           if (kind === 'tradeSell' && p.quantity >= qty) {
             const basis = (p.cost * qty) / p.quantity;
-            state.cash += gross - fee;
+            creditCash(gross - fee);
             state.realized += gross - fee - basis;
             state.positions[a.id] = { quantity: p.quantity - qty, cost: p.cost - basis };
             if (state.positions[a.id].quantity === 0) delete state.positions[a.id];
@@ -2511,6 +2772,8 @@
       }
       function sheet() {
         if (!state.confirmation) return '';
+        if (['taxFull', 'taxZero', 'taxDebt'].includes(state.confirmation))
+          return taxConfirmation();
         if (state.confirmation === 'resetProgress')
           return `<div class="sheet" role="dialog" aria-label="Reset progress confirmation"><h3>Reset progress?</h3><p class="muted">${money(state.cash)} cash, ${state.owned.length} businesses and ${Object.keys(state.properties).length} properties and ${Object.keys(state.positions).length} market positions will be removed.</p><div class="split">${button('Cancel', 'cancel')}${button('Reset', 'confirm', 'primary')}</div></div>`;
         if (['tradeBuy', 'tradeSell', 'propertyBuy', 'propertySell'].includes(state.confirmation))
@@ -2520,6 +2783,16 @@
       }
       function render() {
         syncGoals();
+        document.getElementById('tax-sample').value = [
+          'current',
+          'ready',
+          'pending',
+          'debt',
+          'exempt',
+        ].includes(state.tax.status)
+          ? state.tax.status
+          : 'current';
+        document.getElementById('audit-sample-button').hidden = state.tax.status !== 'pending';
         document.getElementById('phone').dataset.motion = state.settings.reducedMotion;
         document.getElementById('phone').dataset.palette = palette;
         document.getElementById('phone').dataset.colorSystem = categoryPalettes.includes(palette)
@@ -2541,11 +2814,12 @@
             goals: 'wealth',
             settings: 'wealth',
             about: 'wealth',
+            taxes: 'wealth',
           }[state.screen] ?? state.screen;
         document.getElementById('phone').innerHTML =
           header() +
           (state.notice ? `<div class="toast" role="status">${state.notice}</div>` : '') +
-          `<div class="content">${sheet()}${utilityScreens.includes(state.screen) ? { profile, goals: goalsScreen, settings: settingsScreen, about: aboutScreen }[state.screen]() : state.screen === 'detail' ? detail() : state.screen === 'earn' ? earn() : state.screen === 'wealth' ? wealth() : state.screen === 'markets' ? markets() : state.screen === 'asset' ? assetDetail() : state.screen === 'properties' ? properties() : state.screen === 'property' ? propertyDetail() : { A: variantA, B: variantB, C: variantC }[variant]()}</div>` +
+          `<div class="content">${sheet()}${taxNotice()}${utilityScreens.includes(state.screen) ? { goals: goalsScreen, settings: settingsScreen, about: aboutScreen, taxes: taxesScreen }[state.screen]() : state.screen === 'profile' ? profile() : state.screen === 'detail' ? detail() : state.screen === 'earn' ? earn() : state.screen === 'wealth' ? wealth() : state.screen === 'markets' ? markets() : state.screen === 'asset' ? assetDetail() : state.screen === 'properties' ? properties() : state.screen === 'property' ? propertyDetail() : { A: variantA, B: variantB, C: variantC }[variant]()}</div>` +
           (state.screen === 'detail' || utilityScreens.includes(state.screen) ? '' : tabs());
         document.getElementById('variant-label').textContent = variant + ' · ' + names[variant];
         document.getElementById('hypothesis').textContent = hypotheses[variant];
@@ -2606,6 +2880,10 @@
         }
       }
       function confirm() {
+        if (['taxFull', 'taxZero', 'taxDebt'].includes(state.confirmation)) {
+          confirmTax();
+          return;
+        }
         if (state.confirmation === 'resetProgress') {
           const settings = state.settings;
           state = makeState('first');
@@ -2618,12 +2896,12 @@
           return;
         }
         if (state.confirmation === 'withdraw') {
-          state.cash += state.treasury;
+          creditCash(state.treasury);
           state.treasury = 0;
           state.notice = 'Treasury withdrawn to cash';
         }
         if (state.confirmation === 'sell') {
-          state.cash += 150 + state.treasury;
+          creditCash(150 + state.treasury);
           state.treasury = 0;
           state.owned = state.owned.filter((id) => id !== 'vending');
           state.screen = 'businesses';
@@ -2639,6 +2917,11 @@
       }
       function act(action) {
         const [type, value] = action.split(':');
+        if (purchasesBlocked() && isDiscretionary(action)) {
+          state.notice = 'Resolve the tax return or assessed debt before making purchases.';
+          render();
+          return;
+        }
         if (type === 'palette') choosePalette(value);
         utilityAction(type, value);
         if (type === 'next' || type === 'prev') {
@@ -2647,7 +2930,7 @@
         }
         if (type === 'reset') state = makeState(state.scenario);
         if (type === 'tab') {
-          state.screen = value;
+          state.screen = value === 'wealth' ? 'profile' : value;
           state.screenStack = [];
           state.confirmation = null;
           state.notice = '';
@@ -2701,6 +2984,12 @@
         }
       });
       document.addEventListener('change', (event) => {
+        if (event.target.id === 'tax-sample') {
+          state.tax = taxFixture(event.target.value);
+          state.confirmation = null;
+          state.notice = '';
+          render();
+        }
         if (event.target.id === 'market-sort') {
           state.marketSort = event.target.value;
           render();

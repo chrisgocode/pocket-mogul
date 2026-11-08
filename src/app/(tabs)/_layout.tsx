@@ -5,11 +5,11 @@ import { Icon, type IconName } from '@/ui/Icons';
 import { colors } from '@/ui/tokens';
 
 const TABS: { name: string; title: string; icon: IconName }[] = [
-  { name: 'home', title: 'Home', icon: 'home' },
   { name: 'businesses', title: 'Businesses', icon: 'businesses' },
   { name: 'markets', title: 'Markets', icon: 'markets' },
+  { name: 'home', title: 'Earn', icon: 'home' },
   { name: 'properties', title: 'Properties', icon: 'properties' },
-  { name: 'portfolio', title: 'Portfolio', icon: 'portfolio' },
+  { name: 'portfolio', title: 'Profile', icon: 'portfolio' },
 ];
 
 export default function TabsLayout() {

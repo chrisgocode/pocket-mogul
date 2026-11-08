@@ -1,3 +1,5 @@
+import { playTaxes, taxStartingState, type TaxPolicy } from './taxes';
+import type { TaxState } from '@/domain/tax/types';
 import { operationCommands } from './operations';
 import type { OwnedBusiness } from '@/domain/business/owned';
 import type { ActivityEntry } from '@/domain/activity';
@@ -15,6 +17,7 @@ import { chooseOption, paybackMinutes, type PolicyName } from './policies';
 export type Session = { readonly activeMs: number; readonly awayMs: number };
 
 export type BalanceScenario = {
+  readonly taxPolicy?: TaxPolicy;
   readonly name: string;
   readonly seed: string;
   readonly policy: PolicyName;
@@ -41,6 +44,7 @@ export type Purchase = Moment & {
 export type Sample = Moment & { readonly worth: NetWorthBreakdown };
 
 export type BalanceRun = {
+  readonly tax: TaxState;
   readonly scenario: BalanceScenario;
   readonly goals: Readonly<Record<string, Moment>>;
   readonly tiers: Readonly<Record<number, Moment>>;
@@ -167,6 +171,11 @@ function playStep(sim: Simulation) {
   sim.elapsedMs += stepMs;
   const command: GameCommand = taps > 0 ? { type: 'TapBatch', taps } : { type: 'AdvanceTime' };
   commit(sim, command, stepMs);
+  playTaxes({
+    state: () => sim.state,
+    commit: (action) => commit(sim, action),
+    policy: sim.scenario.taxPolicy ?? 'honest',
+  });
   operate(sim);
   spend(sim);
   if (sim.activeMs < sim.nextSampleMs) return;
@@ -180,6 +189,11 @@ function playSession(sim: Simulation, session: Session) {
   if (session.awayMs === 0 || finished(sim)) return;
   sim.elapsedMs += session.awayMs;
   commit(sim, { type: 'SettleOffline' });
+  playTaxes({
+    state: () => sim.state,
+    commit: (action) => commit(sim, action),
+    policy: sim.scenario.taxPolicy ?? 'honest',
+  });
   commit(sim, { type: 'AcknowledgeReturnSummary' });
 }
 
@@ -198,7 +212,10 @@ export function simulateBalance(scenario: BalanceScenario, content: Content): Ba
   if (!scenario.sessions.some((session) => session.activeMs > 0)) {
     throw new Error(`Scenario ${scenario.name} has no active play`);
   }
-  const state = startingState(scenario, content);
+  const state = taxStartingState(startingState(scenario, content), {
+    content,
+    policy: scenario.taxPolicy ?? 'honest',
+  });
   const sim: Simulation = {
     scenario,
     content,
@@ -219,6 +236,7 @@ export function simulateBalance(scenario: BalanceScenario, content: Content): Ba
   }
   const { goals, tiers, purchases, samples } = sim;
   return {
+    tax: sim.state.tax,
     scenario,
     goals,
     tiers,

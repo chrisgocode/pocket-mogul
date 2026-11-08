@@ -245,7 +245,9 @@ export function selectBusinessDetail(
         owned.listing.status === 'listed'
           ? moneyCents((owned.treasuryCents * owned.listing.sharesHeld) / TOTAL_SHARES)
           : owned.treasuryCents,
-      proceedsCents: listedSaleCents(owned, state) ?? detail.sale.proceedsCents,
+      proceedsCents:
+        listedSaleCents(owned, state, content.economy.market.stocks.feeBps) ??
+        detail.sale.proceedsCents,
     },
   };
 }

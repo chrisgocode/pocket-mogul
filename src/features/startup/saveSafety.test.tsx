@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
 import type { OpenedGame } from '@/application/game';
@@ -62,7 +63,7 @@ describe('opening a save from a newer version', () => {
 describe('a purchase that cannot be saved', () => {
   it('shows SAVE_FAILED as recoverable and succeeds on retry (AC27)', async () => {
     const session = await startTestGameFrom({
-      ...freshGameState({ saveId: 'buyer', economyVersion: 1, wallMs: 0 }),
+      ...freshGameState({ saveId: 'buyer', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
       cashCents: dollars('300'),
     });
     mockGame = Promise.resolve({ status: 'ready', game: session.game });
