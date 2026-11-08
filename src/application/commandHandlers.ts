@@ -17,6 +17,11 @@ import {
   applySetWashPackage,
 } from '@/domain/business/carWashCommands';
 import {
+  applyAcceptContract,
+  applyDeclineContract,
+  applyInstallSortingHub,
+} from '@/domain/business/deliveryCommands';
+import {
   applyFireStaff,
   applyHireStaff,
   applyUpgradeStage,
@@ -101,6 +106,12 @@ const COMMAND_HANDLERS: CommandHandlers = {
     applySetMemberCap(state, { ...command, economy: businessEconomy(content) }),
   InstallDetailing: (state, command, content) =>
     applyInstallDetailing(state, { ...command, economy: businessEconomy(content) }),
+  AcceptContract: (state, command, content) =>
+    applyAcceptContract(state, { ...command, economy: businessEconomy(content) }),
+  DeclineContract: (state, command, content) =>
+    applyDeclineContract(state, { ...command, economy: businessEconomy(content) }),
+  InstallSortingHub: (state, command, content) =>
+    applyInstallSortingHub(state, { ...command, economy: businessEconomy(content) }),
   DismissCoachMark: (state, command) => applyDismissCoachMark(state, command.coachMark),
   SetPayout: (state, command, content) =>
     applySetPayout(state, { ...command, economy: businessEconomy(content) }),

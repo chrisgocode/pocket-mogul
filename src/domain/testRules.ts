@@ -137,6 +137,7 @@ export function ownedBusiness(
     incident: { status: 'none' },
     vending: { status: 'inactive' },
     carWash: { status: 'inactive' },
+    delivery: { status: 'inactive' },
     ...change,
   };
 }

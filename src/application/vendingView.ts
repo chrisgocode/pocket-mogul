@@ -49,6 +49,7 @@ export type VendingView =
   | { readonly status: 'locked'; readonly unlockStage: number }
   | {
       readonly status: 'active';
+      readonly unlockStage: number;
       readonly spots: readonly VendingSpotView[];
       readonly restockAll: { readonly priceCents: MoneyCents } & Affordability;
       readonly restockers: number;
@@ -111,6 +112,7 @@ export function selectVending(context: VendingContext): VendingView | undefined 
   const allCents = moneyCents(restockTotalCents(running, 'all'));
   return {
     status: 'active',
+    unlockStage: rules.unlockStage,
     spots: VENDING_LOCATIONS.map((location) => spotView(running, location, owned.treasuryCents)),
     restockAll: { priceCents: allCents, ...affordability(allCents, owned.treasuryCents) },
     restockers: owned.staff.operations,

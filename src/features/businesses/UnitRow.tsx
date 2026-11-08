@@ -1,13 +1,12 @@
 import { StyleSheet, View } from 'react-native';
 
 import type { AvailableUnit, UnitOption } from '@/application/businessDetailView';
-import { moneyCents } from '@/domain/money';
 import { priceLabel } from '@/features/game/priceFormat';
 import { Button } from '@/ui/Button';
 import { ListRow } from '@/ui/ListRow';
 import { spacing } from '@/ui/tokens';
 
-import { formatPerDay } from './businessFormat';
+import { profitGain } from './businessFormat';
 
 export function UnitRow({
   unit,
@@ -23,7 +22,7 @@ export function UnitRow({
   if (unit.status === 'at_cap') {
     return <ListRow title={title} subtitle={subtitle} value="At the stage cap" />;
   }
-  const benefit = `+${formatPerDay(moneyCents(unit.nextProfitCents - unit.profitCents))}`;
+  const benefit = profitGain(unit.profitCents, unit.nextProfitCents);
   const label = priceLabel(`Add a ${unitName}`, unit);
   return (
     <View style={styles.unit}>

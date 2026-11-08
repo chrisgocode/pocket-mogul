@@ -1,21 +1,19 @@
-import type {
-  BusinessTrack,
-  IncidentCategory,
-  PriceLevel,
-  StaffRole,
-} from '@/domain/business/definition';
+import type { TrackLabel } from '@/application/businessDetailView';
+import type { IncidentCategory, PriceLevel, StaffRole } from '@/domain/business/definition';
 import type { PolicyStatus } from '@/domain/business/owned';
 import type { Business } from '@/content';
 import { formatMoneyExact, moneyCents, type MoneyCents } from '@/domain/money';
 
-export const TRACK_NAMES: Readonly<Record<BusinessTrack, string>> = {
+export const TRACK_NAMES: Readonly<Record<TrackLabel, string>> = {
   quality: 'Quality',
   efficiency: 'Efficiency',
+  route_planner: 'Route planner',
 };
 
-export const TRACK_EFFECTS: Readonly<Record<BusinessTrack, string>> = {
+export const TRACK_EFFECTS: Readonly<Record<TrackLabel, string>> = {
   quality: 'More customers want to buy',
   efficiency: 'Lower cost for each customer served',
+  route_planner: 'More parcels from every van',
 };
 
 const ROLE_NAMES: Readonly<Record<StaffRole, string>> = {
@@ -35,15 +33,24 @@ const RESTOCKING = {
   effect: '+20% capacity each and restocks every location each day',
 };
 
-const restocks = (business: Business, role: StaffRole) =>
-  role === 'operations' && business.mechanic?.kind === 'vending';
+const DRIVING = {
+  name: 'Driving',
+  effect: '+20% capacity each and drives vans; a van without a driver delivers nothing',
+};
+
+function flagshipRole(business: Business, role: StaffRole) {
+  if (role !== 'operations') return undefined;
+  if (business.mechanic?.kind === 'vending') return RESTOCKING;
+  if (business.mechanic?.kind === 'delivery') return DRIVING;
+  return undefined;
+}
 
 export function roleName(business: Business, role: StaffRole): string {
-  return restocks(business, role) ? RESTOCKING.name : ROLE_NAMES[role];
+  return flagshipRole(business, role)?.name ?? ROLE_NAMES[role];
 }
 
 export function roleEffect(business: Business, role: StaffRole): string {
-  return restocks(business, role) ? RESTOCKING.effect : ROLE_EFFECTS[role];
+  return flagshipRole(business, role)?.effect ?? ROLE_EFFECTS[role];
 }
 
 export const PRICE_LEVEL_NAMES: Readonly<Record<PriceLevel, string>> = {
@@ -66,6 +73,11 @@ export function formatPerDay(cents: MoneyCents): string {
 
 export function spent(priceCents: MoneyCents): MoneyCents {
   return moneyCents(0n - priceCents);
+}
+
+export function profitGain(from: MoneyCents, to: MoneyCents): string {
+  const gain = moneyCents(to - from);
+  return `${gain < 0n ? '' : '+'}${formatPerDay(gain)}`;
 }
 
 export function profitChange(from: MoneyCents, to: MoneyCents): string {

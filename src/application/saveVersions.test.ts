@@ -52,6 +52,7 @@ const BASELINE_STATE = {
       incident: { status: 'none' },
       vending: { status: 'inactive' },
       carWash: { status: 'inactive' },
+      delivery: { status: 'inactive' },
     },
   ],
   properties: [

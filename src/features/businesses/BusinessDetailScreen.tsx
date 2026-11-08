@@ -16,6 +16,7 @@ import {
 import { OwnedBusinessDetails } from './OwnedBusinessDetails';
 import type { TreasuryActions } from './treasuryActions';
 import type { CarWashActions } from './carWashFormat';
+import type { DeliveryActions } from './deliveryFormat';
 import type { FlagshipActions } from './FlagshipSections';
 import type { VendingActions } from './vendingFormat';
 import { useBusinessCommand } from './useBusinessCommand';
@@ -78,6 +79,23 @@ function carWashActions(
   };
 }
 
+function deliveryActions(
+  detail: Extract<BusinessDetailView, { status: 'owned' }>,
+  handlers: {
+    run: ReturnType<typeof useBusinessCommand>;
+    review: (action: BusinessAction) => void;
+  },
+): DeliveryActions {
+  const businessId = detail.business.id;
+  const { business } = detail;
+  return {
+    accept: (offer) => handlers.review({ kind: 'contract', business, offer }),
+    decline: (offerId) => handlers.run({ type: 'DeclineContract', businessId, offerId }),
+    dismissCoachMark: () => handlers.run({ type: 'DismissCoachMark', coachMark: 'delivery' }),
+    installSortingHub: (hub) => handlers.review({ kind: 'sorting_hub', business, hub }),
+  };
+}
+
 function flagshipActions(
   detail: Extract<BusinessDetailView, { status: 'owned' }>,
   handlers: {
@@ -85,7 +103,11 @@ function flagshipActions(
     review: (action: BusinessAction) => void;
   },
 ): FlagshipActions {
-  return { vending: vendingActions(detail, handlers), carWash: carWashActions(detail, handlers) };
+  return {
+    vending: vendingActions(detail, handlers),
+    carWash: carWashActions(detail, handlers),
+    delivery: deliveryActions(detail, handlers),
+  };
 }
 
 export function BusinessDetailScreen() {

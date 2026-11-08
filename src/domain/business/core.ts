@@ -2,17 +2,16 @@ import { moneyCents, type MoneyCents } from '@/domain/money';
 import { geometricUpgradeCents } from '@/domain/pricing';
 
 import {
-  INCIDENT_CATEGORIES,
   PRICE_LEVELS,
-  STAFF_ROLES,
   stageRule,
   type BusinessPricing,
   type BusinessTrack,
   type PriceLevel,
-  type StaffRole,
 } from './definition';
 import type { OwnedBusiness } from './owned';
+import { serveContracts, type ContractsServed } from './deliveryDemand';
 import { mechanicDay, type MechanicDay } from './mechanics';
+import { activePolicies, premiumCents, wagesOf } from './runningCosts';
 
 export type BusinessDayQuote = {
   readonly demand: number;
@@ -24,6 +23,10 @@ export type BusinessDayQuote = {
   readonly upkeepCents: MoneyCents;
   readonly customerCostsCents: MoneyCents;
   readonly memberFeesCents: MoneyCents;
+  readonly contractParcels: number;
+  readonly missedParcels: number;
+  readonly contractRevenueCents: MoneyCents;
+  readonly penaltiesCents: MoneyCents;
   readonly wagesCents: MoneyCents;
   readonly premiumsCents: MoneyCents;
   readonly managerBonusCents: MoneyCents;
@@ -83,7 +86,7 @@ function baysOf(business: OwnedBusiness, pricing: Quoting): bigint {
   const { definition, rules } = pricing;
   const numerator =
     BigInt(definition.capacityPerUnit) *
-    BigInt(business.units) *
+    BigInt(pricing.mechanic.workingUnits) *
     raisedPercent(rules.staff.operationsCapacityPercent, business.staff.operations) *
     incidentBps(business, 'capacityBps') *
     pricing.mechanic.capacityBps;
@@ -107,36 +110,15 @@ function memberWashesOf(business: OwnedBusiness, pricing: Quoting): bigint {
   return memberBay < bays ? memberBay : bays;
 }
 
-export function premiumCents(pricing: BusinessPricing): MoneyCents {
-  const percent = BigInt(pricing.rules.risks.premiumPercent);
-  return moneyCents((pricing.definition.catalogRevenuePerDayCents * percent) / PERCENT);
-}
-
-function activePolicies(business: OwnedBusiness): number {
-  return INCIDENT_CATEGORIES.filter((category) => business.insurance[category] === 'active').length;
-}
-
-export function wageCents(pricing: BusinessPricing, role: StaffRole): MoneyCents {
-  const percent = BigInt(pricing.rules.staff.wagePercent[role]);
-  return moneyCents((pricing.definition.catalogRevenuePerDayCents * percent) / PERCENT);
-}
-
-function wagesOf(business: OwnedBusiness, pricing: BusinessPricing): bigint {
-  return STAFF_ROLES.reduce<bigint>(
-    (total, role) => total + wageCents(pricing, role) * BigInt(business.staff[role]),
-    0n,
-  );
-}
-
 function managerBonusOf(gross: bigint, business: OwnedBusiness, pricing: BusinessPricing) {
   if (gross <= 0n || business.staff.manager === 0) return 0n;
   return (gross * BigInt(pricing.rules.staff.managerProfitPercent)) / PERCENT;
 }
 
-function costPerServedOf(business: OwnedBusiness, pricing: BusinessPricing): bigint {
-  const saving = pricing.rules.efficiencySavingPercent * business.levels.efficiency;
+function costPerServedOf(business: OwnedBusiness, quoting: Quoting): bigint {
+  const saving = quoting.rules.efficiencySavingPercent * quoting.mechanic.efficiencyLevel;
   const numerator =
-    pricing.definition.costPerCustomerCents *
+    quoting.definition.costPerCustomerCents *
     (PERCENT - BigInt(saving)) *
     incidentBps(business, 'costBps');
   return numerator / (PERCENT * BASIS_POINTS);
@@ -160,6 +142,23 @@ function priceOf(business: OwnedBusiness, quoting: Quoting): bigint {
   return numerator / (BASIS_POINTS * BASIS_POINTS);
 }
 
+type DayIncome = {
+  readonly revenueCents: bigint;
+  readonly memberFeesCents: bigint;
+  readonly contracts: ContractsServed;
+};
+
+function grossOf(income: DayIncome, costs: ReturnType<typeof dayCosts>): bigint {
+  const earned = income.revenueCents + income.memberFeesCents + income.contracts.revenueCents;
+  const paid =
+    income.contracts.penaltiesCents +
+    costs.upkeepCents +
+    costs.customerCostsCents +
+    costs.wagesCents +
+    costs.premiumsCents;
+  return earned - paid;
+}
+
 export function quoteBusinessDay(
   business: OwnedBusiness,
   pricing: BusinessPricing,
@@ -169,16 +168,13 @@ export function quoteBusinessDay(
   const capacity = walkInCapacityOf(business, quoting);
   const served = demand < capacity ? demand : capacity;
   const priceCents = priceOf(business, quoting);
-  const revenueCents = served * priceCents;
   const costs = dayCosts(business, { ...quoting, served });
-  const memberFeesCents = quoting.mechanic.memberFeesCents;
-  const gross =
-    revenueCents +
-    memberFeesCents -
-    costs.upkeepCents -
-    costs.customerCostsCents -
-    costs.wagesCents -
-    costs.premiumsCents;
+  const income = {
+    revenueCents: served * priceCents,
+    memberFeesCents: quoting.mechanic.memberFeesCents,
+    contracts: serveContracts(quoting.mechanic.contracts, memberWashesOf(business, quoting)),
+  };
+  const gross = grossOf(income, costs);
   const managerBonusCents = managerBonusOf(gross, business, pricing);
   return {
     demand: Number(demand),
@@ -186,10 +182,14 @@ export function quoteBusinessDay(
     served: Number(served),
     priceCents: moneyCents(priceCents),
     costPerServedCents: moneyCents(costs.costPerServedCents),
-    revenueCents: moneyCents(revenueCents),
+    revenueCents: moneyCents(income.revenueCents),
     upkeepCents: moneyCents(costs.upkeepCents),
     customerCostsCents: moneyCents(costs.customerCostsCents),
-    memberFeesCents: moneyCents(memberFeesCents),
+    memberFeesCents: moneyCents(income.memberFeesCents),
+    contractParcels: income.contracts.delivered,
+    missedParcels: income.contracts.missed,
+    contractRevenueCents: moneyCents(income.contracts.revenueCents),
+    penaltiesCents: moneyCents(income.contracts.penaltiesCents),
     wagesCents: moneyCents(costs.wagesCents),
     premiumsCents: moneyCents(costs.premiumsCents),
     managerBonusCents: moneyCents(managerBonusCents),

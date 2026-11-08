@@ -22,7 +22,7 @@ export function CarWashSection({
   return (
     <Section title="Washes" note="Packages, weather and memberships">
       {carWash.coachMark === 'show' ? (
-        <CarWashCoachMark onDismiss={actions.dismissCoachMark} />
+        <CarWashCoachMark unlockStage={carWash.unlockStage} onDismiss={actions.dismissCoachMark} />
       ) : null}
       <WeatherCard today={carWash.today} forecast={carWash.forecast} />
       <WashPackagesCard packages={carWash.packages} actions={actions} />

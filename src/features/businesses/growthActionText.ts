@@ -3,9 +3,11 @@ import type { Business } from '@/content';
 import type { StaffRole } from '@/domain/business/definition';
 import { formatMoneyExact } from '@/domain/money';
 import type { ActionSheetText } from '@/features/game/ActionSheet';
+import type { ConfirmationLine } from '@/ui/ConfirmationDetails';
 import { formatCashChange } from '@/features/game/priceFormat';
 
 import { formatPerDay, profitChange, roleName, spent, stageName } from './businessFormat';
+import { flagshipUnlockName } from './flagshipUnlockText';
 
 export function hireText(hire: AvailableHire, business: Business): ActionSheetText {
   const role = roleName(business, hire.role);
@@ -33,13 +35,25 @@ export function fireText(role: StaffRole, business: Business): ActionSheetText {
   };
 }
 
-export function stageText(stage: ReadyStage): ActionSheetText {
+function unlockLines(stage: ReadyStage, business: Business): ConfirmationLine[] {
+  const unlocked = flagshipUnlockName(business, stage.unlocks);
+  const parked = stage.parkedUnits;
+  return [
+    ...(unlocked === undefined ? [] : [{ label: 'Unlocks', value: unlocked }]),
+    ...(parked === 0
+      ? []
+      : [{ label: 'Vans without a driver', value: `${parked} stop delivering` }]),
+  ];
+}
+
+export function stageText(stage: ReadyStage, business: Business): ActionSheetText {
   const next = stageName(stage.stage + 1);
   return {
     title: `Grow to ${next}`,
     lines: [
       { label: 'Treasury change', value: formatCashChange(spent(stage.priceCents)) },
       { label: 'Stage', value: `${stageName(stage.stage)} → ${next}` },
+      ...unlockLines(stage, business),
     ],
     confirmLabel: `Confirm · ${formatMoneyExact(stage.priceCents)}`,
   };

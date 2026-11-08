@@ -35,18 +35,34 @@ import { businessEconomy } from './economy';
 import type { GameSnapshot } from './game';
 import { selectVending, type VendingView } from './vendingView';
 import { selectCarWash, type CarWashView } from './carWashView';
+import { selectDelivery, type DeliveryView } from './deliveryView';
+import { runningDelivery } from '@/domain/business/deliveryDemand';
+import {
+  flagshipUnlockAt,
+  unitsParkedAt,
+  type FlagshipUnlock,
+} from '@/domain/business/flagshipUnlocks';
 
 export type AvailableUnit = Extract<UnitQuote, { status: 'available' }> & Affordability;
 export type UnitOption = Extract<UnitQuote, { status: 'at_cap' }> | AvailableUnit;
 
+export type TrackLabel = BusinessTrack | 'route_planner';
+
+type Labelled = { readonly label: TrackLabel };
+
 export type AvailableImprovement = Extract<ImprovementQuote, { status: 'available' }> &
-  Affordability;
-export type ImprovementOption = Extract<ImprovementQuote, { status: 'max' }> | AvailableImprovement;
+  Affordability &
+  Labelled;
+export type ImprovementOption =
+  | (Extract<ImprovementQuote, { status: 'max' }> & Labelled)
+  | AvailableImprovement;
 
 export type AvailableHire = Extract<StaffQuote, { status: 'available' }> & Affordability;
 export type StaffOption = Exclude<StaffQuote, { status: 'available' }> | AvailableHire;
 
-export type ReadyStage = Extract<StageQuote, { status: 'ready' }> & Affordability;
+export type StageUnlocks = { readonly unlocks: FlagshipUnlock; readonly parkedUnits: number };
+
+export type ReadyStage = Extract<StageQuote, { status: 'ready' }> & Affordability & StageUnlocks;
 export type StageOption = Exclude<StageQuote, { status: 'ready' }> | ReadyStage;
 
 export type PriceLevelOption = {
@@ -87,6 +103,7 @@ export type OwnedBusinessDetail = {
   readonly risks: BusinessRisks;
   readonly vending: VendingView | undefined;
   readonly carWash: CarWashView | undefined;
+  readonly delivery: DeliveryView | undefined;
   readonly sale: BusinessSale;
 };
 
@@ -110,10 +127,16 @@ function unitOption({ owned, pricing }: DetailContext): UnitOption {
   return { ...quote, ...affordability(quote.priceCents, owned.treasuryCents) };
 }
 
+function trackLabel(track: BusinessTrack, { owned, pricing }: DetailContext): TrackLabel {
+  const plansRoutes = track === 'efficiency' && runningDelivery(owned, pricing) !== undefined;
+  return plansRoutes ? 'route_planner' : track;
+}
+
 function improvementOption(track: BusinessTrack, context: DetailContext): ImprovementOption {
   const quote = quoteImprovement(context.owned, { ...context.pricing, track });
-  if (quote.status === 'max') return quote;
-  return { ...quote, ...affordability(quote.priceCents, context.owned.treasuryCents) };
+  const label = trackLabel(track, context);
+  if (quote.status === 'max') return { ...quote, label };
+  return { ...quote, label, ...affordability(quote.priceCents, context.owned.treasuryCents) };
 }
 
 function staffOption(role: StaffRole, context: DetailContext): StaffOption {
@@ -125,7 +148,13 @@ function staffOption(role: StaffRole, context: DetailContext): StaffOption {
 function stageOption({ owned, pricing, simulationMs }: DetailContext): StageOption {
   const quote = quoteStage(owned, { pricing, atMs: simulationMs });
   if (quote.status !== 'ready') return quote;
-  return { ...quote, ...affordability(quote.priceCents, owned.treasuryCents) };
+  const next = quote.stage + 1;
+  return {
+    ...quote,
+    ...affordability(quote.priceCents, owned.treasuryCents),
+    unlocks: flagshipUnlockAt(pricing.definition.mechanic, next),
+    parkedUnits: unitsParkedAt(owned, { pricing, stage: next }),
+  };
 }
 
 function priceLevelOptions({ owned, pricing }: DetailContext): PriceLevelOption[] {
@@ -165,6 +194,7 @@ function ownedDetail(business: Business, context: DetailContext): OwnedBusinessD
     risks: selectBusinessRisks({ ...context, business }),
     vending: selectVending(context),
     carWash: selectCarWash(context),
+    delivery: selectDelivery(context),
     sale: {
       proceedsCents: saleProceedsCents(owned, rules),
       spendCents: owned.capitalizedSpendCents,

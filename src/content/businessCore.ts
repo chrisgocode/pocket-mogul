@@ -30,6 +30,10 @@ function coreFigures(business: Business, rules: BusinessContentRules): CoreFigur
 function mechanicOf(business: Business): BusinessMechanic {
   const { mechanic } = business;
   if (mechanic === undefined) return SHARED_CORE;
+  if (mechanic.kind === 'delivery') {
+    const { kind: _kind, ...delivery } = mechanic;
+    return { kind: 'delivery', delivery };
+  }
   if (mechanic.kind === 'car_wash') {
     const { kind: _kind, ...carWash } = mechanic;
     return { kind: 'car_wash', carWash };

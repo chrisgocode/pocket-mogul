@@ -48,9 +48,9 @@ describe('the Locations section (BUS20a)', () => {
 
   it('shows a coach mark when the mechanic unlocks, until the player dismisses it', async () => {
     const session = await openVending(vendingBusiness(officeOf(600)), []);
-    expect(screen.getByText('New at Local: locations and stock')).toBeOnTheScreen();
+    expect(screen.getByText('Locations and stock')).toBeOnTheScreen();
     await fireEvent.press(button('Got it'));
-    expect(screen.queryByText('New at Local: locations and stock')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Locations and stock')).not.toBeOnTheScreen();
     expect(session.game.getSnapshot().state.seenCoachMarks).toEqual(['vending']);
   });
 

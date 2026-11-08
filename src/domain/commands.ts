@@ -114,6 +114,23 @@ export type InstallDetailing = {
   readonly businessId: string;
 };
 
+export type AcceptContract = {
+  readonly type: 'AcceptContract';
+  readonly businessId: string;
+  readonly offerId: string;
+};
+
+export type DeclineContract = {
+  readonly type: 'DeclineContract';
+  readonly businessId: string;
+  readonly offerId: string;
+};
+
+export type InstallSortingHub = {
+  readonly type: 'InstallSortingHub';
+  readonly businessId: string;
+};
+
 export type DismissCoachMark = { readonly type: 'DismissCoachMark'; readonly coachMark: CoachMark };
 
 export type SetPayout = {
@@ -201,6 +218,9 @@ export type GameCommand =
   | SetMembershipPrice
   | SetMemberCap
   | InstallDetailing
+  | AcceptContract
+  | DeclineContract
+  | InstallSortingHub
   | DismissCoachMark
   | SetPayout
   | DepositToTreasury

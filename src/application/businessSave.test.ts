@@ -158,3 +158,36 @@ describe('car wash packages and memberships (BUS20b)', () => {
     expect(currentState(encoded)).toMatchObject({ businesses: [{ carWash }] });
   });
 });
+
+describe('delivery contracts and reputation (BUS20c)', () => {
+  const terms = {
+    clientId: 'brightcart',
+    parcelsPerDay: 5000,
+    rateCents: '1150',
+    penaltyCents: '2300',
+  };
+  const delivery = {
+    status: 'active',
+    offers: [{ id: '4-1', ...terms, days: 5, postedDay: 4 }],
+    contracts: [{ id: '3-0', ...terms, endsDay: 9 }],
+    history: [{ due: 5000, delivered: 4600 }],
+    sortingHub: 'none',
+  } as const;
+
+  it('loads a baseline save with the mechanic inactive', () => {
+    expect(currentState(baselineFixture)).toMatchObject({
+      businesses: [{ delivery: { status: 'inactive' } }],
+    });
+  });
+
+  it('keeps the delivery in a top-level record and round-trips money as cents', () => {
+    const stored = baselineDocument({ delivery: { vending: delivery } });
+    const loaded = currentState(stored);
+    expect(loaded).toMatchObject({
+      businesses: [{ delivery: { contracts: [{ rateCents: dollars('11.50'), endsDay: 9 }] } }],
+    });
+    const document = JSON.parse(encodeSave(loaded)) as { businesses: readonly object[] };
+    expect(document).toMatchObject({ delivery: { vending: delivery } });
+    expect(document.businesses[0]).not.toHaveProperty('delivery');
+  });
+});
