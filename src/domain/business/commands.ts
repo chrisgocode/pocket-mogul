@@ -1,3 +1,5 @@
+import { listedSaleCents } from './listings';
+import { listingId } from './listingState';
 import type { CommandResult, GameErrorCode } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
@@ -189,7 +191,8 @@ export function applyWithdrawFromTreasury(
 export function applySellBusiness(state: GameState, order: BusinessOrder): CommandResult {
   const found = lookUpOwned(state, order);
   if (!found.ok) return found;
-  const proceedsCents = saleProceedsCents(found.owned, order.economy.rules);
+  const proceedsCents =
+    listedSaleCents(found.owned, state) ?? saleProceedsCents(found.owned, order.economy.rules);
   return {
     ok: true,
     cashChangeCents: proceedsCents,
@@ -197,6 +200,10 @@ export function applySellBusiness(state: GameState, order: BusinessOrder): Comma
       ...state,
       cashCents: moneyCents(state.cashCents + proceedsCents),
       businesses: state.businesses.filter((owned) => owned !== found.owned),
+      positions: state.positions.filter(
+        (held) => held.instrumentId !== listingId(order.businessId),
+      ),
+      watchlist: state.watchlist.filter((id) => id !== listingId(order.businessId)),
     },
   };
 }

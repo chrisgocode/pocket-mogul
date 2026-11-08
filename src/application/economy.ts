@@ -1,3 +1,5 @@
+import type { GameState } from '@/domain/gameState';
+import { listingInstruments } from '@/domain/business/listings';
 import { businessDefinition, type Content, type Stock } from '@/content';
 import type { BusinessEconomy } from '@/domain/business/definition';
 import type { DividendRates } from '@/domain/dividends';
@@ -72,7 +74,7 @@ function stockShockBps(stock: Stock, content: Content): number {
     : market.stocks.assetShockBps;
 }
 
-function instruments(content: Content): MarketInstrument[] {
+function instruments(content: Content, state?: GameState): MarketInstrument[] {
   const stocks = content.stocks.map((stock) => ({
     id: stock.id,
     market: 'stocks' as const,
@@ -87,17 +89,21 @@ function instruments(content: Content): MarketInstrument[] {
     initialPrice: coin.initialPrice,
     assetShockBps: content.economy.market.crypto.assetShockBps,
   }));
-  return [...stocks, ...coins];
+  return [
+    ...stocks,
+    ...coins,
+    ...(state === undefined ? [] : listingInstruments(state, businessEconomy(content))),
+  ];
 }
 
-export function marketEconomy(content: Content): MarketEconomy {
-  return { instruments: instruments(content), rules: content.economy.market };
+export function marketEconomy(content: Content, state?: GameState): MarketEconomy {
+  return { instruments: instruments(content, state), rules: content.economy.market };
 }
 
-export function tradeEconomy(content: Content): TradeEconomy {
+export function tradeEconomy(content: Content, state?: GameState): TradeEconomy {
   const { market } = content.economy;
   return {
-    instruments: instruments(content),
+    instruments: instruments(content, state),
     feeBps: { stocks: market.stocks.feeBps, crypto: market.crypto.feeBps },
     minTradeNotionalCents: market.minBuyNotional,
   };

@@ -206,7 +206,15 @@ export type SkipTutorial = { readonly type: 'SkipTutorial' };
 
 export type AcknowledgeReturnSummary = { readonly type: 'AcknowledgeReturnSummary' };
 
+export type GoPublic = {
+  readonly type: 'GoPublic';
+  readonly businessId: string;
+  readonly floatPercent: number;
+  readonly ticker: string;
+};
+
 export type GameCommand =
+  | GoPublic
   | TapBatch
   | UpgradeWallet
   | BuyBusiness

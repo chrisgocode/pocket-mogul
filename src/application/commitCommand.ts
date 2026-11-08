@@ -1,3 +1,4 @@
+import { listingValuesAt } from './listingMarket';
 import type { Content } from '@/content';
 import { consumeBoostTime, isBoostActive, rewardChange, type RewardChange } from '@/domain/boost';
 import type {
@@ -55,12 +56,19 @@ type TimeStep = {
   readonly passed: PassedTime;
 };
 
-function withMarket(step: TimeStep, content: Content): TimeStep & { history: MarketHistory } {
+function withMarket(
+  step: TimeStep,
+  content: Content,
+  previous: GameState,
+): TimeStep & { history: MarketHistory } {
   const { state } = step;
   const toTick = Math.floor(state.clock.simulationMs / content.economy.market.tickMs);
   const { market, history } = advanceMarket(state.market, {
     toTick,
-    economy: marketEconomy(content),
+    economy: {
+      ...marketEconomy(content, state),
+      listingValuesAt: listingValuesAt(previous, content),
+    },
   });
   return { ...step, state: { ...state, market }, history };
 }
@@ -133,6 +141,7 @@ export function applyEnvelope(
   const advanced = withMarket(
     passTime(state, { command, time: change.time, content: settling }),
     settling,
+    state,
   );
   const adopted = { ...advanced.state, economyVersion: content.economyVersion };
   const progressed = withProgress(adopted, progressRules(content));

@@ -8,11 +8,13 @@ export function TextField({
   value,
   onChangeText,
   placeholder,
+  keyboardType = 'decimal-pad',
 }: {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
+  keyboardType?: 'decimal-pad' | 'default';
 }) {
   return (
     <View style={styles.field}>
@@ -25,7 +27,7 @@ export function TextField({
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={colors.locked}
-        keyboardType="decimal-pad"
+        keyboardType={keyboardType}
         autoCorrect={false}
         style={styles.input}
       />

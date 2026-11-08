@@ -1,3 +1,4 @@
+import { TOTAL_SHARES } from './listingState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 import { geometricUpgradeCents } from '@/domain/pricing';
 
@@ -260,7 +261,8 @@ export function cashPerMinuteCents(business: OwnedBusiness, pricing: BusinessPri
   const profit = profitPerDayCents(business, pricing);
   if (business.status === 'closed' || profit <= 0n) return moneyCents(0);
   const perDay = profit * BigInt(business.payoutPercent) * MS_PER_MINUTE;
-  return moneyCents(perDay / (PERCENT * BigInt(pricing.rules.dayMs)));
+  const stake = business.listing.status === 'private' ? TOTAL_SHARES : business.listing.sharesHeld;
+  return moneyCents((perDay * stake) / (PERCENT * BigInt(pricing.rules.dayMs) * TOTAL_SHARES));
 }
 
 export function carryingValueCents(business: OwnedBusiness): MoneyCents {

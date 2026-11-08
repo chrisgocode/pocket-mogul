@@ -1,3 +1,4 @@
+import type { Listing } from './listingState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 
 import {
@@ -54,6 +55,7 @@ export type OwnedBusiness = {
   readonly carWash: CarWashOperation;
   readonly delivery: DeliveryOperation;
   readonly takeovers: Takeovers;
+  readonly listing: Listing;
 };
 
 const FIRST_STAGE = 1;
@@ -82,5 +84,6 @@ export function newBusiness(
     carWash: NO_CAR_WASH,
     delivery: NO_DELIVERY,
     takeovers: NO_TAKEOVERS,
+    listing: { status: 'private' },
   };
 }

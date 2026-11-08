@@ -21,7 +21,11 @@ type AssetValuation = (state: GameState, rules: ProgressRules) => bigint;
 const cash: AssetValuation = (state) => state.cashCents;
 
 const businessCarryingValue: AssetValuation = (state) =>
-  state.businesses.reduce<bigint>((total, business) => total + carryingValueCents(business), 0n);
+  state.businesses.reduce<bigint>(
+    (total, business) =>
+      total + (business.listing.status === 'private' ? carryingValueCents(business) : 0n),
+    0n,
+  );
 
 const propertyEstimatedValue: AssetValuation = (state, rules) =>
   state.properties.reduce<bigint>((total, property) => {
@@ -32,7 +36,11 @@ const propertyEstimatedValue: AssetValuation = (state, rules) =>
 
 const positionMarkedValue: AssetValuation = (state, rules) =>
   state.positions.reduce<bigint>((total, position) => {
-    const instrument = rules.instruments.find((listed) => listed.id === position.instrumentId);
+    const instrument =
+      rules.instruments.find((listed) => listed.id === position.instrumentId) ??
+      (state.market.quotes[position.instrumentId] === undefined
+        ? undefined
+        : { id: position.instrumentId, initialPrice: state.market.quotes[position.instrumentId]! });
     if (instrument === undefined) return total;
     return total + markPosition(position, quoteOf(state.market, instrument)).valueCents;
   }, 0n);

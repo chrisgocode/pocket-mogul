@@ -1,3 +1,4 @@
+import { accumulatedPayouts } from './business/listingPayout';
 import { cashPerMinuteCents } from './business/core';
 import { findBusiness, type BusinessEconomy } from './business/definition';
 import type { StruckIncident } from './business/risks';
@@ -83,6 +84,7 @@ function accrue(streams: readonly Stream[], period: { elapsedMs: number; remaind
 }
 
 type Accrued = {
+  readonly shareholderPayouts: GameState['shareholderPayouts'];
   readonly earnings: IncomeBySource;
   readonly income: IncomeState;
   readonly businesses: GameState['businesses'];
@@ -112,6 +114,7 @@ function accruedIncome(
     { fromMs, toMs: fromMs + advance.elapsedMs, rates: advance.economy.dividendRates },
   );
   return {
+    shareholderPayouts: accumulatedPayouts(state.shareholderPayouts, business.outsidePayouts),
     earnings: {
       businesses: business.toCashCents,
       rent: moneyCents(rent.earnedCents),
@@ -142,10 +145,15 @@ export function advanceTime(
   state: GameState,
   advance: { elapsedMs: number; wallMs: number; economy: PassiveEconomy },
 ): AdvancedTime {
-  const { earnings, income, businesses, closures, incidents, dividendAccruals } = accruedIncome(
-    state,
-    advance,
-  );
+  const {
+    earnings,
+    income,
+    businesses,
+    closures,
+    incidents,
+    dividendAccruals,
+    shareholderPayouts,
+  } = accruedIncome(state, advance);
   const earnedCents = totalIncome(earnings);
   return {
     earnedCents,
@@ -162,6 +170,7 @@ export function advanceTime(
       income,
       businesses,
       dividendAccruals,
+      shareholderPayouts,
     },
   };
 }

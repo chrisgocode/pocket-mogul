@@ -1,3 +1,4 @@
+import { LISTING_READER_VERSION } from '@/domain/business/listingState';
 import { z } from 'zod';
 
 import { GAME_ERROR_CODES, type CommandOutcome } from '@/domain/commands';
@@ -22,6 +23,7 @@ export type Migration = {
 
 export type SaveFormat = {
   readonly readerVersion: number;
+  readonly schemaVersion?: number;
   readonly schema: z.ZodType<GameState>;
   readonly migrations: readonly Migration[];
   readonly freshStartBelowVersion: number;
@@ -30,7 +32,8 @@ export type SaveFormat = {
 const DEEP_BUSINESS_VERSION = 2;
 
 export const SAVE_FORMAT: SaveFormat = {
-  readerVersion: SAVE_SCHEMA_VERSION,
+  readerVersion: LISTING_READER_VERSION,
+  schemaVersion: SAVE_SCHEMA_VERSION,
   schema: saveSchema,
   migrations: [],
   freshStartBelowVersion: DEEP_BUSINESS_VERSION,
@@ -88,7 +91,7 @@ export function decodeSaveIn(format: SaveFormat, text: string): DecodedSave {
   if (schemaVersion < format.freshStartBelowVersion) {
     return { status: 'replaced', reason: 'RETIRED_FORMAT_SAVE' };
   }
-  if (schemaVersion < format.readerVersion)
+  if (schemaVersion < (format.schemaVersion ?? format.readerVersion))
     return migrated(format, { raw, fromVersion: schemaVersion });
   return current(format, raw);
 }

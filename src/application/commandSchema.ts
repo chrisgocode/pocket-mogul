@@ -91,6 +91,12 @@ const gameCommandSchema = z.discriminatedUnion('type', [
     rivalId: z.string().min(1),
     amountCents,
   }),
+  z.object({
+    type: z.literal('GoPublic'),
+    businessId,
+    floatPercent: z.number().int(),
+    ticker: z.string(),
+  }),
   z.object({ type: z.literal('DismissCoachMark'), coachMark: z.enum(COACH_MARKS) }),
   z.object({ type: z.literal('SetPayout'), businessId, payoutPercent: z.number().int() }),
   z.object({ type: z.literal('DepositToTreasury'), businessId, amountCents }),

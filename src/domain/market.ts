@@ -1,3 +1,4 @@
+import { listingPrice } from './business/listings';
 import type { PriceMicros } from './money';
 import { anchorPullBps, applyReturn, clampBps } from './marketPrices';
 import { tickDraws, type TickDraw } from './marketRandom';
@@ -146,7 +147,19 @@ function nextQuotes(
       const previous = quoteOf(market, instrument);
       return [
         instrument.id,
-        applyReturn(previous, tickReturnBps(instrument, { ...drivers, previous })),
+        instrument.listingValueCents === undefined
+          ? applyReturn(previous, tickReturnBps(instrument, { ...drivers, previous }))
+          : listingPrice(
+              context.economy.listingValuesAt?.(
+                instrument.businessId ?? instrument.id,
+                context.tick,
+              ) ?? instrument.listingValueCents,
+              {
+                seed: context.seed,
+                tick: context.tick,
+                businessId: instrument.businessId ?? instrument.id,
+              },
+            ),
       ];
     }),
   );

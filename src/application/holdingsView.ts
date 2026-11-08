@@ -1,3 +1,4 @@
+import { listedStocks } from './listedStocks';
 import type { Content } from '@/content';
 import { carryingValueCents, saleProceedsCents } from '@/domain/business/core';
 import type { GameState } from '@/domain/gameState';
@@ -37,7 +38,7 @@ export type Holdings = {
 function businessHoldings(state: GameState, content: Content): OwnedHolding[] {
   return state.businesses.flatMap((owned) => {
     const definition = content.businesses.find((listed) => listed.id === owned.definitionId);
-    if (definition === undefined) return [];
+    if (definition === undefined || owned.listing.status === 'listed') return [];
     return [
       {
         id: owned.definitionId,
@@ -66,15 +67,17 @@ function propertyHoldings(state: GameState, content: Content): PropertyHolding[]
   });
 }
 
-function listing(content: Content, assetId: string) {
-  return [...content.stocks, ...content.coins].find((listed) => listed.id === assetId);
+function listing(content: Content, assetId: string, state: GameState) {
+  return [...content.stocks, ...content.coins, ...listedStocks(state, content)].find(
+    (listed) => listed.id === assetId,
+  );
 }
 
 function marketHoldings(state: GameState, content: Content): MarketHolding[] {
-  const economy = tradeEconomy(content);
+  const economy = tradeEconomy(content, state);
   return state.positions.flatMap((position) => {
     const instrument = findInstrument(economy, position.instrumentId);
-    const listed = listing(content, position.instrumentId);
+    const listed = listing(content, position.instrumentId, state);
     if (instrument === undefined || listed === undefined) return [];
     const mark = markPosition(position, quoteOf(state.market, instrument));
     return [

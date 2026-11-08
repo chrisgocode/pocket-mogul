@@ -1,3 +1,5 @@
+import { splitListedPayout } from './listingPayout';
+import type { ShareholderPayout } from './listingState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 
 import { startCarWashDay } from './carWash';
@@ -13,6 +15,7 @@ import { restockedByStaff, soldVendingDay, withVendingUnlocked } from './vending
 export type BusinessClosure = { readonly businessId: string; readonly atMs: number };
 
 export type BusinessSettlement = {
+  readonly outsidePayouts: readonly ShareholderPayout[];
   readonly businesses: readonly OwnedBusiness[];
   readonly toCashCents: MoneyCents;
   readonly closures: readonly BusinessClosure[];
@@ -24,6 +27,7 @@ type Period = { readonly fromMs: number; readonly elapsedMs: number };
 type Settled = {
   readonly business: OwnedBusiness;
   readonly toCashCents: bigint;
+  readonly toOutsideCents?: bigint;
   readonly closedAtMs?: number;
   readonly incidents?: readonly StruckIncident[];
 };
@@ -67,6 +71,12 @@ function settledProfit(business: OwnedBusiness, accrual: { settled: bigint; rema
       toCashCents: 0n,
     };
   }
+  const listed = splitListedPayout(business, accrual.settled);
+  if (listed !== undefined)
+    return {
+      ...listed,
+      business: { ...listed.business, profitRemainder: Number(accrual.remainder) },
+    };
   const payout =
     accrual.settled * BigInt(business.payoutPercent) + BigInt(business.payoutRemainder);
   const toCashCents = payout / PERCENT;
@@ -144,6 +154,7 @@ function settleBusiness(business: OwnedBusiness, settlement: Settlement): Settle
       ...segment,
       business: day.business,
       toCashCents: settled.toCashCents + segment.toCashCents,
+      toOutsideCents: (settled.toOutsideCents ?? 0n) + (segment.toOutsideCents ?? 0n),
       atMs: endMs,
       incidents: [...settled.incidents, ...day.incidents],
     };
@@ -161,6 +172,12 @@ export function settleBusinesses(
     return settleBusiness(business, { ...settlement, pricing: { definition, rules } });
   });
   return {
+    outsidePayouts: settled
+      .filter((each) => (each.toOutsideCents ?? 0n) > 0n)
+      .map((each) => ({
+        businessId: each.business.definitionId,
+        paidCents: moneyCents(each.toOutsideCents ?? 0n),
+      })),
     businesses: settled.map((each) => each.business),
     toCashCents: moneyCents(settled.reduce<bigint>((total, each) => total + each.toCashCents, 0n)),
     closures: settled.flatMap((each) =>

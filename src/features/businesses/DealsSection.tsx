@@ -7,6 +7,7 @@ import { useSegment } from '@/ui/state/useSegment';
 
 import type { BusinessAction } from './businessAction';
 import { LockedDealsCard } from './LockedDealsCard';
+import { ListingSection } from './ListingSection';
 import { RivalRow } from './RivalRow';
 
 const OFFER_NOTE =
@@ -28,6 +29,7 @@ export function DealsSection({
   const worth = `Your business is worth ${formatMoneyExact(deals.valuationCents)}`;
   return (
     <Section title="Deals" note={worth}>
+      <ListingSection detail={detail} onReview={onReview} />
       <Card>
         <ChoiceRow
           title="Offer size"
