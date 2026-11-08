@@ -49,6 +49,7 @@ export type CarWashView =
   | { readonly status: 'locked'; readonly unlockStage: number }
   | {
       readonly status: 'active';
+      readonly unlockStage: number;
       readonly today: WeatherDay;
       readonly forecast: readonly WeatherDay[];
       readonly packages: readonly WashPackageView[];
@@ -132,6 +133,7 @@ export function selectCarWash(context: CarWashContext): CarWashView | undefined 
   const day = businessDayOf(context.simulationMs, pricing.rules);
   return {
     status: 'active',
+    unlockStage: rules.unlockStage,
     today: weatherDay(running, running.operation.weather),
     forecast: forecastAfter(draw, day).map((weather) => weatherDay(running, weather)),
     packages: packageViews(running, context),

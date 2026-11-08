@@ -36,7 +36,7 @@ export function VendingSection({
   return (
     <Section title="Locations" note={locationsNote(vending)}>
       {vending.coachMark === 'show' ? (
-        <VendingCoachMark onDismiss={actions.dismissCoachMark} />
+        <VendingCoachMark unlockStage={vending.unlockStage} onDismiss={actions.dismissCoachMark} />
       ) : null}
       <Button
         label={restockAllLabel(vending)}

@@ -1,17 +1,21 @@
-import { Button } from '@/ui/Button';
-import { Card } from '@/ui/Card';
-import { AppText } from '@/ui/Typography';
+import { CoachMarkCard } from './CoachMarkCard';
 
-export function CarWashCoachMark({ onDismiss }: { onDismiss: () => void }) {
+const BODY =
+  'Walk-ins pick a package, and bigger packages hold a bay longer. Rain keeps drivers away and the day after brings them back in crowds, so check the forecast. Members pay every day whatever the weather, but their washes take bay time first.';
+
+export function CarWashCoachMark({
+  unlockStage,
+  onDismiss,
+}: {
+  unlockStage: number;
+  onDismiss: () => void;
+}) {
   return (
-    <Card highlighted>
-      <AppText variant="heading">New at Local: packages and memberships</AppText>
-      <AppText muted>
-        Walk-ins pick a package, and bigger packages hold a bay longer. Rain keeps drivers away and
-        the day after brings them back in crowds, so check the forecast. Members pay every day
-        whatever the weather, but their washes take bay time first.
-      </AppText>
-      <Button label="Got it" variant="secondary" onPress={onDismiss} />
-    </Card>
+    <CoachMarkCard
+      unlockStage={unlockStage}
+      title="Packages and memberships"
+      body={BODY}
+      onDismiss={onDismiss}
+    />
   );
 }

@@ -30,6 +30,7 @@ export function DeliverySection({
     <Section title="Contracts" note="Contracts go out first; missed parcels pay a penalty">
       {delivery.coachMark === 'show' ? (
         <DeliveryCoachMark
+          unlockStage={delivery.unlockStage}
           vansPerDriver={delivery.fleet.vansPerDriver}
           onDismiss={actions.dismissCoachMark}
         />

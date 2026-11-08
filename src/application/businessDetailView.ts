@@ -37,6 +37,11 @@ import { selectVending, type VendingView } from './vendingView';
 import { selectCarWash, type CarWashView } from './carWashView';
 import { selectDelivery, type DeliveryView } from './deliveryView';
 import { runningDelivery } from '@/domain/business/deliveryDemand';
+import {
+  flagshipUnlockAt,
+  unitsParkedAt,
+  type FlagshipUnlock,
+} from '@/domain/business/flagshipUnlocks';
 
 export type AvailableUnit = Extract<UnitQuote, { status: 'available' }> & Affordability;
 export type UnitOption = Extract<UnitQuote, { status: 'at_cap' }> | AvailableUnit;
@@ -55,7 +60,9 @@ export type ImprovementOption =
 export type AvailableHire = Extract<StaffQuote, { status: 'available' }> & Affordability;
 export type StaffOption = Exclude<StaffQuote, { status: 'available' }> | AvailableHire;
 
-export type ReadyStage = Extract<StageQuote, { status: 'ready' }> & Affordability;
+export type StageUnlocks = { readonly unlocks: FlagshipUnlock; readonly parkedUnits: number };
+
+export type ReadyStage = Extract<StageQuote, { status: 'ready' }> & Affordability & StageUnlocks;
 export type StageOption = Exclude<StageQuote, { status: 'ready' }> | ReadyStage;
 
 export type PriceLevelOption = {
@@ -141,7 +148,13 @@ function staffOption(role: StaffRole, context: DetailContext): StaffOption {
 function stageOption({ owned, pricing, simulationMs }: DetailContext): StageOption {
   const quote = quoteStage(owned, { pricing, atMs: simulationMs });
   if (quote.status !== 'ready') return quote;
-  return { ...quote, ...affordability(quote.priceCents, owned.treasuryCents) };
+  const next = quote.stage + 1;
+  return {
+    ...quote,
+    ...affordability(quote.priceCents, owned.treasuryCents),
+    unlocks: flagshipUnlockAt(pricing.definition.mechanic, next),
+    parkedUnits: unitsParkedAt(owned, { pricing, stage: next }),
+  };
 }
 
 function priceLevelOptions({ owned, pricing }: DetailContext): PriceLevelOption[] {

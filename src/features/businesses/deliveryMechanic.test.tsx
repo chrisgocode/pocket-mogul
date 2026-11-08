@@ -22,12 +22,16 @@ const offer: ContractOffer = {
   postedDay: 0,
 };
 
+const DAY_MS = 600_000;
+
 async function openDelivery(
   business: OwnedBusiness,
   seenCoachMarks: readonly string[] = ['delivery'],
+  day = 0,
 ): Promise<TestGame> {
   const session = await startTestGameFrom({
     ...freshGameState({ saveId: 'vans', economyVersion: 1, wallMs: 0 }),
+    clock: { simulationMs: day * DAY_MS, lastWallCheckpointMs: 0 },
     businesses: [business],
     seenCoachMarks,
   });
@@ -51,11 +55,21 @@ describe('the Contracts section (BUS20c)', () => {
     expect(screen.getByText('Efficiency 0/20')).toBeOnTheScreen();
   });
 
+  it('says what Local unlocks and warns about vans without drivers before growing', async () => {
+    const startup = ownedBusiness('delivery', { units: 3, treasuryCents: dollars('600,000') });
+    await openDelivery(startup, ['delivery'], 3);
+    await fireEvent.press(screen.getByRole('button', { name: 'Grow to Local · $500,000.00' }));
+    expect(screen.getByRole('header', { name: 'Grow to Local' })).toBeOnTheScreen();
+    expect(screen.getByText('Contracts and drivers')).toBeOnTheScreen();
+    expect(screen.getByText('3 stop delivering')).toBeOnTheScreen();
+  });
+
   it('shows a coach mark when the mechanic unlocks, until the player dismisses it', async () => {
     const session = await openDelivery(deliveryBusiness(), []);
-    expect(screen.getByText('New at Local: contracts and drivers')).toBeOnTheScreen();
+    expect(screen.getByText('Contracts and drivers')).toBeOnTheScreen();
+    expect(screen.getByText('Unlocked at the Local stage')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Got it' }));
-    expect(screen.queryByText('New at Local: contracts and drivers')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Contracts and drivers')).not.toBeOnTheScreen();
     expect(session.game.getSnapshot().state.seenCoachMarks).toEqual(['delivery']);
   });
 

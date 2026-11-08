@@ -40,9 +40,9 @@ describe('the Washes section (BUS20b)', () => {
 
   it('shows a coach mark when the mechanic unlocks, until the player dismisses it', async () => {
     const session = await openCarWash(carWashBusiness(), []);
-    expect(screen.getByText('New at Local: packages and memberships')).toBeOnTheScreen();
+    expect(screen.getByText('Packages and memberships')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Got it' }));
-    expect(screen.queryByText('New at Local: packages and memberships')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Packages and memberships')).not.toBeOnTheScreen();
     expect(session.game.getSnapshot().state.seenCoachMarks).toEqual(['car_wash']);
   });
 

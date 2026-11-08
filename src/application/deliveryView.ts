@@ -71,6 +71,7 @@ export type DeliveryView =
   | { readonly status: 'locked'; readonly unlockStage: number; readonly vansPerDriver: number }
   | {
       readonly status: 'active';
+      readonly unlockStage: number;
       readonly coachMark: 'show' | 'seen';
       readonly reputation: ReputationView;
       readonly fleet: FleetView;
@@ -159,6 +160,7 @@ export function selectDelivery(context: DeliveryContext): DeliveryView | undefin
   const viewing = { ...context, running, day };
   return {
     status: 'active',
+    unlockStage: rules.unlockStage,
     coachMark: context.seenCoachMarks.includes(DELIVERY_COACH_MARK) ? 'seen' : 'show',
     reputation: reputationView(viewing),
     fleet: fleetView(viewing),
