@@ -1174,6 +1174,7 @@
       }
       .market-account {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
         gap: 12px;
@@ -1994,6 +1995,38 @@
           padding-right: 1px;
         }
       }
+      .attention-panel {
+        margin: 12px 0 14px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px;
+        background: var(--panel);
+      }
+      .attention-panel .home-action {
+        border-top: 0;
+        padding: 9px 0;
+      }
+      .attention-panel details {
+        font-size: 11px;
+        color: var(--dim);
+      }
+      .attention-panel summary {
+        cursor: pointer;
+        min-height: 32px;
+        padding-top: 8px;
+      }
+      .position-quote {
+        font-variant-numeric: tabular-nums;
+      }
+      .position-quote b {
+        font-size: 13px;
+      }
+      .position-quote small {
+        margin-top: 2px;
+      }
+      .phone .content {
+        position: relative;
+      }
     </style>
   </head>
   <body>
@@ -2006,8 +2039,10 @@
             <option value="operating">Operating empire</option>
             <option value="first">First session</option>
             <option value="attention">Needs attention</option>
-            <option value="diversified">Diversified holdings</option></select
-          ><button data-action="reset">Reset sample</button>
+            <option value="diversified">Diversified holdings</option>
+            <option value="recovery">Closed business</option></select
+          ><button data-action="reset">Reset sample</button
+          ><button data-action="stageDay">Advance stage sample day</button>
 
           <select id="tax-sample" aria-label="Tax sample state">
             <option value="current">Tax: current estimate</option>
@@ -2115,6 +2150,10 @@
         scenario,
         screen: 'earn',
         walletLevel: 0,
+        stage: scenario === 'first' ? 1 : 2,
+        daysOwned: scenario === 'first' ? 0 : 6,
+        operation: scenario === 'recovery' ? 'closed' : 'open',
+        focusedSection: null,
         screenStack: [],
         tax: { status: 'current', amount: scenario === 'first' ? 0 : 10, paid: 0 },
         goalFilter: 'All',
@@ -2146,7 +2185,7 @@
         watchlist: ['prism'],
         realized: 0,
         activity: [],
-        treasury: scenario === 'first' ? 0 : 620,
+        treasury: scenario === 'first' || scenario === 'recovery' ? 0 : 620,
         units: scenario === 'first' ? 1 : 3,
         capitalizedSpend: scenario === 'first' ? {} : { vending: 965, food_cart: 1250 },
         payout: 50,
@@ -2156,7 +2195,9 @@
         confirmation: null,
       });
       let state = makeState(
-        ['first', 'operating', 'attention', 'diversified'].includes(query.get('scenario'))
+        ['first', 'operating', 'attention', 'diversified', 'recovery'].includes(
+          query.get('scenario'),
+        )
           ? query.get('scenario')
           : 'diversified',
       );
@@ -2181,19 +2222,21 @@
       const button = (label, action, kind = 'secondary', disabled = false) =>
         `<button class="${kind}" data-action="${action}" ${disabled || (purchasesBlocked() && isDiscretionary(action)) ? 'disabled' : ''}>${label}</button>`;
       const owned = (id) => state.owned.includes(id);
+      const stageLabels = ['Startup', 'Local', 'Regional', 'National', 'Global'];
+      const unitCaps = [3, 8, 20, 50, 120];
+      const stageDays = [3, 10, 30, 60];
+      const stageCosts = [500, 2000, 7500, 30000];
+      const stageLabel = () => stageLabels[state.stage - 1];
+      const unitCap = () => unitCaps[state.stage - 1];
+      const vendingProfit = () =>
+        state.operation === 'closed' || (state.stage >= 2 && state.stock === 0)
+          ? 0
+          : state.units * 100;
+      const vendingCashRate = () => ((vendingProfit() / 10) * state.payout) / 100;
       const income = () =>
         catalog
           .filter((b) => owned(b.id))
-          .reduce(
-            (total, b) =>
-              total +
-              (b.id === 'vending'
-                ? state.stock === 0
-                  ? 0
-                  : (30 * state.payout) / 100
-                : b.profit / 20),
-            0,
-          );
+          .reduce((sum, b) => sum + (b.id === 'vending' ? vendingCashRate() : b.profit / 20), 0);
       const businessWorth = () =>
         state.owned.reduce((total, id) => total + (state.capitalizedSpend[id] ?? 0), 0) +
         (owned('vending') ? state.treasury : 0);
@@ -2372,7 +2415,7 @@
       const purchasesBlocked = () =>
         ['ready', 'debt'].includes(state.tax.status) && state.tax.amount > 0;
       const isDiscretionary = (action) =>
-        ['buy', 'unit', 'walletUpgrade', 'renovate', 'propertyBuy'].includes(
+        ['buy', 'unit', 'upgradeStage', 'walletUpgrade', 'renovate', 'propertyBuy'].includes(
           action.split(':')[0],
         ) || action === 'trade:buy';
       const taxRate = () =>
@@ -2380,7 +2423,7 @@
           ? 0
           : 0.04;
       function taxNotice() {
-        return purchasesBlocked() && state.screen !== 'taxes'
+        return purchasesBlocked() && state.screen !== 'taxes' && state.screen !== 'earn'
           ? `<button class="tax-alert" data-action="utility:taxes"><span><b>${state.tax.status === 'ready' ? 'Tax return ready to file' : 'Tax debt · ' + money(state.tax.amount)}</b><small>Purchases paused</small></span><span>Review →</span></button>`
           : '';
       }
@@ -2571,7 +2614,7 @@
       }
       function businessRow(b) {
         const isOwned = owned(b.id);
-        return `<div class="row line">${businessVisual(b.id)}<div class="name"><b>${b.name}</b><span class="muted">${isOwned ? (b.id === 'vending' ? 'Local · ' + state.units + ' machines' : 'Startup · 1 cart') : 'Tier ' + b.tier + ' · +' + money(b.profit / 20) + '/min to cash'}</span>${isOwned ? `<div class="${b.id === 'vending' && state.stock === 0 ? 'red' : 'green'}">${b.id === 'vending' && state.stock === 0 ? '! Out of stock' : '+' + money(b.id === 'vending' ? (30 * state.payout) / 100 : b.profit / 20) + '/min to cash'}</div>` : ''}</div>${button(isOwned ? 'Open →' : money(b.price), isOwned ? 'open:' + b.id : 'buy:' + b.id, isOwned ? '' : 'primary', !isOwned && state.cash < b.price)}</div>`;
+        return `<div class="row line">${businessVisual(b.id)}<div class="name"><b>${b.name}</b><span class="muted">${isOwned ? (b.id === 'vending' ? stageLabel() + ' · ' + state.units + ' machines' : 'Startup · 1 cart') : 'Tier ' + b.tier + ' · +' + money(b.profit / 20) + '/min to cash'}</span>${isOwned ? `<div class="${b.id === 'vending' && (state.operation === 'closed' || (state.stage >= 2 && state.stock === 0)) ? 'red' : 'green'}">${b.id === 'vending' && (state.operation === 'closed' || (state.stage >= 2 && state.stock === 0)) ? (state.operation === 'closed' ? 'Closed' : 'Out of stock') : '+' + money(b.id === 'vending' ? vendingCashRate() : b.profit / 20) + '/min to cash'}</div>` : ''}</div>${button(isOwned ? 'Open →' : money(b.price), isOwned ? 'open:' + b.id : 'buy:' + b.id, isOwned ? '' : 'primary', !isOwned && state.cash < b.price)}</div>`;
       }
       function rows() {
         const list = catalog.filter((b) =>
@@ -2601,23 +2644,175 @@
         }<div class="stop locked"><span class="eyebrow">On the horizon</span><h3>Regional business</h3><p class="muted">Grow to unlock takeovers.</p></div></div>`;
       }
       function overview() {
-        return `<section class="section" id="overview"><h2>Overview</h2><div class="split"><div class="metric"><span class="muted">Profit / business day</span><b class="green">$300.00</b></div><div class="metric"><span class="muted">Treasury</span><b>${money(state.treasury)}</b></div></div><details class="inline-details"><summary>Daily figures</summary><div class="dense-line row"><span>Revenue</span><b>$420</b></div><div class="dense-line row"><span>Costs</span><b>$120</b></div><div class="dense-line row"><span>Snacks sold</span><b>300/day</b></div></details><div class="line row"><span>Price per snack</span><b>$1.40 · Standard</b></div><div class="dense-line row"><span>Owner tax forecast / day</span><b>${money(300 * taxRate())}</b></div><label class="label" for="payout">Cash payout · ${state.payout}%</label><input id="payout" type="range" min="0" max="100" step="10" value="${state.payout}"><div class="split">${button('Deposit $100', 'deposit', 'secondary', state.cash < 100)}${button('Withdraw all', 'withdraw', 'secondary', state.treasury === 0)}</div>${button('Sell business…', 'sell', 'wide red')}</section>`;
+        const profit = vendingProfit(),
+          gross = profit ? state.units * 140 : 0,
+          cost = profit ? state.units * 40 : 0;
+        return `<section class="section" id="overview"><h2>Overview</h2><div class="split"><div class="metric"><span class="muted">Profit / business day</span><b class="green">${money(profit)}</b></div><div class="metric"><span class="muted">Treasury</span><b>${money(state.treasury)}</b></div></div><details class="inline-details"><summary>Daily figures</summary><div class="dense-line row"><span>Revenue</span><b>${money(gross)}</b></div><div class="dense-line row"><span>Costs</span><b>${money(cost)}</b></div></details><div class="line row"><span>Price per snack</span><b>$1.40 · Standard</b></div><div class="dense-line row"><span>Owner tax forecast / day</span><b>${money(profit * taxRate())}</b></div><label class="label" for="payout">Cash payout · ${state.payout}%</label><input id="payout" type="range" min="0" max="100" step="10" value="${state.payout}"><div class="split">${button('Deposit $100', 'deposit', 'secondary', state.cash < 100)}${button('Withdraw all', 'withdraw', 'secondary', state.treasury === 0)}</div>${button('Sell business…', 'sell', 'wide red')}</section>`;
       }
       function mechanic() {
         return `<section class="section" id="mechanic"><h2>Placement & stock</h2><div class="row"><div><h3>Office · ${state.units} machines</h3><p class="muted">Balanced mix · ${state.stock}% stock remaining</p></div><span class="${state.stock === 0 ? 'red' : 'green'}">${state.stock === 0 ? '! Empty' : '● Serving'}</span></div><div class="meter" style="margin-top:14px"><i style="width:${state.stock}%"></i></div>${button('Restock all · $30 treasury', 'restock', 'primary wide', state.treasury < 30 || state.stock === 100)}</section>`;
       }
       const VENDING_UNIT_CAPACITY = 100;
+      const stageReady = () =>
+        state.stage < 5 &&
+        state.units >= unitCap() &&
+        state.daysOwned >= stageDays[state.stage - 1];
       function grow() {
-        return `<section class="section" id="grow"><h2>Grow</h2><div class="growth-offer"><div class="home-stats">${stat('Machines', state.units + ' / 8')}${stat('Capacity', state.units * VENDING_UNIT_CAPACITY + ' snacks/day')}</div><div class="upgrade-benefit">+1 machine · +${VENDING_UNIT_CAPACITY} snacks/day capacity</div>${button('Add machine · ' + money(unitPrice()), 'unit', 'primary wide', state.treasury < unitPrice() || state.units >= 8)}</div><div class="line"><h3>Regional</h3><div class="dense-line row"><span>Requires</span><b>8 machines · day 10</b></div><div class="dense-line row"><span>Progress</span><b>Day 6/10</b></div><div class="dense-line row"><span>Upgrade</span><b>$2,000 treasury</b></div></div></section>`;
+        const next = stageLabels[state.stage],
+          cost = stageCosts[state.stage - 1],
+          days = stageDays[state.stage - 1];
+        return `<section class="section" id="grow"><h2>Grow</h2><div class="growth-offer"><div class="home-stats">${stat('Machines', state.units + ' / ' + unitCap())}${stat('Capacity', state.units * VENDING_UNIT_CAPACITY + ' snacks/day')}</div><div class="upgrade-benefit">+1 machine · +${VENDING_UNIT_CAPACITY} snacks/day capacity</div>${button('Add machine · ' + money(unitPrice()), 'unit', 'primary wide', state.treasury < unitPrice() || state.units >= unitCap() || state.operation === 'closed')}</div>${next ? `<div class="line"><h3>${next}</h3><div class="dense-line row"><span>Requires</span><b>${unitCap()} machines · day ${days}</b></div><div class="dense-line row"><span>Progress</span><b>Day ${state.daysOwned}/${days}</b></div><div class="dense-line row"><span>Unlocks</span><b>${state.stage === 1 ? 'Placement · Manager · Insurance' : state.stage === 2 ? 'Takeovers' : state.stage === 3 ? 'Going public' : 'Card readers'}</b></div>${button('Advance · ' + money(cost) + ' treasury', 'upgradeStage', 'secondary wide', !stageReady() || state.treasury < cost || state.operation === 'closed')}</div>` : ''}</section>`;
+      }
+      function staffSection() {
+        return `<section id="staff"><h2>Staff</h2><div class="line"><h3>${state.stage === 1 ? 'Operations · 0/2' : 'Restockers · 0/5'}</h3><p class="muted">${state.stage === 1 ? '+20% capacity' : '+20% capacity · daily restock'}</p></div>${state.stage >= 2 ? '<div class="line"><h3>Manager · not hired</h3><p class="muted">Auto price & stock mix</p></div>' : ''}</section>`;
       }
       function detail() {
-        const heads =
-          variant === 'A'
-            ? `<span class="badge">TIER 1 · LOCAL</span><h1>Vending Machine</h1>`
-            : variant === 'B'
-              ? `<div class="hero"><span class="badge">LOCAL · DAY 6</span>${art()}<h1>Vending Machine</h1></div>`
-              : `<span class="eyebrow">Next stage</span><h1>Go Regional.</h1><p class="muted">Vending Machine · Local → Regional</p><div class="notice">${state.units}/8 machines · 6/10 days · treasury ${money(state.treasury)}</div>`;
-        return `<div class="business-back">${button('← Businesses', 'tab:businesses', 'back')}</div><div class="business-heading">${heads}</div>${variant === 'A' ? '' : `<div class="rail">${['Overview', 'Mechanic', 'Grow', 'Staff', 'Risks', 'Deals'].map((s) => button(s, 'jump:' + s.toLowerCase())).join('')}</div>`}${variant === 'B' ? mechanic() + overview() + grow() : variant === 'C' ? grow() + overview() + mechanic() : overview() + mechanic() + grow()}<section id="staff"><h2>Staff</h2><div class="line"><h3>Restockers · 0 of 5</h3><p class="muted">+20% capacity · daily restock</p></div><div class="line"><h3>Manager · not hired</h3><p class="muted">Auto price & stock mix</p></div></section><section id="risks"><h2>Risks</h2><p class="muted">No incidents</p><details class="inline-details"><summary>Insurance</summary><p class="muted">Equipment · Liability · Supply</p></details></section><section id="deals"><h2>Deals</h2><div class="dense-line row"><span>Takeovers</span><b>Regional</b></div><div class="dense-line row"><span>Going public</span><b>National</b></div></section>`;
+        const heading = `<span class="badge">TIER 1 · ${stageLabel().toUpperCase()}</span><h1>Vending Machine</h1>`;
+        const basic = overview() + grow() + staffSection();
+        const unlocks =
+          '<details class="inline-details"><summary>Next unlocks</summary><div class="dense-line row"><span>Local</span><b>Placement · Manager · Insurance</b></div><div class="dense-line row"><span>Regional</span><b>Takeovers</b></div></details>';
+        const advanced =
+          overview() +
+          mechanic() +
+          grow() +
+          staffSection() +
+          '<section id="risks"><h2>Risks</h2><p class="muted">No incidents</p><details class="inline-details"><summary>Insurance</summary><p class="muted">Equipment · Liability · Supply</p></details></section><section id="deals"><h2>Deals</h2><div class="dense-line row"><span>Takeovers</span><b>Regional</b></div><div class="dense-line row"><span>Going public</span><b>National</b></div></section>';
+        return `<div class="business-back">${button('← Businesses', 'tab:businesses', 'back')}</div><div class="business-heading">${heading}</div>${state.operation === 'closed' ? '<div class="tax-alert">Closed · deposit cash to reopen</div>' : ''}${state.stage === 1 ? basic + unlocks : advanced}`;
+      }
+      function attentionItems() {
+        const items = [];
+        if (owned('vending') && state.operation === 'closed' && state.cash >= 100)
+          items.push({
+            title: 'Reopen Vending',
+            detail: 'Deposit $100 cash',
+            action: 'reopenBusiness',
+          });
+        if (
+          owned('vending') &&
+          state.operation === 'open' &&
+          state.stage >= 2 &&
+          state.stock === 0
+        ) {
+          const shortage = Math.max(0, 30 - state.treasury);
+          if (!shortage)
+            items.push({
+              title: 'Restock Vending',
+              detail: '$30 treasury · earnings stopped',
+              action: 'focusBusiness:mechanic',
+            });
+          else if (state.cash >= shortage)
+            items.push({
+              title: 'Fund Vending restock',
+              detail: money(shortage) + ' cash → treasury',
+              action: 'fundRestock',
+            });
+        }
+        if (state.tax.status === 'ready')
+          items.push({
+            title: 'File tax return',
+            detail: money(state.tax.amount) + ' tax',
+            action: 'utility:taxes',
+          });
+        if (state.tax.status === 'debt')
+          items.push({
+            title: state.cash > 0 ? 'Pay tax balance' : 'Tax recovery active',
+            detail:
+              state.cash > 0
+                ? money(Math.min(state.cash, state.tax.amount)) + ' available'
+                : '25% of eligible credits',
+            action: 'utility:taxes',
+          });
+        for (const h of homes)
+          if (state.properties[h.id] && !state.properties[h.id].rented)
+            items.push({
+              title: 'Rent ' + h.name,
+              detail: money(homeRent(h) - h.upkeep) + '/min before recovery',
+              action: 'property:' + h.id,
+            });
+        return items;
+      }
+      const attentionRow = (item) =>
+        `<button class="home-action attention-action" data-action="${item.action}"><span><b>${item.title}</b><small>${item.detail}</small></span><span>→</span></button>`;
+      function attentionPanel() {
+        const items = attentionItems();
+        return items.length
+          ? `<section class="attention-panel"><div class="row"><span class="eyebrow">Needs attention</span><span class="badge">${items.length}</span></div>${attentionRow(items[0])}${items.length > 1 ? `<details><summary>${items.length - 1} more</summary>${items.slice(1).map(attentionRow).join('')}</details>` : ''}</section>`
+          : '';
+      }
+      function growthAction() {
+        if (attentionItems().length) return '';
+        if (
+          owned('vending') &&
+          state.operation === 'open' &&
+          stageReady() &&
+          state.treasury >= stageCosts[state.stage - 1]
+        )
+          return attentionRow({
+            title: 'Advance to ' + stageLabels[state.stage],
+            detail: money(stageCosts[state.stage - 1]) + ' treasury',
+            action: 'focusBusiness:grow',
+          });
+        if (
+          owned('vending') &&
+          state.operation === 'open' &&
+          state.units < unitCap() &&
+          state.treasury >= unitPrice()
+        )
+          return attentionRow({
+            title: 'Grow Vending',
+            detail: '+1 machine · ' + money(unitPrice()) + ' treasury',
+            action: 'focusBusiness:grow',
+          });
+        const next = catalog.find((b) => !owned(b.id));
+        return next
+          ? attentionRow({
+              title: next.name,
+              detail:
+                money(next.price) +
+                ' · ' +
+                (state.cash >= next.price
+                  ? 'Affordable'
+                  : money(next.price - state.cash) + ' to go'),
+              action: 'filter:Tier ' + next.tier,
+            })
+          : '';
+      }
+      function decisionAction(type, value) {
+        if (type === 'stageDay') state.daysOwned += 1;
+        if (type === 'focusBusiness') {
+          state.screen = 'detail';
+          state.focusedSection = value;
+        }
+        if (type === 'reopenBusiness' && state.cash >= 100) {
+          state.cash -= 100;
+          state.treasury += 100;
+          state.operation = 'open';
+          state.screen = 'detail';
+          state.focusedSection = 'overview';
+          log('Vending reopened · $100 to treasury');
+        }
+        if (type === 'fundRestock') {
+          const amount = Math.max(0, 30 - state.treasury);
+          if (state.cash >= amount) {
+            state.cash -= amount;
+            state.treasury += amount;
+            state.screen = 'detail';
+            state.focusedSection = 'mechanic';
+            log(money(amount) + ' cash → Vending treasury');
+          }
+        }
+        if (
+          type === 'upgradeStage' &&
+          !purchasesBlocked() &&
+          stageReady() &&
+          state.treasury >= stageCosts[state.stage - 1]
+        ) {
+          const cost = stageCosts[state.stage - 1];
+          state.treasury -= cost;
+          state.capitalizedSpend.vending += cost;
+          state.stage += 1;
+          log('Vending · ' + stageLabel());
+        }
       }
       const tapAmount = () => 1 + state.walletLevel * 0.5;
       const walletUpgradeCost = () =>
@@ -2625,8 +2820,7 @@
       const walletDrawing = () =>
         '<svg viewBox="0 0 180 112" aria-hidden="true"><path d="M28 26L131 12q9-1 9 9v66L28 95z" fill="var(--scene-side)" stroke="var(--dim)"/><rect x="20" y="31" width="140" height="71" rx="12" fill="var(--raised)" stroke="var(--gold)" stroke-width="2"/><rect x="126" y="51" width="42" height="31" rx="7" fill="var(--panel)" stroke="var(--gold)" stroke-width="2"/><circle cx="140" cy="66" r="4" fill="var(--gold)"/><path d="M37 48h39m-39 9h24" stroke="var(--dim)" stroke-width="2"/></svg>';
       function earn() {
-        const next = catalog.find((b) => !owned(b.id));
-        return `<button class="home-worth" data-action="tab:wealth"><span class="muted">Net worth <span aria-hidden="true">↗</span></span><b>${summaryMoney(netWorth())}</b></button><div class="home-stats">${stat('Business payouts', money(income()) + '/min')}${stat('Net rent', money(rentalIncome()) + '/min')}</div><button class="tap-zone" data-action="tap" aria-label="Tap wallet to earn ${money(tapAmount())}">${walletDrawing()}<span class="tap-value">+${money(tapAmount())}</span><span class="muted">per tap · wallet level ${state.walletLevel}</span></button><div class="wallet-upgrade"><div><b>Wallet upgrade</b><small>${money(tapAmount())} → ${money(tapAmount() + 0.5)}/tap</small></div>${button(money(walletUpgradeCost()), 'walletUpgrade', 'primary', state.cash < walletUpgradeCost() || state.walletLevel >= 100)}</div><div class="home-summary"><button data-action="tab:businesses"><span class="muted">Businesses</span><b>${state.owned.length}</b><small>${money(businessWorth())}</small></button><button data-action="tab:markets"><span class="muted">Investments</span><b>${Object.keys(state.positions).length}</b><small>${money(marketWorth())}</small></button><button data-action="tab:properties"><span class="muted">Properties</span><b>${Object.keys(state.properties).length}</b><small>${money(propertyWorth())}</small></button></div>${owned('vending') && state.stock === 0 ? `<button class="home-action" data-action="open:vending"><span><b>Vending · out of stock</b><small>Restock from treasury</small></span><span>→</span></button>` : next ? `<button class="home-action" data-action="filter:Tier ${next.tier}"><span><b>${next.name}</b><small>${money(next.price)} · ${state.cash >= next.price ? 'Affordable' : money(next.price - state.cash) + ' to go'}</small></span><span>→</span></button>` : ''}`;
+        return `<button class="home-worth" data-action="tab:wealth"><span class="muted">Net worth <span aria-hidden="true">↗</span></span><b>${summaryMoney(netWorth())}</b></button><div class="home-stats">${stat('Business payouts', money(income()) + '/min')}${stat('Net rent', money(rentalIncome()) + '/min')}</div>${attentionPanel()}<button class="tap-zone" data-action="tap" aria-label="Tap wallet to earn ${money(tapAmount())}">${walletDrawing()}<span class="tap-value">+${money(tapAmount())}</span><span class="muted">per tap · wallet level ${state.walletLevel}</span></button><div class="wallet-upgrade"><div><b>Wallet upgrade</b><small>${money(tapAmount())} → ${money(tapAmount() + 0.5)}/tap</small></div>${button(money(walletUpgradeCost()), 'walletUpgrade', 'primary', state.cash < walletUpgradeCost() || state.walletLevel >= 100)}</div><div class="home-summary"><button data-action="tab:businesses"><span class="muted">Businesses</span><b>${state.owned.length}</b><small>${money(businessWorth())}</small></button><button data-action="tab:markets"><span class="muted">Investments</span><b>${Object.keys(state.positions).length}</b><small>${money(marketWorth())}</small></button><button data-action="tab:properties"><span class="muted">Properties</span><b>${Object.keys(state.properties).length}</b><small>${money(propertyWorth())}</small></button></div>${growthAction()}`;
       }
       const assets = [
         {
@@ -2820,9 +3014,17 @@
         const p = state.positions[a.id];
         return `<button class="market-row" data-action="asset:${a.id}" data-kind="${a.kind}"><span class="ticker-mark">${a.symbol.slice(0, 2)}</span><span class="name"><b>${a.symbol}</b><small>${a.name}</small>${p ? `<small class="held">${p.quantity} held</small>` : ''}</span>${miniChart(a)}<span class="quote"><b>${money(a.price)}</b><small class="change-badge ${a.change >= 0 ? 'green' : 'red'}">${a.change >= 0 ? '+' : ''}${a.change.toFixed(1)}%</small></span></button>`;
       }
+      function portfolioRow(a) {
+        const position = state.positions[a.id],
+          value = position.quantity * a.price,
+          gain = value - position.cost,
+          percent = position.cost ? (gain / position.cost) * 100 : 0;
+        return `<button class="market-row" data-action="asset:${a.id}" data-kind="${a.kind}"><span class="ticker-mark">${a.symbol.slice(0, 2)}</span><span class="name"><b>${a.symbol}</b><small>${position.quantity} held · avg ${money(position.cost / position.quantity)}</small></span><span class="quote position-quote"><b>${summaryMoney(value)}</b><small class="${gain >= 0 ? 'green' : 'red'}">${signedMoney(gain)}</small><small class="${gain >= 0 ? 'green' : 'red'}">${percent >= 0 ? '+' : ''}${percent.toFixed(2)}%</small></span></button>`;
+      }
       function marketResults() {
-        const list = marketList();
-        return `<div class="table-head"><span>${list.length} ${state.marketMode === 'Portfolio' ? 'positions' : 'assets'}</span><span>Price / 24h</span></div>${list.map(marketRow).join('') || '<p class="empty muted">No matching assets.</p>'}`;
+        const list = marketList(),
+          portfolio = state.marketMode === 'Portfolio';
+        return `<div class="table-head"><span>${list.length} ${portfolio ? 'positions' : 'assets'}</span><span>${portfolio ? 'Value / your P&L' : 'Price / 24h'}</span></div>${list.map(portfolio ? portfolioRow : marketRow).join('') || '<p class="empty muted">No matching assets.</p>'}`;
       }
       function marketPortfolio() {
         return `<div class="market-account"><div><span class="muted">Market value</span><h1>${money(marketWorth())}</h1></div><span class="${marketWorth() >= investedCost() ? 'green' : 'red'}">${signedMoney(marketWorth() - investedCost())}</span></div><div class="home-stats">${stat('Cost basis', money(investedCost()))}${stat('Realized P&L', signedMoney(state.realized))}</div>${marketResults()}`;
@@ -3033,6 +3235,12 @@
           (state.notice ? `<div class="toast" role="status">${state.notice}</div>` : '') +
           `<div class="content">${sheet()}${taxNotice()}${utilityScreens.includes(state.screen) ? { goals: goalsScreen, settings: settingsScreen, about: aboutScreen, taxes: taxesScreen }[state.screen]() : state.screen === 'profile' ? profile() : state.screen === 'detail' ? detail() : state.screen === 'earn' ? earn() : state.screen === 'wealth' ? wealth() : state.screen === 'markets' ? markets() : state.screen === 'asset' ? assetDetail() : state.screen === 'properties' ? properties() : state.screen === 'property' ? propertyDetail() : { A: variantA, B: variantB, C: variantC }[variant]()}</div>` +
           (hasBottomTabs() ? tabs() : '');
+        if (state.focusedSection) {
+          const target = document.getElementById(state.focusedSection);
+          const content = document.querySelector('#phone .content');
+          if (target && content) content.scrollTop = target.offsetTop ?? 0;
+          state.focusedSection = null;
+        }
         document.getElementById('variant-label').textContent = variant + ' · ' + names[variant];
         document.getElementById('hypothesis').textContent = hypotheses[variant];
         document.getElementById('state').textContent = JSON.stringify(
@@ -3073,6 +3281,7 @@
         if (action === 'deposit' && state.cash >= 100) {
           state.cash -= 100;
           state.treasury += 100;
+          state.operation = 'open';
           state.notice = '$100 moved from cash to treasury';
         }
         if (action === 'restock' && state.treasury >= 30) {
@@ -3080,7 +3289,7 @@
           state.stock = 100;
           state.notice = 'Stock filled · $30 from treasury';
         }
-        if (action === 'unit' && state.treasury >= unitPrice() && state.units < 8) {
+        if (action === 'unit' && state.treasury >= unitPrice() && state.units < unitCap()) {
           const cost = unitPrice();
           state.treasury -= cost;
           state.units += 1;
@@ -3147,6 +3356,7 @@
           url.searchParams.delete('screen');
           history.replaceState(null, '', url);
         }
+        decisionAction(type, value);
         navigateSample(type, value);
         if (type === 'filter') {
           state.screen = 'businesses';
@@ -3162,6 +3372,14 @@
             state.cash -= b.price;
             state.owned.push(value);
             state.capitalizedSpend[value] = b.price;
+            if (value === 'vending') {
+              state.stage = 1;
+              state.units = 1;
+              state.daysOwned = 0;
+              state.treasury = 0;
+              state.operation = 'open';
+              state.stock = 65;
+            }
             state.notice = b.name + ' bought · +' + money(b.profit / 20) + '/min to cash';
           }
         }
@@ -3215,7 +3433,7 @@
           render();
         }
         if (event.target.id === 'scenario') {
-          const tab = ['earn', 'businesses', 'markets', 'properties', 'wealth'].includes(
+          const tab = ['earn', 'businesses', 'markets', 'properties', 'wealth', 'profile'].includes(
             state.screen,
           )
             ? state.screen
