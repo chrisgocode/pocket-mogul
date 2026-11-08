@@ -7,8 +7,7 @@ import { useTutorial } from '@/features/tutorial/useTutorial';
 import { Screen } from '@/ui/Screen';
 
 import { HomeOverview } from './HomeOverview';
-import { AttentionCard } from './AttentionCard';
-import { GrowthAction } from './GrowthAction';
+import { HomeDecisions } from './HomeDecisions';
 import { HomeAssets } from './HomeAssets';
 import { PinnedGoalCard } from './PinnedGoalCard';
 import { TapBoostCard } from './TapBoostCard';
@@ -32,7 +31,7 @@ export function HomeScreen() {
     <Screen tone="earn">
       <PinnedGoalCard />
       <HomeOverview />
-      <AttentionCard />
+      <HomeDecisions />
       <TutorialHint steps={TUTORIAL_STEPS} />
       <TapCard
         perTapCents={view.perTapCents}
@@ -42,10 +41,9 @@ export function HomeScreen() {
         highlight={tutorial.isOn('tap') ? 'tutorial' : 'none'}
         onTap={tap}
       />
-      <TapBoostCard />
       <WalletUpgrade tapCard={view} highlighted={tutorial.isOn('upgradeWallet')} />
+      <TapBoostCard />
       <HomeAssets />
-      <GrowthAction />
     </Screen>
   );
 }

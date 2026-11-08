@@ -1,5 +1,5 @@
 import { StyleSheet, View } from 'react-native';
-import { selectPortfolio } from '@/application/portfolioView';
+import { selectBusinessWorth } from '@/application/businessWorthView';
 import { selectBusinessIncomePerMinuteCents } from '@/application/cashView';
 import { getContent } from '@/content';
 import { useGameSnapshot } from '@/features/game/GameContext';
@@ -9,7 +9,6 @@ import { sectionColors, spacing } from '@/ui/tokens';
 export function BusinessSummary() {
   const snapshot = useGameSnapshot();
   const content = getContent();
-  const view = selectPortfolio(snapshot, content);
   const format = useMoneyFormat();
   return (
     <View style={styles.summary}>
@@ -17,7 +16,7 @@ export function BusinessSummary() {
         Business net worth
       </AppText>
       <AppText variant="display" style={styles.value}>
-        {format.money(view.worth.businessesCents)}
+        {format.money(selectBusinessWorth(snapshot, content))}
       </AppText>
       <AppText
         variant="caption"

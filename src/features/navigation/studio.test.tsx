@@ -69,6 +69,13 @@ describe('Studio native flows', () => {
     expect(screen.getByText('$25.00')).toBeOnTheScreen();
   });
 
+  it('changes the news feed with the selected coin market', async () => {
+    await open('/markets');
+    await fireEvent.press(screen.getByRole('tab', { name: 'Crypto' }));
+    await fireEvent.press(screen.getByRole('button', { name: '▸ Market news' }));
+    expect(screen.getByText('A large Spark Token holder sells a big chunk')).toBeOnTheScreen();
+  });
+
   it('shows tax choices but prevents filing a still-open estimate', async () => {
     await open('/taxes', { tax: { status: 'notStarted' } });
     expect(screen.getByRole('button', { name: 'Pay & file' })).toBeDisabled();

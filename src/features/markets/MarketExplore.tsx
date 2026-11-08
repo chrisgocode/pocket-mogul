@@ -1,10 +1,10 @@
 import { browseMarketQuotes } from '@/application/marketBrowse';
 import type { AssetQuote } from '@/application/marketsView';
-import { EmptyState } from '@/ui/EmptyState';
 import { SegmentedControl } from '@/ui/SegmentedControl';
 import { useSegment } from '@/ui/state/useSegment';
 import { TextField } from '@/ui/TextField';
 import { AssetQuoteRow } from './AssetQuoteRow';
+import { MarketNews } from './MarketNews';
 import { AppText } from '@/ui/Typography';
 const MARKETS = ['Stocks', 'Crypto'] as const;
 const SORTS = ['Name', 'Change', 'Price'] as const;
@@ -42,9 +42,8 @@ export function MarketExplore({ quotes }: { quotes: readonly AssetQuote[] }) {
       {visible.map((quote) => (
         <AssetQuoteRow key={quote.asset.id} quote={quote} />
       ))}
-      {visible.length === 0 ? (
-        <EmptyState title="No matching assets" message="Try another name or ticker" />
-      ) : null}
+      {visible.length === 0 ? <AppText muted>No matching assets</AppText> : null}
+      <MarketNews market={market.selected === 'Stocks' ? 'stocks' : 'crypto'} />
     </>
   );
 }

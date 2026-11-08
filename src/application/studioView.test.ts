@@ -3,7 +3,10 @@ import { ownedBusiness } from '@/domain/testRules';
 import { vendingBusiness } from '@/domain/testVending';
 import { dollars, dollarPrice } from '@/domain/money';
 import { levelZeroProperty } from '@/domain/propertyQuotes';
-import type { GameState } from '@/domain/gameState';
+import { freshGameState, type GameState } from '@/domain/gameState';
+import { selectBusinessWorth } from './businessWorthView';
+import { selectPortfolio } from './portfolioView';
+import { startTestGameFrom } from './testGame';
 import { type GameSnapshot } from './game';
 import { taxReturnOwner } from './taxTesting';
 import { selectHomeAttention } from './homeAttention';
@@ -158,5 +161,28 @@ describe('market browsing', () => {
     const sorted = browseMarketQuotes(quotes, { market: 'Stocks', search: '', sort: 'Price' });
     expect(sorted.slice(0, 2).map((quote) => quote.asset.id)).toEqual(['summit', 'atlas']);
     expect(quotes.map((quote) => quote.asset.id)).toEqual(source);
+  });
+});
+
+describe('business net worth after going public', () => {
+  it('includes the retained market stake while Wealth counts it only once', async () => {
+    const session = await startTestGameFrom({
+      ...freshGameState({
+        saveId: 'studio-ipo',
+        economyVersion: content.economyVersion,
+        wallMs: 0,
+      }),
+      cashCents: dollars('1000000'),
+      businesses: [ownedBusiness('coffee_kiosk', { stage: 4 })],
+    });
+    await session.game.dispatch({
+      id: 'studio-ipo',
+      command: { type: 'GoPublic', businessId: 'coffee_kiosk', floatPercent: 20, ticker: 'BEAN' },
+    });
+    const current = session.game.getSnapshot();
+    const portfolio = selectPortfolio(current, content);
+    expect(portfolio.worth.businessesCents).toBe(dollars('0'));
+    expect(selectBusinessWorth(current, content)).toBeGreaterThan(0n);
+    expect(selectBusinessWorth(current, content)).toBe(portfolio.worth.positionsCents);
   });
 });

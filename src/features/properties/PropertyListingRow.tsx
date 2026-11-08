@@ -26,7 +26,7 @@ export function PropertyListingRow({ listing, index, onBuy, onManage }: Property
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={`${label}, ${listing.status}, renovation level ${listing.renovationLevel}, value ${formatMoneyExact(listing.valueCents)}, net ${formatRatePerMinute(net, 'full')}, gross ${formatRatePerMinute(status === 'vacant' ? moneyCents(0) : listing.grossPerMinuteCents, 'full')}`}
       disabled={status === 'available' && !listing.affordable}
       accessibilityState={{ disabled: status === 'available' && !listing.affordable }}
       onPress={() => (status === 'available' ? onBuy(listing) : onManage(listing))}

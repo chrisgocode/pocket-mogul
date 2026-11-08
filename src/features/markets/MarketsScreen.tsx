@@ -4,10 +4,8 @@ import {
   selectStockQuotes,
   selectWatchedQuotes,
 } from '@/application/marketsView';
-import { selectMarketNews } from '@/application/marketNews';
 import { FICTIONAL_NOTICE, getContent } from '@/content';
 import { useGameSnapshot } from '@/features/game/GameContext';
-import { Disclosure } from '@/ui/Disclosure';
 import { PageTitle } from '@/ui/PageTitle';
 import { Screen } from '@/ui/Screen';
 import { SegmentedControl } from '@/ui/SegmentedControl';
@@ -16,9 +14,7 @@ import { AppText } from '@/ui/Typography';
 import { MarketExplore } from './MarketExplore';
 import { MarketPortfolio } from './MarketPortfolio';
 import { AssetQuoteRow } from './AssetQuoteRow';
-import { NewsList } from './NewsList';
 const MODES = ['Portfolio', 'Explore', 'Watchlist'] as const;
-const NEWS_ITEMS = 4;
 export function MarketsScreen() {
   const snapshot = useGameSnapshot();
   const content = getContent();
@@ -46,12 +42,6 @@ export function MarketsScreen() {
       {mode.selected === 'Watchlist' && watched.length === 0 ? (
         <AppText muted>No watched assets</AppText>
       ) : null}
-      <Disclosure title="Market news">
-        <NewsList
-          items={selectMarketNews(snapshot.state, { market: 'stocks', content, limit: NEWS_ITEMS })}
-          empty="No market news yet."
-        />
-      </Disclosure>
       <AppText variant="caption" muted style={styles.notice}>
         {FICTIONAL_NOTICE}
       </AppText>

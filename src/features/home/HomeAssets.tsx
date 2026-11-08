@@ -1,5 +1,6 @@
 import { Link, type Href } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { selectBusinessWorth } from '@/application/businessWorthView';
 import { selectPortfolio } from '@/application/portfolioView';
 import { getContent } from '@/content';
 import { useGameSnapshot } from '@/features/game/GameContext';
@@ -7,14 +8,15 @@ import { useMoneyFormat } from '@/features/game/useMoneyFormat';
 import { AppText } from '@/ui/Typography';
 import { colors, minimumTouchTarget, spacing } from '@/ui/tokens';
 export function HomeAssets() {
-  const view = selectPortfolio(useGameSnapshot(), getContent());
+  const snapshot = useGameSnapshot();
+  const view = selectPortfolio(snapshot, getContent());
   const format = useMoneyFormat();
   const items: { label: string; href: Href; count: number; value: string }[] = [
     {
       label: 'Businesses',
       href: '/businesses',
-      count: view.holdings.businesses.length,
-      value: format.money(view.worth.businessesCents),
+      count: snapshot.state.businesses.length,
+      value: format.money(selectBusinessWorth(snapshot, getContent())),
     },
     {
       label: 'Investments',

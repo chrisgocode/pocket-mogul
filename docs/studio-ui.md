@@ -16,3 +16,9 @@ The approved Ledger/Studio study is implemented as native Expo screens. The hist
 ## Validation
 
 Native screen tests follow the visible filters/disclosures while retaining accounting and command assertions. Application selector tests cover attention order, growth eligibility, market search/sorting and recovery-aware cash-flow estimates. The PR contains Release simulator screenshots and recording, independent Standards/Spec review and the full repository check results. The later pre-release UX pass remains separate from this implementation.
+
+## Native review follow-up
+
+Independent Standards and Spec review found two P2 requirements issues: coin news used the stock feed, and the business counter omitted retained listed stakes. Both are fixed and covered by native/selector regressions. The business-specific counter includes private carrying value and retained listed equity; Profile allocation still classifies that equity under Markets, so total net worth counts it once.
+
+Review also improved complete property-card accessibility labels, focus/layout handling for business section anchors, and Earn selector cost. Attention now settles once and reads only operations/restock data; growth reads stage/unit eligibility. Earn computes attention once and skips growth work while attention exists. The same 12-business/200ms-pending fixture improved from about 22ms to 2ms per selector pass in Bun; this is a development benchmark, not a device performance guarantee.

@@ -1,12 +1,9 @@
-import { selectHomeAttention } from '@/application/homeAttention';
-import { getContent } from '@/content';
-import { useGameSnapshot } from '@/features/game/GameContext';
+import type { HomeAttention } from '@/application/homeAttention';
 import { Card } from '@/ui/Card';
 import { Disclosure } from '@/ui/Disclosure';
 import { AppText } from '@/ui/Typography';
 import { AttentionRow } from './AttentionRow';
-export function AttentionCard() {
-  const items = selectHomeAttention(useGameSnapshot(), getContent());
+export function AttentionCard({ items }: { items: readonly HomeAttention[] }) {
   const first = items[0];
   if (first === undefined) return null;
   return (
