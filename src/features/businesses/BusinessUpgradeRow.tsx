@@ -18,9 +18,9 @@ export function BusinessUpgradeRow({
   maxLevel: number;
   onReview: (improvement: AvailableImprovement) => void;
 }) {
-  const track = TRACK_NAMES[improvement.track];
+  const track = TRACK_NAMES[improvement.label];
   const title = `${track} ${improvement.level}/${maxLevel}`;
-  const effect = TRACK_EFFECTS[improvement.track];
+  const effect = TRACK_EFFECTS[improvement.label];
   if (improvement.status === 'max') {
     return <ListRow title={title} subtitle={effect} value="Max level" />;
   }

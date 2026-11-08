@@ -6,6 +6,7 @@ import type {
   ReadyStage,
 } from '@/application/businessDetailView';
 import type { AvailableDetailing } from '@/application/carWashView';
+import type { AvailableSortingHub, OfferView } from '@/application/deliveryView';
 import type { AvailableCardReaders } from '@/application/vendingView';
 import type { Business } from '@/content';
 import type { StaffRole } from '@/domain/business/definition';
@@ -17,6 +18,7 @@ import { formatCashChange } from '@/features/game/priceFormat';
 import { profitChange, spent, TRACK_NAMES } from './businessFormat';
 import { fireText, hireText, stageText } from './growthActionText';
 import { detailingText } from './carWashActionText';
+import { contractText, sortingHubText } from './deliveryActionText';
 import { cardReaderText } from './vendingActionText';
 
 export type BusinessAction =
@@ -44,6 +46,8 @@ export type BusinessAction =
       readonly business: Business;
       readonly detailing: AvailableDetailing;
     }
+  | { readonly kind: 'contract'; readonly business: Business; readonly offer: OfferView }
+  | { readonly kind: 'sorting_hub'; readonly business: Business; readonly hub: AvailableSortingHub }
   | { readonly kind: 'withdraw'; readonly business: Business; readonly amountCents: MoneyCents }
   | { readonly kind: 'sell'; readonly business: Business; readonly sale: BusinessSale };
 
@@ -98,6 +102,12 @@ const COMMANDS: ActionHandlers<GameCommand> = {
   }),
   card_readers: ({ business }) => ({ type: 'InstallCardReaders', businessId: business.id }),
   detailing: ({ business }) => ({ type: 'InstallDetailing', businessId: business.id }),
+  contract: ({ business, offer }) => ({
+    type: 'AcceptContract',
+    businessId: business.id,
+    offerId: offer.id,
+  }),
+  sorting_hub: ({ business }) => ({ type: 'InstallSortingHub', businessId: business.id }),
 };
 
 export function businessActionCommand(action: BusinessAction): GameCommand {
@@ -118,7 +128,7 @@ function unitText(action: Extract<BusinessAction, { kind: 'unit' }>): ActionShee
 }
 
 function improvementText(improvement: AvailableImprovement): ActionSheetText {
-  const track = TRACK_NAMES[improvement.track];
+  const track = TRACK_NAMES[improvement.label];
   return {
     title: `Upgrade ${track}`,
     lines: [
@@ -168,6 +178,8 @@ const SHEET_TEXT: ActionHandlers<ActionSheetText> = {
   stage: (action) => stageText(action.stage),
   card_readers: (action) => cardReaderText(action.readers),
   detailing: (action) => detailingText(action.detailing),
+  contract: (action) => contractText(action.offer),
+  sorting_hub: (action) => sortingHubText(action.hub),
 };
 
 export function businessActionSheetText(action: BusinessAction): ActionSheetText {

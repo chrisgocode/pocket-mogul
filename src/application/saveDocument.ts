@@ -8,6 +8,7 @@ import {
   type OwnedBusiness,
 } from '@/domain/business/owned';
 import { NO_CAR_WASH, type CarWashOperation } from '@/domain/business/carWashState';
+import { NO_DELIVERY, type DeliveryOperation } from '@/domain/business/deliveryState';
 import { NO_VENDING, type VendingOperation } from '@/domain/business/vendingRules';
 import type {
   AbsenceIncident,
@@ -20,7 +21,7 @@ export type SavedRisks = { readonly insurance: Insurance; readonly incident: Act
 
 type SavedBusiness = Omit<
   OwnedBusiness,
-  'staff' | 'insurance' | 'incident' | 'vending' | 'carWash'
+  'staff' | 'insurance' | 'incident' | 'vending' | 'carWash' | 'delivery'
 >;
 
 type SavedReturnSummary =
@@ -41,6 +42,7 @@ export type SaveDocument = Omit<GameState, 'businesses' | 'returnSummary' | 'act
   readonly risks: Readonly<Record<string, SavedRisks>>;
   readonly vending: Readonly<Record<string, VendingOperation>>;
   readonly carWash: Readonly<Record<string, CarWashOperation>>;
+  readonly delivery: Readonly<Record<string, DeliveryOperation>>;
   readonly absenceIncidents: readonly AbsenceIncident[];
   readonly incidentEntries: number;
 };
@@ -72,6 +74,7 @@ export function toSaveDocument(state: GameState): SaveDocument {
         incident: _incident,
         vending: _vending,
         carWash: _carWash,
+        delivery: _delivery,
         ...rest
       }) => rest,
     ),
@@ -81,8 +84,17 @@ export function toSaveDocument(state: GameState): SaveDocument {
     risks: byBusiness(businesses, ({ insurance, incident }) => ({ insurance, incident })),
     vending: byBusiness(businesses, (business) => business.vending),
     carWash: byBusiness(businesses, (business) => business.carWash),
+    delivery: byBusiness(businesses, (business) => business.delivery),
     absenceIncidents: returnSummary.status === 'pending' ? returnSummary.summary.incidents : [],
     incidentEntries: activity.lifetime.byKind.incident,
+  };
+}
+
+function loadedMechanics(businessId: string, document: SaveDocument) {
+  return {
+    vending: document.vending[businessId] ?? NO_VENDING,
+    carWash: document.carWash[businessId] ?? NO_CAR_WASH,
+    delivery: document.delivery[businessId] ?? NO_DELIVERY,
   };
 }
 
@@ -93,8 +105,7 @@ function loadedBusiness(saved: SavedBusiness, document: SaveDocument): OwnedBusi
     staff: document.staffing[saved.definitionId] ?? NO_STAFF,
     insurance: risks?.insurance ?? NO_INSURANCE,
     incident: risks?.incident ?? NO_INCIDENT,
-    vending: document.vending[saved.definitionId] ?? NO_VENDING,
-    carWash: document.carWash[saved.definitionId] ?? NO_CAR_WASH,
+    ...loadedMechanics(saved.definitionId, document),
   };
 }
 
@@ -118,6 +129,7 @@ export function fromSaveDocument(document: SaveDocument): GameState {
     incidentEntries: _incidentEntries,
     vending: _vending,
     carWash: _carWash,
+    delivery: _delivery,
     ...rest
   } = document;
   return {

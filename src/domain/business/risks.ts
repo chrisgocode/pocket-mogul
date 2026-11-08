@@ -1,7 +1,7 @@
 import { drawInt, type InclusiveRange } from '@/domain/marketRandom';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 
-import { premiumCents } from './core';
+import { premiumCents } from './runningCosts';
 import {
   INCIDENT_CATEGORIES,
   type BusinessPricing,

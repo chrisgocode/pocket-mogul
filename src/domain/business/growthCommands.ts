@@ -3,6 +3,7 @@ import type { GameState } from '@/domain/gameState';
 
 import { changed, lookUpOwned, spendTreasury, type BusinessOrder } from './commands';
 import { withCarWashUnlocked } from './carWash';
+import { withDeliveryUnlocked } from './delivery';
 import { businessDayOf, type StaffRole } from './definition';
 import { quoteStaff, withStaff } from './staff';
 import { quoteStage } from './stages';
@@ -46,17 +47,16 @@ export function applyUpgradeStage(
   if (quote.stage !== order.fromStage) return { ok: false, error: 'STALE_QUOTE' };
   if (quote.status === 'final') return { ok: false, error: 'MAX_LEVEL' };
   if (quote.status === 'not_ready') return { ok: false, error: 'STAGE_NOT_READY' };
+  const start = {
+    pricing,
+    seed: state.market.seed,
+    day: businessDayOf(state.clock.simulationMs, pricing.rules),
+  };
+  const upgraded = withVendingUnlocked({ ...owned, stage: quote.stage + 1 }, pricing);
   return spendTreasury(state, {
     owned,
     priceCents: quote.priceCents,
-    improved: withCarWashUnlocked(
-      withVendingUnlocked({ ...owned, stage: quote.stage + 1 }, pricing),
-      {
-        pricing,
-        seed: state.market.seed,
-        day: businessDayOf(state.clock.simulationMs, pricing.rules),
-      },
-    ),
+    improved: withDeliveryUnlocked(withCarWashUnlocked(upgraded, start), start),
     expense: 'capital',
   });
 }

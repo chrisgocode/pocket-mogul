@@ -5,6 +5,7 @@ import { inexactCoreFigures } from './businessCore';
 import { contentSchema, TIERS, type Content } from './schema';
 import { businessRisksFit } from './validateRisks';
 import { carWashMechanicsFit } from './validateCarWash';
+import { deliveryMechanicsFit } from './validateDelivery';
 import { vendingMechanicsFit } from './validateVending';
 
 export class ContentValidationError extends Error {
@@ -66,6 +67,7 @@ function crossChecks(content: Content): string[] {
     businessRisksFit,
     vendingMechanicsFit,
     carWashMechanicsFit,
+    deliveryMechanicsFit,
     efficiencyKeepsCostsPositive,
     systemsKeepUpkeepPositive,
     stockClassesFollowTheirRules,

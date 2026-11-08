@@ -1,6 +1,7 @@
 import { moneyCents, type MoneyCents } from '@/domain/money';
 
-import { bestPriceLevel, profitPerDayCents, wageCents } from './core';
+import { bestPriceLevel, profitPerDayCents } from './core';
+import { wageCents } from './runningCosts';
 import { stageRule, type BusinessPricing, type StaffRole } from './definition';
 import type { OwnedBusiness, PolicyStatus } from './owned';
 import { renewedInsurance } from './risks';

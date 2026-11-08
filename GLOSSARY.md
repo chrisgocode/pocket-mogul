@@ -147,7 +147,7 @@ One of a business's three kinds of hire: operations staff (+20% capacity each), 
 _Avoid_: Worker, employee, crew
 
 **Manager**:
-The staff role, unlocked at stage 2 (Local), that adds 10% to positive profit and makes a business's routine decisions at each day boundary, offline too: setting the most profitable Price level, renewing Lapsed insurance once the Treasury can pay, and a flagship's own routine choices (at a Vending Machine, each Location's best Stock mix; at a Car Wash, the Member cap ahead of forecast Rain). A Manager never deposits, withdraws or sells.
+The staff role, unlocked at stage 2 (Local), that adds 10% to positive profit and makes a business's routine decisions at each day boundary, offline too: setting the most profitable Price level, renewing Lapsed insurance once the Treasury can pay, and a flagship's own routine choices (at a Vending Machine, each Location's best Stock mix; at a Car Wash, the Member cap ahead of forecast Rain). At a Delivery Company it accepts and declines no Contracts, but its best price counts them, so it raises the walk-in price when Contracts fill the vans. A Manager never deposits, withdraws or sells.
 _Avoid_: Automation, autopilot
 
 **Incident**:
@@ -159,7 +159,7 @@ Cover for one incident category, available from stage 2 (Local). It costs a dail
 _Avoid_: Cover plan, protection
 
 **Flagship mechanic**:
-A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships.
+A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships; the Delivery Company's is Contracts, Reputation and Drivers.
 _Avoid_: Minigame, feature
 
 **Coach mark**:
@@ -209,6 +209,30 @@ _Avoid_: Member limit (that is the member count the cap allows)
 **Detailing**:
 The Car Wash's stage 5 (Global) signature upgrade, paid once from the Treasury: a fourth Wash package at the top price that holds a bay the longest and takes 10 percent of walk-ins from Basic.
 _Avoid_: Premium wash, valet
+
+**Driver**:
+An operations hire at a Delivery Company. It adds 20% capacity like any operations hire, and once the Flagship mechanic runs each Driver crews two vans: a van without a Driver delivers nothing.
+_Avoid_: Courier, Restocker (that is the Vending Machine's)
+
+**Contract offer**:
+A Delivery Company client's offer on the offers board: parcels per day, a rate per parcel, a length in days and a penalty per missed parcel. Up to three are drawn from the save's seed each day, bigger and better paid at a higher Reputation, and an unanswered offer expires after 2 days. The player accepts or declines it; a Manager never does.
+_Avoid_: Job, order, bid
+
+**Contract**:
+An accepted Contract offer. Its parcels are delivered before walk-ins, in acceptance order, every day until it ends; each parcel the vans can't deliver is missed and costs the contract's penalty.
+_Avoid_: Deal, subscription
+
+**Reputation**:
+A Delivery Company's rating from one to five stars: the on-time share of Contract parcels over the last 10 days (99, 95, 85 and 70 percent reach five, four, three and two stars). It starts at three stars and sizes and prices new Contract offers.
+_Avoid_: Rating, trust score
+
+**Route planner**:
+The Delivery Company's Efficiency track once its Flagship mechanic runs: each level adds 5% parcels per van instead of lowering the cost per parcel. Levels bought as Efficiency carry over.
+_Avoid_: Logistics upgrade, navigation
+
+**Sorting hub**:
+The Delivery Company's stage 5 (Global) signature upgrade, paid once from the Treasury, that adds 30% capacity.
+_Avoid_: Depot, warehouse
 
 **Treasury**:
 A business's own money. Its profit lands here, and its units, upgrades and other running spending are paid from here, never from the player's cash. It never goes below zero.

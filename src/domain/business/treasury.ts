@@ -2,6 +2,7 @@ import { moneyCents, type MoneyCents } from '@/domain/money';
 
 import { startCarWashDay } from './carWash';
 import { profitPerDayCents } from './core';
+import { endedDeliveryDay, startDeliveryDay } from './delivery';
 import { findBusiness, type BusinessEconomy, type BusinessPricing } from './definition';
 import type { OwnedBusiness } from './owned';
 import { startBusinessDay, type StruckIncident } from './risks';
@@ -112,11 +113,13 @@ type Settling = Settled & { readonly atMs: number; readonly incidents: readonly 
 function dayStarted(segment: Settled, boundary: { settlement: Settlement; endMs: number }) {
   const { pricing, seed } = boundary.settlement;
   const day = boundary.endMs / pricing.rules.dayMs;
-  const opened = withVendingUnlocked(soldVendingDay(segment.business, pricing), pricing);
+  const ended = endedDeliveryDay(soldVendingDay(segment.business, pricing), { pricing, day });
+  const opened = withVendingUnlocked(ended, pricing);
   const started = startBusinessDay(opened, { pricing, seed, day });
   const restocked = restockedByStaff(started.business, pricing);
   const washing = startCarWashDay(restocked, { pricing, seed, day });
-  return { ...started, business: managerDecisions(washing, pricing) };
+  const managed = managerDecisions(washing, pricing);
+  return { ...started, business: startDeliveryDay(managed, { pricing, seed, day }) };
 }
 
 function settleBusiness(business: OwnedBusiness, settlement: Settlement): Settled {
