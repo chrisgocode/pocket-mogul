@@ -18,13 +18,23 @@ All retain Vault's green-black, gold and ivory direction described in #63 / PR #
 
 Switch to First session → Earn → tap to $250 → Businesses / Tier 1 → buy Vending. Buying is one tap. In the operating sample, open Vending, add a machine or restock from treasury, change payout, deposit personal cash, or review a whole-treasury withdrawal. Sell and withdrawal show confirmation; reset restores the sample. Inspect the expanded state below the phone after each action.
 
-All amounts are illustrative fixture values. The sample is not an economy calculator: growth does not recompute demand or profit, time does not accrue, and staff, pricing, insurance and deals are discovery-only. The stock value can be refilled, not simulated down. The first-session buy quote and the Local detail snapshot represent different stages. Wealth valuation/allocation are illustrative composition examples. A native implementation must use selector quotes and engine results, not these numbers.
+All amounts are illustrative fixture values. The sample is not an economy calculator: growth does not recompute demand or profit, time does not accrue, and staff, pricing, insurance and deals are discovery-only. The stock value can be refilled, not simulated down. The first-session buy quote and the Local detail snapshot represent different stages. Wealth allocation percentages are illustrative composition examples; its total uses sample cash plus the same business counter. A native implementation must use selector quotes and engine results, not these numbers.
 
-## Provisional verdict — no owner decision yet
+## Owner-selected direction — A, revised
 
-Use A as the structural baseline, and consider B's single actionable prompt above the Owned rows. Keep the specified six-section order and all business actions inside the full-screen business page. C's stage trail may work as a Grow section, but leading the whole catalog with it makes routine operations harder to find.
+The owner chose A and rejected decorative headings/taglines and the arbitrary business symbols. A now replaces “Your portfolio of businesses” / “Businesses” with a **Business net worth** counter, owned count and income to cash. The treasury explanation banner is removed. A's Earn and Wealth views also omit their motivational headings.
 
-Validate with the owner before implementing. No winning variant has been folded into real code. The study belongs on a throwaway branch, never main.
+Business net worth follows the existing definition in spec §5 / §9: private business carrying value is capitalized investment plus treasury; listed businesses use the market value of the player's retained stake instead, counted once. This is distinct from a sale quote or profit-multiple takeover valuation. Production should reuse that accounting convention across Businesses and Wealth. No economic definition is being changed.
+
+The prototype's private-business fixtures track investment and treasury explicitly. Buying adds investment; unit growth moves treasury to investment, preserving worth; restocking is an operating expense and reduces worth; deposits/withdrawals move value between personal cash and the business. Personal cash and unrelated investments are excluded from the business counter. Listed-business scenarios are not simulated here.
+
+Compare the artwork selector above the phone (shareable via `?art=illustrated|outline|none`):
+
+- **Two-tone illustrations:** small, recognizable vending machine/cart/kiosk/washer/wash bay/bakery drawings. Stronger game identity and distinct silhouettes, without depending on emoji fonts.
+- **Outline icons:** the same literal objects, with quieter strokes and no tile. Lower visual weight.
+- **No icons:** text-led rows with more space for business names and figures. The most compact choice.
+
+These are inline SVG studies, not final production assets or a new icon package. Two-tone is the initial preview; no artwork direction has been selected by the owner. A's structure is selected, but no prototype code has been promoted to production. B/C are retained as the original comparison archive.
 
 ## Suggested implementation slices after selection
 

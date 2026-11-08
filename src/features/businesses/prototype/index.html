@@ -491,6 +491,37 @@
         text-align: center;
         padding: 35px 10px;
       }
+      .worth h1 {
+        font-size: 38px;
+        color: var(--gold);
+        margin: 6px 0 12px;
+        font-variant-numeric: tabular-nums;
+        overflow-wrap: anywhere;
+      }
+      .business-visual {
+        width: 48px;
+        height: 48px;
+        flex-shrink: 0;
+        color: var(--gold);
+      }
+      .business-visual svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .business-visual.illustrated {
+        background: var(--raised);
+        border-radius: 12px;
+        padding: 2px;
+      }
+      .business-visual.illustrated svg {
+        fill: #38503b;
+        stroke: #f4cf6b;
+      }
+      .business-visual.outline {
+        padding: 5px;
+        color: var(--dim);
+      }
     </style>
   </head>
   <body>
@@ -506,6 +537,11 @@
           <option value="first">First session</option>
           <option value="attention">Needs attention</option></select
         ><button data-action="reset">Reset sample</button>
+        <select id="business-art" aria-label="Business row artwork">
+          <option value="illustrated">Two-tone illustrations</option>
+          <option value="outline">Outline icons</option>
+          <option value="none">No icons</option>
+        </select>
       </div>
       <div class="phone" id="phone"></div>
       <div class="evidence">
@@ -525,19 +561,23 @@
       const variants = ['A', 'B', 'C'];
       const names = { A: 'The Ledger', B: 'Command Center', C: 'Empire Journey' };
       const hypotheses = {
-        A: 'A · The Ledger: flat rows and a stable six-section business page. Tests scan speed and predictable navigation.',
+        A: 'A · Selected direction: business net worth replaces decorative headings. Compare two-tone illustrations, outline icons and text-only rows with the artwork selector.',
         B: 'B · Command Center: lead with the business scene and its next operational action. Tests whether a clear priority makes deep mechanics approachable.',
         C: 'C · Empire Journey: lead with the next stage, then a vertical path through the empire. Tests whether visible progression feels more like a game.',
       };
       const query = new URLSearchParams(location.search);
       let variant = variants.includes(query.get('variant')) ? query.get('variant') : 'A';
+      let businessArt = ['outline', 'none'].includes(query.get('art'))
+        ? query.get('art')
+        : 'illustrated';
       const makeState = (scenario) => ({
         scenario,
         screen: 'businesses',
         filter: 'Owned',
         cash: scenario === 'first' ? 0 : 4820,
         treasury: scenario === 'first' ? 0 : 620,
-        units: 3,
+        units: scenario === 'first' ? 1 : 3,
+        capitalizedSpend: scenario === 'first' ? {} : { vending: 965, food_cart: 1250 },
         payout: 50,
         stock: scenario === 'attention' ? 0 : 65,
         owned: scenario === 'first' ? [] : ['vending', 'food_cart'],
@@ -578,6 +618,27 @@
                 : b.profit / 20),
             0,
           );
+      const businessWorth = () =>
+        state.owned.reduce((total, id) => total + (state.capitalizedSpend[id] ?? 0), 0) +
+        (owned('vending') ? state.treasury : 0);
+      const artwork = {
+        vending:
+          '<rect x="13" y="6" width="29" height="44" rx="4"/><rect x="18" y="11" width="15" height="24" rx="2"/><path d="M23 12v22m5-22v22m-10-15h15m-15 8h15M36 17h2m-2 5h2M20 41h15M18 50v3m20-3v3"/>',
+        food_cart:
+          '<path d="M8 28h37v16H8zM7 22l5-11h29l6 11zM12 22v6m29-6v6M45 32h5v12h-5"/><circle cx="16" cy="48" r="4"/><circle cx="38" cy="48" r="4"/><path d="M16 12v10m10-10v10m10-10v10"/>',
+        coffee_kiosk:
+          '<path d="M8 23l6-12h29l6 12zM13 23v27h30V23M10 50h36M19 31h17v11H19zM25 7V3m7 4V3"/><path d="M36 33h3v6h-3M16 23v4m8-4v4m8-4v4m8-4v4"/>',
+        laundromat:
+          '<rect x="9" y="9" width="38" height="41" rx="4"/><path d="M9 19h38M15 14h6m17 0h3"/><circle cx="28" cy="34" r="11"/><path d="M19 35c5-7 12 7 18-1"/>',
+        car_wash:
+          '<path d="M7 48V18l21-9 21 9v30M13 45V22h30v23M20 22v7m8-7v7m8-7v7"/><path d="M17 45v-8l4-6h14l4 6v8zM18 37h20M22 41h2m8 0h2"/>',
+        bakery:
+          '<path d="M8 24l5-12h30l5 12M12 24v26h32V24M8 50h40M14 24v4m9-4v4m10-4v4m10-4v4"/><path d="M19 43v-4c0-8 18-8 18 0v4zM24 34l2 5m5-5 2 5"/>',
+      };
+      function businessVisual(id) {
+        if (businessArt === 'none') return '';
+        return `<div class="business-visual ${businessArt}" aria-hidden="true"><svg viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${artwork[id]}</svg></div>`;
+      }
       function header() {
         return `<div class="status"><span>9:41</span><span>POCKET MOGUL &nbsp; ▰</span></div><header class="top"><div class="topline"><div><div class="eyebrow">Available cash</div><div class="cash">${money(state.cash)}</div></div><div><div class="income">+${money(income())}/min</div><div class="muted">To your cash</div></div></div><div class="goal"><span>Tier 2 ${state.scenario === 'first' ? 'locked' : 'unlocked'}</span><span class="meter"><i style="width:${state.scenario === 'first' ? 0 : 100}%"></i></span><span>◇ Goals</span></div></header>`;
       }
@@ -602,18 +663,18 @@
       }
       function businessRow(b) {
         const isOwned = owned(b.id);
-        return `<div class="row line"><div class="icon">${b.icon}</div><div class="name"><b>${b.name}</b><span class="muted">${isOwned ? (b.id === 'vending' ? 'Local · ' + state.units + ' machines' : 'Startup · 1 cart') : 'Tier ' + b.tier + ' · +' + money(b.profit / 20) + '/min to cash'}</span>${isOwned ? `<div class="${b.id === 'vending' && state.stock === 0 ? 'red' : 'green'}">${b.id === 'vending' && state.stock === 0 ? '! Out of stock' : '+' + money(b.id === 'vending' ? (30 * state.payout) / 100 : b.profit / 20) + '/min to cash'}</div>` : ''}</div>${button(isOwned ? 'Open →' : money(b.price), isOwned ? 'open:' + b.id : 'buy:' + b.id, isOwned ? '' : 'primary', !isOwned && state.cash < b.price)}</div>`;
+        return `<div class="row line">${businessVisual(b.id)}<div class="name"><b>${b.name}</b><span class="muted">${isOwned ? (b.id === 'vending' ? 'Local · ' + state.units + ' machines' : 'Startup · 1 cart') : 'Tier ' + b.tier + ' · +' + money(b.profit / 20) + '/min to cash'}</span>${isOwned ? `<div class="${b.id === 'vending' && state.stock === 0 ? 'red' : 'green'}">${b.id === 'vending' && state.stock === 0 ? '! Out of stock' : '+' + money(b.id === 'vending' ? (30 * state.payout) / 100 : b.profit / 20) + '/min to cash'}</div>` : ''}</div>${button(isOwned ? 'Open →' : money(b.price), isOwned ? 'open:' + b.id : 'buy:' + b.id, isOwned ? '' : 'primary', !isOwned && state.cash < b.price)}</div>`;
       }
       function rows() {
         const list = catalog.filter((b) =>
           state.filter === 'Owned' ? owned(b.id) : b.tier === Number(state.filter.slice(-1)),
         );
         if (!list.length)
-          return `<div class="empty"><h3>${state.filter === 'Owned' ? 'Your empire starts small' : 'The next chapter'}</h3><p class="muted">${state.filter === 'Owned' ? 'Earn $250 to buy your first Vending Machine.' : 'Tier 3 at $200k peak net worth; Tier 4 at $8m.'}</p>${button(state.filter === 'Owned' ? 'Go to Earn' : 'View Tier 1', state.filter === 'Owned' ? 'tab:earn' : 'filter:Tier 1', 'primary wide')}</div>`;
+          return `<div class="empty"><h3>${state.filter === 'Owned' ? 'No businesses owned' : 'Tier locked'}</h3><p class="muted">${state.filter === 'Owned' ? 'Earn $250 to buy your first Vending Machine.' : 'Tier 3 at $200k peak net worth; Tier 4 at $8m.'}</p>${button(state.filter === 'Owned' ? 'Go to Earn' : 'View Tier 1', state.filter === 'Owned' ? 'tab:earn' : 'filter:Tier 1', 'primary wide')}</div>`;
         return list.map(businessRow).join('');
       }
       function variantA() {
-        return `<div class="eyebrow">Your portfolio of businesses</div><h1>Businesses</h1><div class="row metric"><span class="muted">${state.owned.length} businesses owned</span><b class="gold">+${money(income())}<small class="muted">/min</small></b></div>${filters()}${rows()}<div class="notice">Business profit stays in its treasury. Your payout moves a share to cash automatically.</div>`;
+        return `<div class="worth"><div class="muted">Business net worth</div><h1>${money(businessWorth())}</h1><div class="row"><span class="muted">${state.owned.length} owned</span><span class="green">+${money(income())}/min to cash</span></div></div>${filters()}${rows()}`;
       }
       function variantB() {
         return `<div class="row"><div><div class="eyebrow">Build something bigger</div><h1>Your empire.</h1></div><span class="badge">${state.owned.length} OWNED</span></div><div class="hero">${art()}<div class="row"><div><div class="eyebrow">${state.owned.length ? 'Empire cash flow' : 'Your first move'}</div><div class="big gold">${state.owned.length ? '$' + income().toFixed(0) : '$250'}<small class="muted">${state.owned.length ? '/min' : ' to start'}</small></div></div></div></div>${state.owned.length ? `<div class="notice"><b>${state.stock === 0 ? '! Vending needs stock' : 'Next move · Vending Machine'}</b><p class="muted">${state.stock === 0 ? 'Machines have stopped serving. Restock from the business treasury.' : 'Three machines. Local stage. Place stock where your customers are.'}</p>${button('Run the business →', 'open:vending', 'secondary wide')}</div>` : button('Tap your way to a business →', 'tab:earn', 'primary wide')}${filters()}${rows()}`;
@@ -650,10 +711,10 @@
         return `${button('← Businesses', 'tab:businesses', 'back')}${heads}${variant === 'A' ? '' : `<div class="rail">${['Overview', 'Mechanic', 'Grow', 'Staff', 'Risks', 'Deals'].map((s) => button(s, 'jump:' + s.toLowerCase())).join('')}</div>`}${variant === 'B' ? mechanic() + overview() + grow() : variant === 'C' ? grow() + overview() + mechanic() : overview() + mechanic() + grow()}<section id="staff"><h2>Staff</h2><div class="line"><h3>Restockers · 0 of 5</h3><p class="muted">+20% capacity each; automatically restock every day.</p></div><div class="line"><h3>Manager · not hired</h3><p class="muted">Chooses the best price and stock mix. Never spends your personal cash.</p></div></section><section id="risks"><h2>Risks</h2><div class="notice">No active incidents. Equipment, liability and supply insurance available at Local stage.</div></section><section id="deals"><h2>Deals</h2><p class="muted">Takeovers unlock at Regional.<br>Going public unlocks at National.</p></section>`;
       }
       function earn() {
-        return `<div class="eyebrow">Every empire starts here</div><h1>${variant === 'C' ? 'Make your first move.' : 'Make it happen.'}</h1><div class="${variant === 'B' ? 'hero' : 'card'}"><span class="badge">STARTER WALLET · LEVEL 0</span><button class="wallet" data-action="tap" aria-label="Tap wallet to earn one dollar">▰</button><div class="row"><b>$1.00 / tap</b><span class="muted">Tap to earn</span></div></div><div class="notice"><h3>Next step · First Vending Machine</h3><p class="muted">${money(Math.max(0, 250 - state.cash))} to go · starts earning immediately.</p>${button(state.cash >= 250 ? 'See businesses →' : 'Keep building', 'filter:Tier 1', 'primary wide', state.cash < 250)}</div><p class="muted">Boost and wallet upgrades are outside this study.</p>`;
+        return `${variant === 'A' ? '' : `<div class="eyebrow">Every empire starts here</div><h1>${variant === 'C' ? 'Make your first move.' : 'Make it happen.'}</h1>`}<div class="${variant === 'B' ? 'hero' : 'card'}"><span class="badge">STARTER WALLET · LEVEL 0</span><button class="wallet" data-action="tap" aria-label="Tap wallet to earn one dollar">▰</button><div class="row"><b>$1.00 / tap</b><span class="muted">Tap to earn</span></div></div><div class="notice"><h3>Next step · First Vending Machine</h3><p class="muted">${money(Math.max(0, 250 - state.cash))} to go · starts earning immediately.</p>${button(state.cash >= 250 ? 'See businesses →' : 'Keep building', 'filter:Tier 1', 'primary wide', state.cash < 250)}</div><p class="muted">Boost and wallet upgrades are outside this study.</p>`;
       }
       function wealth() {
-        return `<div class="eyebrow">The bigger picture</div><h1>${variant === 'C' ? 'Look how far you’ve come.' : 'Your wealth.'}</h1><div class="${variant === 'A' ? 'metric' : 'hero'}"><span class="muted">Net worth · illustrative</span><div class="${variant === 'A' ? 'cash' : 'big gold'}">${money(state.cash + state.treasury + 1500)}</div><p class="muted">Includes cash, treasury and sample business valuations.</p></div><div class="allocation" role="img" aria-label="Illustrative allocation: businesses 55%, cash 30%, treasury 15%"><i></i><i></i><i></i></div><p class="muted">Example allocation · business 55% / cash 30% / treasury 15%</p><div class="line row"><span>Available cash</span><b>${money(state.cash)}</b></div><div class="line row"><span>Business treasuries</span><b>${money(state.treasury)}</b></div><div class="line row"><span>Income to cash</span><b class="green">+${money(income())}/min</b></div><h2>Recent activity</h2><p class="muted">${state.notice || 'No actions in this session yet.'}</p>`;
+        return `${variant === 'A' ? '' : `<div class="eyebrow">The bigger picture</div><h1>${variant === 'C' ? 'Look how far you’ve come.' : 'Your wealth.'}</h1>`}<div class="${variant === 'A' ? 'metric' : 'hero'}"><span class="muted">Net worth · illustrative</span><div class="${variant === 'A' ? 'cash' : 'big gold'}">${money(state.cash + businessWorth())}</div><p class="muted">Includes cash, treasury and sample business valuations.</p></div><div class="allocation" role="img" aria-label="Illustrative allocation: businesses 55%, cash 30%, treasury 15%"><i></i><i></i><i></i></div><p class="muted">Example allocation · business 55% / cash 30% / treasury 15%</p><div class="line row"><span>Available cash</span><b>${money(state.cash)}</b></div><div class="line row"><span>Business treasuries</span><b>${money(state.treasury)}</b></div><div class="line row"><span>Income to cash</span><b class="green">+${money(income())}/min</b></div><h2>Recent activity</h2><p class="muted">${state.notice || 'No actions in this session yet.'}</p>`;
       }
       function sheet() {
         if (!state.confirmation) return '';
@@ -669,7 +730,13 @@
         document.getElementById('variant-label').textContent = variant + ' · ' + names[variant];
         document.getElementById('hypothesis').textContent = hypotheses[variant];
         document.getElementById('state').textContent = JSON.stringify(
-          { variant, ...state, economy: 'illustrative; engine not connected' },
+          {
+            variant,
+            businessArt,
+            businessNetWorth: businessWorth(),
+            ...state,
+            economy: 'illustrative; engine not connected',
+          },
           null,
           2,
         );
@@ -701,6 +768,7 @@
           const cost = unitPrice();
           state.treasury -= cost;
           state.units += 1;
+          state.capitalizedSpend.vending = (state.capitalizedSpend.vending ?? 0) + cost;
           state.notice =
             'Machine added · ' +
             money(cost) +
@@ -750,6 +818,7 @@
           if (!owned(value) && state.cash >= b.price) {
             state.cash -= b.price;
             state.owned.push(value);
+            state.capitalizedSpend[value] = b.price;
             state.notice = b.name + ' bought · +' + money(b.profit / 20) + '/min to cash';
           }
         }
@@ -768,6 +837,13 @@
         if (target && !target.disabled) act(target.dataset.action);
       });
       document.addEventListener('change', (event) => {
+        if (event.target.id === 'business-art') {
+          businessArt = event.target.value;
+          const url = new URL(location.href);
+          url.searchParams.set('art', businessArt);
+          history.replaceState(null, '', url);
+          render();
+        }
         if (event.target.id === 'scenario') {
           state = makeState(event.target.value);
           render();
@@ -786,6 +862,7 @@
         }
       });
       if (query.get('mode') === 'production') document.querySelector('.switcher').hidden = true;
+      document.getElementById('business-art').value = businessArt;
       render();
     </script>
   </body>
