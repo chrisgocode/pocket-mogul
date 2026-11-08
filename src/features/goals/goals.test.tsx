@@ -35,6 +35,8 @@ describe('Goals', () => {
   it('lists all 13 goals and earns a badge when one is reached', async () => {
     await renderRouter('src/app', { initialUrl: '/goals' });
     expect(screen.getByText('0 of 13 badges')).toBeOnTheScreen();
+    expect(screen.getAllByText('Pin to Earn')).toHaveLength(13);
+    expect(screen.queryByText(/Home/)).toBeNull();
     expect(
       screen.getByLabelText('First business, not reached, Buy any business'),
     ).toBeOnTheScreen();
@@ -45,7 +47,7 @@ describe('Goals', () => {
     ).toBeOnTheScreen();
   });
 
-  it('pins a goal to Home with its progress', async () => {
+  it('pins a goal to Earn with its progress', async () => {
     await renderRouter('src/app', { initialUrl: '/goals' });
     await fireEvent.press(screen.getByRole('button', { name: 'Pin Worth $10K' }));
     expect(screen.getByRole('button', { name: 'Unpin Worth $10K' })).toBeOnTheScreen();

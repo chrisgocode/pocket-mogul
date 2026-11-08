@@ -182,7 +182,7 @@ describe('Businesses catalog', () => {
     await fireEvent.press(screen.getByRole('tab', { name: 'Tier 2' }));
     expect(screen.getByText('Unlocks at $5,000.00 peak net worth')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('tab', { name: 'Owned' }));
-    await fireEvent.press(screen.getByRole('button', { name: /Vending Machine.*Open →/g }));
+    await fireEvent.press(screen.getByRole('button', { name: /Vending Machine.*Manage →/g }));
     await fireEvent.press(screen.getByRole('button', { name: '▸ Daily figures' }));
     expect(await findLine('Profit', '$100.00/day')).toBeOnTheScreen();
   });

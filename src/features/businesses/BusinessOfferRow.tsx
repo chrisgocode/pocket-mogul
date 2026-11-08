@@ -35,8 +35,12 @@ export function BusinessOfferRow({
       <ListRow
         leading={<BusinessArt id={business.id} />}
         title={business.name}
-        subtitle={`Profit ${formatPerDay(offer.profitPerDayCents)}`}
-        value={offer.status === 'owned' ? 'Open →' : formatMoneyExact(business.price)}
+        subtitle={
+          offer.operation === 'closed'
+            ? 'Closed · deposit to reopen'
+            : `Profit ${formatPerDay(offer.profitPerDayCents)}`
+        }
+        value={offer.status === 'owned' ? 'Manage →' : formatMoneyExact(business.price)}
         onPress={offer.status === 'owned' ? () => onManage(offer) : undefined}
         dimmed={offer.status === 'locked'}
       />

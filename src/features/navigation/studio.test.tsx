@@ -1,5 +1,6 @@
 import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 import type { OpenedGame } from '@/application/game';
+import { taxReturnOwner } from '@/application/taxTesting';
 import { startTestGameFrom } from '@/application/testGame';
 import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { freshGameState } from '@/domain/gameState';
@@ -76,6 +77,29 @@ describe('Studio native flows', () => {
     await fireEvent.press(screen.getByRole('tab', { name: 'Crypto' }));
     await fireEvent.press(screen.getByRole('button', { name: '▸ Market news' }));
     expect(screen.getByText('A large Spark Token holder sells a big chunk')).toBeOnTheScreen();
+  });
+
+  it('labels a closed business without suggesting it is earning', async () => {
+    await open('/businesses', { businesses: [ownedBusiness('vending', { status: 'closed' })] });
+    expect(
+      screen.getByRole('button', { name: 'Vending Machine, Closed · deposit to reopen, Manage →' }),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('Profit $100.00/day')).toBeNull();
+  });
+
+  it('prioritizes assessed debt before historical returns and future filing choices', async () => {
+    const owner = taxReturnOwner();
+    const session = await startTestGameFrom({ ...owner, cashCents: dollars('0') });
+    await session.game.dispatch({
+      id: 'file-shortfall',
+      command: { type: 'FileTaxReturn', returnId: 1, method: 'honest', revision: owner.revision },
+    });
+    await open('/taxes', { ...session.game.getSnapshot().state, cashCents: dollars('500') });
+    const actions = screen.getAllByRole('button', {
+      name: /^Pay debt|^Pay & file|^Inspect return/,
+    });
+    expect(actions[0]).toHaveProp('accessibilityLabel', 'Pay debt · $500.00');
+    expect(screen.getByRole('button', { name: 'Pay debt · $500.00' })).toBeEnabled();
   });
 
   it('shows tax choices but prevents filing a still-open estimate', async () => {

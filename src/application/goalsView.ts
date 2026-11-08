@@ -25,7 +25,7 @@ export type GoalsView = {
 };
 
 const FIRST_ACTION_HINTS: Readonly<Record<string, string>> = {
-  wallet_upgrade: 'Upgrade your wallet on Home',
+  wallet_upgrade: 'Upgrade your wallet on Earn',
   business_purchase: 'Buy any business',
   rental_started: 'Rent out a property you own',
   stock_purchase: 'Buy shares of any stock',

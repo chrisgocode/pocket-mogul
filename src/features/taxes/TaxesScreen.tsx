@@ -20,6 +20,7 @@ export function TaxesScreen() {
   const action = useGameAction(commandIdentity);
   return (
     <Screen>
+      {view.debtCents > 0n ? <TaxDebtCard view={view} review={action.review} /> : null}
       {orderedTaxReturns(view.returns).map((statement) => (
         <TaxReturnCard
           key={statement.id}
@@ -29,7 +30,7 @@ export function TaxesScreen() {
         />
       ))}
       <TaxCurrentSection view={view} />
-      <TaxDebtCard view={view} review={action.review} />
+      {view.debtCents === 0n ? <TaxDebtCard view={view} review={action.review} /> : null}
       <Disclosure title="Tax rules">
         <AppText muted>
           Taps and Tap Boost are exempt. Returns close every six credited hours. The first $10,000
