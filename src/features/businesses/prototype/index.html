@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Pocket Mogul · #82 throwaway study</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: var(--font-sans, system-ui);
+        color: var(--foreground, #efe9d6);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      button,
+      select {
+        font: inherit;
+        cursor: pointer;
+      }
+      button {
+        min-height: 44px;
+      }
+      button:focus-visible,
+      select:focus-visible {
+        outline: 2px solid var(--primary, #f4cf6b);
+        outline-offset: 3px;
+      }
+      button:disabled {
+        cursor: default;
+        opacity: 0.45;
+      }
+      a {
+        color: inherit;
+      }
+      .study {
+        max-width: 690px;
+        margin: auto;
+        padding-bottom: 88px;
+      }
+      .intro {
+        font-size: 13px;
+        color: var(--muted-foreground, #999);
+        line-height: 1.6;
+        margin: 12px 0;
+      }
+      .tools {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+      }
+      .tools button,
+      .tools select {
+        padding: 8px 12px;
+        background: var(--secondary, #222);
+        color: inherit;
+        border: 1px solid var(--border, #444);
+        border-radius: 8px;
+      }
+      .phone {
+        --bg: #0c1512;
+        --panel: #14231c;
+        --raised: #1d3026;
+        --gold: #f4cf6b;
+        --ink: #efe9d6;
+        --dim: #a0b3a6;
+        --line: #304438;
+        --green: #9ae6b3;
+        --red: #ffb09c;
+        max-width: 390px;
+        margin: auto;
+        background: var(--bg);
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: 0 18px 45px #0003;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+      .phone button {
+        color: inherit;
+        background: transparent;
+        border: 0;
+      }
+      .status {
+        display: flex;
+        justify-content: space-between;
+        padding: 13px 22px 6px;
+        font-size: 11px;
+      }
+      .top {
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+      .topline {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .cash {
+        font-size: 27px;
+        font-weight: 850;
+        letter-spacing: -1px;
+        color: var(--gold);
+      }
+      .income {
+        font-size: 11px;
+        color: var(--green);
+      }
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-size: 10px;
+        color: var(--dim);
+        font-weight: 700;
+      }
+      .goal {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 10px;
+        color: var(--dim);
+        margin-top: 8px;
+      }
+      .meter {
+        height: 4px;
+        flex: 1;
+        background: var(--line);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .meter i {
+        display: block;
+        height: 100%;
+        background: var(--gold);
+      }
+      .content {
+        height: 555px;
+        overflow-y: auto;
+        scroll-behavior: smooth;
+        padding: 22px 18px 30px;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      h1 {
+        font-size: 30px;
+        line-height: 1.1;
+        letter-spacing: -1px;
+        margin: 5px 0 10px;
+      }
+      h2 {
+        font-size: 20px;
+        margin: 18px 0 12px;
+      }
+      h3 {
+        font-size: 15px;
+      }
+      .muted {
+        color: var(--dim);
+        font-size: 12px;
+      }
+      .green {
+        color: var(--green);
+      }
+      .gold {
+        color: var(--gold);
+      }
+      .red {
+        color: var(--red);
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .row > div {
+        min-width: 0;
+      }
+      .chips {
+        display: flex;
+        gap: 7px;
+        overflow-x: auto;
+        margin: 18px 0;
+      }
+      .chips button {
+        white-space: nowrap;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 0 13px;
+        font-size: 11px;
+      }
+      .chips .active {
+        background: var(--gold);
+        color: var(--bg);
+        border-color: var(--gold);
+      }
+      .phone .primary {
+        background: var(--gold);
+        color: var(--bg);
+        font-weight: 750;
+        border-radius: 12px;
+        padding: 11px 14px;
+      }
+      .phone .secondary {
+        background: var(--raised);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 9px 13px;
+      }
+      .wide {
+        width: 100%;
+        margin-top: 12px;
+      }
+      .line {
+        padding: 17px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        background: var(--raised);
+        font-size: 23px;
+        flex-shrink: 0;
+      }
+      .name {
+        flex: 1;
+      }
+      .name b {
+        display: block;
+        font-size: 14px;
+      }
+      .badge {
+        font-size: 10px;
+        letter-spacing: 0.5px;
+        color: var(--gold);
+      }
+      .amount {
+        font-weight: 750;
+        font-size: 16px;
+      }
+      .card {
+        background: var(--panel);
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        margin: 12px 0;
+      }
+      .hero {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #273d2d, #14231c);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 22px 18px;
+        margin: 15px 0;
+      }
+      .hero .big {
+        font-size: 42px;
+        font-weight: 850;
+        letter-spacing: -2px;
+        line-height: 1.1;
+      }
+      .art {
+        height: 102px;
+        display: flex;
+        align-items: end;
+        justify-content: center;
+        gap: 10px;
+        margin: 8px 0 14px;
+      }
+      .building {
+        width: 54px;
+        background: var(--raised);
+        border: 1px solid #72966c;
+        border-top: 5px solid var(--gold);
+        padding: 10px 8px;
+        color: var(--gold);
+        font-size: 20px;
+        text-align: center;
+        box-shadow: 7px 7px 0 #0c151266;
+      }
+      .building:nth-child(2) {
+        height: 95px;
+      }
+      .building:nth-child(1) {
+        height: 68px;
+      }
+      .building:nth-child(3) {
+        height: 78px;
+      }
+      .split {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .metric {
+        padding: 14px 0;
+      }
+      .metric b {
+        display: block;
+        font-size: 23px;
+        letter-spacing: -0.5px;
+      }
+      .notice {
+        padding: 12px;
+        border-left: 2px solid var(--gold);
+        background: var(--panel);
+        font-size: 12px;
+        margin: 14px 0;
+      }
+      .nav {
+        display: flex;
+        justify-content: space-around;
+        border-top: 1px solid var(--line);
+        background: #09110e;
+        padding: 6px 0 10px;
+      }
+      .nav button {
+        font-size: 10px;
+        color: var(--dim);
+        padding: 4px;
+        min-width: 50px;
+      }
+      .nav span {
+        display: block;
+        font-size: 18px;
+        line-height: 24px;
+      }
+      .nav .active {
+        color: var(--gold);
+      }
+      .timeline {
+        margin: 20px 0 0 12px;
+        border-left: 1px solid var(--line);
+        padding-left: 23px;
+      }
+      .stop {
+        position: relative;
+        padding: 0 0 26px;
+      }
+      .stop:before {
+        content: '';
+        position: absolute;
+        left: -29px;
+        top: 5px;
+        width: 9px;
+        height: 9px;
+        border: 2px solid var(--bg);
+        border-radius: 50%;
+        background: var(--gold);
+      }
+      .stop.locked {
+        opacity: 0.55;
+      }
+      .rail {
+        display: flex;
+        gap: 8px;
+        overflow: auto;
+        margin: 15px -18px;
+        padding: 0 18px;
+      }
+      .rail button {
+        border-bottom: 1px solid var(--gold);
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .section {
+        scroll-margin-top: 10px;
+      }
+      .sheet {
+        background: var(--raised);
+        border: 1px solid var(--gold);
+        padding: 16px;
+        border-radius: 16px;
+        margin-bottom: 16px;
+      }
+      .toast {
+        font-size: 12px;
+        padding: 10px 14px;
+        background: var(--raised);
+        border-bottom: 1px solid var(--line);
+        color: var(--gold);
+      }
+      .switcher {
+        position: fixed;
+        bottom: 14px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--popover, #f4cf6b);
+        color: var(--popover-foreground, #101a13);
+        border: 1px solid var(--border, #999);
+        box-shadow: 0 6px 30px #0005;
+        border-radius: 50px;
+        padding: 4px 8px;
+        z-index: 5;
+        white-space: nowrap;
+      }
+      .switcher button {
+        width: 44px;
+        border: 0;
+        background: none;
+        color: inherit;
+        font-size: 20px;
+      }
+      .switcher strong {
+        font-size: 12px;
+        min-width: 165px;
+        text-align: center;
+      }
+      .evidence {
+        max-width: 390px;
+        margin: 16px auto;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      .evidence p {
+        margin: 8px 0;
+      }
+      .evidence pre {
+        white-space: pre-wrap;
+        font-size: 10px;
+        background: var(--secondary, #202822);
+        border-radius: 8px;
+        padding: 12px;
+        overflow-wrap: anywhere;
+      }
+      .label {
+        display: block;
+        font-size: 11px;
+        margin: 8px 0;
+      }
+      .phone input {
+        accent-color: var(--gold);
+        width: 100%;
+      }
+      .phone .wallet {
+        font-size: 54px;
+        display: block;
+        margin: 24px auto;
+        width: 170px;
+        height: 140px;
+        border: 1px solid var(--gold);
+        border-radius: 26px;
+        background: linear-gradient(135deg, #31513c, #15231c);
+        transform: rotate(-4deg);
+        box-shadow: 10px 10px 0 #050c08;
+      }
+      .phone .wallet:active {
+        transform: rotate(-4deg) scale(0.96);
+      }
+      .allocation {
+        display: flex;
+        height: 12px;
+        border-radius: 6px;
+        overflow: hidden;
+        margin: 18px 0;
+      }
+      .allocation i:nth-child(1) {
+        width: 55%;
+        background: var(--gold);
+      }
+      .allocation i:nth-child(2) {
+        width: 30%;
+        background: var(--green);
+      }
+      .allocation i:nth-child(3) {
+        width: 15%;
+        background: #849be2;
+      }
+      .back {
+        padding: 0 !important;
+        color: var(--dim) !important;
+      }
+      .empty {
+        text-align: center;
+        padding: 35px 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="study">
+      <p class="intro">
+        <b>THROWAWAY · ISSUE #82</b><br />Which layout makes twelve deep businesses feel manageable?
+        Three Vault directions, same sample state. Browser study of the native Businesses surface,
+        with Earn and Wealth for context. Figures are illustrative; no engine or save writes.
+      </p>
+      <div class="tools">
+        <select id="scenario" aria-label="Sample scenario">
+          <option value="operating">Operating empire</option>
+          <option value="first">First session</option>
+          <option value="attention">Needs attention</option></select
+        ><button data-action="reset">Reset sample</button>
+      </div>
+      <div class="phone" id="phone"></div>
+      <div class="evidence">
+        <p id="hypothesis"></p>
+        <details>
+          <summary>Live prototype state · inspect after any action</summary>
+          <pre id="state"></pre>
+        </details>
+      </div>
+      <div class="switcher">
+        <button data-action="prev" aria-label="Previous variant">←</button
+        ><strong id="variant-label"></strong
+        ><button data-action="next" aria-label="Next variant">→</button>
+      </div>
+    </main>
+    <script>
+      const variants = ['A', 'B', 'C'];
+      const names = { A: 'The Ledger', B: 'Command Center', C: 'Empire Journey' };
+      const hypotheses = {
+        A: 'A · The Ledger: flat rows and a stable six-section business page. Tests scan speed and predictable navigation.',
+        B: 'B · Command Center: lead with the business scene and its next operational action. Tests whether a clear priority makes deep mechanics approachable.',
+        C: 'C · Empire Journey: lead with the next stage, then a vertical path through the empire. Tests whether visible progression feels more like a game.',
+      };
+      const query = new URLSearchParams(location.search);
+      let variant = variants.includes(query.get('variant')) ? query.get('variant') : 'A';
+      const makeState = (scenario) => ({
+        scenario,
+        screen: 'businesses',
+        filter: 'Owned',
+        cash: scenario === 'first' ? 0 : 4820,
+        treasury: scenario === 'first' ? 0 : 620,
+        units: 3,
+        payout: 50,
+        stock: scenario === 'attention' ? 0 : 65,
+        owned: scenario === 'first' ? [] : ['vending', 'food_cart'],
+        notice: '',
+        confirmation: null,
+      });
+      let state = makeState('operating');
+      const catalog = [
+        { id: 'vending', name: 'Vending Machine', icon: '▥', price: 250, profit: 100, tier: 1 },
+        { id: 'food_cart', name: 'Food Cart', icon: '♨', price: 1250, profit: 500, tier: 1 },
+        {
+          id: 'coffee_kiosk',
+          name: 'Coffee Kiosk',
+          icon: '☕',
+          price: 4000,
+          profit: 1600,
+          tier: 1,
+        },
+        { id: 'laundromat', name: 'Laundromat', icon: '◉', price: 7500, profit: 2500, tier: 2 },
+        { id: 'car_wash', name: 'Car Wash', icon: '◈', price: 30000, profit: 9000, tier: 2 },
+        { id: 'bakery', name: 'Bakery', icon: '♨', price: 100000, profit: 28000, tier: 2 },
+      ];
+      const money = (n) =>
+        '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const button = (label, action, kind = 'secondary', disabled = false) =>
+        `<button class="${kind}" data-action="${action}" ${disabled ? 'disabled' : ''}>${label}</button>`;
+      const owned = (id) => state.owned.includes(id);
+      const income = () =>
+        catalog
+          .filter((b) => owned(b.id))
+          .reduce(
+            (total, b) =>
+              total +
+              (b.id === 'vending'
+                ? state.stock === 0
+                  ? 0
+                  : (30 * state.payout) / 100
+                : b.profit / 20),
+            0,
+          );
+      function header() {
+        return `<div class="status"><span>9:41</span><span>POCKET MOGUL &nbsp; ▰</span></div><header class="top"><div class="topline"><div><div class="eyebrow">Available cash</div><div class="cash">${money(state.cash)}</div></div><div><div class="income">+${money(income())}/min</div><div class="muted">To your cash</div></div></div><div class="goal"><span>Tier 2 ${state.scenario === 'first' ? 'locked' : 'unlocked'}</span><span class="meter"><i style="width:${state.scenario === 'first' ? 0 : 100}%"></i></span><span>◇ Goals</span></div></header>`;
+      }
+      function tabs() {
+        return `<nav class="nav" aria-label="Game tabs">${[
+          ['earn', '◈', 'Earn'],
+          ['businesses', '▥', 'Businesses'],
+          ['markets', '↗', 'Markets'],
+          ['properties', '⌂', 'Properties'],
+          ['wealth', '◎', 'Wealth'],
+        ]
+          .map(
+            ([id, icon, label]) =>
+              `<button class="${state.screen === id ? 'active' : ''}" data-action="tab:${id}"><span>${icon}</span>${label}</button>`,
+          )
+          .join('')}</nav>`;
+      }
+      const art = () =>
+        '<div class="art" aria-hidden="true"><div class="building">▦</div><div class="building">▥<br>▦</div><div class="building">▤</div></div>';
+      function filters() {
+        return `<div class="chips">${['Owned', 'Tier 1', 'Tier 2', 'Tier 3', 'Tier 4'].map((f) => button(f, 'filter:' + f, state.filter === f ? 'active' : '')).join('')}</div>`;
+      }
+      function businessRow(b) {
+        const isOwned = owned(b.id);
+        return `<div class="row line"><div class="icon">${b.icon}</div><div class="name"><b>${b.name}</b><span class="muted">${isOwned ? (b.id === 'vending' ? 'Local · ' + state.units + ' machines' : 'Startup · 1 cart') : 'Tier ' + b.tier + ' · +' + money(b.profit / 20) + '/min to cash'}</span>${isOwned ? `<div class="${b.id === 'vending' && state.stock === 0 ? 'red' : 'green'}">${b.id === 'vending' && state.stock === 0 ? '! Out of stock' : '+' + money(b.id === 'vending' ? (30 * state.payout) / 100 : b.profit / 20) + '/min to cash'}</div>` : ''}</div>${button(isOwned ? 'Open →' : money(b.price), isOwned ? 'open:' + b.id : 'buy:' + b.id, isOwned ? '' : 'primary', !isOwned && state.cash < b.price)}</div>`;
+      }
+      function rows() {
+        const list = catalog.filter((b) =>
+          state.filter === 'Owned' ? owned(b.id) : b.tier === Number(state.filter.slice(-1)),
+        );
+        if (!list.length)
+          return `<div class="empty"><h3>${state.filter === 'Owned' ? 'Your empire starts small' : 'The next chapter'}</h3><p class="muted">${state.filter === 'Owned' ? 'Earn $250 to buy your first Vending Machine.' : 'Tier 3 at $200k peak net worth; Tier 4 at $8m.'}</p>${button(state.filter === 'Owned' ? 'Go to Earn' : 'View Tier 1', state.filter === 'Owned' ? 'tab:earn' : 'filter:Tier 1', 'primary wide')}</div>`;
+        return list.map(businessRow).join('');
+      }
+      function variantA() {
+        return `<div class="eyebrow">Your portfolio of businesses</div><h1>Businesses</h1><div class="row metric"><span class="muted">${state.owned.length} businesses owned</span><b class="gold">+${money(income())}<small class="muted">/min</small></b></div>${filters()}${rows()}<div class="notice">Business profit stays in its treasury. Your payout moves a share to cash automatically.</div>`;
+      }
+      function variantB() {
+        return `<div class="row"><div><div class="eyebrow">Build something bigger</div><h1>Your empire.</h1></div><span class="badge">${state.owned.length} OWNED</span></div><div class="hero">${art()}<div class="row"><div><div class="eyebrow">${state.owned.length ? 'Empire cash flow' : 'Your first move'}</div><div class="big gold">${state.owned.length ? '$' + income().toFixed(0) : '$250'}<small class="muted">${state.owned.length ? '/min' : ' to start'}</small></div></div></div></div>${state.owned.length ? `<div class="notice"><b>${state.stock === 0 ? '! Vending needs stock' : 'Next move · Vending Machine'}</b><p class="muted">${state.stock === 0 ? 'Machines have stopped serving. Restock from the business treasury.' : 'Three machines. Local stage. Place stock where your customers are.'}</p>${button('Run the business →', 'open:vending', 'secondary wide')}</div>` : button('Tap your way to a business →', 'tab:earn', 'primary wide')}${filters()}${rows()}`;
+      }
+      function variantC() {
+        return `<div class="eyebrow">Small beginnings. Big ambitions.</div><h1>From corner shop<br>to empire.</h1><div class="notice"><span class="badge">NEXT CHAPTER</span><h3>${state.owned.length ? 'Take Vending regional' : 'Own your first business'}</h3><p class="muted">${state.owned.length ? 'Local → Regional · 3 of 8 machines · day 6 of 10' : 'Tap to $250, then own a Vending Machine.'}</p>${button(state.owned.length ? 'Continue building →' : 'Start earning →', state.owned.length ? 'open:vending' : 'tab:earn', 'primary wide')}</div>${filters()}<div class="timeline">${
+          state.filter === 'Owned' && state.owned.length
+            ? catalog
+                .filter((b) => owned(b.id))
+                .map(
+                  (b) =>
+                    `<div class="stop"><span class="badge">${b.id === 'vending' ? '02 · LOCAL' : '01 · STARTUP'}</span>${businessRow(b)}</div>`,
+                )
+                .join('')
+            : rows()
+        }<div class="stop locked"><span class="eyebrow">On the horizon</span><h3>Regional business</h3><p class="muted">Grow to unlock takeovers.</p></div></div>`;
+      }
+      function overview() {
+        return `<section class="section" id="overview"><h2>Overview</h2><div class="split"><div class="metric"><span class="muted">Profit / business day</span><b class="green">$300.00</b></div><div class="metric"><span class="muted">Treasury</span><b>${money(state.treasury)}</b></div></div><p class="muted">Illustrative Local snapshot · 1 business day = 10 minutes.<br>Revenue $420 · costs $120 · 300 snacks/day</p><div class="line row"><span>Price per snack</span><b>$1.40 · Standard</b></div><label class="label" for="payout">Payout to your cash: ${state.payout}% · remainder stays here</label><input id="payout" type="range" min="0" max="100" step="10" value="${state.payout}"><div class="split">${button('Deposit $100', 'deposit', 'secondary', state.cash < 100)}${button('Withdraw all', 'withdraw', 'secondary', state.treasury === 0)}</div>${button('Sell business…', 'sell', 'wide red')}</section>`;
+      }
+      function mechanic() {
+        return `<section class="section" id="mechanic"><h2>Placement & stock</h2><div class="row"><div><h3>Office · ${state.units} machines</h3><p class="muted">Balanced mix · ${state.stock}% stock remaining</p></div><span class="${state.stock === 0 ? 'red' : 'green'}">${state.stock === 0 ? '! Empty' : '● Serving'}</span></div><div class="meter" style="margin-top:14px"><i style="width:${state.stock}%"></i></div>${button('Restock all · $30 treasury', 'restock', 'primary wide', state.treasury < 30 || state.stock === 100)}<p class="muted">Sample restock fee. Restockers automate this daily.</p></section>`;
+      }
+      function grow() {
+        return `<section class="section" id="grow"><h2>Grow</h2><div class="row line"><div><h3>${state.units} / 8 machines</h3><p class="muted">Local stage · expand capacity</p></div>${button('Add · $' + unitPrice(), 'unit', 'primary', state.treasury < unitPrice() || state.units >= 8)}</div><div class="line"><h3>Regional is next</h3><p class="muted">Requires 8 machines and 10 days owned. Sample: day 6.<br>Unlocks takeovers · stage price $2,000 from treasury</p></div></section>`;
+      }
+      function detail() {
+        const heads =
+          variant === 'A'
+            ? `<span class="badge">TIER 1 · LOCAL</span><h1>Vending Machine</h1>`
+            : variant === 'B'
+              ? `<div class="hero"><span class="badge">LOCAL · DAY 6</span>${art()}<h1>Vending Machine</h1><p class="muted">Own the corner. Then the city.</p></div>`
+              : `<span class="eyebrow">Your next chapter</span><h1>Go Regional.</h1><p class="muted">Vending Machine · Local → Regional</p><div class="notice">${state.units}/8 machines · 6/10 days · treasury ${money(state.treasury)}</div>`;
+        return `${button('← Businesses', 'tab:businesses', 'back')}${heads}${variant === 'A' ? '' : `<div class="rail">${['Overview', 'Mechanic', 'Grow', 'Staff', 'Risks', 'Deals'].map((s) => button(s, 'jump:' + s.toLowerCase())).join('')}</div>`}${variant === 'B' ? mechanic() + overview() + grow() : variant === 'C' ? grow() + overview() + mechanic() : overview() + mechanic() + grow()}<section id="staff"><h2>Staff</h2><div class="line"><h3>Restockers · 0 of 5</h3><p class="muted">+20% capacity each; automatically restock every day.</p></div><div class="line"><h3>Manager · not hired</h3><p class="muted">Chooses the best price and stock mix. Never spends your personal cash.</p></div></section><section id="risks"><h2>Risks</h2><div class="notice">No active incidents. Equipment, liability and supply insurance available at Local stage.</div></section><section id="deals"><h2>Deals</h2><p class="muted">Takeovers unlock at Regional.<br>Going public unlocks at National.</p></section>`;
+      }
+      function earn() {
+        return `<div class="eyebrow">Every empire starts here</div><h1>${variant === 'C' ? 'Make your first move.' : 'Make it happen.'}</h1><div class="${variant === 'B' ? 'hero' : 'card'}"><span class="badge">STARTER WALLET · LEVEL 0</span><button class="wallet" data-action="tap" aria-label="Tap wallet to earn one dollar">▰</button><div class="row"><b>$1.00 / tap</b><span class="muted">Tap to earn</span></div></div><div class="notice"><h3>Next step · First Vending Machine</h3><p class="muted">${money(Math.max(0, 250 - state.cash))} to go · starts earning immediately.</p>${button(state.cash >= 250 ? 'See businesses →' : 'Keep building', 'filter:Tier 1', 'primary wide', state.cash < 250)}</div><p class="muted">Boost and wallet upgrades are outside this study.</p>`;
+      }
+      function wealth() {
+        return `<div class="eyebrow">The bigger picture</div><h1>${variant === 'C' ? 'Look how far you’ve come.' : 'Your wealth.'}</h1><div class="${variant === 'A' ? 'metric' : 'hero'}"><span class="muted">Net worth · illustrative</span><div class="${variant === 'A' ? 'cash' : 'big gold'}">${money(state.cash + state.treasury + 1500)}</div><p class="muted">Includes cash, treasury and sample business valuations.</p></div><div class="allocation" role="img" aria-label="Illustrative allocation: businesses 55%, cash 30%, treasury 15%"><i></i><i></i><i></i></div><p class="muted">Example allocation · business 55% / cash 30% / treasury 15%</p><div class="line row"><span>Available cash</span><b>${money(state.cash)}</b></div><div class="line row"><span>Business treasuries</span><b>${money(state.treasury)}</b></div><div class="line row"><span>Income to cash</span><b class="green">+${money(income())}/min</b></div><h2>Recent activity</h2><p class="muted">${state.notice || 'No actions in this session yet.'}</p>`;
+      }
+      function sheet() {
+        if (!state.confirmation) return '';
+        const withdraw = state.confirmation === 'withdraw';
+        return `<div class="sheet" role="dialog" aria-label="Review transaction"><h3>${withdraw ? 'Withdraw the whole treasury?' : 'Sell Vending Machine?'}</h3><p class="muted">${withdraw ? money(state.treasury) + ' to cash; treasury becomes $0.00. Ownership and income unchanged.' : 'Sample sale value $150 plus remaining treasury to cash. You lose this business and its income.'}</p><div class="split">${button('Cancel', 'cancel')}${button('Confirm', 'confirm', 'primary')}</div></div>`;
+      }
+      function render() {
+        document.getElementById('phone').innerHTML =
+          header() +
+          (state.notice ? `<div class="toast" role="status">${state.notice}</div>` : '') +
+          `<div class="content">${sheet()}${state.screen === 'detail' ? detail() : state.screen === 'earn' ? earn() : state.screen === 'wealth' ? wealth() : { A: variantA, B: variantB, C: variantC }[variant]()}</div>` +
+          (state.screen === 'detail' ? '' : tabs());
+        document.getElementById('variant-label').textContent = variant + ' · ' + names[variant];
+        document.getElementById('hypothesis').textContent = hypotheses[variant];
+        document.getElementById('state').textContent = JSON.stringify(
+          { variant, ...state, economy: 'illustrative; engine not connected' },
+          null,
+          2,
+        );
+      }
+      const unitPrice = () => Math.round(100 * Math.pow(1.15, state.units - 1));
+      function cycle(delta) {
+        variant = variants[(variants.indexOf(variant) + delta + 3) % 3];
+        const url = new URL(location.href);
+        url.searchParams.set('variant', variant);
+        history.replaceState(null, '', url);
+        render();
+      }
+      function transact(action) {
+        if (action === 'tap') {
+          state.cash += 1;
+          state.notice = '+$1.00 · tap earned';
+        }
+        if (action === 'deposit' && state.cash >= 100) {
+          state.cash -= 100;
+          state.treasury += 100;
+          state.notice = '$100 moved from cash to treasury';
+        }
+        if (action === 'restock' && state.treasury >= 30) {
+          state.treasury -= 30;
+          state.stock = 100;
+          state.notice = 'Stock filled · $30 from treasury';
+        }
+        if (action === 'unit' && state.treasury >= unitPrice() && state.units < 8) {
+          const cost = unitPrice();
+          state.treasury -= cost;
+          state.units += 1;
+          state.notice =
+            'Machine added · ' +
+            money(cost) +
+            ' from treasury. Income delta requires an engine quote.';
+        }
+      }
+      function confirm() {
+        if (state.confirmation === 'withdraw') {
+          state.cash += state.treasury;
+          state.treasury = 0;
+          state.notice = 'Treasury withdrawn to cash';
+        }
+        if (state.confirmation === 'sell') {
+          state.cash += 150 + state.treasury;
+          state.treasury = 0;
+          state.owned = state.owned.filter((id) => id !== 'vending');
+          state.screen = 'businesses';
+          state.notice = 'Vending sold · sample proceeds added to cash';
+        }
+        state.confirmation = null;
+      }
+      function act(action) {
+        const [type, value] = action.split(':');
+        if (type === 'next' || type === 'prev') {
+          cycle(type === 'next' ? 1 : -1);
+          return;
+        }
+        if (type === 'reset') state = makeState(state.scenario);
+        if (type === 'tab') {
+          if (value === 'markets' || value === 'properties') {
+            state.notice = 'This study focuses on Earn, Businesses and Wealth.';
+          } else {
+            state.screen = value;
+            state.confirmation = null;
+          }
+        }
+        if (type === 'filter') {
+          state.screen = 'businesses';
+          state.filter = value;
+        }
+        if (type === 'open') {
+          if (value === 'vending') state.screen = 'detail';
+          else state.notice = 'Vending is the interactive deep-business example.';
+        }
+        if (type === 'buy') {
+          const b = catalog.find((b) => b.id === value);
+          if (!owned(value) && state.cash >= b.price) {
+            state.cash -= b.price;
+            state.owned.push(value);
+            state.notice = b.name + ' bought · +' + money(b.profit / 20) + '/min to cash';
+          }
+        }
+        if (type === 'jump') {
+          document.getElementById(value)?.scrollIntoView({ block: 'start' });
+          return;
+        }
+        if (type === 'withdraw' || type === 'sell') state.confirmation = type;
+        if (type === 'cancel') state.confirmation = null;
+        if (type === 'confirm') confirm();
+        transact(type);
+        render();
+      }
+      document.addEventListener('click', (event) => {
+        const target = event.target.closest('[data-action]');
+        if (target && !target.disabled) act(target.dataset.action);
+      });
+      document.addEventListener('change', (event) => {
+        if (event.target.id === 'scenario') {
+          state = makeState(event.target.value);
+          render();
+        }
+        if (event.target.id === 'payout') {
+          state.payout = Number(event.target.value);
+          state.notice = 'Payout set to ' + state.payout + '% · no time simulation';
+          render();
+        }
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.target.closest('input,textarea,select,[contenteditable]')) return;
+        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+          event.preventDefault();
+          cycle(event.key === 'ArrowRight' ? 1 : -1);
+        }
+      });
+      if (query.get('mode') === 'production') document.querySelector('.switcher').hidden = true;
+      render();
+    </script>
+  </body>
+</html>
