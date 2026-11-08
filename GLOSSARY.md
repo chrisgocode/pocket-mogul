@@ -234,6 +234,18 @@ _Avoid_: Logistics upgrade, navigation
 The Delivery Company's stage 5 (Global) signature upgrade, paid once from the Treasury, that adds 30% capacity.
 _Avoid_: Depot, warehouse
 
+**Valuation**:
+What a business is worth: 10 days of its profit (never less than zero) plus its Treasury. A Rival has no Treasury, so it is worth 10 days of the profit its units and Quality would earn at Standard price.
+_Avoid_: Market cap, price (that is a Stock's)
+
+**Rival**:
+One of three fictional competitors per business type in content, each with a unit count and a Quality level. From stage 3 (Regional) the player can make a Takeover offer for it; a merged Rival never returns.
+_Avoid_: Competitor, target
+
+**Takeover offer**:
+An amount the player offers for a Rival, from 90 to 140 percent of its Valuation. A business has one at a time, and nothing leaves the Treasury until the Rival answers at the next day boundary: it accepts with a chance that rises from none at 80 percent of Valuation to certain at 140. A yes pays the offer from the Treasury and merges the Rival (its units join, even above the stage cap, and Quality rises to the higher of the two); a no locks offers for that Rival for 5 days. An offer the Treasury can no longer pay lapses with no lock.
+_Avoid_: Bid, acquisition
+
 **Treasury**:
 A business's own money. Its profit lands here, and its units, upgrades and other running spending are paid from here, never from the player's cash. It never goes below zero.
 _Avoid_: Wallet, bank, balance

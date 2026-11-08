@@ -1,6 +1,7 @@
 import type { MoneyCents } from '@/domain/money';
 
 import type { BusinessMechanic } from './mechanicRules';
+import type { Rival, TakeoverRules } from './takeoverState';
 
 export const PRICE_LEVELS = ['budget', 'value', 'standard', 'premium', 'luxury'] as const;
 export type PriceLevel = (typeof PRICE_LEVELS)[number];
@@ -69,6 +70,7 @@ export type BusinessDefinition = {
   readonly demandBps: ByPriceLevel;
   readonly incidents: readonly IncidentType[];
   readonly mechanic: BusinessMechanic;
+  readonly rivals: readonly Rival[];
 };
 
 export type BusinessCatalog = readonly BusinessDefinition[];
@@ -83,6 +85,8 @@ export type BusinessRules = {
   readonly stages: readonly StageRule[];
   readonly staff: StaffRules;
   readonly risks: RiskRules;
+  readonly takeovers: TakeoverRules;
+  readonly sectorMultipleDays: number;
   readonly maxTrackLevel: number;
   readonly upgradeWeightBps: Readonly<Record<BusinessTrack, number>>;
   readonly upgradeGrowth: Growth;

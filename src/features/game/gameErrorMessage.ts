@@ -13,6 +13,8 @@ const MESSAGES: Record<GameErrorCode, string> = {
   UPGRADE_UNAVAILABLE: "This upgrade isn't available here.",
   STAGE_LOCKED: 'This business unlocks that at a later stage.',
   STAGE_NOT_READY: 'This business needs more units or more days owned before it can grow.',
+  OFFER_PENDING: 'An offer is already waiting for an answer. Wait for it before making another.',
+  OFFER_LOCKED: 'This rival turned down an offer recently. Try again once the lock ends.',
   INVALID_QUANTITY: "That amount isn't valid.",
   INSUFFICIENT_HOLDING: "You don't own that much of it. Nothing was sold.",
   BELOW_MINIMUM: 'This trade is below the minimum trade size.',

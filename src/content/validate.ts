@@ -6,6 +6,7 @@ import { contentSchema, TIERS, type Content } from './schema';
 import { businessRisksFit } from './validateRisks';
 import { carWashMechanicsFit } from './validateCarWash';
 import { deliveryMechanicsFit } from './validateDelivery';
+import { takeoversFit } from './validateTakeovers';
 import { vendingMechanicsFit } from './validateVending';
 
 export class ContentValidationError extends Error {
@@ -68,6 +69,7 @@ function crossChecks(content: Content): string[] {
     vendingMechanicsFit,
     carWashMechanicsFit,
     deliveryMechanicsFit,
+    takeoversFit,
     efficiencyKeepsCostsPositive,
     systemsKeepUpkeepPositive,
     stockClassesFollowTheirRules,
@@ -87,6 +89,11 @@ function catalogsOf(content: Content): Catalog[] {
     {
       kind: 'incident',
       ids: content.businesses.flatMap((b) => b.incidents.map((incident) => incident.id)),
+      retirable: true,
+    },
+    {
+      kind: 'rival',
+      ids: content.businesses.flatMap((b) => b.rivals.map((rival) => rival.id)),
       retirable: true,
     },
     { kind: 'property', ids: content.properties.map((p) => p.id), retirable: true },

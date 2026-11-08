@@ -27,6 +27,7 @@ import {
   applyUpgradeStage,
 } from '@/domain/business/growthCommands';
 import { applySetInsurance } from '@/domain/business/riskCommands';
+import { applyMakeTakeoverOffer } from '@/domain/business/takeoverCommands';
 import {
   applyInstallCardReaders,
   applyMoveVendingMachine,
@@ -112,6 +113,8 @@ const COMMAND_HANDLERS: CommandHandlers = {
     applyDeclineContract(state, { ...command, economy: businessEconomy(content) }),
   InstallSortingHub: (state, command, content) =>
     applyInstallSortingHub(state, { ...command, economy: businessEconomy(content) }),
+  MakeTakeoverOffer: (state, command, content) =>
+    applyMakeTakeoverOffer(state, { ...command, economy: businessEconomy(content) }),
   DismissCoachMark: (state, command) => applyDismissCoachMark(state, command.coachMark),
   SetPayout: (state, command, content) =>
     applySetPayout(state, { ...command, economy: businessEconomy(content) }),

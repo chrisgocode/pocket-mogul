@@ -53,6 +53,7 @@ const BASELINE_STATE = {
       vending: { status: 'inactive' },
       carWash: { status: 'inactive' },
       delivery: { status: 'inactive' },
+      takeovers: { offer: { status: 'none' }, locks: [], merged: [] },
     },
   ],
   properties: [

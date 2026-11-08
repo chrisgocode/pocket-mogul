@@ -7,6 +7,7 @@ import { eventTemplateSchema, marketParamsSchema } from './marketSchema';
 import { incidentSchema, riskRulesSchema } from './riskSchema';
 import { carWashMechanicSchema } from './carWashSchema';
 import { deliveryMechanicSchema } from './deliverySchema';
+import { rivalSchema, takeoverRulesSchema } from './takeoverSchema';
 import { vendingMechanicSchema } from './vendingSchema';
 
 const id = z.string().regex(/^[a-z][a-z0-9_]*$/, 'IDs are lowercase snake_case');
@@ -111,6 +112,7 @@ const businessSchema = z.object({
       deliveryMechanicSchema,
     ])
     .optional(),
+  rivals: z.array(rivalSchema),
   logo: logoSchema,
 });
 
@@ -210,6 +212,8 @@ const economySchema = z.object({
       signingFeeDays: nonNegativeInt,
     }),
     risks: riskRulesSchema,
+    takeovers: takeoverRulesSchema,
+    sectorMultipleDays: positiveInt,
     maxTrackLevel: positiveInt,
     upgradeWeightBps: z.object({ quality: positiveInt, efficiency: positiveInt }),
     upgradeGrowth: growthRatio,
