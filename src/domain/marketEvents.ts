@@ -48,7 +48,9 @@ function eventScope(draw: EventDraw, economy: MarketEconomy): EventScope {
 }
 
 function eventTarget(draw: EventDraw, economy: MarketEconomy): EventTarget {
-  const listed = economy.instruments.filter((instrument) => instrument.market === draw.market);
+  const listed = economy.instruments.filter(
+    (instrument) => instrument.market === draw.market && instrument.listingValueCents === undefined,
+  );
   const scope = eventScope(draw, economy);
   if (scope === 'market') return { scope };
   if (scope === 'sector') {

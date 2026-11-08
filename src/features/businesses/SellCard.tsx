@@ -21,8 +21,9 @@ export function SellCard({
     <Card>
       <AppText variant="heading">Sell</AppText>
       <AppText muted>
-        Pays {returnPercent}% of the {formatMoneyExact(sale.spendCents)} spent on purchase, units
-        and upgrades, plus its {formatMoneyExact(sale.treasuryCents)} treasury.
+        {sale.listed === true
+          ? 'Pays your stake at market price plus your share of the treasury.'
+          : `Pays ${returnPercent}% of the ${formatMoneyExact(sale.spendCents)} spent on purchase, units and upgrades, plus its ${formatMoneyExact(sale.treasuryCents)} treasury.`}
       </AppText>
       <Button
         label={label}

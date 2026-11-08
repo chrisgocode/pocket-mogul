@@ -1,8 +1,10 @@
-import type { PriceMicros } from './money';
+import type { MoneyCents, PriceMicros } from './money';
 
 export type MarketKind = 'stocks' | 'crypto';
 
 export type MarketInstrument = {
+  readonly listingValueCents?: MoneyCents;
+  readonly businessId?: string;
   readonly id: string;
   readonly market: MarketKind;
   readonly sector: string | undefined;
@@ -42,6 +44,7 @@ export type MarketRules = {
 };
 
 export type MarketEconomy = {
+  readonly listingValuesAt?: (businessId: string, tick: number) => MoneyCents;
   readonly instruments: readonly MarketInstrument[];
   readonly rules: MarketRules;
 };

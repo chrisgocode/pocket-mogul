@@ -1,3 +1,4 @@
+import type { ShareholderPayout } from './business/listingState';
 import { freshAdSchedule, type AdScheduleState } from './adSchedule';
 import { EMPTY_ACTIVITY, type ActivityLog } from './activity';
 import { NO_REWARDS, type RewardState } from './boost';
@@ -64,6 +65,7 @@ export type PendingReturnSummary =
   | { readonly status: 'pending'; readonly summary: ReturnSummary };
 
 export type GameState = {
+  readonly shareholderPayouts: readonly ShareholderPayout[];
   readonly saveId: string;
   readonly schemaVersion: number;
   readonly minReaderVersion: number;
@@ -93,12 +95,15 @@ export type GameState = {
   readonly seenCoachMarks: readonly string[];
 };
 
+const INITIAL_SHAREHOLDER_PAYOUTS = { shareholderPayouts: [] };
+
 export function freshGameState(start: {
   saveId: string;
   economyVersion: number;
   wallMs: number;
 }): GameState {
   return {
+    ...INITIAL_SHAREHOLDER_PAYOUTS,
     saveId: start.saveId,
     schemaVersion: SAVE_SCHEMA_VERSION,
     minReaderVersion: SAVE_MIN_READER_VERSION,
@@ -111,12 +116,7 @@ export function freshGameState(start: {
     tap: { walletLevel: 0, totalAcceptedTaps: 0 },
     businesses: [],
     properties: [],
-    income: {
-      businessEarningsCents: moneyCents(0),
-      rentRemainders: {},
-      rentEarningsCents: moneyCents(0),
-      dividendEarningsCents: moneyCents(0),
-    },
+    income: freshIncome(),
     unlockedTiers: [1],
     returnSummary: { status: 'none' },
     market: freshMarket(start.saveId),
@@ -131,5 +131,14 @@ export function freshGameState(start: {
     settings: defaultSettings(),
     adSchedule: freshAdSchedule(),
     seenCoachMarks: [],
+  };
+}
+
+function freshIncome(): IncomeState {
+  return {
+    businessEarningsCents: moneyCents(0),
+    rentRemainders: {},
+    rentEarningsCents: moneyCents(0),
+    dividendEarningsCents: moneyCents(0),
   };
 }

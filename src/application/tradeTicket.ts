@@ -1,3 +1,4 @@
+import { availableListedShares } from '@/domain/business/listingTrades';
 import type { Content } from '@/content';
 import type { GameErrorCode } from '@/domain/commands';
 import {
@@ -54,7 +55,7 @@ function quantityForAmount(
   snapshot: GameSnapshot,
   request: TicketRequest & { readonly side: TradeSide; readonly amount: MoneyCents },
 ): QuantityMicrounits | undefined {
-  const economy = tradeEconomy(request.content);
+  const economy = tradeEconomy(request.content, snapshot.state);
   const instrument = findInstrument(economy, request.assetId);
   if (instrument === undefined) return undefined;
   const { state } = snapshot;
@@ -100,7 +101,7 @@ export function selectTradeTicket(
     assetId: request.assetId,
     side: request.side,
     quantity: order.quantity,
-    economy: tradeEconomy(request.content),
+    economy: tradeEconomy(request.content, snapshot.state),
   });
   if (checked.ok) return { status: 'ready', tick, quote: checked.quote };
   if (checked.quote === undefined) return { status: 'invalid', tick, error: checked.error };
@@ -112,15 +113,17 @@ export function presetQuantity(
   request: TicketRequest & { readonly side: TradeSide; readonly percent: number },
 ): QuantityMicrounits {
   const { state } = snapshot;
-  const economy = tradeEconomy(request.content);
+  const economy = tradeEconomy(request.content, snapshot.state);
   const instrument = findInstrument(economy, request.assetId);
   if (instrument === undefined) return quantityMicrounits(0);
   const share = (amount: bigint) => (amount * BigInt(request.percent)) / WHOLE_PERCENT;
   if (request.side === 'sell') {
     return quantityMicrounits(share(positionOf(state, instrument.id).quantity));
   }
-  return largestQuantityWithin(
+  const affordable = largestQuantityWithin(
     { side: 'buy', cashCents: moneyCents(share(state.cashCents)) },
     tradePricing(state, { instrument, economy }),
   );
+  const available = availableListedShares(state, request.assetId) ?? affordable;
+  return quantityMicrounits(affordable < available ? affordable : available);
 }

@@ -1,3 +1,4 @@
+import type { Listing } from '@/domain/business/listingState';
 import type { ActivityKind, ActivityLog } from '@/domain/activity';
 import { NO_STAFF, type StaffCounts } from '@/domain/business/definition';
 import {
@@ -22,7 +23,7 @@ export type SavedRisks = { readonly insurance: Insurance; readonly incident: Act
 
 type SavedBusiness = Omit<
   OwnedBusiness,
-  'staff' | 'insurance' | 'incident' | 'vending' | 'carWash' | 'delivery' | 'takeovers'
+  'staff' | 'insurance' | 'incident' | 'vending' | 'carWash' | 'delivery' | 'takeovers' | 'listing'
 >;
 
 type SavedReturnSummary =
@@ -39,6 +40,7 @@ export type SaveDocument = Omit<GameState, 'businesses' | 'returnSummary' | 'act
   readonly businesses: readonly SavedBusiness[];
   readonly returnSummary: SavedReturnSummary;
   readonly activity: SavedActivity;
+  readonly listings: Readonly<Record<string, Listing>>;
   readonly staffing: Readonly<Record<string, StaffCounts>>;
   readonly risks: Readonly<Record<string, SavedRisks>>;
   readonly vending: Readonly<Record<string, VendingOperation>>;
@@ -78,11 +80,13 @@ export function toSaveDocument(state: GameState): SaveDocument {
         carWash: _carWash,
         delivery: _delivery,
         takeovers: _takeovers,
+        listing: _listing,
         ...rest
       }) => rest,
     ),
     returnSummary: savedReturnSummary(returnSummary),
     activity: savedActivity(activity),
+    listings: byBusiness(businesses, (business) => business.listing),
     staffing: byBusiness(businesses, (business) => business.staff),
     risks: byBusiness(businesses, ({ insurance, incident }) => ({ insurance, incident })),
     vending: byBusiness(businesses, (business) => business.vending),
@@ -96,6 +100,7 @@ export function toSaveDocument(state: GameState): SaveDocument {
 
 function loadedMechanics(businessId: string, document: SaveDocument) {
   return {
+    listing: document.listings[businessId] ?? { status: 'private' as const },
     vending: document.vending[businessId] ?? NO_VENDING,
     carWash: document.carWash[businessId] ?? NO_CAR_WASH,
     delivery: document.delivery[businessId] ?? NO_DELIVERY,
@@ -128,6 +133,7 @@ function loadedActivity(document: SaveDocument): ActivityLog {
 
 export function fromSaveDocument(document: SaveDocument): GameState {
   const {
+    listings: _listings,
     staffing: _staffing,
     risks: _risks,
     absenceIncidents: _absenceIncidents,

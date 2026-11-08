@@ -1,3 +1,7 @@
+import { valuationCents } from '@/domain/business/valuation';
+import { listedSaleCents } from '@/domain/business/listings';
+import { TOTAL_SHARES, type Listing } from '@/domain/business/listingState';
+import { moneyCents } from '@/domain/money';
 import type { Business, Content } from '@/content';
 import {
   bestPriceLevel,
@@ -73,6 +77,7 @@ export type PriceLevelOption = {
 };
 
 export type BusinessSale = {
+  readonly listed?: boolean;
   readonly proceedsCents: MoneyCents;
   readonly spendCents: MoneyCents;
   readonly treasuryCents: MoneyCents;
@@ -80,6 +85,8 @@ export type BusinessSale = {
 };
 
 export type OwnedBusinessDetail = {
+  readonly listing: Listing;
+  readonly valuationCents: MoneyCents;
   readonly status: 'owned';
   readonly business: Business;
   readonly operation: BusinessStatus;
@@ -172,6 +179,8 @@ function ownedDetail(business: Business, context: DetailContext): OwnedBusinessD
   const { owned, pricing } = context;
   const { rules } = pricing;
   return {
+    listing: owned.listing,
+    valuationCents: valuationCents(owned, pricing),
     status: 'owned',
     business,
     operation: owned.status,
@@ -219,7 +228,7 @@ export function selectBusinessDetail(
   const economy = businessEconomy(content);
   const definition = findBusiness(economy.catalog, business.id);
   if (owned === undefined || definition === undefined) return { status: 'not_owned', business };
-  return ownedDetail(business, {
+  const detail = ownedDetail(business, {
     owned,
     pricing: { definition, rules: economy.rules },
     simulationMs: state.clock.simulationMs,
@@ -227,4 +236,16 @@ export function selectBusinessDetail(
     seenCoachMarks: state.seenCoachMarks,
     seed: state.market.seed,
   });
+  return {
+    ...detail,
+    sale: {
+      ...detail.sale,
+      listed: owned.listing.status === 'listed',
+      treasuryCents:
+        owned.listing.status === 'listed'
+          ? moneyCents((owned.treasuryCents * owned.listing.sharesHeld) / TOTAL_SHARES)
+          : owned.treasuryCents,
+      proceedsCents: listedSaleCents(owned, state) ?? detail.sale.proceedsCents,
+    },
+  };
 }

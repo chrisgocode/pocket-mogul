@@ -130,6 +130,7 @@ describe('telemetry for taps, saves and the development sink', () => {
     const saveFormat: SaveFormat = {
       ...SAVE_FORMAT,
       readerVersion: 3,
+      schemaVersion: 3,
       migrations: [
         { fromVersion: 2, upgrade: (raw) => ({ ...saveSchema.parse(raw), schemaVersion: 3 }) },
       ],

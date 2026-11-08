@@ -23,6 +23,7 @@ const baselineDocument = (change: Record<string, unknown>) =>
   JSON.stringify({ ...(JSON.parse(baselineFixture) as object), ...change });
 
 const BASELINE_STATE = {
+  shareholderPayouts: [],
   saveId: '4f6c2a9e-baseline',
   schemaVersion: 2,
   minReaderVersion: 2,
@@ -54,6 +55,7 @@ const BASELINE_STATE = {
       carWash: { status: 'inactive' },
       delivery: { status: 'inactive' },
       takeovers: { offer: { status: 'none' }, locks: [], merged: [] },
+      listing: { status: 'private' },
     },
   ],
   properties: [
@@ -216,7 +218,7 @@ describe('a save written by a newer build', () => {
   it('stops safely when its minimum reader is newer than this build, keeping the save (AC23)', async () => {
     const first = await startTestGame();
     await first.game.dispatch(threeTaps);
-    const newer = baselineDocument({ schemaVersion: 3, minReaderVersion: 3 });
+    const newer = baselineDocument({ schemaVersion: 4, minReaderVersion: 4 });
     first.replaceSaveDocument(newer);
     expect(await first.reopen()).toEqual({ status: 'stopped', reason: 'UNSUPPORTED_SAVE_VERSION' });
     expect(first.saveDocument()).toBe(newer);
@@ -272,6 +274,7 @@ const VERSION_3 = 3;
 const bumpedFormat: SaveFormat = {
   ...SAVE_FORMAT,
   readerVersion: VERSION_3,
+  schemaVersion: VERSION_3,
   migrations: [
     {
       fromVersion: 2,
@@ -308,7 +311,7 @@ describe('a breaking change', () => {
     const migrated = await startTestGameFromDocument(baselineFixture, fixtureWallMs, {
       saveFormat: bumpedFormat,
     });
-    expect(await migrated.reopen({ saveFormat: SAVE_FORMAT })).toEqual({
+    expect(await migrated.reopen({ saveFormat: { ...SAVE_FORMAT, readerVersion: 2 } })).toEqual({
       status: 'stopped',
       reason: 'UNSUPPORTED_SAVE_VERSION',
     });

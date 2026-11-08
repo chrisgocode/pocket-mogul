@@ -1,3 +1,4 @@
+import { applyGoPublic } from '@/domain/business/listingCommands';
 import type { Content } from '@/content';
 import { applyActivateBoost, applyRecordAdReward } from '@/domain/boost';
 import {
@@ -115,6 +116,18 @@ const COMMAND_HANDLERS: CommandHandlers = {
     applyInstallSortingHub(state, { ...command, economy: businessEconomy(content) }),
   MakeTakeoverOffer: (state, command, content) =>
     applyMakeTakeoverOffer(state, { ...command, economy: businessEconomy(content) }),
+  GoPublic: (state, command, content) =>
+    applyGoPublic(state, {
+      ...command,
+      economy: businessEconomy(content),
+      reservedTickers: [
+        ...content.stocks.map((stock) => stock.ticker),
+        ...content.coins.map((coin) => coin.ticker),
+        ...state.businesses.flatMap((owned) =>
+          owned.listing.status === 'listed' ? [owned.listing.ticker] : [],
+        ),
+      ],
+    }),
   DismissCoachMark: (state, command) => applyDismissCoachMark(state, command.coachMark),
   SetPayout: (state, command, content) =>
     applySetPayout(state, { ...command, economy: businessEconomy(content) }),
@@ -133,9 +146,9 @@ const COMMAND_HANDLERS: CommandHandlers = {
   SellProperty: (state, command, content) =>
     applySellProperty(state, { ...command, economy: propertyEconomy(content) }),
   ExecuteTrade: (state, command, content) =>
-    applyExecuteTrade(state, { ...command, economy: tradeEconomy(content) }),
+    applyExecuteTrade(state, { ...command, economy: tradeEconomy(content, state) }),
   SetWatchlist: (state, command, content) =>
-    applySetWatchlist(state, { ...command, economy: tradeEconomy(content) }),
+    applySetWatchlist(state, { ...command, economy: tradeEconomy(content, state) }),
   RecordAdReward: (state, command) => applyRecordAdReward(state, command),
   ActivateBoost: (state, _command, content) => applyActivateBoost(state, content.economy.boost),
   PinGoal: (state, command, content) =>

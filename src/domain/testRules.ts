@@ -154,6 +154,7 @@ export function ownedBusiness(
     carWash: { status: 'inactive' },
     delivery: { status: 'inactive' },
     takeovers: { offer: { status: 'none' }, locks: [], merged: [] },
+    listing: { status: 'private' },
     ...change,
   };
 }

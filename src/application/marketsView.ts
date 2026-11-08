@@ -1,3 +1,4 @@
+import { listedStocks } from './listedStocks';
 import type { Coin, Content, Stock } from '@/content';
 import { quoteOf, type MarketState, type Ohlc } from '@/domain/market';
 import { changeBps } from '@/domain/marketPrices';
@@ -37,7 +38,9 @@ function quoted(market: MarketState, asset: Stock | Coin): Quoted {
 
 export function selectStockQuotes(snapshot: GameSnapshot, content: Content): StockQuote[] {
   const { market } = snapshot.state;
-  return content.stocks.map((asset) => ({ kind: 'stock', asset, ...quoted(market, asset) }));
+  return [...content.stocks, ...listedStocks(snapshot.state, content)].map((asset) =>
+    Object.assign({ kind: 'stock' as const, asset }, quoted(market, asset)),
+  );
 }
 
 export function selectCoinQuotes(snapshot: GameSnapshot, content: Content): CoinQuote[] {

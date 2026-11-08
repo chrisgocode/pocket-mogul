@@ -24,6 +24,13 @@ import type { TakeoverChoice } from './takeoverFormat';
 import { cardReaderText } from './vendingActionText';
 
 export type BusinessAction =
+  | {
+      readonly kind: 'listing';
+      readonly business: Business;
+      readonly floatPercent: number;
+      readonly ticker: string;
+      readonly proceedsCents: MoneyCents;
+    }
   | { readonly kind: 'unit'; readonly business: Business; readonly unit: AvailableUnit }
   | {
       readonly kind: 'improve';
@@ -54,6 +61,8 @@ export type BusinessAction =
   | { readonly kind: 'withdraw'; readonly business: Business; readonly amountCents: MoneyCents }
   | { readonly kind: 'sell'; readonly business: Business; readonly sale: BusinessSale };
 
+const WHOLE_PERCENT = 100;
+
 type ActionOf<Kind extends BusinessAction['kind']> = Extract<BusinessAction, { kind: Kind }>;
 
 type ActionHandlers<Result> = {
@@ -69,6 +78,12 @@ function handle<Kind extends BusinessAction['kind'], Result>(
 }
 
 const COMMANDS: ActionHandlers<GameCommand> = {
+  listing: ({ business, floatPercent, ticker }) => ({
+    type: 'GoPublic',
+    businessId: business.id,
+    floatPercent,
+    ticker,
+  }),
   sell: ({ business }) => ({ type: 'SellBusiness', businessId: business.id }),
   withdraw: ({ business, amountCents }) => ({
     type: 'WithdrawFromTreasury',
@@ -178,6 +193,16 @@ function saleText(action: Extract<BusinessAction, { kind: 'sell' }>): ActionShee
 }
 
 const SHEET_TEXT: ActionHandlers<ActionSheetText> = {
+  listing: ({ ticker, floatPercent, proceedsCents }) => ({
+    title: `List ${ticker}`,
+    lines: [
+      { label: 'Cash change', value: '$0.00' },
+      { label: 'Treasury receives', value: formatMoneyExact(proceedsCents) },
+      { label: 'Your ownership after listing', value: `${WHOLE_PERCENT - floatPercent}%` },
+      { label: 'Your share of payouts', value: `${WHOLE_PERCENT - floatPercent}%` },
+    ],
+    confirmLabel: 'Confirm listing',
+  }),
   sell: saleText,
   withdraw: withdrawText,
   unit: unitText,

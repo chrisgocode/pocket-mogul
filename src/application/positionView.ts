@@ -21,7 +21,7 @@ export function selectPosition(
   request: { assetId: string; content: Content },
 ): PositionView | undefined {
   const position = state.positions.find((held) => held.instrumentId === request.assetId);
-  const instrument = findInstrument(tradeEconomy(request.content), request.assetId);
+  const instrument = findInstrument(tradeEconomy(request.content, state), request.assetId);
   if (position === undefined || instrument === undefined) return undefined;
   const mark = markPosition(position, quoteOf(state.market, instrument));
   return {

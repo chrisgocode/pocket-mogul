@@ -1,3 +1,4 @@
+import { availableListedShares, withTradedListing } from './business/listingTrades';
 import type { CommandResult, GameErrorCode } from './commands';
 import type { GameState } from './gameState';
 import { quoteOf } from './market';
@@ -68,6 +69,9 @@ export function checkTrade(
   const instrument = findInstrument(order.economy, order.assetId);
   if (instrument === undefined) return { ok: false, error: 'UNKNOWN_ASSET' };
   if (order.quantity <= 0n) return { ok: false, error: 'INVALID_QUANTITY' };
+  const available = availableListedShares(state, order.assetId);
+  if (order.side === 'buy' && available !== undefined && order.quantity > available)
+    return { ok: false, error: 'INSUFFICIENT_HOLDING' };
   const quote = quoteTrade(order, tradePricing(state, { instrument, economy: order.economy }));
   const position = positionOf(state, instrument.id);
   const error = refusal(quote, position, order.economy);
@@ -95,11 +99,14 @@ export function applyExecuteTrade(
   return {
     ok: true,
     cashChangeCents: quote.cashChangeCents,
-    state: {
-      ...state,
-      cashCents: moneyCents(state.cashCents + quote.cashChangeCents),
-      positions: withPosition(state, settleTrade(checked.position, quote)),
-    },
+    state: withTradedListing(
+      {
+        ...state,
+        cashCents: moneyCents(state.cashCents + quote.cashChangeCents),
+        positions: withPosition(state, settleTrade(checked.position, quote)),
+      },
+      order.assetId,
+    ),
   };
 }
 

@@ -155,6 +155,22 @@ export const saveDocumentSchema = z.looseObject({
   carWash: z.record(z.string().min(1), savedCarWash).default({}),
   delivery: z.record(z.string().min(1), savedDelivery).default({}),
   takeovers: z.record(z.string().min(1), savedTakeovers).default({}),
+  listings: z
+    .record(
+      z.string(),
+      z.discriminatedUnion('status', [
+        z.object({ status: z.literal('private') }),
+        z.object({
+          status: z.literal('listed'),
+          ticker: z.string().regex(/^[A-Z]{3,5}$/),
+          sharesHeld: quantityText,
+        }),
+      ]),
+    )
+    .default({}),
+  shareholderPayouts: z
+    .array(z.object({ businessId: z.string(), paidCents: nonNegativeMoneyText }))
+    .default([]),
   seenCoachMarks: z.array(z.string().min(1)).default([]),
 });
 
