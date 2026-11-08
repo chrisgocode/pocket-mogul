@@ -1806,15 +1806,42 @@
       .tax-source {
         padding-top: 14px;
       }
+      .tax-risk {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 12px;
+        font-size: 11px;
+        color: var(--properties, #edab91);
+      }
+      .inline-details {
+        padding: 10px 0;
+        font-size: 12px;
+        color: var(--dim);
+      }
+      .inline-details summary {
+        cursor: pointer;
+        min-height: 32px;
+        display: flex;
+        align-items: center;
+      }
+      .inline-details[open] summary {
+        color: var(--ink);
+      }
+      .tax-detail ul {
+        padding-left: 18px;
+        color: var(--dim);
+        line-height: 1.6;
+        font-size: 12px;
+      }
+      .tax-detail li {
+        margin-top: 7px;
+      }
     </style>
   </head>
   <body>
     <main class="study">
-      <p class="intro">
-        <b>THROWAWAY · ISSUE #82</b><br />Which layout makes twelve deep businesses feel manageable?
-        Five interactive tabs. Compact Wealth, market orders and property management use sample
-        data. Figures are illustrative; no engine or save writes.
-      </p>
+      <p class="intro"><b>#82 · Studio prototype</b><br />Sample data · resets on reload.</p>
       <div class="tools">
         <select id="scenario" aria-label="Sample scenario">
           <option value="operating">Operating empire</option>
@@ -2135,10 +2162,10 @@
         const goal =
           goals.find((g) => g.id === state.pinnedGoal) ??
           goals.find((g) => !state.completedGoals.includes(g.id));
-        return `<button class="goal-shortcut" data-action="utility:goals" aria-label="Open Goals and achievements">${utilityIcon('goals')}<span><b>${goal ? goal.title : 'All achievements earned'}</b><small>Goals · ${state.completedGoals.length} / ${goals.length} achievements${state.pinnedGoal ? ' · Pinned' : ''}</small></span><span aria-hidden="true">→</span></button>`;
+        return `<button class="goal-shortcut" data-action="utility:goals" aria-label="Open Goals and achievements">${utilityIcon('goals')}<span><b>${goal ? goal.title : 'All achievements earned'}</b><small>Goals · ${state.completedGoals.length}/${goals.length}${state.pinnedGoal ? ' · Pinned' : ''}</small></span><span aria-hidden="true">→</span></button>`;
       }
       function header() {
-        return `<div class="status"><span>9:41</span><span>POCKET MOGUL</span></div><header class="top"><div class="topline"><div><div class="eyebrow">Available cash</div><div class="cash">${summaryMoney(state.cash)}</div></div><div class="header-income"><div class="income">+${money(income() + rentalIncome())}/min</div><div class="muted">To your cash</div></div><button class="profile-button" data-action="utility:profile" aria-label="Open Profile">${utilityIcon('profile')}<span>Profile</span></button></div>${goalShortcut()}</header>`;
+        return `<div class="status"><span>9:41</span><span>POCKET MOGUL</span></div><header class="top"><div class="topline"><div><div class="eyebrow">Cash</div><div class="cash">${summaryMoney(state.cash)}</div></div><div class="header-income"><div class="income">+${money(income() + rentalIncome())}/min</div><div class="muted">Cash flow</div></div><button class="profile-button" data-action="utility:profile" aria-label="Open Profile">${utilityIcon('profile')}</button></div>${goalShortcut()}</header>`;
       }
       function openUtility(screen) {
         if (state.screen === screen) return;
@@ -2191,7 +2218,7 @@
           : 0.04;
       function taxNotice() {
         return purchasesBlocked() && state.screen !== 'taxes'
-          ? `<button class="tax-alert" data-action="utility:taxes"><span><b>${state.tax.status === 'ready' ? 'Tax return ready to file' : 'Tax debt · ' + money(state.tax.amount)}</b><small>Purchases paused · earnings and operating actions continue</small></span><span>Review →</span></button>`
+          ? `<button class="tax-alert" data-action="utility:taxes"><span><b>${state.tax.status === 'ready' ? 'Tax return ready to file' : 'Tax debt · ' + money(state.tax.amount)}</b><small>Purchases paused</small></span><span>Review →</span></button>`
           : '';
       }
       function creditCash(amount) {
@@ -2206,14 +2233,22 @@
           if (state.tax.amount === 0) state.tax.status = 'paid';
         }
       }
+      function taxPanel() {
+        const t = state.tax;
+        if (t.status === 'exempt')
+          return '<div class="tax-panel"><span class="muted">Permanent exemption</span><div class="tax-total">$0.00</div></div>';
+        if (t.status === 'debt') return taxDebtView();
+        if (t.status === 'pending')
+          return `<div class="tax-panel"><span class="muted">Audit exposure · return 01</span><div class="tax-total">$3,000.00</div><div class="tax-rate-strip">${stat('Tax', '$1,000')}${stat('Fine', '$2,000')}</div><div class="dense-line row"><span>Audit check</span><b>10m simulation time</b></div><span class="muted">Purchases available</span></div>`;
+        if (t.status === 'ready')
+          return `<div class="tax-panel"><span class="muted">Return 01 · 6h simulation time</span><div class="tax-total">$1,000.00</div>${button('Pay & file · ' + money(Math.min(state.cash, 1000)) + ' now', 'taxReview:full', 'primary wide')}${button('Don’t report · $0 now', 'taxReview:zero', 'secondary wide')}<div class="tax-risk"><span>40% audit risk</span><b>$3,000 if audited</b></div></div>`;
+        if (t.status === 'current')
+          return `<div class="tax-panel"><span class="muted">Estimated tax</span><div class="tax-total">${money(t.amount)}</div><div class="dense-line row"><span>Filing opens in</span><b>2h simulation time</b></div>${button('Pay & file', 'taxReview:full', 'primary wide', true)}${button('Don’t report', 'taxReview:zero', 'secondary wide', true)}</div>`;
+        return '<div class="tax-panel"><span class="muted">Outstanding balance</span><div class="tax-total">$0.00</div></div>';
+      }
       function taxesScreen() {
-        const t = state.tax,
-          estimate = t.status === 'current',
-          due = t.status === 'ready',
-          debt = t.status === 'debt',
-          pending = t.status === 'pending',
-          exempt = t.status === 'exempt';
-        return `${utilityBack()}<div class="tax-title"><h1>Taxes</h1><span class="tax-state">${{ current: 'Accruing', ready: 'Ready to file', pending: 'Audit pending', debt: 'Recovery', paid: 'Resolved', exempt: 'Exempt' }[t.status]}</span></div>${exempt ? '<div class="tax-panel"><h2>Permanent exemption active</h2><p class="muted">No filing or tax payments required.</p></div>' : debt ? taxDebtView() : pending ? `<div class="tax-panel"><span class="muted">Return 01 · reported zero</span><h2>Audit decision pending</h2><p>Check in 10 credited minutes</p><div class="dense-line row"><span>Possible assessment</span><b>$3,000.00</b></div><p class="muted">$1,000 original tax + $2,000 fine. Purchases remain available while pending.</p></div>` : due ? `<div class="tax-panel"><span class="muted">Return 01 · 36 business days / 6 credited hours</span><div class="tax-total">$1,000.00</div><p class="muted">File this return to resume purchases.</p>${button('Report everything · $1,000', 'taxReview:full', 'primary wide')}${button('Report nothing…', 'taxReview:zero', 'secondary wide')}</div>` : estimate ? `<div class="tax-panel"><span class="muted">Current estimate · not paid yet</span><div class="tax-total">${money(t.amount)}</div><p class="muted">Next return in 2 credited hours</p></div>` : '<div class="tax-panel"><h2>Return resolved</h2><p class="muted">No outstanding tax or fine in this sample.</p></div>'}${exempt ? '' : `<div class="tax-rate-strip">${stat('Saved blended rate', (taxRate() * 100).toFixed(2) + '%')}${stat('Day-opening wealth', taxRate() === 0 ? '$0' : '$50,000')}</div><details class="tax-detail"><summary>Source accounting</summary>${taxSourceTable(estimate)}<div class="dense-line row"><span>Losses carried forward</span><b>$0.00</b></div><p class="muted">Company profit includes retained earnings. Payout and treasury transfers are not new income. Taps and Tap Boost are exempt.</p></details><details class="tax-detail"><summary>How the rate works</summary><p class="muted">Wealth bands blend the profit-tax rate, saved at each business-day opening. The first $10,000 of wealth is protected. Unrealized appreciation is not itself taxed.</p></details>`}<h2>History</h2><div class="dense-line row"><span>Collected · tax + fines</span><b>${money(t.paid)}</b></div>`;
+        const t = state.tax;
+        return `${utilityBack()}<div class="tax-title"><h1>Taxes</h1><span class="tax-state">${{ current: 'Accruing', ready: 'File now', pending: 'Audit pending', debt: 'Recovery', paid: 'Resolved', exempt: 'Exempt' }[t.status]}</span></div>${taxPanel()}${t.status === 'exempt' ? '' : `<div class="tax-rate-strip">${stat('Blended rate', (taxRate() * 100).toFixed(2) + '%')}${stat('Day-opening wealth', taxRate() === 0 ? '$0' : '$50,000')}</div><details class="tax-detail"><summary>Breakdown</summary>${taxSourceTable(t.status === 'current')}<div class="dense-line row"><span>Loss carryforward</span><b>$0.00</b></div></details><details class="tax-detail"><summary>Tax rules</summary><ul><li>Returns every 6 simulation hours.</li><li>40% audit risk for unreported income; assessed tax plus a 2× fine.</li><li>The first $10,000 of wealth is protected when blending the profit-tax rate.</li><li>Retained business profit counts; treasury transfers and Payout are not taxed again.</li><li>Taps and Tap Boost are exempt.</li><li>Debt recovery: 25% of eligible credits; no interest or repeat penalties.</li></ul></details>`}<div class="dense-line row"><span>Paid · tax + fines</span><b>${money(t.paid)}</b></div>`;
       }
       function taxSourceTable(current) {
         const gross = current ? (state.tax.amount === 0 ? 0 : 300) : 30000,
@@ -2221,14 +2256,14 @@
         return `<div class="tax-source"><b>Vending Machine · owner share</b><div class="dense-line row"><span>Gross receipts</span><b>${money(gross)}</b></div><div class="dense-line row"><span>Operating costs</span><b>−${money(cost)}</b></div><div class="dense-line row"><span>Taxable profit</span><b>${money(gross - cost)}</b></div><div class="dense-line row"><span>Estimated tax · ${(taxRate() * 100).toFixed(2)}%</span><b>${money((gross - cost) * taxRate())}</b></div></div>`;
       }
       function taxDebtView() {
-        return `<div class="tax-panel"><span class="muted">Assessed balance</span><div class="tax-total">${money(state.tax.amount)}</div><div class="dense-line row"><span>Original tax</span><b>$1,000.00</b></div><div class="dense-line row"><span>Original fine · 2× tax</span><b>${money(state.tax.fine ?? 0)}</b></div><p class="muted">25% of eligible new cash credits pays this down. Taps are excluded from automatic recovery. No interest or repeating penalties.</p>${button('Pay from cash · ' + money(Math.min(state.cash, state.tax.amount)), 'payTaxDebt', 'primary wide', state.cash === 0)}</div>`;
+        return `<div class="tax-panel"><span class="muted">Balance due</span><div class="tax-total">${money(state.tax.amount)}</div><div class="tax-rate-strip">${stat('Original tax', '$1,000')}${stat('Fine', money(state.tax.fine ?? 0))}</div><div class="dense-line row"><span>Recovery</span><b>25% of eligible credits</b></div>${button('Pay · ' + money(Math.min(state.cash, state.tax.amount)), 'payTaxDebt', 'primary wide', state.cash === 0)}</div>`;
       }
       function taxConfirmation() {
         const full = state.confirmation === 'taxFull',
           zero = state.confirmation === 'taxZero';
         const due = state.confirmation === 'taxDebt' ? state.tax.amount : 1000,
           paid = Math.min(state.cash, due);
-        return `<div class="sheet" role="dialog" aria-label="Review tax action"><h3>${zero ? 'Report nothing?' : full ? 'Report all income?' : 'Pay assessed debt?'}</h3>${zero ? '<div class="dense-line row"><span>Pay now</span><b>$0.00</b></div><div class="dense-line row"><span>Audit chance</span><b>40%</b></div><p class="muted">If audited: $1,000 tax + $2,000 fine = $3,000. Check after 10 credited minutes. Filing cannot be changed or rerolled.</p>' : `<div class="dense-line row"><span>Pay now from cash</span><b>${money(paid)}</b></div><div class="dense-line row"><span>Cash after</span><b>${money(state.cash - paid)}</b></div><div class="dense-line row"><span>Installment balance after</span><b>${money(due - paid)}</b></div>`}<div class="split">${button('Cancel', 'cancel')}${button(zero ? 'Submit zero report' : 'Confirm payment', 'confirm', 'primary')}</div></div>`;
+        return `<div class="sheet" role="dialog" aria-label="Review tax action"><h3>${zero ? 'Don’t report?' : full ? 'Pay & file?' : 'Pay debt?'}</h3>${zero ? '<div class="dense-line row"><span>Pay now</span><b>$0.00</b></div><div class="dense-line row"><span>Audit chance</span><b>40%</b></div><div class="dense-line row"><span>If audited · tax + fine</span><b>$3,000.00</b></div><div class="dense-line row"><span>Check in</span><b>10m simulation time</b></div><span class="muted">Filing is final.</span>' : `<div class="dense-line row"><span>Pay now</span><b>${money(paid)}</b></div><div class="dense-line row"><span>Cash after</span><b>${money(state.cash - paid)}</b></div><div class="dense-line row"><span>Remaining debt</span><b>${money(due - paid)}</b></div>`}<div class="split">${button('Cancel', 'cancel')}${button(zero ? 'Submit zero report' : 'Confirm payment', 'confirm', 'primary')}</div></div>`;
       }
       function confirmTax() {
         if (state.confirmation === 'taxZero' && state.tax.status === 'ready') {
@@ -2278,7 +2313,7 @@
               ? state.completedGoals.includes(g.id)
               : !state.completedGoals.includes(g.id)),
         );
-        return `${utilityBack()}<h1>Goals & achievements</h1><div class="achievement-summary"><b>${state.completedGoals.length}<span> / ${goals.length}</span></b><span class="muted">Badges earned · no cash rewards</span></div>${selectedChips(['All', 'In progress', 'Earned'], state.goalFilter, 'goalFilter')}${list.map(goalRow).join('') || '<p class="muted">No achievements in this group.</p>'}`;
+        return `${utilityBack()}<h1>Goals</h1><div class="achievement-summary"><b>${state.completedGoals.length}<span> / ${goals.length}</span></b><span class="muted">Badges earned</span></div>${selectedChips(['All', 'In progress', 'Earned'], state.goalFilter, 'goalFilter')}${list.map(goalRow).join('') || '<p class="muted">No achievements in this group.</p>'}`;
       }
       function preference(label, key, values) {
         return `<div class="preference"><b>${label}</b><div class="preference-options">${values.map(([value, text]) => `<button data-action="setting:${key}=${value}" aria-pressed="${state.settings[key] === value}">${text}</button>`).join('')}</div></div>`;
@@ -2313,7 +2348,8 @@
           : '';
       }
       function utilityAction(type, value) {
-        if (type === 'taxReview') state.confirmation = value === 'full' ? 'taxFull' : 'taxZero';
+        if (type === 'taxReview' && state.tax.status === 'ready')
+          state.confirmation = value === 'full' ? 'taxFull' : 'taxZero';
         if (type === 'payTaxDebt') state.confirmation = 'taxDebt';
         if (type === 'auditSample' && state.tax.status === 'pending') {
           state.tax = { status: 'debt', amount: 3000, paid: 0, fine: 2000 };
@@ -2379,10 +2415,10 @@
         return `<div class="worth"><div class="muted">Business net worth</div><h1>${money(businessWorth())}</h1><div class="row"><span class="muted">${state.owned.length} owned</span><span class="green">+${money(income())}/min to cash</span></div></div>${filters()}${rows()}`;
       }
       function variantB() {
-        return `<div class="row"><div><div class="eyebrow">Build something bigger</div><h1>Your empire.</h1></div><span class="badge">${state.owned.length} OWNED</span></div><div class="hero">${art()}<div class="row"><div><div class="eyebrow">${state.owned.length ? 'Empire cash flow' : 'Your first move'}</div><div class="big gold">${state.owned.length ? '$' + income().toFixed(0) : '$250'}<small class="muted">${state.owned.length ? '/min' : ' to start'}</small></div></div></div></div>${state.owned.length ? `<div class="notice"><b>${state.stock === 0 ? '! Vending needs stock' : 'Next move · Vending Machine'}</b><p class="muted">${state.stock === 0 ? 'Machines have stopped serving. Restock from the business treasury.' : 'Three machines. Local stage. Place stock where your customers are.'}</p>${button('Run the business →', 'open:vending', 'secondary wide')}</div>` : button('Tap your way to a business →', 'tab:earn', 'primary wide')}${filters()}${rows()}`;
+        return `<div class="row"><div><div class="eyebrow">Cash flow</div><h1>Businesses</h1></div><span class="badge">${state.owned.length} OWNED</span></div><div class="hero">${art()}<div class="row"><div><div class="eyebrow">${state.owned.length ? 'Empire cash flow' : 'Your first move'}</div><div class="big gold">${state.owned.length ? '$' + income().toFixed(0) : '$250'}<small class="muted">${state.owned.length ? '/min' : ' to start'}</small></div></div></div></div>${state.owned.length ? `<div class="notice"><b>${state.stock === 0 ? '! Vending needs stock' : 'Next move · Vending Machine'}</b><p class="muted">${state.stock === 0 ? 'Machines have stopped serving. Restock from the business treasury.' : 'Three machines. Local stage. Place stock where your customers are.'}</p>${button('Run the business →', 'open:vending', 'secondary wide')}</div>` : button('Tap your way to a business →', 'tab:earn', 'primary wide')}${filters()}${rows()}`;
       }
       function variantC() {
-        return `<div class="eyebrow">Small beginnings. Big ambitions.</div><h1>From corner shop<br>to empire.</h1><div class="notice"><span class="badge">NEXT CHAPTER</span><h3>${state.owned.length ? 'Take Vending regional' : 'Own your first business'}</h3><p class="muted">${state.owned.length ? 'Local → Regional · 3 of 8 machines · day 6 of 10' : 'Tap to $250, then own a Vending Machine.'}</p>${button(state.owned.length ? 'Continue building →' : 'Start earning →', state.owned.length ? 'open:vending' : 'tab:earn', 'primary wide')}</div>${filters()}<div class="timeline">${
+        return `<div class="eyebrow">Growth</div><h1>Business stages</h1><div class="notice"><span class="badge">NEXT CHAPTER</span><h3>${state.owned.length ? 'Take Vending regional' : 'Own your first business'}</h3><p class="muted">${state.owned.length ? 'Local → Regional · 3 of 8 machines · day 6 of 10' : 'Tap to $250, then own a Vending Machine.'}</p>${button(state.owned.length ? 'Continue building →' : 'Start earning →', state.owned.length ? 'open:vending' : 'tab:earn', 'primary wide')}</div>${filters()}<div class="timeline">${
           state.filter === 'Owned' && state.owned.length
             ? catalog
                 .filter((b) => owned(b.id))
@@ -2395,22 +2431,22 @@
         }<div class="stop locked"><span class="eyebrow">On the horizon</span><h3>Regional business</h3><p class="muted">Grow to unlock takeovers.</p></div></div>`;
       }
       function overview() {
-        return `<section class="section" id="overview"><h2>Overview</h2><div class="split"><div class="metric"><span class="muted">Profit / business day</span><b class="green">$300.00</b></div><div class="metric"><span class="muted">Treasury</span><b>${money(state.treasury)}</b></div></div><p class="muted">Illustrative Local snapshot · 1 business day = 10 minutes.<br>Revenue $420 · costs $120 · 300 snacks/day</p><div class="line row"><span>Price per snack</span><b>$1.40 · Standard</b></div><div class="dense-line row"><span>Owner tax forecast / day</span><b>${money(300 * taxRate())}</b></div><p class="muted">Estimate paid at filing; Payout does not withhold tax.</p><label class="label" for="payout">Payout to your cash: ${state.payout}% · remainder stays here</label><input id="payout" type="range" min="0" max="100" step="10" value="${state.payout}"><div class="split">${button('Deposit $100', 'deposit', 'secondary', state.cash < 100)}${button('Withdraw all', 'withdraw', 'secondary', state.treasury === 0)}</div>${button('Sell business…', 'sell', 'wide red')}</section>`;
+        return `<section class="section" id="overview"><h2>Overview</h2><div class="split"><div class="metric"><span class="muted">Profit / business day</span><b class="green">$300.00</b></div><div class="metric"><span class="muted">Treasury</span><b>${money(state.treasury)}</b></div></div><details class="inline-details"><summary>Daily figures</summary><div class="dense-line row"><span>Revenue</span><b>$420</b></div><div class="dense-line row"><span>Costs</span><b>$120</b></div><div class="dense-line row"><span>Snacks sold</span><b>300/day</b></div></details><div class="line row"><span>Price per snack</span><b>$1.40 · Standard</b></div><div class="dense-line row"><span>Owner tax forecast / day</span><b>${money(300 * taxRate())}</b></div><label class="label" for="payout">Cash payout · ${state.payout}%</label><input id="payout" type="range" min="0" max="100" step="10" value="${state.payout}"><div class="split">${button('Deposit $100', 'deposit', 'secondary', state.cash < 100)}${button('Withdraw all', 'withdraw', 'secondary', state.treasury === 0)}</div>${button('Sell business…', 'sell', 'wide red')}</section>`;
       }
       function mechanic() {
-        return `<section class="section" id="mechanic"><h2>Placement & stock</h2><div class="row"><div><h3>Office · ${state.units} machines</h3><p class="muted">Balanced mix · ${state.stock}% stock remaining</p></div><span class="${state.stock === 0 ? 'red' : 'green'}">${state.stock === 0 ? '! Empty' : '● Serving'}</span></div><div class="meter" style="margin-top:14px"><i style="width:${state.stock}%"></i></div>${button('Restock all · $30 treasury', 'restock', 'primary wide', state.treasury < 30 || state.stock === 100)}<p class="muted">Sample restock fee. Restockers automate this daily.</p></section>`;
+        return `<section class="section" id="mechanic"><h2>Placement & stock</h2><div class="row"><div><h3>Office · ${state.units} machines</h3><p class="muted">Balanced mix · ${state.stock}% stock remaining</p></div><span class="${state.stock === 0 ? 'red' : 'green'}">${state.stock === 0 ? '! Empty' : '● Serving'}</span></div><div class="meter" style="margin-top:14px"><i style="width:${state.stock}%"></i></div>${button('Restock all · $30 treasury', 'restock', 'primary wide', state.treasury < 30 || state.stock === 100)}</section>`;
       }
       function grow() {
-        return `<section class="section" id="grow"><h2>Grow</h2><div class="row line"><div><h3>${state.units} / 8 machines</h3><p class="muted">Local stage · expand capacity</p></div>${button('Add · $' + unitPrice(), 'unit', 'primary', state.treasury < unitPrice() || state.units >= 8)}</div><div class="line"><h3>Regional is next</h3><p class="muted">Requires 8 machines and 10 days owned. Sample: day 6.<br>Unlocks takeovers · stage price $2,000 from treasury</p></div></section>`;
+        return `<section class="section" id="grow"><h2>Grow</h2><div class="row line"><div><h3>${state.units} / 8 machines</h3><p class="muted">Local</p></div>${button('Add · $' + unitPrice(), 'unit', 'primary', state.treasury < unitPrice() || state.units >= 8)}</div><div class="line"><h3>Regional</h3><div class="dense-line row"><span>Requires</span><b>8 machines · day 10</b></div><div class="dense-line row"><span>Progress</span><b>Day 6/10</b></div><div class="dense-line row"><span>Upgrade</span><b>$2,000 treasury</b></div></div></section>`;
       }
       function detail() {
         const heads =
           variant === 'A'
             ? `<span class="badge">TIER 1 · LOCAL</span><h1>Vending Machine</h1>`
             : variant === 'B'
-              ? `<div class="hero"><span class="badge">LOCAL · DAY 6</span>${art()}<h1>Vending Machine</h1><p class="muted">Own the corner. Then the city.</p></div>`
-              : `<span class="eyebrow">Your next chapter</span><h1>Go Regional.</h1><p class="muted">Vending Machine · Local → Regional</p><div class="notice">${state.units}/8 machines · 6/10 days · treasury ${money(state.treasury)}</div>`;
-        return `${button('← Businesses', 'tab:businesses', 'back')}${heads}${variant === 'A' ? '' : `<div class="rail">${['Overview', 'Mechanic', 'Grow', 'Staff', 'Risks', 'Deals'].map((s) => button(s, 'jump:' + s.toLowerCase())).join('')}</div>`}${variant === 'B' ? mechanic() + overview() + grow() : variant === 'C' ? grow() + overview() + mechanic() : overview() + mechanic() + grow()}<section id="staff"><h2>Staff</h2><div class="line"><h3>Restockers · 0 of 5</h3><p class="muted">+20% capacity each; automatically restock every day.</p></div><div class="line"><h3>Manager · not hired</h3><p class="muted">Chooses the best price and stock mix. Never spends your personal cash.</p></div></section><section id="risks"><h2>Risks</h2><div class="notice">No active incidents. Equipment, liability and supply insurance available at Local stage.</div></section><section id="deals"><h2>Deals</h2><p class="muted">Takeovers unlock at Regional.<br>Going public unlocks at National.</p></section>`;
+              ? `<div class="hero"><span class="badge">LOCAL · DAY 6</span>${art()}<h1>Vending Machine</h1></div>`
+              : `<span class="eyebrow">Next stage</span><h1>Go Regional.</h1><p class="muted">Vending Machine · Local → Regional</p><div class="notice">${state.units}/8 machines · 6/10 days · treasury ${money(state.treasury)}</div>`;
+        return `${button('← Businesses', 'tab:businesses', 'back')}${heads}${variant === 'A' ? '' : `<div class="rail">${['Overview', 'Mechanic', 'Grow', 'Staff', 'Risks', 'Deals'].map((s) => button(s, 'jump:' + s.toLowerCase())).join('')}</div>`}${variant === 'B' ? mechanic() + overview() + grow() : variant === 'C' ? grow() + overview() + mechanic() : overview() + mechanic() + grow()}<section id="staff"><h2>Staff</h2><div class="line"><h3>Restockers · 0 of 5</h3><p class="muted">+20% capacity · daily restock</p></div><div class="line"><h3>Manager · not hired</h3><p class="muted">Auto price & stock mix</p></div></section><section id="risks"><h2>Risks</h2><p class="muted">No incidents</p><details class="inline-details"><summary>Insurance</summary><p class="muted">Equipment · Liability · Supply</p></details></section><section id="deals"><h2>Deals</h2><div class="dense-line row"><span>Takeovers</span><b>Regional</b></div><div class="dense-line row"><span>Going public</span><b>National</b></div></section>`;
       }
       const tapAmount = () => 1 + state.walletLevel * 0.5;
       const walletUpgradeCost = () =>
@@ -2626,15 +2662,15 @@
           .slice()
           .sort((a, b) => Math.abs(b.change) - Math.abs(a.change))
           .slice(0, 2);
-        return `${selectedChips(['Stocks', 'Crypto'], state.marketFilter, 'marketFilter')}<label class="search-label" for="market-search">Search assets</label><input id="market-search" class="market-search" type="search" value="${escapeHtml(state.marketQuery)}" placeholder="Name or ticker" autocomplete="off"><div class="mover-strip">${movers.map((a) => `<button data-action="asset:${a.id}"><span class="muted">${a.symbol}</span><b class="${a.change >= 0 ? 'green' : 'red'}">${a.change >= 0 ? '+' : ''}${a.change}%</b><small>${money(a.price)}</small></button>`).join('')}</div><div class="sort-row"><span class="muted">24h movers</span><label>Sort <select id="market-sort">${['Name', 'Change', 'Price'].map((v) => `<option ${state.marketSort === v ? 'selected' : ''}>${v}</option>`).join('')}</select></label></div><div id="market-results">${marketResults()}</div>`;
+        return `${selectedChips(['Stocks', 'Crypto'], state.marketFilter, 'marketFilter')}<input id="market-search" class="market-search" type="search" aria-label="Search by name or ticker" value="${escapeHtml(state.marketQuery)}" placeholder="Name or ticker" autocomplete="off"><div class="mover-strip">${movers.map((a) => `<button data-action="asset:${a.id}"><span class="muted">${a.symbol}</span><b class="${a.change >= 0 ? 'green' : 'red'}">${a.change >= 0 ? '+' : ''}${a.change}%</b><small>${money(a.price)}</small></button>`).join('')}</div><div class="sort-row"><span class="muted">24h movers</span><label>Sort <select id="market-sort">${['Name', 'Change', 'Price'].map((v) => `<option ${state.marketSort === v ? 'selected' : ''}>${v}</option>`).join('')}</select></label></div><div id="market-results">${marketResults()}</div>`;
       }
       function markets() {
-        return `<div class="market-header"><h2>Markets</h2><span class="muted">Stocks & crypto</span></div><div class="market-modes">${['Portfolio', 'Explore', 'Watchlist'].map((mode) => button(mode, 'marketMode:' + mode, state.marketMode === mode ? 'selected' : '')).join('')}</div>${state.marketMode === 'Portfolio' ? marketPortfolio() : state.marketMode === 'Explore' ? marketExplore() : marketResults()}<p class="footnote">All companies and coins are fictional.</p>`;
+        return `<div class="market-header"><h2>Markets</h2></div><div class="market-modes">${['Portfolio', 'Explore', 'Watchlist'].map((mode) => button(mode, 'marketMode:' + mode, state.marketMode === mode ? 'selected' : '')).join('')}</div>${state.marketMode === 'Portfolio' ? marketPortfolio() : state.marketMode === 'Explore' ? marketExplore() : marketResults()}<p class="footnote">All companies and coins are fictional.</p>`;
       }
       function assetDetail() {
         const a = assetOf(),
           p = state.positions[a.id];
-        return `${button('← Markets', 'tab:markets', 'back')}<div class="row"><div><h2>${a.name}</h2><span class="muted">${a.symbol} · ${a.kind}</span></div>${button(state.watchlist.includes(a.id) ? '★' : '☆', 'watch', 'secondary')}</div><div class="price-heading">${money(a.price)} <small class="${a.change >= 0 ? 'green' : 'red'}">${a.change >= 0 ? '+' : ''}${a.change}% / 24h</small></div><svg class="price-chart ${a.change < 0 ? 'negative' : ''}" viewBox="0 0 320 90" role="img" aria-label="Illustrative price history; current sample price ${money(a.price)}"><g transform="${a.change < 0 ? 'translate(0 90) scale(1 -1)' : ''}"><path d="M0 72L20 67L40 73L60 48L80 53L100 39L120 44L140 26L160 40L180 30L200 35L220 15L240 28L260 10L280 18L320 8" fill="none" stroke="currentColor" stroke-width="2"/></g></svg><p class="muted">24h sample · ${a.change >= 0 ? '+' : ''}${a.change}%</p><div class="stats-grid">${stat('Quantity', p?.quantity ?? 0)}${stat('Average cost', p ? money(p.cost / p.quantity) : '—')}${stat('Position value', money((p?.quantity ?? 0) * a.price))}${stat('Unrealized P&L', signedMoney((p?.quantity ?? 0) * a.price - (p?.cost ?? 0)))}</div><h2>Order quantity</h2>${selectedChips(['1', '10'], String(state.orderQuantity), 'quantity')}<div class="split">${button('Buy · ' + money(a.price * state.orderQuantity), 'trade:buy', 'primary', !state.owned.length)}${button('Sell · ' + money(a.price * state.orderQuantity), 'trade:sell', 'secondary', !p || p.quantity < state.orderQuantity)}</div>${!state.owned.length ? '<p class="footnote">Trading unlocks with your first business.</p>' : ''}<div class="dense-line row"><span>Dividend / share</span><b>${money(a.dividend)}/hour</b></div>`;
+        return `${button('← Markets', 'tab:markets', 'back')}<div class="row"><div><h2>${a.name}</h2><span class="muted">${a.symbol} · ${a.kind}</span></div>${button(state.watchlist.includes(a.id) ? '★' : '☆', 'watch', 'secondary')}</div><div class="price-heading">${money(a.price)} <small class="${a.change >= 0 ? 'green' : 'red'}">${a.change >= 0 ? '+' : ''}${a.change}% / 24h</small></div><svg class="price-chart ${a.change < 0 ? 'negative' : ''}" viewBox="0 0 320 90" role="img" aria-label="Illustrative price history; current sample price ${money(a.price)}"><g transform="${a.change < 0 ? 'translate(0 90) scale(1 -1)' : ''}"><path d="M0 72L20 67L40 73L60 48L80 53L100 39L120 44L140 26L160 40L180 30L200 35L220 15L240 28L260 10L280 18L320 8" fill="none" stroke="currentColor" stroke-width="2"/></g></svg><div class="stats-grid">${stat('Quantity', p?.quantity ?? 0)}${stat('Average cost', p ? money(p.cost / p.quantity) : '—')}${stat('Position value', money((p?.quantity ?? 0) * a.price))}${stat('Unrealized P&L', signedMoney((p?.quantity ?? 0) * a.price - (p?.cost ?? 0)))}</div><h2>Order quantity</h2>${selectedChips(['1', '10'], String(state.orderQuantity), 'quantity')}<div class="split">${button('Buy · ' + money(a.price * state.orderQuantity), 'trade:buy', 'primary', !state.owned.length)}${button('Sell · ' + money(a.price * state.orderQuantity), 'trade:sell', 'secondary', !p || p.quantity < state.orderQuantity)}</div>${!state.owned.length ? '<p class="footnote">Trading unlocks with your first business.</p>' : ''}<div class="dense-line row"><span>Dividend / share</span><b>${money(a.dividend)}/hour</b></div>`;
       }
       function propertyScene(h) {
         const windows = (x, y, cols, rows) =>
@@ -2654,7 +2690,7 @@
       function propertyCard(h) {
         const p = state.properties[h.id],
           index = homes.indexOf(h) + 1;
-        return `<article class="property-record" data-property="${h.id}"><button class="register-entry" data-action="property:${h.id}"><div class="register-top"><span class="record-number">P0${index}</span><span class="muted">${h.id === 'apartments' ? 'Multi-unit' : 'Residential'}</span><span class="record-state">${p ? (p.rented ? '● Rented' : '○ Vacant') : 'For sale'}</span></div><div class="register-body"><div><h3>${h.name}</h3><div class="register-price">${money(p ? homeValue(h) : h.price)}</div><span class="muted">${p ? 'Current value' : 'Purchase price'}</span></div><div class="register-drawing">${propertyScene(h)}</div></div><div class="register-data">${stat(p ? 'Net / min' : 'Potential net / min', money(p && !p.rented ? 0 : homeRent(h) - h.upkeep))}${stat('Gross / min', money(p && !p.rented ? 0 : homeRent(h)))}<span class="record-link">${p ? 'Manage' : 'Inspect'} ↗</span></div></button></article>`;
+        return `<article class="property-record" data-property="${h.id}"><button class="register-entry" data-action="property:${h.id}"><div class="register-top"><span class="record-number">P0${index}</span><span class="muted">${h.id === 'apartments' ? 'Multi-unit' : 'Residential'}</span><span class="record-state">${p ? (p.rented ? '● Rented' : '○ Vacant') : 'For sale'}</span></div><div class="register-body"><div><h3>${h.name}</h3><div class="register-price">${money(p ? homeValue(h) : h.price)}</div></div><div class="register-drawing">${propertyScene(h)}</div></div><div class="register-data">${stat(p ? 'Net / min' : 'Potential net / min', money(p && !p.rented ? 0 : homeRent(h) - h.upkeep))}${stat('Gross / min', money(p && !p.rented ? 0 : homeRent(h)))}<span class="record-link">${p ? 'Manage' : 'Inspect'} ↗</span></div></button></article>`;
       }
       function properties() {
         const list = homes.filter(
@@ -2665,7 +2701,7 @@
       function propertyDetail() {
         const h = homeOf(),
           p = state.properties[h.id];
-        return `${button('← Properties', 'tab:properties', 'back')}<div class="property-detail-heading"><div><span class="record-number">P0${homes.indexOf(h) + 1}</span><h2>${h.name}</h2></div><div class="register-drawing">${propertyScene(h)}</div></div><div class="price-heading">${money(p ? homeValue(h) : h.price)}</div><div class="stats-grid">${stat('Gross rent', money(homeRent(h)) + '/min')}${stat('Upkeep while rented', money(h.upkeep) + '/min')}${stat('Net rent', money(homeRent(h) - h.upkeep) + '/min')}${stat('Status', p ? (p.rented ? 'Rented' : 'Vacant') : 'Available')}</div>${p ? `${button(p.rented ? 'Stop renting' : 'Rent out', 'rent', 'primary wide')}<h2>Renovation</h2><div class="dense-line row"><span>Level ${p.renovation} / 1</span><b>+${money(h.rent * 0.1)}/min</b></div>${button('Renovate · ' + money(homeUpgradeCost(h)) + ' cash', 'renovate', 'secondary wide', p.renovation === 1 || state.cash < homeUpgradeCost(h))}<p class="footnote">Value +${money(homeUpgradeCost(h) * 0.8)} · upkeep unchanged.</p>${button('Sell · ' + money(homeValue(h) * 0.95), 'propertySell', 'wide red')}` : button('Buy · ' + money(h.price), 'propertyBuy', 'primary wide', state.cash < h.price)}`;
+        return `${button('← Properties', 'tab:properties', 'back')}<div class="property-detail-heading"><div><span class="record-number">P0${homes.indexOf(h) + 1}</span><h2>${h.name}</h2></div><div class="register-drawing">${propertyScene(h)}</div></div><div class="price-heading">${money(p ? homeValue(h) : h.price)}</div><div class="stats-grid">${stat('Gross rent', money(homeRent(h)) + '/min')}${stat('Upkeep / min', money(h.upkeep) + '/min')}${stat('Net rent', money(homeRent(h) - h.upkeep) + '/min')}${stat('Status', p ? (p.rented ? 'Rented' : 'Vacant') : 'Available')}</div>${p ? `${button(p.rented ? 'Stop renting' : 'Rent out', 'rent', 'primary wide')}<h2>Renovation</h2><div class="dense-line row"><span>Level ${p.renovation} / 1</span><b>+${money(h.rent * 0.1)}/min</b></div>${button('Renovate · ' + money(homeUpgradeCost(h)) + ' cash', 'renovate', 'secondary wide', p.renovation === 1 || state.cash < homeUpgradeCost(h))}<div class="dense-line row"><span>Value increase</span><b>+${money(homeUpgradeCost(h) * 0.8)}</b></div>${button('Sell · ' + money(homeValue(h) * 0.95), 'propertySell', 'wide red')}` : button('Buy · ' + money(h.price), 'propertyBuy', 'primary wide', state.cash < h.price)}`;
       }
       function transactionSheet() {
         const kind = state.confirmation;
@@ -2873,10 +2909,7 @@
           state.treasury -= cost;
           state.units += 1;
           state.capitalizedSpend.vending = (state.capitalizedSpend.vending ?? 0) + cost;
-          state.notice =
-            'Machine added · ' +
-            money(cost) +
-            ' from treasury. Income delta requires an engine quote.';
+          state.notice = 'Machine added · ' + money(cost) + ' from treasury';
         }
       }
       function confirm() {
@@ -3020,7 +3053,7 @@
         }
         if (event.target.id === 'payout') {
           state.payout = Number(event.target.value);
-          state.notice = 'Payout set to ' + state.payout + '% · no time simulation';
+          state.notice = 'Payout · ' + state.payout + '%';
           render();
         }
       });
