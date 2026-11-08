@@ -61,7 +61,7 @@ describe('the Contracts section (BUS20c)', () => {
 
   it('names drivers, the route planner and the fleet', async () => {
     await openDelivery(deliveryBusiness());
-    expect(screen.getByText('Drivers 1/5')).toBeOnTheScreen();
+    expect(screen.getByText('Driving 1/5')).toBeOnTheScreen();
     expect(screen.getByText('Route planner 0/20')).toBeOnTheScreen();
     expect(screen.getByText('2 of 2 · 2 per driver')).toBeOnTheScreen();
     expect(screen.getByText('★★★☆☆')).toBeOnTheScreen();
@@ -99,6 +99,12 @@ describe('the Contracts section (BUS20c)', () => {
     expect(screen.getByText('6,000 missed a day at $25.00 each · 5 days left')).toBeOnTheScreen();
     expect(screen.getByText('-$150,000.00/day')).toBeOnTheScreen();
     expect(screen.getByText('0 parcels/day')).toBeOnTheScreen();
+  });
+
+  it('shows the loss from a van no one can drive', async () => {
+    await openDelivery(deliveryBusiness({}, { staff: { operations: 0, sales: 0, manager: 0 } }));
+    expect(screen.getByText('-$14,000.00/day')).toBeOnTheScreen();
+    expect(screen.getByText('0 of 2 · 2 per driver')).toBeOnTheScreen();
   });
 
   it('builds the sorting hub at Global after confirming', async () => {

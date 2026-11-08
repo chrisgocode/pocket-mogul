@@ -34,7 +34,7 @@ const RESTOCKING = {
 };
 
 const DRIVING = {
-  name: 'Drivers',
+  name: 'Driving',
   effect: '+20% capacity each and drives vans; a van without a driver delivers nothing',
 };
 
@@ -73,6 +73,11 @@ export function formatPerDay(cents: MoneyCents): string {
 
 export function spent(priceCents: MoneyCents): MoneyCents {
   return moneyCents(0n - priceCents);
+}
+
+export function profitGain(from: MoneyCents, to: MoneyCents): string {
+  const gain = moneyCents(to - from);
+  return `${gain < 0n ? '' : '+'}${formatPerDay(gain)}`;
 }
 
 export function profitChange(from: MoneyCents, to: MoneyCents): string {

@@ -1,12 +1,12 @@
 import { StyleSheet, View } from 'react-native';
 
 import type { OfferView } from '@/application/deliveryView';
-import { formatMoneyExact, moneyCents } from '@/domain/money';
+import { formatMoneyExact } from '@/domain/money';
 import { Button } from '@/ui/Button';
 import { ListRow } from '@/ui/ListRow';
 import { spacing } from '@/ui/tokens';
 
-import { formatPerDay } from './businessFormat';
+import { profitGain } from './businessFormat';
 import { daysText, parcels, type DeliveryActions } from './deliveryFormat';
 
 function terms(offer: OfferView): string {
@@ -16,8 +16,7 @@ function terms(offer: OfferView): string {
 }
 
 export function OfferRow({ offer, actions }: { offer: OfferView; actions: DeliveryActions }) {
-  const gain = moneyCents(offer.nextProfitCents - offer.profitCents);
-  const value = `${gain < 0n ? '' : '+'}${formatPerDay(gain)}`;
+  const value = profitGain(offer.profitCents, offer.nextProfitCents);
   return (
     <View style={styles.offer}>
       <ListRow title={offer.client} subtitle={terms(offer)} value={value} detail="profit" />
