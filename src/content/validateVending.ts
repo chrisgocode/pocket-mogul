@@ -37,7 +37,7 @@ function stageIssues(business: Business, mechanic: VendingMechanic, content: Con
 
 function vendingIssues(business: Business, content: Content): string[] {
   const { mechanic } = business;
-  if (mechanic === undefined) return [];
+  if (mechanic?.kind !== 'vending') return [];
   const matchIssue =
     mechanic.matchBps.poor >= mechanic.matchBps.perfect
       ? [`Business ${business.id} poor match must be below a perfect match`]

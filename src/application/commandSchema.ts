@@ -6,6 +6,7 @@ import {
   PRICE_LEVELS,
   STAFF_ROLES,
 } from '@/domain/business/definition';
+import { OPTIONAL_PACKAGES } from '@/domain/business/carWashRules';
 import { STOCK_MIXES, VENDING_LOCATIONS } from '@/domain/business/vendingRules';
 import { COACH_MARKS } from '@/domain/coachMarks';
 import type { GameCommand } from '@/domain/commands';
@@ -68,6 +69,19 @@ const gameCommandSchema = z.discriminatedUnion('type', [
     location: z.union([vendingLocation, z.literal('all')]),
   }),
   z.object({ type: z.literal('InstallCardReaders'), businessId }),
+  z.object({
+    type: z.literal('SetWashPackage'),
+    businessId,
+    washPackage: z.enum(OPTIONAL_PACKAGES),
+    offered: z.boolean(),
+  }),
+  z.object({
+    type: z.literal('SetMembershipPrice'),
+    businessId,
+    priceLevel: z.enum(PRICE_LEVELS),
+  }),
+  z.object({ type: z.literal('SetMemberCap'), businessId, capPercent: z.number().int() }),
+  z.object({ type: z.literal('InstallDetailing'), businessId }),
   z.object({ type: z.literal('DismissCoachMark'), coachMark: z.enum(COACH_MARKS) }),
   z.object({ type: z.literal('SetPayout'), businessId, payoutPercent: z.number().int() }),
   z.object({ type: z.literal('DepositToTreasury'), businessId, amountCents }),

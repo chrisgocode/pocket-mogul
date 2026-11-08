@@ -1,6 +1,6 @@
 import type { MoneyCents } from '@/domain/money';
 
-import type { BusinessMechanic } from './vendingRules';
+import type { BusinessMechanic } from './mechanicRules';
 
 export const PRICE_LEVELS = ['budget', 'value', 'standard', 'premium', 'luxury'] as const;
 export type PriceLevel = (typeof PRICE_LEVELS)[number];

@@ -2,11 +2,14 @@ import { economyV1 } from './economy-v1';
 import { findContentIssues, getContent } from './index';
 import type { ContentInput } from './schema';
 
-type VendingInput = NonNullable<ContentInput['businesses'][number]['mechanic']>;
+type VendingInput = Extract<
+  NonNullable<ContentInput['businesses'][number]['mechanic']>,
+  { kind: 'vending' }
+>;
 
 function vendingOf(content: ContentInput): VendingInput {
   const mechanic = content.businesses.find((business) => business.id === 'vending')?.mechanic;
-  if (mechanic === undefined) throw new Error('The Vending Machine has no mechanic');
+  if (mechanic?.kind !== 'vending') throw new Error('The Vending Machine has no mechanic');
   return mechanic;
 }
 
@@ -18,7 +21,9 @@ const issuesFor = (mutate: (vending: VendingInput) => void) => {
 
 describe('the Vending Machine mechanic in content (BUS20a)', () => {
   it('gives only the Vending Machine a vending mechanic, unlocked at Local', () => {
-    const flagships = getContent().businesses.filter((business) => business.mechanic !== undefined);
+    const flagships = getContent().businesses.filter(
+      (business) => business.mechanic?.kind === 'vending',
+    );
     expect(flagships.map((business) => business.id)).toEqual(['vending']);
     expect(vendingOf(economyV1).unlockStage).toBe(2);
   });

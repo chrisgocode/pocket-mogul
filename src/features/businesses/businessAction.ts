@@ -5,6 +5,7 @@ import type {
   BusinessSale,
   ReadyStage,
 } from '@/application/businessDetailView';
+import type { AvailableDetailing } from '@/application/carWashView';
 import type { AvailableCardReaders } from '@/application/vendingView';
 import type { Business } from '@/content';
 import type { StaffRole } from '@/domain/business/definition';
@@ -15,6 +16,7 @@ import { formatCashChange } from '@/features/game/priceFormat';
 
 import { profitChange, spent, TRACK_NAMES } from './businessFormat';
 import { fireText, hireText, stageText } from './growthActionText';
+import { detailingText } from './carWashActionText';
 import { cardReaderText } from './vendingActionText';
 
 export type BusinessAction =
@@ -36,6 +38,11 @@ export type BusinessAction =
       readonly kind: 'card_readers';
       readonly business: Business;
       readonly readers: AvailableCardReaders;
+    }
+  | {
+      readonly kind: 'detailing';
+      readonly business: Business;
+      readonly detailing: AvailableDetailing;
     }
   | { readonly kind: 'withdraw'; readonly business: Business; readonly amountCents: MoneyCents }
   | { readonly kind: 'sell'; readonly business: Business; readonly sale: BusinessSale };
@@ -90,6 +97,7 @@ const COMMANDS: ActionHandlers<GameCommand> = {
     fromStage: stage.stage,
   }),
   card_readers: ({ business }) => ({ type: 'InstallCardReaders', businessId: business.id }),
+  detailing: ({ business }) => ({ type: 'InstallDetailing', businessId: business.id }),
 };
 
 export function businessActionCommand(action: BusinessAction): GameCommand {
@@ -159,6 +167,7 @@ const SHEET_TEXT: ActionHandlers<ActionSheetText> = {
   fire: (action) => fireText(action.role, action.business),
   stage: (action) => stageText(action.stage),
   card_readers: (action) => cardReaderText(action.readers),
+  detailing: (action) => detailingText(action.detailing),
 };
 
 export function businessActionSheetText(action: BusinessAction): ActionSheetText {

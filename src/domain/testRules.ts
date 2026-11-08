@@ -136,6 +136,7 @@ export function ownedBusiness(
     insurance: { equipment: 'none', liability: 'none', supply: 'none' },
     incident: { status: 'none' },
     vending: { status: 'inactive' },
+    carWash: { status: 'inactive' },
     ...change,
   };
 }
