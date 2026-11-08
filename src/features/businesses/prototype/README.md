@@ -92,3 +92,21 @@ Properties is now a numbered **asset register**, not a large landscape-image lis
 MOGUL market source inspected: retained `/root/.t3/research/mogul-decompiled/bundle.js`, `MarketScreenInner` starting around line 2165584 and market rendering around 2173000–2189690. Observed portfolio/search modes, a watchlist area, class filters, search, holding badges and aligned price/change rows. Our adaptation stays within v1 Stocks/Crypto and uses three task views: Portfolio with cost basis and P&L; Explore with text search, class filters, 24h mover summaries and sorting; Watchlist with saved assets. Compact sparklines and ticker marks are original sample visuals. No source code, brands, copy, mechanics or assets imported.
 
 Search matches name/ticker, sorting supports name/price/24h change, watchlist edits persist in sample memory, and market trades continue to update Wealth. Prices, percentage changes and sparklines remain static illustrative fixtures, not live simulation. Earn still occupies the center and is the landing page on every load.
+
+## Five additional palette options
+
+Owner likes the mixed-color direction and requested at least five more choices. Studio remains the default. Added five original palettes, all with distinct Earn / Businesses / Markets / Properties / Wealth accents:
+
+| Palette | URL key | Character |
+|---|---|---|
+| After Hours | `afterhours` | Plum surfaces; peach, mint, lilac, rose and cyan accents |
+| Marina | `marina` | Deep navy surfaces; citrus, aqua, periwinkle, coral and sky blue |
+| Arcade | `arcade` | Ink surfaces; bright lime, turquoise, pink, apricot and electric blue |
+| Espresso | `espresso` | Cocoa surfaces; butter, sage, lavender, peach and soft blue |
+| Paper | `paper` | Light ivory surfaces; ochre, jade, indigo, clay and deep blue |
+
+Six labeled swatch buttons compare Studio and the five new palettes directly above the phone. The dropdown also keeps the three earlier monochromatic options. Selection updates `?palette=<key>` without changing the current tab, sample balances, holdings or activity. Reload still opens Earn, with the palette restored from the URL. Paper also sets a light control color scheme, dark readable accents, and pale gain/loss badge backgrounds.
+
+Palette changes apply to all five sections, center navigation, actions, wallet area, summary figures, category allocation and market marks. Existing property illustrations retain their own asset-specific art palettes.
+
+Validation: all nine palette URL keys load; the six direct comparison buttons and category styles render; switching preserves sample state. A numeric contrast check of the five new palettes confirms at least 4.5:1 for primary/muted text, section accents and gain/loss text against each palette's base/panel backgrounds. This is a token-pair check, not a full accessibility or browser visual audit. Chrome preview still fails to launch, so visual verification remains limited.

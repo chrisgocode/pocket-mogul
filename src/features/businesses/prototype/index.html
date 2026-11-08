@@ -929,7 +929,7 @@
         place-items: center;
       }
 
-      .phone[data-palette='mixed'] {
+      .phone[data-color-system='category'] {
         --bg: #16171c;
         --panel: #202229;
         --raised: #2c2f39;
@@ -950,55 +950,55 @@
         --asset-3: var(--earn);
         --asset-4: var(--properties);
       }
-      .phone[data-palette='mixed'][data-section='businesses'] {
+      .phone[data-color-system='category'][data-section='businesses'] {
         --gold: var(--businesses);
       }
-      .phone[data-palette='mixed'][data-section='markets'] {
+      .phone[data-color-system='category'][data-section='markets'] {
         --gold: var(--markets);
       }
-      .phone[data-palette='mixed'][data-section='properties'] {
+      .phone[data-color-system='category'][data-section='properties'] {
         --gold: var(--properties);
       }
-      .phone[data-palette='mixed'][data-section='wealth'] {
+      .phone[data-color-system='category'][data-section='wealth'] {
         --gold: var(--wealth);
       }
-      .phone[data-palette='mixed'] .cash {
+      .phone[data-color-system='category'] .cash {
         color: var(--ink);
       }
-      .phone[data-palette='mixed'] .nav .center-tab {
+      .phone[data-color-system='category'] .nav .center-tab {
         color: var(--earn);
       }
-      .phone[data-palette='mixed'] .nav .center-tab span {
+      .phone[data-color-system='category'] .nav .center-tab span {
         color: var(--earn);
       }
-      .phone[data-palette='mixed'] .nav .center-tab.active span {
+      .phone[data-color-system='category'] .nav .center-tab.active span {
         background: var(--earn);
         color: var(--bg);
         border-color: var(--earn);
       }
-      .phone[data-palette='mixed'] .tap-zone {
+      .phone[data-color-system='category'] .tap-zone {
         background: linear-gradient(125deg, #332b26, #25242f);
         border-color: #5a4836;
       }
-      .phone[data-palette='mixed'] .home-summary button:nth-child(1) b {
+      .phone[data-color-system='category'] .home-summary button:nth-child(1) b {
         color: var(--businesses);
       }
-      .phone[data-palette='mixed'] .home-summary button:nth-child(2) b {
+      .phone[data-color-system='category'] .home-summary button:nth-child(2) b {
         color: var(--markets);
       }
-      .phone[data-palette='mixed'] .home-summary button:nth-child(3) b {
+      .phone[data-color-system='category'] .home-summary button:nth-child(3) b {
         color: var(--properties);
       }
-      .phone[data-palette='mixed'] .business-visual {
+      .phone[data-color-system='category'] .business-visual {
         color: var(--businesses);
       }
-      .phone[data-palette='mixed'] .business-visual[data-business='food_cart'] {
+      .phone[data-color-system='category'] .business-visual[data-business='food_cart'] {
         color: var(--earn);
       }
-      .phone[data-palette='mixed'] .business-visual[data-business='coffee_kiosk'] {
+      .phone[data-color-system='category'] .business-visual[data-business='coffee_kiosk'] {
         color: var(--properties);
       }
-      .phone[data-palette='mixed'] .business-visual.illustrated svg {
+      .phone[data-color-system='category'] .business-visual.illustrated svg {
         stroke: currentColor;
       }
       .register-summary {
@@ -1270,6 +1270,164 @@
         border-radius: 6px;
         min-height: 44px;
       }
+
+      .palette-choices {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        max-width: 390px;
+        margin: 0 auto 14px;
+      }
+      .palette-choices button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 52px;
+        background: var(--secondary, #222);
+        color: var(--foreground, #eee);
+        border: 1px solid var(--border, #444);
+        border-radius: 9px;
+        padding: 7px 4px;
+        font-size: 11px;
+      }
+      .palette-choices button[aria-pressed='true'] {
+        outline: 2px solid var(--foreground, #eee);
+        outline-offset: -3px;
+      }
+      .palette-dots {
+        display: flex;
+        gap: 4px;
+      }
+      .palette-dots i {
+        display: block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .phone[data-color-system='category'] .tap-zone {
+        background: linear-gradient(125deg, var(--tap-start, #332b26), var(--tap-end, #25242f));
+        border-color: var(--line);
+      }
+      .phone[data-color-system='category'] .market-row .ticker-mark {
+        background: var(--stock-mark, #393247);
+        color: var(--markets);
+      }
+      .phone[data-color-system='category'] .market-row[data-kind='Crypto'] .ticker-mark {
+        background: var(--crypto-mark, #42392b);
+        color: var(--earn);
+      }
+      .phone[data-color-system='category'] .market-row .change-badge {
+        background: var(--gain-surface, #26372f);
+      }
+      .phone[data-color-system='category'] .market-row .change-badge.red {
+        background: var(--loss-surface, #402c34);
+      }
+      .phone[data-palette='afterhours'] {
+        --bg: #1d1724;
+        --panel: #282131;
+        --raised: #362d40;
+        --line: #50425d;
+        --ink: #f8eef5;
+        --dim: #baadbf;
+        --earn: #f5b88c;
+        --businesses: #8edabf;
+        --markets: #c7b3fa;
+        --properties: #f0a6b5;
+        --wealth: #91cfe5;
+        --green: #8edab0;
+        --red: #f5a0a9;
+        --tap-start: #3b2b31;
+        --tap-end: #30243d;
+        --stock-mark: #40324e;
+        --crypto-mark: #48372c;
+      }
+      .phone[data-palette='marina'] {
+        --bg: #101d2a;
+        --panel: #192b3b;
+        --raised: #243d50;
+        --line: #385369;
+        --ink: #eef5f8;
+        --dim: #a5bbc9;
+        --earn: #ffd077;
+        --businesses: #79dccd;
+        --markets: #b9b1fa;
+        --properties: #ffb49b;
+        --wealth: #81c8fa;
+        --green: #83ddb4;
+        --red: #ffaaa7;
+        --tap-start: #343632;
+        --tap-end: #1e3144;
+        --stock-mark: #343554;
+        --crypto-mark: #3f3c31;
+      }
+      .phone[data-palette='arcade'] {
+        --bg: #141521;
+        --panel: #202134;
+        --raised: #2c2e46;
+        --line: #434760;
+        --ink: #f4f5ff;
+        --dim: #b0b5ce;
+        --earn: #d9ef80;
+        --businesses: #79e1d2;
+        --markets: #efaff2;
+        --properties: #ffba87;
+        --wealth: #8cceff;
+        --green: #8be0a6;
+        --red: #ffa3b2;
+        --tap-start: #343b2b;
+        --tap-end: #252740;
+        --stock-mark: #46314d;
+        --crypto-mark: #3c402c;
+      }
+      .phone[data-palette='espresso'] {
+        --bg: #211c19;
+        --panel: #2d2722;
+        --raised: #3c342d;
+        --line: #55493f;
+        --ink: #f6f0e5;
+        --dim: #c0b3a1;
+        --earn: #ead59a;
+        --businesses: #b1cfab;
+        --markets: #c8b5e6;
+        --properties: #edb09b;
+        --wealth: #a7c9dc;
+        --green: #b0d7ae;
+        --red: #f0aaa4;
+        --tap-start: #42382c;
+        --tap-end: #332a2b;
+        --stock-mark: #44374b;
+        --crypto-mark: #46402d;
+      }
+      .phone[data-palette='paper'] {
+        --bg: #f6f3ed;
+        --panel: #fffdf9;
+        --raised: #ede8e0;
+        --line: #d5cfc5;
+        --ink: #272b32;
+        --dim: #62666f;
+        --earn: #9b501b;
+        --businesses: #1e7465;
+        --markets: #68509e;
+        --properties: #a24f3d;
+        --wealth: #286d9a;
+        --green: #21724e;
+        --red: #b0394b;
+        --tap-start: #f2e1ca;
+        --tap-end: #f1eaf4;
+        --stock-mark: #ece5f5;
+        --crypto-mark: #f1e7cf;
+      }
+      .phone[data-palette='paper'] {
+        color-scheme: light;
+        --gain-surface: #e1f0e7;
+        --loss-surface: #f8e4e8;
+        --asset-0: #757e8d;
+      }
+      .phone[data-palette='paper'] .hero {
+        background: var(--panel);
+      }
     </style>
   </head>
   <body>
@@ -1288,6 +1446,11 @@
         ><button data-action="reset">Reset sample</button>
         <select id="palette" aria-label="Color palette">
           <option value="mixed">Studio · mixed accents</option>
+          <option value="afterhours">After Hours · peach · mint</option>
+          <option value="marina">Marina · citrus · aqua</option>
+          <option value="arcade">Arcade · lime · electric pink</option>
+          <option value="espresso">Espresso · butter · sage</option>
+          <option value="paper">Paper · jade · indigo</option>
           <option value="graphite">Graphite · mint</option>
           <option value="midnight">Midnight · blue</option>
           <option value="ash">Ash · ivory</option>
@@ -1298,6 +1461,12 @@
           <option value="none">No icons</option>
         </select>
       </div>
+      <div
+        class="palette-choices"
+        id="palette-choices"
+        role="group"
+        aria-label="Compare color palettes"
+      ></div>
       <div class="phone" id="phone"></div>
       <div class="evidence">
         <p id="hypothesis"></p>
@@ -1325,7 +1494,42 @@
       let businessArt = ['outline', 'none'].includes(query.get('art'))
         ? query.get('art')
         : 'illustrated';
-      let palette = ['graphite', 'midnight', 'ash'].includes(query.get('palette'))
+      const categoryPalettes = ['mixed', 'afterhours', 'marina', 'arcade', 'espresso', 'paper'];
+      const palettePreviews = [
+        {
+          id: 'mixed',
+          name: 'Studio',
+          colors: ['#eabb72', '#76d5c0', '#b6a5ef', '#edab91', '#9ac6f1'],
+        },
+        {
+          id: 'afterhours',
+          name: 'After Hours',
+          colors: ['#f5b88c', '#8edabf', '#c7b3fa', '#f0a6b5', '#91cfe5'],
+        },
+        {
+          id: 'marina',
+          name: 'Marina',
+          colors: ['#ffd077', '#79dccd', '#b9b1fa', '#ffb49b', '#81c8fa'],
+        },
+        {
+          id: 'arcade',
+          name: 'Arcade',
+          colors: ['#d9ef80', '#79e1d2', '#efaff2', '#ffba87', '#8cceff'],
+        },
+        {
+          id: 'espresso',
+          name: 'Espresso',
+          colors: ['#ead59a', '#b1cfab', '#c8b5e6', '#edb09b', '#a7c9dc'],
+        },
+        {
+          id: 'paper',
+          name: 'Paper',
+          colors: ['#9b501b', '#1e7465', '#68509e', '#a24f3d', '#286d9a'],
+        },
+      ];
+      let palette = [...categoryPalettes, 'graphite', 'midnight', 'ash'].includes(
+        query.get('palette'),
+      )
         ? query.get('palette')
         : 'mixed';
       const makeState = (scenario) => ({
@@ -1868,6 +2072,16 @@
       }
       function render() {
         document.getElementById('phone').dataset.palette = palette;
+        document.getElementById('phone').dataset.colorSystem = categoryPalettes.includes(palette)
+          ? 'category'
+          : 'single';
+        document.getElementById('palette').value = palette;
+        document.getElementById('palette-choices').innerHTML = palettePreviews
+          .map(
+            (p) =>
+              `<button data-action="palette:${p.id}" aria-pressed="${p.id === palette}"><span>${p.name}</span><span class="palette-dots" aria-hidden="true">${p.colors.map((color) => `<i style="background:${color}"></i>`).join('')}</span></button>`,
+          )
+          .join('');
         document.getElementById('phone').dataset.section =
           { detail: 'businesses', asset: 'markets', property: 'properties' }[state.screen] ??
           state.screen;
@@ -1953,8 +2167,15 @@
         }
         state.confirmation = null;
       }
+      function choosePalette(value) {
+        palette = value;
+        const url = new URL(location.href);
+        url.searchParams.set('palette', value);
+        history.replaceState(null, '', url);
+      }
       function act(action) {
         const [type, value] = action.split(':');
+        if (type === 'palette') choosePalette(value);
         if (type === 'next' || type === 'prev') {
           cycle(type === 'next' ? 1 : -1);
           return;
@@ -2019,10 +2240,7 @@
           render();
         }
         if (event.target.id === 'palette') {
-          palette = event.target.value;
-          const url = new URL(location.href);
-          url.searchParams.set('palette', palette);
-          history.replaceState(null, '', url);
+          choosePalette(event.target.value);
           render();
         }
         if (event.target.id === 'business-art') {
