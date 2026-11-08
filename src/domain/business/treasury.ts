@@ -5,6 +5,7 @@ import { findBusiness, type BusinessEconomy, type BusinessPricing } from './defi
 import type { OwnedBusiness } from './owned';
 import { startBusinessDay, type StruckIncident } from './risks';
 import { managerDecisions } from './staff';
+import { restockedByStaff, soldVendingDay, withVendingUnlocked } from './vending';
 
 export type BusinessClosure = { readonly businessId: string; readonly atMs: number };
 
@@ -110,8 +111,10 @@ type Settling = Settled & { readonly atMs: number; readonly incidents: readonly 
 function dayStarted(segment: Settled, boundary: { settlement: Settlement; endMs: number }) {
   const { pricing, seed } = boundary.settlement;
   const day = boundary.endMs / pricing.rules.dayMs;
-  const started = startBusinessDay(segment.business, { pricing, seed, day });
-  return { ...started, business: managerDecisions(started.business, pricing) };
+  const opened = withVendingUnlocked(soldVendingDay(segment.business, pricing), pricing);
+  const started = startBusinessDay(opened, { pricing, seed, day });
+  const restocked = restockedByStaff(started.business, pricing);
+  return { ...started, business: managerDecisions(restocked, pricing) };
 }
 
 function settleBusiness(business: OwnedBusiness, settlement: Settlement): Settled {

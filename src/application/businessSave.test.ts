@@ -96,3 +96,38 @@ describe('business risks (BUS16, BUS17)', () => {
     });
   });
 });
+
+const spot = (machines: number, stock: number) => ({ machines, mix: 'balanced', stock });
+
+describe('vending locations and coach marks (BUS20a)', () => {
+  const vending = {
+    status: 'active',
+    spots: {
+      office: spot(1, 120),
+      gym: { machines: 1, mix: 'healthy', stock: 300 },
+      school: spot(0, 0),
+      station: spot(0, 0),
+      hospital: spot(0, 0),
+    },
+    cardReaders: 'none',
+  } as const;
+
+  it('loads a baseline save with the mechanic inactive and no coach marks seen', () => {
+    expect(currentState(baselineFixture)).toMatchObject({
+      businesses: [{ vending: { status: 'inactive' } }],
+      seenCoachMarks: [],
+    });
+  });
+
+  it('keeps vending in a top-level record and round-trips it with seen coach marks', () => {
+    const stored = baselineDocument({ vending: { vending }, seenCoachMarks: ['vending'] });
+    const encoded = encodeSave(currentState(stored));
+    const document = JSON.parse(encoded) as { businesses: readonly object[] };
+    expect(document).toMatchObject({ vending: { vending }, seenCoachMarks: ['vending'] });
+    expect(document.businesses[0]).not.toHaveProperty('vending');
+    expect(currentState(encoded)).toMatchObject({
+      businesses: [{ vending }],
+      seenCoachMarks: ['vending'],
+    });
+  });
+});

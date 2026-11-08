@@ -1,5 +1,7 @@
 import type { MoneyCents } from '@/domain/money';
 
+import type { BusinessMechanic } from './vendingRules';
+
 export const PRICE_LEVELS = ['budget', 'value', 'standard', 'premium', 'luxury'] as const;
 export type PriceLevel = (typeof PRICE_LEVELS)[number];
 
@@ -66,6 +68,7 @@ export type BusinessDefinition = {
   readonly catalogRevenuePerDayCents: MoneyCents;
   readonly demandBps: ByPriceLevel;
   readonly incidents: readonly IncidentType[];
+  readonly mechanic: BusinessMechanic;
 };
 
 export type BusinessCatalog = readonly BusinessDefinition[];

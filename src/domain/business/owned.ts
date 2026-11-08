@@ -10,6 +10,7 @@ import {
   type PriceLevel,
   type StaffCounts,
 } from './definition';
+import { NO_VENDING, type VendingOperation } from './vendingRules';
 
 export type BusinessStatus = 'open' | 'closed';
 
@@ -46,6 +47,7 @@ export type OwnedBusiness = {
   readonly capitalizedSpendCents: MoneyCents;
   readonly insurance: Insurance;
   readonly incident: ActiveIncident;
+  readonly vending: VendingOperation;
 };
 
 const FIRST_STAGE = 1;
@@ -70,5 +72,6 @@ export function newBusiness(
     capitalizedSpendCents: definition.price,
     insurance: NO_INSURANCE,
     incident: NO_INCIDENT,
+    vending: NO_VENDING,
   };
 }

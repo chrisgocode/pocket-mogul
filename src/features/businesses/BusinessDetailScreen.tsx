@@ -15,6 +15,7 @@ import {
 } from './businessAction';
 import { OwnedBusinessDetails } from './OwnedBusinessDetails';
 import type { TreasuryActions } from './treasuryActions';
+import type { VendingActions } from './vendingFormat';
 import { useBusinessCommand } from './useBusinessCommand';
 
 function screenTitle(detail: BusinessDetailView): string {
@@ -37,6 +38,25 @@ function treasuryActions(
   };
 }
 
+function vendingActions(
+  detail: Extract<BusinessDetailView, { status: 'owned' }>,
+  handlers: {
+    run: ReturnType<typeof useBusinessCommand>;
+    review: (action: BusinessAction) => void;
+  },
+): VendingActions {
+  const businessId = detail.business.id;
+  const { run } = handlers;
+  return {
+    move: (route) => run({ type: 'MoveVendingMachine', businessId, ...route }),
+    setMix: (choice) => run({ type: 'SetVendingMix', businessId, ...choice }),
+    restock: (location) => run({ type: 'RestockVending', businessId, location }),
+    dismissCoachMark: () => run({ type: 'DismissCoachMark', coachMark: 'vending' }),
+    installCardReaders: (readers) =>
+      handlers.review({ kind: 'card_readers', business: detail.business, readers }),
+  };
+}
+
 export function BusinessDetailScreen() {
   const { businessId } = useLocalSearchParams<{ businessId: string }>();
   const detail = selectBusinessDetail(useGameSnapshot(), { businessId, content: getContent() });
@@ -52,6 +72,7 @@ export function BusinessDetailScreen() {
           onPriceLevel={(priceLevel) => run({ type: 'SetPriceLevel', businessId, priceLevel })}
           onInsurance={(change) => run({ type: 'SetInsurance', businessId, ...change })}
           treasury={treasuryActions(detail, { run, review })}
+          vending={vendingActions(detail, { run, review })}
         />
       ) : null}
       {detail.status === 'not_owned' ? (

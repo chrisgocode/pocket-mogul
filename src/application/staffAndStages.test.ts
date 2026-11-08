@@ -72,7 +72,7 @@ describe('a hired manager (AC43)', () => {
   it('moves to the most profitable price at each day boundary, offline too', async () => {
     const left = await startWith({
       stage: 2,
-      staff: { operations: 0, sales: 0, manager: 1 },
+      staff: { operations: 1, sales: 0, manager: 1 },
       treasuryCents: dollars('100'),
     });
     const back = await left.restart({ awayMs: HOUR_MS });

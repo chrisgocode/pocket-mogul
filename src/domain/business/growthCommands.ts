@@ -5,6 +5,7 @@ import { changed, lookUpOwned, spendTreasury, type BusinessOrder } from './comma
 import type { StaffRole } from './definition';
 import { quoteStaff, withStaff } from './staff';
 import { quoteStage } from './stages';
+import { withVendingUnlocked } from './vending';
 
 type StaffOrder = BusinessOrder & { readonly role: StaffRole; readonly fromCount: number };
 
@@ -47,7 +48,7 @@ export function applyUpgradeStage(
   return spendTreasury(state, {
     owned,
     priceCents: quote.priceCents,
-    improved: { ...owned, stage: quote.stage + 1 },
+    improved: withVendingUnlocked({ ...owned, stage: quote.stage + 1 }, pricing),
     expense: 'capital',
   });
 }

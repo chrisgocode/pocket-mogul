@@ -147,7 +147,7 @@ One of a business's three kinds of hire: operations staff (+20% capacity each), 
 _Avoid_: Worker, employee, crew
 
 **Manager**:
-The staff role, unlocked at stage 2 (Local), that adds 10% to positive profit and makes a business's routine decisions at each day boundary, offline too: setting the most profitable Price level and renewing Lapsed insurance once the Treasury can pay. A Manager never deposits, withdraws or sells.
+The staff role, unlocked at stage 2 (Local), that adds 10% to positive profit and makes a business's routine decisions at each day boundary, offline too: setting the most profitable Price level, renewing Lapsed insurance once the Treasury can pay, and a flagship's own routine choices (at a Vending Machine, each Location's best Stock mix). A Manager never deposits, withdraws or sells.
 _Avoid_: Automation, autopilot
 
 **Incident**:
@@ -157,6 +157,38 @@ _Avoid_: Event (that is a market event), disaster, accident
 **Insurance policy**:
 Cover for one incident category, available from stage 2 (Local). It costs a daily premium of 2% of catalog revenue out of profit, covers 80% of a Treasury loss and halves a capacity loss or cost rise and its duration. It renews at each day boundary while the Treasury can pay the premium; otherwise it is Lapsed until the player or a Manager renews it.
 _Avoid_: Cover plan, protection
+
+**Flagship mechanic**:
+A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock.
+_Avoid_: Minigame, feature
+
+**Coach mark**:
+A one-time card that explains a mechanic the first time it appears, until the player dismisses it. The save remembers which ones the player has seen.
+_Avoid_: Tooltip, tutorial step (that is the opening tutorial)
+
+**Location**:
+One of the five places a Vending Machine's machines stand: Office, Gym, School, Station and Hospital. Each has slots (how many machines fit), a traffic multiplier on demand, a taste split between snacks, drinks and healthy items, and a restock fee per machine. New machines stand at the Office, which holds every machine not placed elsewhere.
+_Avoid_: Site, spot, branch
+
+**Stock mix**:
+What a Location's machines sell: Snacks, Drinks, Healthy or Balanced. Its match with the Location's taste multiplies demand there, from 60% for a poor match to 140% for a perfect one.
+_Avoid_: Menu, product line
+
+**Stock**:
+The items a Location's machines hold, up to 300 per machine. Each business day sells stock in proportion to customers served, and a Location with no stock serves no one until it is restocked.
+_Avoid_: Inventory, supplies
+
+**Restocking**:
+Filling a Location's machines to full, paid from the Treasury at the Location's fee per machine; an operating cost that doesn't count in Carrying value. The player restocks one Location or all of them in one tap; a Restocker restocks every Location at each day boundary, offline too, while the Treasury can pay.
+_Avoid_: Refill, resupply
+
+**Restocker**:
+An operations hire at a Vending Machine (shown as Restocking staff). It adds 20% capacity like any operations hire and restocks every Location at each day boundary.
+_Avoid_: Driver (that is the Delivery Company's), stocker
+
+**Card readers**:
+The Vending Machine's stage 5 (Global) signature upgrade, paid once from the Treasury, that adds 20% to demand at every Price level.
+_Avoid_: Contactless, payment upgrade
 
 **Treasury**:
 A business's own money. Its profit lands here, and its units, upgrades and other running spending are paid from here, never from the player's cash. It never goes below zero.
@@ -171,7 +203,7 @@ A business whose Treasury ran out under a loss. It earns and pays nothing, keeps
 _Avoid_: Bankrupt, paused, failed
 
 **Carrying value**:
-What a business counts for in net worth: its purchase price plus spending on units, upgrades and stage upgrades, plus its Treasury. Wages and signing fees are running costs and don't count.
+What a business counts for in net worth: its purchase price plus spending on units, upgrades, stage upgrades and signature upgrades, plus its Treasury. Wages, signing fees and Restocking are running costs and don't count.
 _Avoid_: Book value, asset value
 
 **Sale quote**:

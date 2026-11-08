@@ -6,6 +6,8 @@ import {
   PRICE_LEVELS,
   STAFF_ROLES,
 } from '@/domain/business/definition';
+import { STOCK_MIXES, VENDING_LOCATIONS } from '@/domain/business/vendingRules';
+import { COACH_MARKS } from '@/domain/coachMarks';
 import type { GameCommand } from '@/domain/commands';
 import { moneyCents, quantityMicrounits } from '@/domain/money';
 import { PROPERTY_TRACKS } from '@/domain/propertyQuotes';
@@ -17,6 +19,7 @@ const fromLevel = z.number().int().nonnegative();
 const fromCount = z.number().int().nonnegative();
 const assetId = z.string().min(1);
 const amountCents = z.bigint().positive().transform(moneyCents);
+const vendingLocation = z.enum(VENDING_LOCATIONS);
 
 const gameCommandSchema = z.discriminatedUnion('type', [
   z.object({
@@ -47,6 +50,25 @@ const gameCommandSchema = z.discriminatedUnion('type', [
     category: z.enum(INCIDENT_CATEGORIES),
     insured: z.boolean(),
   }),
+  z.object({
+    type: z.literal('MoveVendingMachine'),
+    businessId,
+    from: vendingLocation,
+    to: vendingLocation,
+  }),
+  z.object({
+    type: z.literal('SetVendingMix'),
+    businessId,
+    location: vendingLocation,
+    mix: z.enum(STOCK_MIXES),
+  }),
+  z.object({
+    type: z.literal('RestockVending'),
+    businessId,
+    location: z.union([vendingLocation, z.literal('all')]),
+  }),
+  z.object({ type: z.literal('InstallCardReaders'), businessId }),
+  z.object({ type: z.literal('DismissCoachMark'), coachMark: z.enum(COACH_MARKS) }),
   z.object({ type: z.literal('SetPayout'), businessId, payoutPercent: z.number().int() }),
   z.object({ type: z.literal('DepositToTreasury'), businessId, amountCents }),
   z.object({ type: z.literal('WithdrawFromTreasury'), businessId, amountCents }),

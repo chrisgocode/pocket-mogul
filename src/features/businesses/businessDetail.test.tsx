@@ -108,15 +108,15 @@ describe('Business details', () => {
 });
 
 describe('Business staff (BUS13)', () => {
-  it('hires operations staff from the treasury after confirming', async () => {
+  it('hires operations staff, named Restocking at a Vending Machine, after confirming', async () => {
     await openVending('0', { business: { treasuryCents: dollars('20') } });
-    await fireEvent.press(screen.getByRole('button', { name: 'Hire Operations, Hire · $16.80' }));
-    expect(screen.getByRole('header', { name: 'Hire operations staff' })).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Hire Restocking, Hire · $16.80' }));
+    expect(screen.getByRole('header', { name: 'Hire restocking staff' })).toBeOnTheScreen();
     expect(screen.getByText('$100.00/day → $106.00/day')).toBeOnTheScreen();
     await confirm();
     expect(await findLine('Wages', '-$5.60/day')).toBeOnTheScreen();
     expect(line('Treasury', '$3.20')).toBeOnTheScreen();
-    expect(screen.getByText('Operations 1/2')).toBeOnTheScreen();
+    expect(screen.getByText('Restocking 1/2')).toBeOnTheScreen();
   });
 
   it('lets staff go for free', async () => {

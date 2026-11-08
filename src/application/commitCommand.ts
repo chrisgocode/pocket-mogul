@@ -1,28 +1,5 @@
 import type { Content } from '@/content';
-import {
-  applyActivateBoost,
-  applyRecordAdReward,
-  consumeBoostTime,
-  isBoostActive,
-  rewardChange,
-  type RewardChange,
-} from '@/domain/boost';
-import {
-  applyBuyBusiness,
-  applyBuyUnit,
-  applyDepositToTreasury,
-  applyImproveBusiness,
-  applySellBusiness,
-  applySetPayout,
-  applySetPriceLevel,
-  applyWithdrawFromTreasury,
-} from '@/domain/business/commands';
-import {
-  applyFireStaff,
-  applyHireStaff,
-  applyUpgradeStage,
-} from '@/domain/business/growthCommands';
-import { applySetInsurance } from '@/domain/business/riskCommands';
+import { consumeBoostTime, isBoostActive, rewardChange, type RewardChange } from '@/domain/boost';
 import type {
   CommandEnvelope,
   CommandOutcome,
@@ -31,40 +8,23 @@ import type {
 } from '@/domain/commands';
 import type { ActivityEntry } from '@/domain/activity';
 import type { GameState } from '@/domain/gameState';
-import { applyPinGoal, withCompletedGoals } from '@/domain/goals';
+import { withCompletedGoals } from '@/domain/goals';
 import { advanceMarket, type MarketHistory } from '@/domain/market';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 import { settleOffline, type WallClockReading } from '@/domain/offline';
 import { advanceTime } from '@/domain/passiveIncome';
 import { withProgress } from '@/domain/progression';
-import {
-  applyBuyProperty,
-  applySellProperty,
-  applySetRentalStatus,
-  applyUpgradeProperty,
-} from '@/domain/properties';
-import { applyTapBatch } from '@/domain/tapping';
-import { applyUpdateSettings } from '@/domain/settings';
-import { applyExecuteTrade, applySetWatchlist } from '@/domain/trades';
-import {
-  applySkipTutorial,
-  newTutorialSteps,
-  withTutorialProgress,
-  type TutorialStep,
-} from '@/domain/tutorial';
-import { applyWalletUpgrade } from '@/domain/wallet';
+import { newTutorialSteps, withTutorialProgress, type TutorialStep } from '@/domain/tutorial';
 
 import {
-  businessEconomy,
   contentAt,
   goalRules,
   marketEconomy,
   passiveEconomy,
   progressRules,
-  propertyEconomy,
-  tradeEconomy,
   type EconomyVersions,
 } from './economy';
+import { applyCommand } from './commandHandlers';
 import { validCommand } from './commandSchema';
 import { withCommittedActivity, type PassedTime } from './committedActivity';
 import type { SaveStore, SaveTransaction } from './ports';
@@ -86,79 +46,6 @@ export type CommandTime = {
   readonly elapsedMs: number;
   readonly boostElapsedMs: number;
   readonly wallMs: number;
-};
-
-type CommandsByType = { [Type in GameCommand['type']]: Extract<GameCommand, { type: Type }> };
-
-type CommandHandlers = {
-  readonly [Type in keyof CommandsByType]: (
-    state: GameState,
-    command: CommandsByType[Type],
-    content: Content,
-  ) => CommandResult;
-};
-
-const COMMAND_HANDLERS: CommandHandlers = {
-  TapBatch: (state, command, content) => {
-    const multiplier = command.boosted === true ? content.economy.boost.tapMultiplier : 1;
-    const paid = applyTapBatch(state, {
-      taps: command.taps,
-      rules: content.economy.tap,
-      multiplier,
-    });
-    return { ok: true, state: paid.state, cashChangeCents: paid.earnedCents };
-  },
-  UpgradeWallet: (state, command, content) =>
-    applyWalletUpgrade(state, { fromLevel: command.fromLevel, rules: content.economy.tap }),
-  BuyBusiness: (state, command, content) =>
-    applyBuyBusiness(state, { ...command, economy: businessEconomy(content) }),
-  BuyUnit: (state, command, content) =>
-    applyBuyUnit(state, { ...command, economy: businessEconomy(content) }),
-  UpgradeBusiness: (state, command, content) =>
-    applyImproveBusiness(state, { ...command, economy: businessEconomy(content) }),
-  SetPriceLevel: (state, command, content) =>
-    applySetPriceLevel(state, { ...command, economy: businessEconomy(content) }),
-  HireStaff: (state, command, content) =>
-    applyHireStaff(state, { ...command, economy: businessEconomy(content) }),
-  FireStaff: (state, command, content) =>
-    applyFireStaff(state, { ...command, economy: businessEconomy(content) }),
-  UpgradeStage: (state, command, content) =>
-    applyUpgradeStage(state, { ...command, economy: businessEconomy(content) }),
-  SetInsurance: (state, command, content) =>
-    applySetInsurance(state, { ...command, economy: businessEconomy(content) }),
-  SetPayout: (state, command, content) =>
-    applySetPayout(state, { ...command, economy: businessEconomy(content) }),
-  DepositToTreasury: (state, command, content) =>
-    applyDepositToTreasury(state, { ...command, economy: businessEconomy(content) }),
-  WithdrawFromTreasury: (state, command, content) =>
-    applyWithdrawFromTreasury(state, { ...command, economy: businessEconomy(content) }),
-  SellBusiness: (state, command, content) =>
-    applySellBusiness(state, { ...command, economy: businessEconomy(content) }),
-  BuyProperty: (state, command, content) =>
-    applyBuyProperty(state, { ...command, economy: propertyEconomy(content) }),
-  UpgradeProperty: (state, command, content) =>
-    applyUpgradeProperty(state, { ...command, economy: propertyEconomy(content) }),
-  SetRentalStatus: (state, command, content) =>
-    applySetRentalStatus(state, { ...command, economy: propertyEconomy(content) }),
-  SellProperty: (state, command, content) =>
-    applySellProperty(state, { ...command, economy: propertyEconomy(content) }),
-  ExecuteTrade: (state, command, content) =>
-    applyExecuteTrade(state, { ...command, economy: tradeEconomy(content) }),
-  SetWatchlist: (state, command, content) =>
-    applySetWatchlist(state, { ...command, economy: tradeEconomy(content) }),
-  RecordAdReward: (state, command) => applyRecordAdReward(state, command),
-  ActivateBoost: (state, _command, content) => applyActivateBoost(state, content.economy.boost),
-  PinGoal: (state, command, content) =>
-    applyPinGoal(state, { goalId: command.goalId, rules: goalRules(content) }),
-  AdvanceTime: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),
-  SettleOffline: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),
-  AcknowledgeReturnSummary: (state) => ({
-    ok: true,
-    state: { ...state, returnSummary: { status: 'none' } },
-    cashChangeCents: moneyCents(0),
-  }),
-  SkipTutorial: (state) => applySkipTutorial(state),
-  UpdateSettings: (state, command) => applyUpdateSettings(state, command.change),
 };
 
 type TimeStep = {
@@ -196,14 +83,6 @@ function passTime(
   const { earnings, closures, incidents } = advanced;
   const passed = { earnings, absence: undefined, closures, incidents };
   return { ...advanced, state: boosted, wallClock: { direction: 'forward' }, passed };
-}
-
-function applyCommand<Type extends keyof CommandsByType>(
-  state: GameState,
-  command: { type: Type; payload: CommandsByType[Type] },
-  content: Content,
-): CommandResult {
-  return COMMAND_HANDLERS[command.type](state, command.payload, content);
 }
 
 function boostedOnlyIfActive(command: GameCommand, before: GameState): GameCommand {

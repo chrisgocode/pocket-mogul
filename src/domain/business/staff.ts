@@ -4,6 +4,7 @@ import { bestPriceLevel, profitPerDayCents, wageCents } from './core';
 import { stageRule, type BusinessPricing, type StaffRole } from './definition';
 import type { OwnedBusiness, PolicyStatus } from './owned';
 import { renewedInsurance } from './risks';
+import { withBestMixes } from './vending';
 
 export type StaffQuote =
   | { readonly status: 'locked'; readonly role: StaffRole; readonly unlockStage: number }
@@ -64,6 +65,7 @@ const MANAGER_RENEWS: readonly PolicyStatus[] = ['active', 'lapsed'];
 
 export function managerDecisions(business: OwnedBusiness, pricing: BusinessPricing): OwnedBusiness {
   if (business.staff.manager === 0 || business.status === 'closed') return business;
-  const priced = { ...business, priceLevel: bestPriceLevel(business, pricing) };
+  const mixed = withBestMixes(business, pricing);
+  const priced = { ...mixed, priceLevel: bestPriceLevel(mixed, pricing) };
   return renewedInsurance(priced, { pricing, renewing: MANAGER_RENEWS });
 }

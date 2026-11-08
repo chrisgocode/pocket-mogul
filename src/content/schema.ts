@@ -3,7 +3,9 @@ import { z } from 'zod';
 import { PRICE_LEVELS } from '@/domain/business/definition';
 import type { MoneyCents, PriceMicros } from '@/domain/money';
 
+import { eventTemplateSchema, marketParamsSchema } from './marketSchema';
 import { incidentSchema, riskRulesSchema } from './riskSchema';
+import { vendingMechanicSchema } from './vendingSchema';
 
 const id = z.string().regex(/^[a-z][a-z0-9_]*$/, 'IDs are lowercase snake_case');
 const ticker = z.string().regex(/^[A-Z]{2,5}$/, 'Tickers are 2–5 capital letters');
@@ -100,6 +102,7 @@ const businessSchema = z.object({
   costsPerDay: nonNegativeCents,
   demandResponseBps: byPriceLevel.optional(),
   incidents: z.array(incidentSchema),
+  mechanic: vendingMechanicSchema.optional(),
   logo: logoSchema,
 });
 
@@ -157,24 +160,6 @@ const goalSchema = z.discriminatedUnion('kind', [
     title: z.string().min(1),
   }),
 ]);
-
-const eventTemplateSchema = z.object({
-  id,
-  market: z.enum(['stocks', 'crypto']),
-  scope: z.enum(['company', 'sector', 'market', 'coin']),
-  direction: z.enum(['up', 'down']),
-  headline: z.string().min(1),
-});
-
-const marketParamsSchema = z.object({
-  commonShockBps: nonNegativeBps,
-  sectorShockBps: nonNegativeBps,
-  assetShockBps: nonNegativeBps,
-  regimeDriftBps: nonNegativeBps,
-  eventDriftBps: nonNegativeBps,
-  eventDurationTicks: positiveInt,
-  feeBps: nonNegativeBps,
-});
 
 const economySchema = z.object({
   tap: z.object({

@@ -5,6 +5,7 @@ import type {
   StaffRole,
 } from '@/domain/business/definition';
 import type { PolicyStatus } from '@/domain/business/owned';
+import type { Business } from '@/content';
 import { formatMoneyExact, moneyCents, type MoneyCents } from '@/domain/money';
 
 export const TRACK_NAMES: Readonly<Record<BusinessTrack, string>> = {
@@ -17,17 +18,33 @@ export const TRACK_EFFECTS: Readonly<Record<BusinessTrack, string>> = {
   efficiency: 'Lower cost for each customer served',
 };
 
-export const ROLE_NAMES: Readonly<Record<StaffRole, string>> = {
+const ROLE_NAMES: Readonly<Record<StaffRole, string>> = {
   operations: 'Operations',
   sales: 'Sales',
   manager: 'Manager',
 };
 
-export const ROLE_EFFECTS: Readonly<Record<StaffRole, string>> = {
+const ROLE_EFFECTS: Readonly<Record<StaffRole, string>> = {
   operations: '+20% capacity each',
   sales: '+15% customers each',
   manager: '+10% profit and sets the best price each day',
 };
+
+const RESTOCKING = {
+  name: 'Restocking',
+  effect: '+20% capacity each and restocks every location each day',
+};
+
+const restocks = (business: Business, role: StaffRole) =>
+  role === 'operations' && business.mechanic?.kind === 'vending';
+
+export function roleName(business: Business, role: StaffRole): string {
+  return restocks(business, role) ? RESTOCKING.name : ROLE_NAMES[role];
+}
+
+export function roleEffect(business: Business, role: StaffRole): string {
+  return restocks(business, role) ? RESTOCKING.effect : ROLE_EFFECTS[role];
+}
 
 export const PRICE_LEVEL_NAMES: Readonly<Record<PriceLevel, string>> = {
   budget: 'Budget',
