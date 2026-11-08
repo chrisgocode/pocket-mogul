@@ -1837,35 +1837,195 @@
       .tax-detail li {
         margin-top: 7px;
       }
+
+      .business-back {
+        display: flex;
+        margin-bottom: 16px;
+      }
+      .business-heading {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+      .business-heading > .badge {
+        display: block;
+      }
+      .business-heading h1 {
+        margin: 0;
+      }
+      .growth-offer {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px;
+        background: var(--panel);
+      }
+      .growth-offer .home-stats {
+        margin: 0 0 12px;
+      }
+      .upgrade-benefit {
+        font-size: 12px;
+        color: var(--green);
+      }
+      .phone .sheet h3 {
+        overflow-wrap: anywhere;
+        line-height: 1.45;
+      }
+      .sheet .dense-line {
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .sheet .dense-line > span {
+        min-width: 0;
+        flex: 1;
+      }
+      .sheet .dense-line > b {
+        text-align: right;
+        max-width: 62%;
+        overflow-wrap: anywhere;
+      }
+      .phone .name b,
+      .phone .name small {
+        overflow-wrap: anywhere;
+      }
+      .profile-shortcuts button {
+        flex-wrap: wrap;
+        min-height: 52px;
+        padding: 8px 4px;
+      }
+      .register-top {
+        flex-wrap: wrap;
+      }
+      .register-price,
+      .register-summary b,
+      .cash,
+      .wealth-head h1 {
+        overflow-wrap: anywhere;
+        max-width: 100%;
+      }
+      .phone .tax-risk {
+        flex-wrap: wrap;
+      }
+      .phone .split {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .phone .split button {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      @media (max-width: 380px) {
+        .market-mini {
+          display: none;
+        }
+        .market-row {
+          display: grid;
+          grid-template-columns: 28px minmax(0, 1fr) auto;
+          gap: 8px;
+        }
+        .market-row .ticker-mark {
+          width: 28px;
+          height: 28px;
+        }
+        .market-row .quote {
+          max-width: 100px;
+          overflow-wrap: anywhere;
+        }
+        .profile-shortcuts button {
+          flex-direction: column;
+          gap: 5px;
+          min-height: 64px;
+        }
+        .register-drawing {
+          width: 80px;
+        }
+        .register-body h3 {
+          overflow-wrap: anywhere;
+        }
+        .stats-grid,
+        .home-stats {
+          column-gap: 10px;
+        }
+        .phone .content {
+          padding-left: 14px;
+          padding-right: 14px;
+        }
+        .phone .top {
+          padding-left: 14px;
+          padding-right: 14px;
+        }
+      }
+      .study-controls {
+        max-width: 690px;
+        margin: 8px auto 14px;
+        font-size: 12px;
+        color: var(--muted-foreground, #aaa);
+      }
+      .study-controls > summary {
+        min-height: 32px;
+        cursor: pointer;
+      }
+      .study-controls .tools {
+        margin-top: 8px;
+      }
+      .phone .nav button {
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+        padding-left: 3px;
+        padding-right: 3px;
+      }
+      .sheet-actions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .sheet-actions button {
+        width: 100%;
+        min-width: 0;
+        overflow-wrap: normal;
+        word-break: normal;
+      }
+      @media (max-width: 380px) {
+        .phone .nav {
+          display: grid;
+          grid-template-columns: 1.4fr 1.1fr 48px 1.4fr 1.1fr;
+        }
+        .phone .nav button {
+          padding-left: 1px;
+          padding-right: 1px;
+        }
+      }
     </style>
   </head>
   <body>
     <main class="study">
       <p class="intro"><b>#82 · Studio prototype</b><br />Sample data · resets on reload.</p>
-      <div class="tools">
-        <select id="scenario" aria-label="Sample scenario">
-          <option value="operating">Operating empire</option>
-          <option value="first">First session</option>
-          <option value="attention">Needs attention</option>
-          <option value="diversified">Diversified holdings</option></select
-        ><button data-action="reset">Reset sample</button>
+      <details class="study-controls">
+        <summary>Sample controls</summary>
+        <div class="tools">
+          <select id="scenario" aria-label="Sample scenario">
+            <option value="operating">Operating empire</option>
+            <option value="first">First session</option>
+            <option value="attention">Needs attention</option>
+            <option value="diversified">Diversified holdings</option></select
+          ><button data-action="reset">Reset sample</button>
 
-        <select id="tax-sample" aria-label="Tax sample state">
-          <option value="current">Tax: current estimate</option>
-          <option value="ready">Tax: return ready</option>
-          <option value="pending">Tax: audit pending</option>
-          <option value="debt">Tax: debt recovery</option>
-          <option value="exempt">Tax: exempt</option>
-          <option value="paid">Tax: resolved</option></select
-        ><button data-action="auditSample" id="audit-sample-button" hidden>
-          Advance audit sample 10 minutes
-        </button>
-        <select id="business-art" aria-label="Business row artwork">
-          <option value="illustrated">Two-tone illustrations</option>
-          <option value="outline">Outline icons</option>
-          <option value="none">No icons</option>
-        </select>
-      </div>
+          <select id="tax-sample" aria-label="Tax sample state">
+            <option value="current">Tax: current estimate</option>
+            <option value="ready">Tax: return ready</option>
+            <option value="pending">Tax: audit pending</option>
+            <option value="debt">Tax: debt recovery</option>
+            <option value="exempt">Tax: exempt</option>
+            <option value="paid">Tax: resolved</option></select
+          ><button data-action="auditSample" id="audit-sample-button" hidden>
+            Advance audit sample 10 minutes
+          </button>
+          <select id="business-art" aria-label="Business row artwork">
+            <option value="illustrated">Two-tone illustrations</option>
+            <option value="outline">Outline icons</option>
+            <option value="none">No icons</option>
+          </select>
+        </div>
+      </details>
       <div class="phone" id="phone"></div>
       <div class="evidence">
         <p id="hypothesis"></p>
@@ -2164,8 +2324,11 @@
           goals.find((g) => !state.completedGoals.includes(g.id));
         return `<button class="goal-shortcut" data-action="utility:goals" aria-label="Open Goals and achievements">${utilityIcon('goals')}<span><b>${goal ? goal.title : 'All achievements earned'}</b><small>Goals · ${state.completedGoals.length}/${goals.length}${state.pinnedGoal ? ' · Pinned' : ''}</small></span><span aria-hidden="true">→</span></button>`;
       }
+      const hasBottomTabs = () =>
+        state.screen !== 'detail' && !utilityScreens.includes(state.screen);
+      const cashFlowQuote = () => cashCreditQuote(income() + rentalIncome());
       function header() {
-        return `<div class="status"><span>9:41</span><span>POCKET MOGUL</span></div><header class="top"><div class="topline"><div><div class="eyebrow">Cash</div><div class="cash">${summaryMoney(state.cash)}</div></div><div class="header-income"><div class="income">+${money(income() + rentalIncome())}/min</div><div class="muted">Cash flow</div></div><button class="profile-button" data-action="utility:profile" aria-label="Open Profile">${utilityIcon('profile')}</button></div>${goalShortcut()}</header>`;
+        return `<div class="status"><span>9:41</span><span>POCKET MOGUL</span></div><header class="top"><div class="topline"><div><div class="eyebrow">Cash</div><div class="cash">${summaryMoney(state.cash)}</div></div><div class="header-income"><div class="income">+${money(cashFlowQuote().net)}/min</div><div class="muted">Cash flow</div></div>${hasBottomTabs() ? '' : `<button class="profile-button" data-action="utility:profile" aria-label="Open Profile">${utilityIcon('profile')}</button>`}</div>${state.screen === 'earn' ? goalShortcut() : ''}</header>`;
       }
       function openUtility(screen) {
         if (state.screen === screen) return;
@@ -2221,17 +2384,30 @@
           ? `<button class="tax-alert" data-action="utility:taxes"><span><b>${state.tax.status === 'ready' ? 'Tax return ready to file' : 'Tax debt · ' + money(state.tax.amount)}</b><small>Purchases paused</small></span><span>Review →</span></button>`
           : '';
       }
-      function creditCash(amount) {
-        const recovered =
+      function cashCreditQuote(amount) {
+        const grossCents = Math.round(amount * 100);
+        const recoveryCents =
           state.tax.status === 'debt'
-            ? Math.min(state.tax.amount, Math.floor(amount * 25) / 100)
+            ? Math.min(Math.round(state.tax.amount * 100), Math.floor(grossCents / 4))
             : 0;
-        state.cash += amount - recovered;
-        if (recovered) {
-          state.tax.amount -= recovered;
-          state.tax.paid += recovered;
+        return {
+          gross: grossCents / 100,
+          recovery: recoveryCents / 100,
+          net: (grossCents - recoveryCents) / 100,
+        };
+      }
+      function creditCash(amount) {
+        const quote = cashCreditQuote(amount);
+        state.cash = Math.round((state.cash + quote.net) * 100) / 100;
+        if (quote.recovery) {
+          state.tax.amount = Math.round((state.tax.amount - quote.recovery) * 100) / 100;
+          state.tax.paid = Math.round((state.tax.paid + quote.recovery) * 100) / 100;
           if (state.tax.amount === 0) state.tax.status = 'paid';
         }
+        return quote;
+      }
+      function cashCreditLines(quote) {
+        return `${quote.recovery ? `<div class="dense-line row"><span>Before recovery</span><b>${money(quote.gross)}</b></div><div class="dense-line row"><span>Debt recovery</span><b>−${money(quote.recovery)}</b></div>` : ''}<div class="dense-line row"><span>Cash received</span><b>${money(quote.net)}</b></div><div class="dense-line row"><span>Cash after</span><b>${money(state.cash + quote.net)}</b></div>`;
       }
       function taxPanel() {
         const t = state.tax;
@@ -2263,7 +2439,7 @@
           zero = state.confirmation === 'taxZero';
         const due = state.confirmation === 'taxDebt' ? state.tax.amount : 1000,
           paid = Math.min(state.cash, due);
-        return `<div class="sheet" role="dialog" aria-label="Review tax action"><h3>${zero ? 'Don’t report?' : full ? 'Pay & file?' : 'Pay debt?'}</h3>${zero ? '<div class="dense-line row"><span>Pay now</span><b>$0.00</b></div><div class="dense-line row"><span>Audit chance</span><b>40%</b></div><div class="dense-line row"><span>If audited · tax + fine</span><b>$3,000.00</b></div><div class="dense-line row"><span>Check in</span><b>10m simulation time</b></div><span class="muted">Filing is final.</span>' : `<div class="dense-line row"><span>Pay now</span><b>${money(paid)}</b></div><div class="dense-line row"><span>Cash after</span><b>${money(state.cash - paid)}</b></div><div class="dense-line row"><span>Remaining debt</span><b>${money(due - paid)}</b></div>`}<div class="split">${button('Cancel', 'cancel')}${button(zero ? 'Submit zero report' : 'Confirm payment', 'confirm', 'primary')}</div></div>`;
+        return `<div class="sheet" role="dialog" aria-label="Review tax action"><h3>${zero ? 'Don’t report?' : full ? 'Pay & file?' : 'Pay debt?'}</h3>${zero ? '<div class="dense-line row"><span>Pay now</span><b>$0.00</b></div><div class="dense-line row"><span>Audit chance</span><b>40%</b></div><div class="dense-line row"><span>If audited · tax + fine</span><b>$3,000.00</b></div><div class="dense-line row"><span>Check in</span><b>10m simulation time</b></div><span class="muted">Filing is final.</span>' : `<div class="dense-line row"><span>Pay now</span><b>${money(paid)}</b></div><div class="dense-line row"><span>Cash after</span><b>${money(state.cash - paid)}</b></div><div class="dense-line row"><span>Remaining debt</span><b>${money(due - paid)}</b></div>`}${sheetActions(zero ? 'Submit zero report' : 'Confirm payment')}</div>`;
       }
       function confirmTax() {
         if (state.confirmation === 'taxZero' && state.tax.status === 'ready') {
@@ -2341,12 +2517,6 @@
       function aboutScreen() {
         return `${utilityBack()}<h1>About</h1><div class="dense-line row"><span>Pocket Mogul</span><b>0.1.0</b></div><div class="dense-line row"><span>Economy version</span><b>1</b></div><p class="footnote">All companies and coins are fictional.</p>`;
       }
-      function pinnedGoalCard() {
-        const goal = goals.find((g) => g.id === state.pinnedGoal);
-        return goal
-          ? `<button class="home-action pinned-goal" data-action="utility:goals"><span>${utilityIcon('goals')}</span><span><b>${goal.title}</b><small>Pinned goal${goal.threshold ? ' · ' + summaryMoney(state.peakWorth) + ' / ' + summaryMoney(goal.threshold) : ''}</small></span><span>→</span></button>`
-          : '';
-      }
       function utilityAction(type, value) {
         if (type === 'taxReview' && state.tax.status === 'ready')
           state.confirmation = value === 'full' ? 'taxFull' : 'taxZero';
@@ -2390,7 +2560,7 @@
         ]
           .map(
             ([id, icon, label]) =>
-              `<button class="${state.screen === id ? 'active' : ''} ${id === 'earn' ? 'center-tab' : ''}" data-action="tab:${id}" aria-current="${state.screen === id ? 'page' : 'false'}"><span>${navIcon(id)}</span>${label}</button>`,
+              `<button class="${state.screen === id ? 'active' : ''} ${id === 'earn' ? 'center-tab' : ''}" data-action="tab:${id}" aria-label="${label}" aria-current="${state.screen === id ? 'page' : 'false'}"><span>${navIcon(id)}</span>${{ businesses: 'Business', properties: 'Property' }[id] ?? label}</button>`,
           )
           .join('')}</nav>`;
       }
@@ -2436,8 +2606,9 @@
       function mechanic() {
         return `<section class="section" id="mechanic"><h2>Placement & stock</h2><div class="row"><div><h3>Office · ${state.units} machines</h3><p class="muted">Balanced mix · ${state.stock}% stock remaining</p></div><span class="${state.stock === 0 ? 'red' : 'green'}">${state.stock === 0 ? '! Empty' : '● Serving'}</span></div><div class="meter" style="margin-top:14px"><i style="width:${state.stock}%"></i></div>${button('Restock all · $30 treasury', 'restock', 'primary wide', state.treasury < 30 || state.stock === 100)}</section>`;
       }
+      const VENDING_UNIT_CAPACITY = 100;
       function grow() {
-        return `<section class="section" id="grow"><h2>Grow</h2><div class="row line"><div><h3>${state.units} / 8 machines</h3><p class="muted">Local</p></div>${button('Add · $' + unitPrice(), 'unit', 'primary', state.treasury < unitPrice() || state.units >= 8)}</div><div class="line"><h3>Regional</h3><div class="dense-line row"><span>Requires</span><b>8 machines · day 10</b></div><div class="dense-line row"><span>Progress</span><b>Day 6/10</b></div><div class="dense-line row"><span>Upgrade</span><b>$2,000 treasury</b></div></div></section>`;
+        return `<section class="section" id="grow"><h2>Grow</h2><div class="growth-offer"><div class="home-stats">${stat('Machines', state.units + ' / 8')}${stat('Capacity', state.units * VENDING_UNIT_CAPACITY + ' snacks/day')}</div><div class="upgrade-benefit">+1 machine · +${VENDING_UNIT_CAPACITY} snacks/day capacity</div>${button('Add machine · ' + money(unitPrice()), 'unit', 'primary wide', state.treasury < unitPrice() || state.units >= 8)}</div><div class="line"><h3>Regional</h3><div class="dense-line row"><span>Requires</span><b>8 machines · day 10</b></div><div class="dense-line row"><span>Progress</span><b>Day 6/10</b></div><div class="dense-line row"><span>Upgrade</span><b>$2,000 treasury</b></div></div></section>`;
       }
       function detail() {
         const heads =
@@ -2446,7 +2617,7 @@
             : variant === 'B'
               ? `<div class="hero"><span class="badge">LOCAL · DAY 6</span>${art()}<h1>Vending Machine</h1></div>`
               : `<span class="eyebrow">Next stage</span><h1>Go Regional.</h1><p class="muted">Vending Machine · Local → Regional</p><div class="notice">${state.units}/8 machines · 6/10 days · treasury ${money(state.treasury)}</div>`;
-        return `${button('← Businesses', 'tab:businesses', 'back')}${heads}${variant === 'A' ? '' : `<div class="rail">${['Overview', 'Mechanic', 'Grow', 'Staff', 'Risks', 'Deals'].map((s) => button(s, 'jump:' + s.toLowerCase())).join('')}</div>`}${variant === 'B' ? mechanic() + overview() + grow() : variant === 'C' ? grow() + overview() + mechanic() : overview() + mechanic() + grow()}<section id="staff"><h2>Staff</h2><div class="line"><h3>Restockers · 0 of 5</h3><p class="muted">+20% capacity · daily restock</p></div><div class="line"><h3>Manager · not hired</h3><p class="muted">Auto price & stock mix</p></div></section><section id="risks"><h2>Risks</h2><p class="muted">No incidents</p><details class="inline-details"><summary>Insurance</summary><p class="muted">Equipment · Liability · Supply</p></details></section><section id="deals"><h2>Deals</h2><div class="dense-line row"><span>Takeovers</span><b>Regional</b></div><div class="dense-line row"><span>Going public</span><b>National</b></div></section>`;
+        return `<div class="business-back">${button('← Businesses', 'tab:businesses', 'back')}</div><div class="business-heading">${heads}</div>${variant === 'A' ? '' : `<div class="rail">${['Overview', 'Mechanic', 'Grow', 'Staff', 'Risks', 'Deals'].map((s) => button(s, 'jump:' + s.toLowerCase())).join('')}</div>`}${variant === 'B' ? mechanic() + overview() + grow() : variant === 'C' ? grow() + overview() + mechanic() : overview() + mechanic() + grow()}<section id="staff"><h2>Staff</h2><div class="line"><h3>Restockers · 0 of 5</h3><p class="muted">+20% capacity · daily restock</p></div><div class="line"><h3>Manager · not hired</h3><p class="muted">Auto price & stock mix</p></div></section><section id="risks"><h2>Risks</h2><p class="muted">No incidents</p><details class="inline-details"><summary>Insurance</summary><p class="muted">Equipment · Liability · Supply</p></details></section><section id="deals"><h2>Deals</h2><div class="dense-line row"><span>Takeovers</span><b>Regional</b></div><div class="dense-line row"><span>Going public</span><b>National</b></div></section>`;
       }
       const tapAmount = () => 1 + state.walletLevel * 0.5;
       const walletUpgradeCost = () =>
@@ -2455,7 +2626,7 @@
         '<svg viewBox="0 0 180 112" aria-hidden="true"><path d="M28 26L131 12q9-1 9 9v66L28 95z" fill="var(--scene-side)" stroke="var(--dim)"/><rect x="20" y="31" width="140" height="71" rx="12" fill="var(--raised)" stroke="var(--gold)" stroke-width="2"/><rect x="126" y="51" width="42" height="31" rx="7" fill="var(--panel)" stroke="var(--gold)" stroke-width="2"/><circle cx="140" cy="66" r="4" fill="var(--gold)"/><path d="M37 48h39m-39 9h24" stroke="var(--dim)" stroke-width="2"/></svg>';
       function earn() {
         const next = catalog.find((b) => !owned(b.id));
-        return `<button class="home-worth" data-action="tab:wealth"><span class="muted">Net worth <span aria-hidden="true">↗</span></span><b>${summaryMoney(netWorth())}</b></button>${pinnedGoalCard()}<div class="home-stats">${stat('Business payouts', money(income()) + '/min')}${stat('Net rent', money(rentalIncome()) + '/min')}</div><button class="tap-zone" data-action="tap" aria-label="Tap wallet to earn ${money(tapAmount())}">${walletDrawing()}<span class="tap-value">+${money(tapAmount())}</span><span class="muted">per tap · wallet level ${state.walletLevel}</span></button><div class="wallet-upgrade"><div><b>Wallet upgrade</b><small>${money(tapAmount())} → ${money(tapAmount() + 0.5)}/tap</small></div>${button(money(walletUpgradeCost()), 'walletUpgrade', 'primary', state.cash < walletUpgradeCost() || state.walletLevel >= 100)}</div><div class="home-summary"><button data-action="tab:businesses"><span class="muted">Businesses</span><b>${state.owned.length}</b><small>${money(businessWorth())}</small></button><button data-action="tab:markets"><span class="muted">Investments</span><b>${Object.keys(state.positions).length}</b><small>${money(marketWorth())}</small></button><button data-action="tab:properties"><span class="muted">Properties</span><b>${Object.keys(state.properties).length}</b><small>${money(propertyWorth())}</small></button></div>${owned('vending') && state.stock === 0 ? `<button class="home-action" data-action="open:vending"><span><b>Vending · out of stock</b><small>Restock from treasury</small></span><span>→</span></button>` : next ? `<button class="home-action" data-action="filter:Tier ${next.tier}"><span><b>${next.name}</b><small>${money(next.price)} · ${state.cash >= next.price ? 'Affordable' : money(next.price - state.cash) + ' to go'}</small></span><span>→</span></button>` : ''}`;
+        return `<button class="home-worth" data-action="tab:wealth"><span class="muted">Net worth <span aria-hidden="true">↗</span></span><b>${summaryMoney(netWorth())}</b></button><div class="home-stats">${stat('Business payouts', money(income()) + '/min')}${stat('Net rent', money(rentalIncome()) + '/min')}</div><button class="tap-zone" data-action="tap" aria-label="Tap wallet to earn ${money(tapAmount())}">${walletDrawing()}<span class="tap-value">+${money(tapAmount())}</span><span class="muted">per tap · wallet level ${state.walletLevel}</span></button><div class="wallet-upgrade"><div><b>Wallet upgrade</b><small>${money(tapAmount())} → ${money(tapAmount() + 0.5)}/tap</small></div>${button(money(walletUpgradeCost()), 'walletUpgrade', 'primary', state.cash < walletUpgradeCost() || state.walletLevel >= 100)}</div><div class="home-summary"><button data-action="tab:businesses"><span class="muted">Businesses</span><b>${state.owned.length}</b><small>${money(businessWorth())}</small></button><button data-action="tab:markets"><span class="muted">Investments</span><b>${Object.keys(state.positions).length}</b><small>${money(marketWorth())}</small></button><button data-action="tab:properties"><span class="muted">Properties</span><b>${Object.keys(state.properties).length}</b><small>${money(propertyWorth())}</small></button></div>${owned('vending') && state.stock === 0 ? `<button class="home-action" data-action="open:vending"><span><b>Vending · out of stock</b><small>Restock from treasury</small></span><span>→</span></button>` : next ? `<button class="home-action" data-action="filter:Tier ${next.tier}"><span><b>${next.name}</b><small>${money(next.price)} · ${state.cash >= next.price ? 'Affordable' : money(next.price - state.cash) + ' to go'}</small></span><span>→</span></button>` : ''}`;
       }
       const assets = [
         {
@@ -2579,11 +2750,11 @@
           ],
           ['Properties', propertyWorth(), 'properties'],
         ];
-        return `<div class="wealth-head"><span class="muted">Net worth</span><h1>${money(netWorth())}</h1></div><div class="stats-grid">${stat('Income to cash', money(income() + rentalIncome()) + '/min')}${stat('Market value', money(marketWorth()))}${stat('Unrealized P&L', signedMoney(unrealized))}${stat('Realized P&L', signedMoney(state.realized))}</div>${selectedChips(['Summary', 'Holdings', 'Activity'], state.wealthTab, 'wealthTab')}${state.wealthTab === 'Summary' ? wealthSummary(categories) : state.wealthTab === 'Holdings' ? wealthHoldings() : `<h2>Activity</h2>${state.activity.length ? state.activity.map((text) => `<div class="dense-line">${text}</div>`).join('') : '<p class="muted">No transactions yet.</p>'}`}`;
+        return `<div class="wealth-head"><span class="muted">Net worth</span><h1>${money(netWorth())}</h1></div><div class="stats-grid">${stat('Income to cash', money(cashFlowQuote().net) + '/min')}${stat('Market value', money(marketWorth()))}${stat('Unrealized P&L', signedMoney(unrealized))}${stat('Realized P&L', signedMoney(state.realized))}</div>${selectedChips(['Summary', 'Holdings', 'Activity'], state.wealthTab, 'wealthTab')}${state.wealthTab === 'Summary' ? wealthSummary(categories) : state.wealthTab === 'Holdings' ? wealthHoldings() : `<h2>Activity</h2>${state.activity.length ? state.activity.map((text) => `<div class="dense-line">${text}</div>`).join('') : '<p class="muted">No transactions yet.</p>'}`}`;
       }
       function wealthSummary(categories) {
         const total = grossAssets();
-        return `<h2>Allocation</h2><div class="allocation live-allocation" role="img" aria-label="Allocation by current holding value">${categories.map(([name, value], i) => `<i style="width:${total ? (value / total) * 100 : 0}%;background:var(--asset-${i})" title="${name}: ${money(value)}"></i>`).join('')}</div><div class="table-head"><span>Asset</span><span>Value / share</span></div>${categories.map(([name, value, tab], i) => `<button class="dense-line allocation-row" data-action="category:${name}"><span><i class="swatch" style="background:var(--asset-${i})"></i>${name}</span><span><b>${money(value)}</b><small>${total ? ((value / total) * 100).toFixed(1) : '0.0'}%</small></span></button>`).join('')}<div class="dense-line row"><span>Tax liability</span><b>−${money(taxLiability())}</b></div><h2>Income</h2><div class="dense-line row"><span>Business payouts</span><b>${money(income())}/min</b></div><div class="dense-line row"><span>Net rent</span><b>${money(rentalIncome())}/min</b></div><div class="dense-line row"><span>Dividends</span><b>${money(dividends())}/hour</b></div><details class="valuation"><summary>Valuation basis</summary><p>Cash + private business investment and treasury + properties + market holdings. Listed business stakes count at market value once. No pending dividends in this sample.</p></details>`;
+        return `<h2>Allocation</h2><div class="allocation live-allocation" role="img" aria-label="Allocation by current holding value">${categories.map(([name, value], i) => `<i style="width:${total ? (value / total) * 100 : 0}%;background:var(--asset-${i})" title="${name}: ${money(value)}"></i>`).join('')}</div><div class="table-head"><span>Asset</span><span>Value / share</span></div>${categories.map(([name, value, tab], i) => `<button class="dense-line allocation-row" data-action="category:${name}"><span><i class="swatch" style="background:var(--asset-${i})"></i>${name}</span><span><b>${money(value)}</b><small>${total ? ((value / total) * 100).toFixed(1) : '0.0'}%</small></span></button>`).join('')}<div class="dense-line row"><span>Tax liability</span><b>−${money(taxLiability())}</b></div><h2>Income</h2><div class="dense-line row"><span>Business payouts</span><b>${money(income())}/min</b></div><div class="dense-line row"><span>Net rent</span><b>${money(rentalIncome())}/min</b></div>${cashFlowQuote().recovery ? `<div class="dense-line row"><span>Debt recovery</span><b>−${money(cashFlowQuote().recovery)}/min</b></div>` : ''}<div class="dense-line row"><span>Dividends</span><b>${money(dividends())}/hour</b></div><details class="valuation"><summary>Valuation basis</summary><p>Cash + private business investment and treasury + properties + market holdings. Listed business stakes count at market value once. No pending dividends in this sample.</p></details>`;
       }
       function wealthHoldings() {
         return `<h2>Businesses</h2>${
@@ -2690,7 +2861,7 @@
       function propertyCard(h) {
         const p = state.properties[h.id],
           index = homes.indexOf(h) + 1;
-        return `<article class="property-record" data-property="${h.id}"><button class="register-entry" data-action="property:${h.id}"><div class="register-top"><span class="record-number">P0${index}</span><span class="muted">${h.id === 'apartments' ? 'Multi-unit' : 'Residential'}</span><span class="record-state">${p ? (p.rented ? '● Rented' : '○ Vacant') : 'For sale'}</span></div><div class="register-body"><div><h3>${h.name}</h3><div class="register-price">${money(p ? homeValue(h) : h.price)}</div></div><div class="register-drawing">${propertyScene(h)}</div></div><div class="register-data">${stat(p ? 'Net / min' : 'Potential net / min', money(p && !p.rented ? 0 : homeRent(h) - h.upkeep))}${stat('Gross / min', money(p && !p.rented ? 0 : homeRent(h)))}<span class="record-link">${p ? 'Manage' : 'Inspect'} ↗</span></div></button></article>`;
+        return `<article class="property-record" data-property="${h.id}"><button class="register-entry" data-action="property:${h.id}"><div class="register-top"><span class="record-number">P0${index}</span><span class="muted">Renovation · Lv ${p?.renovation ?? 0}</span><span class="record-state">${p ? (p.rented ? '● Rented' : '○ Vacant') : 'For sale'}</span></div><div class="register-body"><div><h3>${h.name}</h3><div class="register-price">${money(p ? homeValue(h) : h.price)}</div></div><div class="register-drawing">${propertyScene(h)}</div></div><div class="register-data">${stat(p ? 'Net / min' : 'Potential net / min', money(p && !p.rented ? 0 : homeRent(h) - h.upkeep))}${stat('Gross / min', money(p && !p.rented ? 0 : homeRent(h)))}<span class="record-link">${p ? 'Manage' : 'Inspect'} ↗</span></div></button></article>`;
       }
       function properties() {
         const list = homes.filter(
@@ -2703,6 +2874,8 @@
           p = state.properties[h.id];
         return `${button('← Properties', 'tab:properties', 'back')}<div class="property-detail-heading"><div><span class="record-number">P0${homes.indexOf(h) + 1}</span><h2>${h.name}</h2></div><div class="register-drawing">${propertyScene(h)}</div></div><div class="price-heading">${money(p ? homeValue(h) : h.price)}</div><div class="stats-grid">${stat('Gross rent', money(homeRent(h)) + '/min')}${stat('Upkeep / min', money(h.upkeep) + '/min')}${stat('Net rent', money(homeRent(h) - h.upkeep) + '/min')}${stat('Status', p ? (p.rented ? 'Rented' : 'Vacant') : 'Available')}</div>${p ? `${button(p.rented ? 'Stop renting' : 'Rent out', 'rent', 'primary wide')}<h2>Renovation</h2><div class="dense-line row"><span>Level ${p.renovation} / 1</span><b>+${money(h.rent * 0.1)}/min</b></div>${button('Renovate · ' + money(homeUpgradeCost(h)) + ' cash', 'renovate', 'secondary wide', p.renovation === 1 || state.cash < homeUpgradeCost(h))}<div class="dense-line row"><span>Value increase</span><b>+${money(homeUpgradeCost(h) * 0.8)}</b></div>${button('Sell · ' + money(homeValue(h) * 0.95), 'propertySell', 'wide red')}` : button('Buy · ' + money(h.price), 'propertyBuy', 'primary wide', state.cash < h.price)}`;
       }
+      const sheetActions = (label, disabled = false) =>
+        `<div class="sheet-actions">${button(label, 'confirm', 'primary', disabled)}${button('Cancel', 'cancel', 'secondary')}</div>`;
       function transactionSheet() {
         const kind = state.confirmation;
         if (!['tradeBuy', 'tradeSell', 'propertyBuy', 'propertySell'].includes(kind)) return '';
@@ -2711,9 +2884,10 @@
           a = assetOf(),
           h = homeOf();
         const gross = trade ? a.price * state.orderQuantity : buy ? h.price : homeValue(h) * 0.95;
-        const fee = trade ? gross * (a.kind === 'Crypto' ? 0.02 : 0.01) : 0;
-        const total = buy ? gross + fee : gross - fee;
-        return `<div class="sheet" role="dialog" aria-label="Review transaction"><h3>${buy ? 'Buy' : 'Sell'} ${trade ? state.orderQuantity + ' ' + a.symbol : h.name}</h3><div class="dense-line row"><span>Cash ${buy ? 'cost' : 'received'}</span><b>${money(total)}</b></div>${trade ? `<p class="muted">Fee ${money(fee)} · holdings after: ${(state.positions[a.id]?.quantity ?? 0) + (buy ? state.orderQuantity : -state.orderQuantity)}</p>` : `<p class="muted">${buy ? 'Becomes owned and vacant; rent is $0 until rented.' : 'Ownership and rental income are removed.'}</p>`}<p class="muted">Cash after: ${money(state.cash + (buy ? -total : total))}</p><div class="split">${button('Cancel', 'cancel')}${button('Confirm', 'confirm', 'primary', buy && state.cash < total)}</div></div>`;
+        const fee = trade ? gross * (a.kind === 'Crypto' ? 0.02 : 0.01) : 0,
+          total = buy ? gross + fee : gross - fee;
+        const credit = cashCreditQuote(total);
+        return `<div class="sheet" role="dialog" aria-label="Review transaction"><h3>${buy ? 'Buy' : 'Sell'} ${trade ? state.orderQuantity + ' ' + a.symbol : h.name}</h3>${fee ? `<div class="dense-line row"><span>Fee</span><b>${money(fee)}</b></div>` : ''}${buy ? `<div class="dense-line row"><span>Cash cost</span><b>${money(total)}</b></div><div class="dense-line row"><span>Cash after</span><b>${money(state.cash - total)}</b></div>` : cashCreditLines(credit)}<div class="dense-line row"><span>${trade ? 'Quantity after' : 'Property after'}</span><b>${trade ? (state.positions[a.id]?.quantity ?? 0) + (buy ? state.orderQuantity : -state.orderQuantity) : buy ? 'Owned · vacant' : 'Sold'}</b></div>${sheetActions(buy ? 'Buy · ' + money(total) : 'Sell · ' + money(credit.net), buy && state.cash < total)}</div>`;
       }
       function confirmAssetTransaction() {
         const kind = state.confirmation,
@@ -2741,11 +2915,11 @@
           }
           if (kind === 'tradeSell' && p.quantity >= qty) {
             const basis = (p.cost * qty) / p.quantity;
-            creditCash(gross - fee);
+            const credit = creditCash(gross - fee);
             state.realized += gross - fee - basis;
             state.positions[a.id] = { quantity: p.quantity - qty, cost: p.cost - basis };
             if (state.positions[a.id].quantity === 0) delete state.positions[a.id];
-            log('Sold ' + qty + ' ' + a.symbol + ' · ' + money(gross - fee));
+            log('Sold ' + qty + ' ' + a.symbol + ' · ' + money(credit.net) + ' received');
           }
         }
         state.confirmation = null;
@@ -2811,12 +2985,14 @@
         if (['taxFull', 'taxZero', 'taxDebt'].includes(state.confirmation))
           return taxConfirmation();
         if (state.confirmation === 'resetProgress')
-          return `<div class="sheet" role="dialog" aria-label="Reset progress confirmation"><h3>Reset progress?</h3><p class="muted">${money(state.cash)} cash, ${state.owned.length} businesses and ${Object.keys(state.properties).length} properties and ${Object.keys(state.positions).length} market positions will be removed.</p><div class="split">${button('Cancel', 'cancel')}${button('Reset', 'confirm', 'primary')}</div></div>`;
+          return `<div class="sheet" role="dialog" aria-label="Reset progress confirmation"><h3>Reset progress?</h3><p class="muted">${money(state.cash)} cash, ${state.owned.length} businesses and ${Object.keys(state.properties).length} properties and ${Object.keys(state.positions).length} market positions will be removed.</p>${sheetActions('Reset')}</div>`;
         if (['tradeBuy', 'tradeSell', 'propertyBuy', 'propertySell'].includes(state.confirmation))
           return transactionSheet();
         const withdraw = state.confirmation === 'withdraw';
-        return `<div class="sheet" role="dialog" aria-label="Review transaction"><h3>${withdraw ? 'Withdraw the whole treasury?' : 'Sell Vending Machine?'}</h3><p class="muted">${withdraw ? money(state.treasury) + ' to cash; treasury becomes $0.00. Ownership and income unchanged.' : 'Sample sale value $150 plus remaining treasury to cash. You lose this business and its income.'}</p><div class="split">${button('Cancel', 'cancel')}${button('Confirm', 'confirm', 'primary')}</div></div>`;
+        const quote = cashCreditQuote(withdraw ? state.treasury : 150 + state.treasury);
+        return `<div class="sheet" role="dialog" aria-label="Review transaction"><h3>${withdraw ? 'Withdraw treasury?' : 'Sell Vending Machine?'}</h3>${cashCreditLines(quote)}<div class="dense-line row"><span>Business after</span><b>${withdraw ? 'Still owned' : 'Sold · income removed'}</b></div><div class="dense-line row"><span>Treasury after</span><b>$0.00</b></div>${sheetActions((withdraw ? 'Withdraw · ' : 'Sell · ') + money(quote.net))}</div>`;
       }
+
       function render() {
         syncGoals();
         document.getElementById('tax-sample').value = [
@@ -2856,7 +3032,7 @@
           header() +
           (state.notice ? `<div class="toast" role="status">${state.notice}</div>` : '') +
           `<div class="content">${sheet()}${taxNotice()}${utilityScreens.includes(state.screen) ? { goals: goalsScreen, settings: settingsScreen, about: aboutScreen, taxes: taxesScreen }[state.screen]() : state.screen === 'profile' ? profile() : state.screen === 'detail' ? detail() : state.screen === 'earn' ? earn() : state.screen === 'wealth' ? wealth() : state.screen === 'markets' ? markets() : state.screen === 'asset' ? assetDetail() : state.screen === 'properties' ? properties() : state.screen === 'property' ? propertyDetail() : { A: variantA, B: variantB, C: variantC }[variant]()}</div>` +
-          (state.screen === 'detail' || utilityScreens.includes(state.screen) ? '' : tabs());
+          (hasBottomTabs() ? tabs() : '');
         document.getElementById('variant-label').textContent = variant + ' · ' + names[variant];
         document.getElementById('hypothesis').textContent = hypotheses[variant];
         document.getElementById('state').textContent = JSON.stringify(

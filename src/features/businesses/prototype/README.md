@@ -159,3 +159,21 @@ Owner requested less text across the app and asked where the tax-payment choice 
 Tax filing now uses **Pay & file** and **Don’t report**. Both choices are visible but disabled during a current estimate, with a concise filing-open time; they become usable only when the return closes. Choose **Tax: return ready** in the outside-phone selector to review the interactive filing state. Before zero reporting, 40% audit risk and the $3,000 sample assessment remain visible; confirmation keeps the finality, cash effects, installment balance and audit delay. No early filing was added.
 
 Tax default panels now prioritize status, amount, action and the relevant timer or recovery rate. Source accounting and rules are collapsed, rather than explained in several paragraphs. Essential transaction consequences, financial units, accessibility labels and the required fictional-assets notice remain. This is a copy/layout pass only; native rules and saves are unchanged.
+
+## Review improvements: money, header, progression and small phones
+
+Implemented the owner's approved review changes and the business-detail spacing correction:
+
+- A shared cash-credit quote now drives both debt recovery and sale/withdrawal previews. Confirmations show before-recovery proceeds, recovery, cash received and cash after; stock sale activity records the net receipt. Cash flow in the header and Profile shows the same recovery-aware one-minute sample estimate. Final debt recovery is capped to the balance. This remains sample accounting; production must use the merged engine's receipt/remainder rules and reviewed quotes.
+- The header keeps cash and cash flow. The goal strip appears on Earn only, including a pinned goal, without repeating a separate pinned card below. Profile stays in the fifth tab; its header shortcut remains only on detail/utility pages where the tab bar is absent.
+- The Business back link and tier/stage label occupy separate blocks, with a 16px gap after the back block. The badge and title also have a clear gap.
+- Grow shows machine count, current capacity and the next machine's capacity benefit alongside its Treasury price. It does not invent a profit increase where demand/stock could constrain it. Property records show renovation level instead of generic Residential metadata.
+- Narrow layouts hide nonessential miniature market charts, give names/prices room to wrap, stack Profile shortcut content and use full-width primary confirmation actions. Bottom-tab captions are shorter with full accessibility labels; narrow columns preserve the center Earn position. Sample controls are collapsed outside the phone.
+
+### Browser verification
+
+The shared T3 preview failed twice with “T3 server is running as root; Chrome's sandbox cannot start.” The server was not restarted or changed. A separate local Playwright/Chromium process using the installed browser and a local file was used for checks, then closed.
+
+Measured fourteen page/confirmation states at 320px and 390px, at normal and simulated 160% font size (56 combinations). The checks found no remaining horizontal overflow in the tested phone/header/content/row/sheet containers, and no page errors. Inspected business-detail, enlarged Profile and enlarged property-sale screenshots; that inspection led to full-width confirmation actions and readable bottom-tab captions. This is browser study evidence, not native Dynamic Type, safe-area or device verification.
+
+Runtime smoke checks verify preview/commit cash agreement for market, property and business sales and withdrawals, capped final recovery, unchanged withdrawal net worth, consistent cash-flow figures, header entry points, machine-capacity updates and renovation metadata. Full repo checks pass on the merged branch.
