@@ -11,6 +11,12 @@ import {
   applyWithdrawFromTreasury,
 } from '@/domain/business/commands';
 import {
+  applyInstallDetailing,
+  applySetMemberCap,
+  applySetMembershipPrice,
+  applySetWashPackage,
+} from '@/domain/business/carWashCommands';
+import {
   applyFireStaff,
   applyHireStaff,
   applyUpgradeStage,
@@ -87,6 +93,14 @@ const COMMAND_HANDLERS: CommandHandlers = {
     applyRestockVending(state, { ...command, economy: businessEconomy(content) }),
   InstallCardReaders: (state, command, content) =>
     applyInstallCardReaders(state, { ...command, economy: businessEconomy(content) }),
+  SetWashPackage: (state, command, content) =>
+    applySetWashPackage(state, { ...command, economy: businessEconomy(content) }),
+  SetMembershipPrice: (state, command, content) =>
+    applySetMembershipPrice(state, { ...command, economy: businessEconomy(content) }),
+  SetMemberCap: (state, command, content) =>
+    applySetMemberCap(state, { ...command, economy: businessEconomy(content) }),
+  InstallDetailing: (state, command, content) =>
+    applyInstallDetailing(state, { ...command, economy: businessEconomy(content) }),
   DismissCoachMark: (state, command) => applyDismissCoachMark(state, command.coachMark),
   SetPayout: (state, command, content) =>
     applySetPayout(state, { ...command, economy: businessEconomy(content) }),

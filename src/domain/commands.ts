@@ -1,4 +1,5 @@
 import type { BusinessTrack, IncidentCategory, PriceLevel, StaffRole } from './business/definition';
+import type { OptionalPackage } from './business/carWashRules';
 import type { RestockTarget } from './business/vendingCommands';
 import type { StockMix, VendingLocation } from './business/vendingRules';
 import type { CoachMark } from './coachMarks';
@@ -89,6 +90,30 @@ export type InstallCardReaders = {
   readonly businessId: string;
 };
 
+export type SetWashPackage = {
+  readonly type: 'SetWashPackage';
+  readonly businessId: string;
+  readonly washPackage: OptionalPackage;
+  readonly offered: boolean;
+};
+
+export type SetMembershipPrice = {
+  readonly type: 'SetMembershipPrice';
+  readonly businessId: string;
+  readonly priceLevel: PriceLevel;
+};
+
+export type SetMemberCap = {
+  readonly type: 'SetMemberCap';
+  readonly businessId: string;
+  readonly capPercent: number;
+};
+
+export type InstallDetailing = {
+  readonly type: 'InstallDetailing';
+  readonly businessId: string;
+};
+
 export type DismissCoachMark = { readonly type: 'DismissCoachMark'; readonly coachMark: CoachMark };
 
 export type SetPayout = {
@@ -172,6 +197,10 @@ export type GameCommand =
   | SetVendingMix
   | RestockVending
   | InstallCardReaders
+  | SetWashPackage
+  | SetMembershipPrice
+  | SetMemberCap
+  | InstallDetailing
   | DismissCoachMark
   | SetPayout
   | DepositToTreasury

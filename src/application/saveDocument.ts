@@ -7,6 +7,7 @@ import {
   type Insurance,
   type OwnedBusiness,
 } from '@/domain/business/owned';
+import { NO_CAR_WASH, type CarWashOperation } from '@/domain/business/carWashState';
 import { NO_VENDING, type VendingOperation } from '@/domain/business/vendingRules';
 import type {
   AbsenceIncident,
@@ -17,7 +18,10 @@ import type {
 
 export type SavedRisks = { readonly insurance: Insurance; readonly incident: ActiveIncident };
 
-type SavedBusiness = Omit<OwnedBusiness, 'staff' | 'insurance' | 'incident' | 'vending'>;
+type SavedBusiness = Omit<
+  OwnedBusiness,
+  'staff' | 'insurance' | 'incident' | 'vending' | 'carWash'
+>;
 
 type SavedReturnSummary =
   | { readonly status: 'none' }
@@ -36,6 +40,7 @@ export type SaveDocument = Omit<GameState, 'businesses' | 'returnSummary' | 'act
   readonly staffing: Readonly<Record<string, StaffCounts>>;
   readonly risks: Readonly<Record<string, SavedRisks>>;
   readonly vending: Readonly<Record<string, VendingOperation>>;
+  readonly carWash: Readonly<Record<string, CarWashOperation>>;
   readonly absenceIncidents: readonly AbsenceIncident[];
   readonly incidentEntries: number;
 };
@@ -61,14 +66,21 @@ export function toSaveDocument(state: GameState): SaveDocument {
   return {
     ...state,
     businesses: businesses.map(
-      ({ staff: _staff, insurance: _insurance, incident: _incident, vending: _vending, ...rest }) =>
-        rest,
+      ({
+        staff: _staff,
+        insurance: _insurance,
+        incident: _incident,
+        vending: _vending,
+        carWash: _carWash,
+        ...rest
+      }) => rest,
     ),
     returnSummary: savedReturnSummary(returnSummary),
     activity: savedActivity(activity),
     staffing: byBusiness(businesses, (business) => business.staff),
     risks: byBusiness(businesses, ({ insurance, incident }) => ({ insurance, incident })),
     vending: byBusiness(businesses, (business) => business.vending),
+    carWash: byBusiness(businesses, (business) => business.carWash),
     absenceIncidents: returnSummary.status === 'pending' ? returnSummary.summary.incidents : [],
     incidentEntries: activity.lifetime.byKind.incident,
   };
@@ -82,6 +94,7 @@ function loadedBusiness(saved: SavedBusiness, document: SaveDocument): OwnedBusi
     insurance: risks?.insurance ?? NO_INSURANCE,
     incident: risks?.incident ?? NO_INCIDENT,
     vending: document.vending[saved.definitionId] ?? NO_VENDING,
+    carWash: document.carWash[saved.definitionId] ?? NO_CAR_WASH,
   };
 }
 
@@ -104,6 +117,7 @@ export function fromSaveDocument(document: SaveDocument): GameState {
     absenceIncidents: _absenceIncidents,
     incidentEntries: _incidentEntries,
     vending: _vending,
+    carWash: _carWash,
     ...rest
   } = document;
   return {

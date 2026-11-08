@@ -34,6 +34,7 @@ import { selectCashCents, stateWithUnsavedIncome } from './cashView';
 import { businessEconomy } from './economy';
 import type { GameSnapshot } from './game';
 import { selectVending, type VendingView } from './vendingView';
+import { selectCarWash, type CarWashView } from './carWashView';
 
 export type AvailableUnit = Extract<UnitQuote, { status: 'available' }> & Affordability;
 export type UnitOption = Extract<UnitQuote, { status: 'at_cap' }> | AvailableUnit;
@@ -85,6 +86,7 @@ export type OwnedBusinessDetail = {
   readonly stageUpgrade: StageOption;
   readonly risks: BusinessRisks;
   readonly vending: VendingView | undefined;
+  readonly carWash: CarWashView | undefined;
   readonly sale: BusinessSale;
 };
 
@@ -99,6 +101,7 @@ type DetailContext = {
   readonly simulationMs: number;
   readonly cashCents: MoneyCents;
   readonly seenCoachMarks: readonly string[];
+  readonly seed: string;
 };
 
 function unitOption({ owned, pricing }: DetailContext): UnitOption {
@@ -161,6 +164,7 @@ function ownedDetail(business: Business, context: DetailContext): OwnedBusinessD
     stageUpgrade: stageOption(context),
     risks: selectBusinessRisks({ ...context, business }),
     vending: selectVending(context),
+    carWash: selectCarWash(context),
     sale: {
       proceedsCents: saleProceedsCents(owned, rules),
       spendCents: owned.capitalizedSpendCents,
@@ -188,5 +192,6 @@ export function selectBusinessDetail(
     simulationMs: state.clock.simulationMs,
     cashCents: selectCashCents(snapshot, content),
     seenCoachMarks: state.seenCoachMarks,
+    seed: state.market.seed,
   });
 }

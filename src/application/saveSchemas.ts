@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { activityLog, goalProgress } from './activitySchemas';
 import { adSchedule, settings, tutorialProgress } from './preferenceSchemas';
 import { fromSaveDocument } from './saveDocument';
+import { savedCarWash } from './carWashSaveSchema';
 import { savedVending } from './vendingSaveSchema';
 import { PRICE_LEVELS } from '@/domain/business/definition';
 import { parseMoneyCents, parsePriceMicros, parseQuantityMicrounits } from '@/domain/money';
@@ -149,6 +150,7 @@ export const saveDocumentSchema = z.looseObject({
   absenceIncidents: z.array(absenceIncident).default([]),
   incidentEntries: count.default(0),
   vending: z.record(z.string().min(1), savedVending).default({}),
+  carWash: z.record(z.string().min(1), savedCarWash).default({}),
   seenCoachMarks: z.array(z.string().min(1)).default([]),
 });
 

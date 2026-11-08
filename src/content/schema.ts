@@ -5,6 +5,7 @@ import type { MoneyCents, PriceMicros } from '@/domain/money';
 
 import { eventTemplateSchema, marketParamsSchema } from './marketSchema';
 import { incidentSchema, riskRulesSchema } from './riskSchema';
+import { carWashMechanicSchema } from './carWashSchema';
 import { vendingMechanicSchema } from './vendingSchema';
 
 const id = z.string().regex(/^[a-z][a-z0-9_]*$/, 'IDs are lowercase snake_case');
@@ -102,7 +103,7 @@ const businessSchema = z.object({
   costsPerDay: nonNegativeCents,
   demandResponseBps: byPriceLevel.optional(),
   incidents: z.array(incidentSchema),
-  mechanic: vendingMechanicSchema.optional(),
+  mechanic: z.discriminatedUnion('kind', [vendingMechanicSchema, carWashMechanicSchema]).optional(),
   logo: logoSchema,
 });
 

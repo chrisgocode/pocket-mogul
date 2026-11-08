@@ -131,3 +131,30 @@ describe('vending locations and coach marks (BUS20a)', () => {
     });
   });
 });
+
+describe('car wash packages and memberships (BUS20b)', () => {
+  const carWash = {
+    status: 'active',
+    weather: 'after_rain',
+    packages: { deluxe: 'offered', ultimate: 'withdrawn' },
+    members: 120,
+    membershipLevel: 'value',
+    memberCapPercent: 40,
+    detailing: 'none',
+  } as const;
+
+  it('loads a baseline save with the mechanic inactive', () => {
+    expect(currentState(baselineFixture)).toMatchObject({
+      businesses: [{ carWash: { status: 'inactive' } }],
+    });
+  });
+
+  it('keeps the car wash in a top-level record and round-trips it', () => {
+    const stored = baselineDocument({ carWash: { vending: carWash } });
+    const encoded = encodeSave(currentState(stored));
+    const document = JSON.parse(encoded) as { businesses: readonly object[] };
+    expect(document).toMatchObject({ carWash: { vending: carWash } });
+    expect(document.businesses[0]).not.toHaveProperty('carWash');
+    expect(currentState(encoded)).toMatchObject({ businesses: [{ carWash }] });
+  });
+});

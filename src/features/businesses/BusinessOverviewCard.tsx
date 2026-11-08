@@ -5,6 +5,7 @@ import { Card } from '@/ui/Card';
 import { DetailLine } from '@/ui/DetailLine';
 
 import { formatPerDay, stageName } from './businessFormat';
+import { OptionalDayLines } from './OptionalDayLines';
 
 export function BusinessOverviewCard({ detail }: { detail: OwnedBusinessDetail }) {
   const { day, business } = detail;
@@ -22,20 +23,15 @@ export function BusinessOverviewCard({ detail }: { detail: OwnedBusinessDetail }
         value={formatMoneyExact(day.priceCents)}
       />
       <DetailLine label="Revenue" value={formatPerDay(day.revenueCents)} />
+      {day.memberFeesCents > 0n ? (
+        <DetailLine label="Memberships" value={formatPerDay(day.memberFeesCents)} />
+      ) : null}
       <DetailLine label="Upkeep" value={formatPerDay(moneyCents(0n - day.upkeepCents))} />
       <DetailLine
         label="Customer costs"
         value={formatPerDay(moneyCents(0n - day.customerCostsCents))}
       />
-      {day.wagesCents > 0n ? (
-        <DetailLine label="Wages" value={formatPerDay(moneyCents(0n - day.wagesCents))} />
-      ) : null}
-      {day.premiumsCents > 0n ? (
-        <DetailLine label="Insurance" value={formatPerDay(moneyCents(0n - day.premiumsCents))} />
-      ) : null}
-      {day.managerBonusCents > 0n ? (
-        <DetailLine label="Manager bonus" value={formatPerDay(day.managerBonusCents)} />
-      ) : null}
+      <OptionalDayLines day={day} />
       <DetailLine label="Profit" value={formatPerDay(day.profitCents)} emphasis />
       <DetailLine
         label="To your cash"

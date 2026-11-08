@@ -15,6 +15,8 @@ import {
 } from './businessAction';
 import { OwnedBusinessDetails } from './OwnedBusinessDetails';
 import type { TreasuryActions } from './treasuryActions';
+import type { CarWashActions } from './carWashFormat';
+import type { FlagshipActions } from './FlagshipSections';
 import type { VendingActions } from './vendingFormat';
 import { useBusinessCommand } from './useBusinessCommand';
 
@@ -57,6 +59,35 @@ function vendingActions(
   };
 }
 
+function carWashActions(
+  detail: Extract<BusinessDetailView, { status: 'owned' }>,
+  handlers: {
+    run: ReturnType<typeof useBusinessCommand>;
+    review: (action: BusinessAction) => void;
+  },
+): CarWashActions {
+  const businessId = detail.business.id;
+  const { run } = handlers;
+  return {
+    setPackage: (change) => run({ type: 'SetWashPackage', businessId, ...change }),
+    setMembershipPrice: (priceLevel) => run({ type: 'SetMembershipPrice', businessId, priceLevel }),
+    setMemberCap: (capPercent) => run({ type: 'SetMemberCap', businessId, capPercent }),
+    dismissCoachMark: () => run({ type: 'DismissCoachMark', coachMark: 'car_wash' }),
+    installDetailing: (detailing) =>
+      handlers.review({ kind: 'detailing', business: detail.business, detailing }),
+  };
+}
+
+function flagshipActions(
+  detail: Extract<BusinessDetailView, { status: 'owned' }>,
+  handlers: {
+    run: ReturnType<typeof useBusinessCommand>;
+    review: (action: BusinessAction) => void;
+  },
+): FlagshipActions {
+  return { vending: vendingActions(detail, handlers), carWash: carWashActions(detail, handlers) };
+}
+
 export function BusinessDetailScreen() {
   const { businessId } = useLocalSearchParams<{ businessId: string }>();
   const detail = selectBusinessDetail(useGameSnapshot(), { businessId, content: getContent() });
@@ -72,7 +103,7 @@ export function BusinessDetailScreen() {
           onPriceLevel={(priceLevel) => run({ type: 'SetPriceLevel', businessId, priceLevel })}
           onInsurance={(change) => run({ type: 'SetInsurance', businessId, ...change })}
           treasury={treasuryActions(detail, { run, review })}
-          vending={vendingActions(detail, { run, review })}
+          flagship={flagshipActions(detail, { run, review })}
         />
       ) : null}
       {detail.status === 'not_owned' ? (

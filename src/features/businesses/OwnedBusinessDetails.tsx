@@ -3,6 +3,7 @@ import type { PriceLevel } from '@/domain/business/definition';
 
 import type { BusinessAction } from './businessAction';
 import { BusinessOverviewCard } from './BusinessOverviewCard';
+import { FlagshipSections, type FlagshipActions } from './FlagshipSections';
 import { GrowSection } from './GrowSection';
 import { PriceLevelCard } from './PriceLevelCard';
 import type { InsuranceChange } from './InsuranceButton';
@@ -11,8 +12,6 @@ import { SellCard } from './SellCard';
 import { StaffSection } from './StaffSection';
 import type { TreasuryActions } from './treasuryActions';
 import { TreasuryCard } from './TreasuryCard';
-import type { VendingActions } from './vendingFormat';
-import { VendingSection } from './VendingSection';
 
 export function OwnedBusinessDetails({
   detail,
@@ -20,14 +19,14 @@ export function OwnedBusinessDetails({
   onPriceLevel,
   onInsurance,
   treasury,
-  vending,
+  flagship,
 }: {
   detail: OwnedBusinessDetail;
   onReview: (action: BusinessAction) => void;
   onPriceLevel: (priceLevel: PriceLevel) => void;
   onInsurance: (change: InsuranceChange) => void;
   treasury: TreasuryActions;
-  vending: VendingActions;
+  flagship: FlagshipActions;
 }) {
   const { business } = detail;
   return (
@@ -35,7 +34,7 @@ export function OwnedBusinessDetails({
       <BusinessOverviewCard detail={detail} />
       <PriceLevelCard detail={detail} onSelect={onPriceLevel} />
       <TreasuryCard detail={detail} actions={treasury} />
-      <VendingSection detail={detail} actions={vending} />
+      <FlagshipSections detail={detail} actions={flagship} />
       <GrowSection
         detail={detail}
         onUnit={(unit) => onReview({ kind: 'unit', business, unit })}

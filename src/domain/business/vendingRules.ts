@@ -35,12 +35,6 @@ export type VendingRules = {
   readonly cardReaders: CardReaderRule;
 };
 
-export type BusinessMechanic =
-  | { readonly kind: 'shared_core' }
-  | { readonly kind: 'vending'; readonly vending: VendingRules };
-
-export const SHARED_CORE: BusinessMechanic = { kind: 'shared_core' };
-
 export type VendingSpot = {
   readonly machines: number;
   readonly mix: StockMix;

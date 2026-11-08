@@ -10,6 +10,7 @@ import {
   type PriceLevel,
   type StaffCounts,
 } from './definition';
+import { NO_CAR_WASH, type CarWashOperation } from './carWashState';
 import { NO_VENDING, type VendingOperation } from './vendingRules';
 
 export type BusinessStatus = 'open' | 'closed';
@@ -48,6 +49,7 @@ export type OwnedBusiness = {
   readonly insurance: Insurance;
   readonly incident: ActiveIncident;
   readonly vending: VendingOperation;
+  readonly carWash: CarWashOperation;
 };
 
 const FIRST_STAGE = 1;
@@ -73,5 +75,6 @@ export function newBusiness(
     insurance: NO_INSURANCE,
     incident: NO_INCIDENT,
     vending: NO_VENDING,
+    carWash: NO_CAR_WASH,
   };
 }

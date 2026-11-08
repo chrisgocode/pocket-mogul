@@ -1,5 +1,5 @@
 import type { BusinessDefinition } from '@/domain/business/definition';
-import { SHARED_CORE, type BusinessMechanic } from '@/domain/business/vendingRules';
+import { SHARED_CORE, type BusinessMechanic } from '@/domain/business/mechanicRules';
 import { moneyCents } from '@/domain/money';
 
 import type { Business, BusinessContentRules } from './schema';
@@ -30,6 +30,10 @@ function coreFigures(business: Business, rules: BusinessContentRules): CoreFigur
 function mechanicOf(business: Business): BusinessMechanic {
   const { mechanic } = business;
   if (mechanic === undefined) return SHARED_CORE;
+  if (mechanic.kind === 'car_wash') {
+    const { kind: _kind, ...carWash } = mechanic;
+    return { kind: 'car_wash', carWash };
+  }
   const { kind: _kind, ...vending } = mechanic;
   return { kind: 'vending', vending };
 }

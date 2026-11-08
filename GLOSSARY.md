@@ -147,7 +147,7 @@ One of a business's three kinds of hire: operations staff (+20% capacity each), 
 _Avoid_: Worker, employee, crew
 
 **Manager**:
-The staff role, unlocked at stage 2 (Local), that adds 10% to positive profit and makes a business's routine decisions at each day boundary, offline too: setting the most profitable Price level, renewing Lapsed insurance once the Treasury can pay, and a flagship's own routine choices (at a Vending Machine, each Location's best Stock mix). A Manager never deposits, withdraws or sells.
+The staff role, unlocked at stage 2 (Local), that adds 10% to positive profit and makes a business's routine decisions at each day boundary, offline too: setting the most profitable Price level, renewing Lapsed insurance once the Treasury can pay, and a flagship's own routine choices (at a Vending Machine, each Location's best Stock mix; at a Car Wash, the Member cap ahead of forecast Rain). A Manager never deposits, withdraws or sells.
 _Avoid_: Automation, autopilot
 
 **Incident**:
@@ -159,7 +159,7 @@ Cover for one incident category, available from stage 2 (Local). It costs a dail
 _Avoid_: Cover plan, protection
 
 **Flagship mechanic**:
-A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock.
+A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships.
 _Avoid_: Minigame, feature
 
 **Coach mark**:
@@ -189,6 +189,26 @@ _Avoid_: Driver (that is the Delivery Company's), stocker
 **Card readers**:
 The Vending Machine's stage 5 (Global) signature upgrade, paid once from the Treasury, that adds 20% to demand at every Price level.
 _Avoid_: Contactless, payment upgrade
+
+**Wash package**:
+What a Car Wash walk-in buys: Basic, Deluxe or Ultimate, plus Detailing once added. Each has a price multiplier, a bay time and a default share of walk-ins (60, 30 and 10 percent). The player can stop offering Deluxe or Ultimate; its share moves to the next package down. Capacity counts bay time, so bigger packages wash fewer cars a day.
+_Avoid_: Tier, service level
+
+**Weather**:
+A Car Wash's daily conditions, drawn from the save's seed: Sunny, Cloudy or Rain, or After rain on the first dry day after Rain. It multiplies walk-in demand by 120, 100, 50 or 160 percent. The details show today's weather and the next three days.
+_Avoid_: Season, forecast (that is the three-day view)
+
+**Membership**:
+A Car Wash customer who pays a daily fee whatever the Weather and uses a fixed share of bay time each day, taken before walk-ins. New members join each day in proportion to Quality and the membership Price level, up to the Member cap, and leave when the cap or capacity falls.
+_Avoid_: Subscription, loyalty plan
+
+**Member cap**:
+The largest share of a Car Wash's bay time members may use, set in steps of 20 percent up to 80. A Manager raises it ahead of forecast Rain and lowers it in clear spells.
+_Avoid_: Member limit (that is the member count the cap allows)
+
+**Detailing**:
+The Car Wash's stage 5 (Global) signature upgrade, paid once from the Treasury: a fourth Wash package at the top price that holds a bay the longest and takes 10 percent of walk-ins from Basic.
+_Avoid_: Premium wash, valet
 
 **Treasury**:
 A business's own money. Its profit lands here, and its units, upgrades and other running spending are paid from here, never from the player's cash. It never goes below zero.

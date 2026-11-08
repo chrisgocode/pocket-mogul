@@ -4,6 +4,7 @@ import { MICROS_PER_DOLLAR } from '@/domain/money';
 import { inexactCoreFigures } from './businessCore';
 import { contentSchema, TIERS, type Content } from './schema';
 import { businessRisksFit } from './validateRisks';
+import { carWashMechanicsFit } from './validateCarWash';
 import { vendingMechanicsFit } from './validateVending';
 
 export class ContentValidationError extends Error {
@@ -64,6 +65,7 @@ function crossChecks(content: Content): string[] {
     businessStagesAndPayoutsFit,
     businessRisksFit,
     vendingMechanicsFit,
+    carWashMechanicsFit,
     efficiencyKeepsCostsPositive,
     systemsKeepUpkeepPositive,
     stockClassesFollowTheirRules,

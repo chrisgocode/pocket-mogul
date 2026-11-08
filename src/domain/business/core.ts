@@ -12,7 +12,7 @@ import {
   type StaffRole,
 } from './definition';
 import type { OwnedBusiness } from './owned';
-import { vendingCapacityBps, vendingDemandBps } from './vendingDemand';
+import { mechanicDay, type MechanicDay } from './mechanics';
 
 export type BusinessDayQuote = {
   readonly demand: number;
@@ -23,6 +23,7 @@ export type BusinessDayQuote = {
   readonly revenueCents: MoneyCents;
   readonly upkeepCents: MoneyCents;
   readonly customerCostsCents: MoneyCents;
+  readonly memberFeesCents: MoneyCents;
   readonly wagesCents: MoneyCents;
   readonly premiumsCents: MoneyCents;
   readonly managerBonusCents: MoneyCents;
@@ -57,7 +58,9 @@ const MS_PER_MINUTE = 60_000n;
 
 const raisedPercent = (perStep: number, steps: number) => PERCENT + BigInt(perStep * steps);
 
-function demandOf(business: OwnedBusiness, pricing: BusinessPricing): bigint {
+type Quoting = BusinessPricing & { readonly mechanic: MechanicDay };
+
+function demandOf(business: OwnedBusiness, pricing: Quoting): bigint {
   const { definition, rules } = pricing;
   const numerator =
     BigInt(definition.baseDemand) *
@@ -65,7 +68,7 @@ function demandOf(business: OwnedBusiness, pricing: BusinessPricing): bigint {
     BigInt(definition.demandBps[business.priceLevel]) *
     raisedPercent(rules.qualityDemandPercent, business.levels.quality) *
     raisedPercent(rules.staff.salesDemandPercent, business.staff.sales) *
-    vendingDemandBps(business, pricing);
+    pricing.mechanic.demandBps;
   return numerator / (PERCENT * BASIS_POINTS * PERCENT * PERCENT * BASIS_POINTS);
 }
 
@@ -76,15 +79,32 @@ function incidentBps(business: OwnedBusiness, effect: 'capacityBps' | 'costBps')
   return BigInt(incident.status === 'active' ? incident[effect] : NO_EFFECT_BPS);
 }
 
-function capacityOf(business: OwnedBusiness, pricing: BusinessPricing): bigint {
+function baysOf(business: OwnedBusiness, pricing: Quoting): bigint {
   const { definition, rules } = pricing;
   const numerator =
     BigInt(definition.capacityPerUnit) *
     BigInt(business.units) *
     raisedPercent(rules.staff.operationsCapacityPercent, business.staff.operations) *
     incidentBps(business, 'capacityBps') *
-    vendingCapacityBps(business, pricing);
+    pricing.mechanic.capacityBps;
   return numerator / (PERCENT * BASIS_POINTS * BASIS_POINTS);
+}
+
+export function bayCapacity(business: OwnedBusiness, pricing: BusinessPricing): number {
+  return Number(baysOf(business, { ...pricing, mechanic: mechanicDay(business, pricing) }));
+}
+
+function walkInCapacityOf(business: OwnedBusiness, pricing: Quoting): bigint {
+  const bays = baysOf(business, pricing);
+  const { memberBay, bayBps } = pricing.mechanic;
+  const free = bays > memberBay ? bays - memberBay : 0n;
+  return (free * BASIS_POINTS) / bayBps;
+}
+
+function memberWashesOf(business: OwnedBusiness, pricing: Quoting): bigint {
+  const bays = baysOf(business, pricing);
+  const { memberBay } = pricing.mechanic;
+  return memberBay < bays ? memberBay : bays;
 }
 
 export function premiumCents(pricing: BusinessPricing): MoneyCents {
@@ -122,35 +142,56 @@ function costPerServedOf(business: OwnedBusiness, pricing: BusinessPricing): big
   return numerator / (PERCENT * BASIS_POINTS);
 }
 
+function dayCosts(business: OwnedBusiness, quoting: Quoting & { readonly served: bigint }) {
+  const costPerServedCents = costPerServedOf(business, quoting);
+  const washes = quoting.served + memberWashesOf(business, quoting);
+  return {
+    costPerServedCents,
+    upkeepCents: quoting.definition.upkeepPerUnitCents * BigInt(business.units),
+    customerCostsCents: washes * costPerServedCents,
+    wagesCents: wagesOf(business, quoting),
+    premiumsCents: premiumCents(quoting) * BigInt(activePolicies(business)),
+  };
+}
+
+function priceOf(business: OwnedBusiness, quoting: Quoting): bigint {
+  const levelBps = BigInt(quoting.rules.priceBps[business.priceLevel]);
+  const numerator = quoting.definition.pricePerCustomerCents * levelBps * quoting.mechanic.priceBps;
+  return numerator / (BASIS_POINTS * BASIS_POINTS);
+}
+
 export function quoteBusinessDay(
   business: OwnedBusiness,
   pricing: BusinessPricing,
 ): BusinessDayQuote {
-  const { definition, rules } = pricing;
-  const demand = demandOf(business, pricing);
-  const capacity = capacityOf(business, pricing);
+  const quoting = { ...pricing, mechanic: mechanicDay(business, pricing) };
+  const demand = demandOf(business, quoting);
+  const capacity = walkInCapacityOf(business, quoting);
   const served = demand < capacity ? demand : capacity;
-  const priceCents =
-    (definition.pricePerCustomerCents * BigInt(rules.priceBps[business.priceLevel])) / BASIS_POINTS;
-  const costPerServedCents = costPerServedOf(business, pricing);
+  const priceCents = priceOf(business, quoting);
   const revenueCents = served * priceCents;
-  const upkeepCents = definition.upkeepPerUnitCents * BigInt(business.units);
-  const customerCostsCents = served * costPerServedCents;
-  const wagesCents = wagesOf(business, pricing);
-  const premiumsCents = premiumCents(pricing) * BigInt(activePolicies(business));
-  const gross = revenueCents - upkeepCents - customerCostsCents - wagesCents - premiumsCents;
+  const costs = dayCosts(business, { ...quoting, served });
+  const memberFeesCents = quoting.mechanic.memberFeesCents;
+  const gross =
+    revenueCents +
+    memberFeesCents -
+    costs.upkeepCents -
+    costs.customerCostsCents -
+    costs.wagesCents -
+    costs.premiumsCents;
   const managerBonusCents = managerBonusOf(gross, business, pricing);
   return {
     demand: Number(demand),
     capacity: Number(capacity),
     served: Number(served),
     priceCents: moneyCents(priceCents),
-    costPerServedCents: moneyCents(costPerServedCents),
+    costPerServedCents: moneyCents(costs.costPerServedCents),
     revenueCents: moneyCents(revenueCents),
-    upkeepCents: moneyCents(upkeepCents),
-    customerCostsCents: moneyCents(customerCostsCents),
-    wagesCents: moneyCents(wagesCents),
-    premiumsCents: moneyCents(premiumsCents),
+    upkeepCents: moneyCents(costs.upkeepCents),
+    customerCostsCents: moneyCents(costs.customerCostsCents),
+    memberFeesCents: moneyCents(memberFeesCents),
+    wagesCents: moneyCents(costs.wagesCents),
+    premiumsCents: moneyCents(costs.premiumsCents),
     managerBonusCents: moneyCents(managerBonusCents),
     profitCents: moneyCents(gross + managerBonusCents),
   };
