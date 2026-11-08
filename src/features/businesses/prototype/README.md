@@ -110,3 +110,28 @@ Six labeled swatch buttons compare Studio and the five new palettes directly abo
 Palette changes apply to all five sections, center navigation, actions, wallet area, summary figures, category allocation and market marks. Existing property illustrations retain their own asset-specific art palettes.
 
 Validation: all nine palette URL keys load; the six direct comparison buttons and category styles render; switching preserves sample state. A numeric contrast check of the five new palettes confirms at least 4.5:1 for primary/muted text, section accents and gain/loss text against each palette's base/panel backgrounds. This is a token-pair check, not a full accessibility or browser visual audit. Chrome preview still fails to launch, so visual verification remains limited.
+
+## Studio selected; Profile, Goals and Settings navigation
+
+**Owner decision:** Studio is the chosen palette. It remains the default; other palette experiments have moved to a collapsed archive below the prototype so they no longer dominate the review.
+
+### Diagnosis
+
+The native app still has `src/app/goals.tsx` and `src/app/settings.tsx`, registered in `src/ui/RootStack.tsx`. `src/ui/HeaderActions.tsx`, mounted through `src/ui/TabStack.tsx`, opens both from the native tab headers. The browser study had replaced that chrome with a sample top bar: its Goals label was inert and Settings had no entry point. This was a missing prototype navigation path, not removed native routes.
+
+### Proposed information architecture
+
+Keep the five business/task tabs and centered Earn. Add a **labeled Profile button in the shared header**, reachable from every tab and detail page. Profile groups **Goals & achievements** and **Settings**. The header's achievement-progress strip also directly opens Goals. Utility pages use explicit back navigation and restore the originating tab or selected asset/property/business detail.
+
+A sixth bottom tab would compromise the symmetric center Earn position; replacing Wealth with Profile would make the frequently used financial view less direct. The header gives Profile a stable home while preserving the agreed five-tab layout. This is the proposed Profile placement, not an owner-approved production routing change.
+
+### What is interactive
+
+- Profile shows peak net worth and achievements, then routes to Goals or Settings. It adds no account/login, invented username or cloud-save flow.
+- Goals represents the existing thirteen v1 achievements and their stable content IDs: six first actions plus seven peak-wealth milestones. All / In progress / Earned filters work. One open goal can be pinned to Earn, unpinned or automatically cleared on completion. Badge completion and peak wealth persist through simulated asset sales and spending; no cash is awarded.
+- Settings exposes sound/haptics preferences, reduced motion, compact/full summary numbers, About and a confirmed progress reset. Number formatting changes the sample header and profile/Earn summaries; transaction amounts stay exact. Reduced-motion selection changes the sample's press/scroll behavior. Sound/haptics are stored in sample state; this browser study does not create device feedback.
+- Reset affects memory only, returns to the first-session sample and keeps preferences. Cancel preserves all progress. This does not touch native saves or files.
+
+The first-dividend achievement remains discoverable but cannot complete because the prototype does not advance time or pay dividends. Native implementation must reuse the existing goal/settings selectors and commands, not the sample evaluation in this HTML. The native ad-report action has not been simulated; its existing contact destination needs production handling separately. No production route, save, engine or native API was changed.
+
+Validation covers Profile/Goals entry points across all five tabs, nested utility/back navigation (including return to asset detail), goal filters, pin/unpin and completion, permanent badges, no bonus cash, settings, About, and cancel/confirm reset. Full repo checks pass. Chrome visual preview remains unavailable; no browser visual verification is claimed.

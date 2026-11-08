@@ -1428,6 +1428,249 @@
       .phone[data-palette='paper'] .hero {
         background: var(--panel);
       }
+
+      .palette-archive {
+        max-width: 390px;
+        margin: 14px auto;
+        color: var(--muted-foreground, #aaa);
+        font-size: 12px;
+      }
+      .palette-archive select {
+        margin: 10px 0;
+        padding: 8px;
+        min-height: 44px;
+        border-radius: 8px;
+      }
+      .header-income {
+        margin-left: auto;
+        text-align: right;
+      }
+      .topline {
+        gap: 8px;
+      }
+      .phone .profile-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        min-width: 48px;
+        min-height: 48px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel);
+        padding: 5px;
+        color: var(--ink);
+      }
+      .profile-button span {
+        font-size: 9px;
+      }
+      .phone .goal-shortcut {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        width: 100%;
+        padding: 10px 0 0;
+        margin-top: 10px;
+        border-top: 1px solid var(--line);
+        text-align: left;
+        min-height: 44px;
+        color: var(--gold);
+      }
+      .goal-shortcut > span:nth-child(2) {
+        flex: 1;
+        min-width: 0;
+      }
+      .goal-shortcut b {
+        display: block;
+        font-size: 11px;
+        color: var(--ink);
+      }
+      .goal-shortcut small {
+        display: block;
+        font-size: 10px;
+        color: var(--dim);
+      }
+      .profile-heading {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin: 14px 0 24px;
+      }
+      .profile-heading h1 {
+        margin: 0 0 4px;
+      }
+      .profile-avatar {
+        display: grid;
+        place-items: center;
+        width: 60px;
+        height: 60px;
+        background: var(--raised);
+        border-radius: 18px;
+        color: var(--wealth);
+      }
+      .profile-avatar svg {
+        width: 28px;
+        height: 28px;
+      }
+      .profile-stat {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        padding: 14px 0;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+      .profile-stat b {
+        display: block;
+        font-size: 20px;
+        margin-top: 3px;
+      }
+      .profile-menu {
+        margin-top: 18px;
+      }
+      .phone .profile-link {
+        display: flex;
+        align-items: center;
+        text-align: left;
+        gap: 12px;
+        width: 100%;
+        padding: 17px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .profile-link > span:nth-child(2) {
+        flex: 1;
+      }
+      .profile-link b {
+        display: block;
+        font-size: 14px;
+      }
+      .profile-link small {
+        display: block;
+        font-size: 11px;
+        color: var(--dim);
+        margin-top: 3px;
+      }
+      .menu-icon {
+        color: var(--gold);
+      }
+      .achievement-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin: 14px 0;
+      }
+      .achievement-summary > b {
+        font-size: 32px;
+        color: var(--gold);
+      }
+      .achievement-summary > b > span {
+        font-size: 20px;
+        color: var(--dim);
+      }
+      .achievement-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 15px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .achievement-mark {
+        display: grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        flex-shrink: 0;
+        color: var(--dim);
+      }
+      .achievement-mark.reached {
+        color: var(--green);
+        border-color: var(--green);
+      }
+      .achievement-body {
+        flex: 1;
+        min-width: 0;
+      }
+      .achievement-body b {
+        display: block;
+        font-size: 13px;
+      }
+      .achievement-body small {
+        display: block;
+        font-size: 11px;
+        color: var(--dim);
+        margin-top: 3px;
+      }
+      .phone .goal-pin {
+        min-width: 44px;
+        font-size: 11px;
+        color: var(--gold);
+        padding: 6px;
+      }
+      .goal-meter {
+        display: block;
+        height: 3px;
+        background: var(--line);
+        border-radius: 3px;
+        margin-top: 8px;
+        overflow: hidden;
+      }
+      .goal-meter i {
+        display: block;
+        height: 100%;
+        background: var(--gold);
+      }
+      .preference {
+        padding: 14px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .preference > b {
+        font-size: 13px;
+      }
+      .preference-options {
+        display: flex;
+        gap: 6px;
+        margin-top: 9px;
+      }
+      .preference-options button {
+        flex: 1;
+        padding: 8px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        font-size: 12px;
+      }
+      .preference-options button[aria-pressed='true'] {
+        color: var(--bg);
+        background: var(--gold);
+        border-color: var(--gold);
+      }
+      .phone .pinned-goal {
+        margin: 10px 0;
+        background: var(--panel);
+        padding: 10px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+      .pinned-goal > span:nth-child(2) {
+        flex: 1;
+      }
+      .phone[data-motion='on'] .tap-zone:active svg {
+        transform: none;
+      }
+      .phone[data-motion='on'] .content {
+        scroll-behavior: auto;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .phone[data-motion='system'] .tap-zone:active svg {
+          transform: none;
+        }
+        .phone[data-motion='system'] .content {
+          scroll-behavior: auto;
+        }
+      }
     </style>
   </head>
   <body>
@@ -1444,6 +1687,23 @@
           <option value="attention">Needs attention</option>
           <option value="diversified">Diversified holdings</option></select
         ><button data-action="reset">Reset sample</button>
+
+        <select id="business-art" aria-label="Business row artwork">
+          <option value="illustrated">Two-tone illustrations</option>
+          <option value="outline">Outline icons</option>
+          <option value="none">No icons</option>
+        </select>
+      </div>
+      <div class="phone" id="phone"></div>
+      <div class="evidence">
+        <p id="hypothesis"></p>
+        <details>
+          <summary>Live prototype state · inspect after any action</summary>
+          <pre id="state"></pre>
+        </details>
+      </div>
+      <details class="palette-archive">
+        <summary>Archived palette studies · Studio selected</summary>
         <select id="palette" aria-label="Color palette">
           <option value="mixed">Studio · mixed accents</option>
           <option value="afterhours">After Hours · peach · mint</option>
@@ -1455,26 +1715,13 @@
           <option value="midnight">Midnight · blue</option>
           <option value="ash">Ash · ivory</option>
         </select>
-        <select id="business-art" aria-label="Business row artwork">
-          <option value="illustrated">Two-tone illustrations</option>
-          <option value="outline">Outline icons</option>
-          <option value="none">No icons</option>
-        </select>
-      </div>
-      <div
-        class="palette-choices"
-        id="palette-choices"
-        role="group"
-        aria-label="Compare color palettes"
-      ></div>
-      <div class="phone" id="phone"></div>
-      <div class="evidence">
-        <p id="hypothesis"></p>
-        <details>
-          <summary>Live prototype state · inspect after any action</summary>
-          <pre id="state"></pre>
-        </details>
-      </div>
+        <div
+          class="palette-choices"
+          id="palette-choices"
+          role="group"
+          aria-label="Compare color palettes"
+        ></div>
+      </details>
       <div class="switcher">
         <button data-action="prev" aria-label="Previous variant">←</button
         ><strong id="variant-label"></strong
@@ -1536,6 +1783,17 @@
         scenario,
         screen: 'earn',
         walletLevel: 0,
+        screenStack: [],
+        goalFilter: 'All',
+        completedGoals: [],
+        pinnedGoal: null,
+        peakWorth: 0,
+        settings: {
+          sound: 'on',
+          haptics: 'on',
+          reducedMotion: 'system',
+          numberFormatting: 'compact',
+        },
         filter: 'Owned',
         cash: scenario === 'first' ? 0 : scenario === 'diversified' ? 28420 : 4820,
         marketFilter: 'Stocks',
@@ -1624,8 +1882,196 @@
         if (businessArt === 'none') return '';
         return `<div class="business-visual ${businessArt}" data-business="${id}" aria-hidden="true"><svg viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${artwork[id]}</svg></div>`;
       }
+      const goals = [
+        {
+          id: 'first_wallet_upgrade',
+          title: 'First wallet upgrade',
+          hint: 'Upgrade your wallet',
+          check: () => state.walletLevel > 0,
+        },
+        {
+          id: 'first_business',
+          title: 'First business',
+          hint: 'Buy a business',
+          check: () => state.owned.length > 0,
+        },
+        {
+          id: 'first_rental',
+          title: 'First rental',
+          hint: 'Rent out a property',
+          check: () => Object.values(state.properties).some((p) => p.rented),
+        },
+        {
+          id: 'first_stock',
+          title: 'First stock purchase',
+          hint: 'Buy shares in Markets',
+          check: () => assets.some((a) => a.kind === 'Stocks' && state.positions[a.id]),
+        },
+        {
+          id: 'first_crypto',
+          title: 'First crypto purchase',
+          hint: 'Buy a coin in Markets',
+          check: () => assets.some((a) => a.kind === 'Crypto' && state.positions[a.id]),
+        },
+        {
+          id: 'first_dividend',
+          title: 'First dividend',
+          hint: 'Receive your first stock dividend',
+          check: () => false,
+        },
+        ...[
+          [1000, 'peak_1k'],
+          [10000, 'peak_10k'],
+          [100000, 'peak_100k'],
+          [1000000, 'peak_1m'],
+          [10000000, 'peak_10m'],
+          [100000000, 'peak_100m'],
+          [1000000000, 'peak_1b'],
+        ].map(([threshold, id]) => ({
+          id,
+          title:
+            'Worth ' +
+            new Intl.NumberFormat('en-US', {
+              style: 'currency',
+              currency: 'USD',
+              notation: 'compact',
+              maximumFractionDigits: 0,
+            }).format(threshold),
+          threshold,
+          hint: 'Peak net worth',
+          check: () => state.peakWorth >= threshold,
+        })),
+      ];
+      const utilityScreens = ['profile', 'goals', 'settings', 'about'];
+      const screenLabel = (screen) =>
+        ({
+          earn: 'Earn',
+          businesses: 'Businesses',
+          markets: 'Markets',
+          properties: 'Properties',
+          wealth: 'Wealth',
+          detail: 'Business',
+          asset: 'Asset',
+          property: 'Property',
+          profile: 'Profile',
+          goals: 'Goals',
+          settings: 'Settings',
+          about: 'About',
+        })[screen] ?? 'Earn';
+      const summaryMoney = (amount) =>
+        state.settings.numberFormatting === 'compact' && amount >= 1000
+          ? '$' +
+            new Intl.NumberFormat('en-US', {
+              notation: 'compact',
+              maximumFractionDigits: 2,
+            }).format(amount)
+          : money(amount);
+      function syncGoals() {
+        state.peakWorth = Math.max(state.peakWorth, netWorth());
+        for (const goal of goals)
+          if (goal.check() && !state.completedGoals.includes(goal.id))
+            state.completedGoals.push(goal.id);
+        if (state.completedGoals.includes(state.pinnedGoal)) state.pinnedGoal = null;
+      }
+      function utilityIcon(kind) {
+        const paths = {
+          profile: '<circle cx="12" cy="8" r="4"/><path d="M4 22v-3a8 8 0 0116 0v3"/>',
+          goals:
+            '<path d="M8 3h8v6a4 4 0 01-8 0zM8 5H4v3a4 4 0 004 4m8-7h4v3a4 4 0 01-4 4M12 13v6m-4 2h8"/>',
+          settings:
+            '<path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="10" cy="18" r="2"/>',
+        };
+        return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">${paths[kind] ?? paths.profile}</svg>`;
+      }
+      function goalShortcut() {
+        const goal =
+          goals.find((g) => g.id === state.pinnedGoal) ??
+          goals.find((g) => !state.completedGoals.includes(g.id));
+        return `<button class="goal-shortcut" data-action="utility:goals" aria-label="Open Goals and achievements">${utilityIcon('goals')}<span><b>${goal ? goal.title : 'All achievements earned'}</b><small>Goals · ${state.completedGoals.length} / ${goals.length} achievements${state.pinnedGoal ? ' · Pinned' : ''}</small></span><span aria-hidden="true">→</span></button>`;
+      }
       function header() {
-        return `<div class="status"><span>9:41</span><span>POCKET MOGUL &nbsp; ▰</span></div><header class="top"><div class="topline"><div><div class="eyebrow">Available cash</div><div class="cash">${money(state.cash)}</div></div><div><div class="income">+${money(income() + rentalIncome())}/min</div><div class="muted">To your cash</div></div></div><div class="goal"><span>Tier 2 ${state.scenario === 'first' ? 'locked' : 'unlocked'}</span><span class="meter"><i style="width:${state.scenario === 'first' ? 0 : 100}%"></i></span><span>◇ Goals</span></div></header>`;
+        return `<div class="status"><span>9:41</span><span>POCKET MOGUL</span></div><header class="top"><div class="topline"><div><div class="eyebrow">Available cash</div><div class="cash">${summaryMoney(state.cash)}</div></div><div class="header-income"><div class="income">+${money(income() + rentalIncome())}/min</div><div class="muted">To your cash</div></div><button class="profile-button" data-action="utility:profile" aria-label="Open Profile">${utilityIcon('profile')}<span>Profile</span></button></div>${goalShortcut()}</header>`;
+      }
+      function openUtility(screen) {
+        if (state.screen === screen) return;
+        const index = state.screenStack.indexOf(screen);
+        state.screenStack =
+          index >= 0 ? state.screenStack.slice(0, index) : [...state.screenStack, state.screen];
+        state.screen = screen;
+        state.confirmation = null;
+        state.notice = '';
+      }
+      const utilityBack = () =>
+        button(
+          '← ' + screenLabel(state.screenStack[state.screenStack.length - 1] ?? 'earn'),
+          'utilityBack',
+          'back',
+        );
+      function profile() {
+        return `${utilityBack()}<div class="profile-heading"><span class="profile-avatar">${utilityIcon('profile')}</span><div><h1>Profile</h1><span class="muted">${state.completedGoals.length} of ${goals.length} achievements</span></div></div><div class="profile-stat">${stat('Peak net worth', summaryMoney(state.peakWorth))}${stat('Businesses owned', state.owned.length)}</div><div class="profile-menu">${profileLink('Goals & achievements', state.completedGoals.length + ' / ' + goals.length + ' earned', 'goals')}${profileLink('Settings', 'Preferences, progress and about', 'settings')}</div>`;
+      }
+      function profileLink(title, subtitle, destination) {
+        return `<button class="profile-link" data-action="utility:${destination}"><span class="menu-icon">${utilityIcon(destination)}</span><span><b>${title}</b><small>${subtitle}</small></span><span aria-hidden="true">→</span></button>`;
+      }
+      function goalRow(goal) {
+        const reached = state.completedGoals.includes(goal.id);
+        return `<div class="achievement-row"><span class="achievement-mark ${reached ? 'reached' : ''}" aria-label="${reached ? 'Earned' : 'Not earned'}">${reached ? '✓' : '◇'}</span><div class="achievement-body"><b>${goal.title}</b><small>${reached ? 'Badge earned' : goal.threshold ? summaryMoney(state.peakWorth) + ' / ' + summaryMoney(goal.threshold) + ' peak' : goal.hint}</small>${!reached && goal.threshold ? `<span class="goal-meter"><i style="width:${Math.min(100, (state.peakWorth / goal.threshold) * 100)}%"></i></span>` : ''}</div>${reached ? '' : button(state.pinnedGoal === goal.id ? 'Unpin' : 'Pin', 'pinGoal:' + goal.id, 'goal-pin')}</div>`;
+      }
+      function goalsScreen() {
+        const list = goals.filter(
+          (g) =>
+            state.goalFilter === 'All' ||
+            (state.goalFilter === 'Earned'
+              ? state.completedGoals.includes(g.id)
+              : !state.completedGoals.includes(g.id)),
+        );
+        return `${utilityBack()}<h1>Goals & achievements</h1><div class="achievement-summary"><b>${state.completedGoals.length}<span> / ${goals.length}</span></b><span class="muted">Badges earned · no cash rewards</span></div>${selectedChips(['All', 'In progress', 'Earned'], state.goalFilter, 'goalFilter')}${list.map(goalRow).join('') || '<p class="muted">No achievements in this group.</p>'}`;
+      }
+      function preference(label, key, values) {
+        return `<div class="preference"><b>${label}</b><div class="preference-options">${values.map(([value, text]) => `<button data-action="setting:${key}=${value}" aria-pressed="${state.settings[key] === value}">${text}</button>`).join('')}</div></div>`;
+      }
+      function settingsScreen() {
+        return `${utilityBack()}<h1>Settings</h1><h2>Preferences</h2>${preference(
+          'Sound',
+          'sound',
+          [
+            ['on', 'On'],
+            ['off', 'Off'],
+          ],
+        )}${preference('Haptics', 'haptics', [
+          ['on', 'On'],
+          ['off', 'Off'],
+        ])}${preference('Reduced motion', 'reducedMotion', [
+          ['system', 'System'],
+          ['on', 'On'],
+          ['off', 'Off'],
+        ])}${preference('Summary numbers', 'numberFormatting', [
+          ['compact', 'Compact'],
+          ['full', 'Full'],
+        ])}<h2>Progress</h2>${button('Reset progress…', 'reviewReset', 'secondary wide')}<div class="profile-menu">${profileLink('About', 'Version and fictional assets', 'about')}</div>`;
+      }
+      function aboutScreen() {
+        return `${utilityBack()}<h1>About</h1><div class="dense-line row"><span>Pocket Mogul</span><b>0.1.0</b></div><div class="dense-line row"><span>Economy version</span><b>1</b></div><p class="footnote">All companies and coins are fictional.</p>`;
+      }
+      function pinnedGoalCard() {
+        const goal = goals.find((g) => g.id === state.pinnedGoal);
+        return goal
+          ? `<button class="home-action pinned-goal" data-action="utility:goals"><span>${utilityIcon('goals')}</span><span><b>${goal.title}</b><small>Pinned goal${goal.threshold ? ' · ' + summaryMoney(state.peakWorth) + ' / ' + summaryMoney(goal.threshold) : ''}</small></span><span>→</span></button>`
+          : '';
+      }
+      function utilityAction(type, value) {
+        if (type === 'utility') openUtility(value);
+        if (type === 'utilityBack') {
+          state.screen = state.screenStack.pop() ?? 'earn';
+          state.confirmation = null;
+        }
+        if (type === 'goalFilter') state.goalFilter = value;
+        if (type === 'pinGoal') state.pinnedGoal = state.pinnedGoal === value ? null : value;
+        if (type === 'setting') {
+          const [key, setting] = value.split('=');
+          state.settings[key] = setting;
+        }
+        if (type === 'reviewReset') state.confirmation = 'resetProgress';
       }
       function navIcon(id) {
         const paths = {
@@ -1713,7 +2159,7 @@
         '<svg viewBox="0 0 180 112" aria-hidden="true"><path d="M28 26L131 12q9-1 9 9v66L28 95z" fill="var(--scene-side)" stroke="var(--dim)"/><rect x="20" y="31" width="140" height="71" rx="12" fill="var(--raised)" stroke="var(--gold)" stroke-width="2"/><rect x="126" y="51" width="42" height="31" rx="7" fill="var(--panel)" stroke="var(--gold)" stroke-width="2"/><circle cx="140" cy="66" r="4" fill="var(--gold)"/><path d="M37 48h39m-39 9h24" stroke="var(--dim)" stroke-width="2"/></svg>';
       function earn() {
         const next = catalog.find((b) => !owned(b.id));
-        return `<button class="home-worth" data-action="tab:wealth"><span class="muted">Net worth <span aria-hidden="true">↗</span></span><b>${money(netWorth())}</b></button><div class="home-stats">${stat('Business payouts', money(income()) + '/min')}${stat('Net rent', money(rentalIncome()) + '/min')}</div><button class="tap-zone" data-action="tap" aria-label="Tap wallet to earn ${money(tapAmount())}">${walletDrawing()}<span class="tap-value">+${money(tapAmount())}</span><span class="muted">per tap · wallet level ${state.walletLevel}</span></button><div class="wallet-upgrade"><div><b>Wallet upgrade</b><small>${money(tapAmount())} → ${money(tapAmount() + 0.5)}/tap</small></div>${button(money(walletUpgradeCost()), 'walletUpgrade', 'primary', state.cash < walletUpgradeCost() || state.walletLevel >= 100)}</div><div class="home-summary"><button data-action="tab:businesses"><span class="muted">Businesses</span><b>${state.owned.length}</b><small>${money(businessWorth())}</small></button><button data-action="tab:markets"><span class="muted">Investments</span><b>${Object.keys(state.positions).length}</b><small>${money(marketWorth())}</small></button><button data-action="tab:properties"><span class="muted">Properties</span><b>${Object.keys(state.properties).length}</b><small>${money(propertyWorth())}</small></button></div>${owned('vending') && state.stock === 0 ? `<button class="home-action" data-action="open:vending"><span><b>Vending · out of stock</b><small>Restock from treasury</small></span><span>→</span></button>` : next ? `<button class="home-action" data-action="filter:Tier ${next.tier}"><span><b>${next.name}</b><small>${money(next.price)} · ${state.cash >= next.price ? 'Affordable' : money(next.price - state.cash) + ' to go'}</small></span><span>→</span></button>` : ''}`;
+        return `<button class="home-worth" data-action="tab:wealth"><span class="muted">Net worth <span aria-hidden="true">↗</span></span><b>${summaryMoney(netWorth())}</b></button>${pinnedGoalCard()}<div class="home-stats">${stat('Business payouts', money(income()) + '/min')}${stat('Net rent', money(rentalIncome()) + '/min')}</div><button class="tap-zone" data-action="tap" aria-label="Tap wallet to earn ${money(tapAmount())}">${walletDrawing()}<span class="tap-value">+${money(tapAmount())}</span><span class="muted">per tap · wallet level ${state.walletLevel}</span></button><div class="wallet-upgrade"><div><b>Wallet upgrade</b><small>${money(tapAmount())} → ${money(tapAmount() + 0.5)}/tap</small></div>${button(money(walletUpgradeCost()), 'walletUpgrade', 'primary', state.cash < walletUpgradeCost() || state.walletLevel >= 100)}</div><div class="home-summary"><button data-action="tab:businesses"><span class="muted">Businesses</span><b>${state.owned.length}</b><small>${money(businessWorth())}</small></button><button data-action="tab:markets"><span class="muted">Investments</span><b>${Object.keys(state.positions).length}</b><small>${money(marketWorth())}</small></button><button data-action="tab:properties"><span class="muted">Properties</span><b>${Object.keys(state.properties).length}</b><small>${money(propertyWorth())}</small></button></div>${owned('vending') && state.stock === 0 ? `<button class="home-action" data-action="open:vending"><span><b>Vending · out of stock</b><small>Restock from treasury</small></span><span>→</span></button>` : next ? `<button class="home-action" data-action="filter:Tier ${next.tier}"><span><b>${next.name}</b><small>${money(next.price)} · ${state.cash >= next.price ? 'Affordable' : money(next.price - state.cash) + ' to go'}</small></span><span>→</span></button>` : ''}`;
       }
       const assets = [
         {
@@ -2065,12 +2511,16 @@
       }
       function sheet() {
         if (!state.confirmation) return '';
+        if (state.confirmation === 'resetProgress')
+          return `<div class="sheet" role="dialog" aria-label="Reset progress confirmation"><h3>Reset progress?</h3><p class="muted">${money(state.cash)} cash, ${state.owned.length} businesses and ${Object.keys(state.properties).length} properties and ${Object.keys(state.positions).length} market positions will be removed.</p><div class="split">${button('Cancel', 'cancel')}${button('Reset', 'confirm', 'primary')}</div></div>`;
         if (['tradeBuy', 'tradeSell', 'propertyBuy', 'propertySell'].includes(state.confirmation))
           return transactionSheet();
         const withdraw = state.confirmation === 'withdraw';
         return `<div class="sheet" role="dialog" aria-label="Review transaction"><h3>${withdraw ? 'Withdraw the whole treasury?' : 'Sell Vending Machine?'}</h3><p class="muted">${withdraw ? money(state.treasury) + ' to cash; treasury becomes $0.00. Ownership and income unchanged.' : 'Sample sale value $150 plus remaining treasury to cash. You lose this business and its income.'}</p><div class="split">${button('Cancel', 'cancel')}${button('Confirm', 'confirm', 'primary')}</div></div>`;
       }
       function render() {
+        syncGoals();
+        document.getElementById('phone').dataset.motion = state.settings.reducedMotion;
         document.getElementById('phone').dataset.palette = palette;
         document.getElementById('phone').dataset.colorSystem = categoryPalettes.includes(palette)
           ? 'category'
@@ -2083,13 +2533,20 @@
           )
           .join('');
         document.getElementById('phone').dataset.section =
-          { detail: 'businesses', asset: 'markets', property: 'properties' }[state.screen] ??
-          state.screen;
+          {
+            detail: 'businesses',
+            asset: 'markets',
+            property: 'properties',
+            profile: 'wealth',
+            goals: 'wealth',
+            settings: 'wealth',
+            about: 'wealth',
+          }[state.screen] ?? state.screen;
         document.getElementById('phone').innerHTML =
           header() +
           (state.notice ? `<div class="toast" role="status">${state.notice}</div>` : '') +
-          `<div class="content">${sheet()}${state.screen === 'detail' ? detail() : state.screen === 'earn' ? earn() : state.screen === 'wealth' ? wealth() : state.screen === 'markets' ? markets() : state.screen === 'asset' ? assetDetail() : state.screen === 'properties' ? properties() : state.screen === 'property' ? propertyDetail() : { A: variantA, B: variantB, C: variantC }[variant]()}</div>` +
-          (state.screen === 'detail' ? '' : tabs());
+          `<div class="content">${sheet()}${utilityScreens.includes(state.screen) ? { profile, goals: goalsScreen, settings: settingsScreen, about: aboutScreen }[state.screen]() : state.screen === 'detail' ? detail() : state.screen === 'earn' ? earn() : state.screen === 'wealth' ? wealth() : state.screen === 'markets' ? markets() : state.screen === 'asset' ? assetDetail() : state.screen === 'properties' ? properties() : state.screen === 'property' ? propertyDetail() : { A: variantA, B: variantB, C: variantC }[variant]()}</div>` +
+          (state.screen === 'detail' || utilityScreens.includes(state.screen) ? '' : tabs());
         document.getElementById('variant-label').textContent = variant + ' · ' + names[variant];
         document.getElementById('hypothesis').textContent = hypotheses[variant];
         document.getElementById('state').textContent = JSON.stringify(
@@ -2149,6 +2606,13 @@
         }
       }
       function confirm() {
+        if (state.confirmation === 'resetProgress') {
+          const settings = state.settings;
+          state = makeState('first');
+          state.settings = settings;
+          document.getElementById('scenario').value = 'first';
+          return;
+        }
         if (['tradeBuy', 'tradeSell', 'propertyBuy', 'propertySell'].includes(state.confirmation)) {
           confirmAssetTransaction();
           return;
@@ -2176,6 +2640,7 @@
       function act(action) {
         const [type, value] = action.split(':');
         if (type === 'palette') choosePalette(value);
+        utilityAction(type, value);
         if (type === 'next' || type === 'prev') {
           cycle(type === 'next' ? 1 : -1);
           return;
@@ -2183,6 +2648,7 @@
         if (type === 'reset') state = makeState(state.scenario);
         if (type === 'tab') {
           state.screen = value;
+          state.screenStack = [];
           state.confirmation = null;
           state.notice = '';
           const url = new URL(location.href);
