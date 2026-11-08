@@ -142,9 +142,8 @@ function spend(sim: Simulation) {
   }
 }
 
-function operate(sim: Simulation) {
-  if (sim.scenario.management === undefined) return;
-  const commands = operationCommands({
+function operatingOptions(sim: Simulation): readonly GameCommand[] {
+  return operationCommands({
     state: sim.state,
     content: sim.content,
     tapsPerMinute: 0,
@@ -152,7 +151,13 @@ function operate(sim: Simulation) {
     payoutPercent:
       sim.scenario.payoutPercent ?? sim.content.economy.businessRules.defaultPayoutPercent,
   });
-  for (const command of commands) commit(sim, command);
+}
+
+function operate(sim: Simulation) {
+  if (sim.scenario.management === undefined) return;
+  for (let attempt = 0; attempt < MAX_PURCHASES_PER_STEP; attempt += 1) {
+    if (!operatingOptions(sim).some((command) => commit(sim, command))) return;
+  }
 }
 
 function playStep(sim: Simulation) {

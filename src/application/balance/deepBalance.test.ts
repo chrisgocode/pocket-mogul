@@ -113,6 +113,36 @@ describe('deep balance policies through the engine', () => {
       treasuryChangeCents: dollars('-140'),
     });
   });
+});
+
+describe('hands-on operating decisions', () => {
+  it('keeps hands-on wash decisions stable across consecutive action steps', () => {
+    const definition = catalog.find((business) => business.id === 'car_wash')!;
+    const owned = {
+      ...newBusiness(definition, { rules, atMs: 0 }),
+      stage: 2,
+      levels: { quality: 10, efficiency: 0 },
+      staff: { operations: 3, sales: 0, manager: 0 },
+      carWash: {
+        status: 'active' as const,
+        weather: 'sunny' as const,
+        packages: { deluxe: 'offered' as const, ultimate: 'offered' as const },
+        members: 0,
+        membershipLevel: 'standard' as const,
+        memberCapPercent: 20,
+        detailing: 'none' as const,
+      },
+    };
+    const setup = {
+      ...scenario(),
+      management: 'handsOn' as const,
+      start: { ...base, businesses: [owned] },
+    };
+    const first = simulateBalance(setup, content).businesses[0]!;
+    const second = simulateBalance({ ...setup, maxActiveMs: 2000 }, content).businesses[0]!;
+    expect(second.priceLevel).toBe(first.priceLevel);
+    expect(second.carWash).toEqual(first.carWash);
+  });
 
   it('reports stages, treasuries and direct incident losses', () => {
     const report = renderBalanceReport(

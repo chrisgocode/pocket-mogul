@@ -36,11 +36,11 @@ Times are active play; runs with offline gaps also show total elapsed time.
 | First wallet upgrade | 50 s | 50 s | not reached |
 | First business | 3.4 min | 11.3 min | 2.1 min |
 | $1M peak net worth | 3.60 h | 2.29 h | 6.55 h |
-| $10M peak net worth | 6.38 h | 3.72 h | 12.73 h |
-| $1B peak net worth | 13.80 h | 7.95 h | not reached |
+| $10M peak net worth | 6.41 h | 3.73 h | 12.73 h |
+| $1B peak net worth | 13.61 h | 7.97 h | not reached |
 | Tier 2 unlocked | 19.9 min | 18.3 min | 30.7 min |
 | Tier 3 unlocked | 2.12 h | 1.41 h | 3.86 h |
-| Tier 4 unlocked | 6.10 h | 3.60 h | 11.73 h |
+| Tier 4 unlocked | 6.11 h | 3.60 h | 11.73 h |
 
 ### Sessions with offline gaps, manager
 
@@ -75,15 +75,15 @@ A choice is dominant when one kind of purchase takes more than half of all spend
 | Run | Dominant choice | Longest wait between purchases |
 | --- | --- | --- |
 | Continuous active play, manager, cheapestNext | business units (62% of spend) | 4.6 min from 13.55 h |
-| Continuous active play, handsOn, cheapestNext | business units (62% of spend) | 4.0 min from 13.27 h |
+| Continuous active play, handsOn, cheapestNext | business units (63% of spend) | 3.9 min from 10.71 h |
 | Continuous active play, manager, bestPayback | none | 20.0 min from 4.83 h |
 | Continuous active play, handsOn, bestPayback | none | 18.7 min from 1.52 h |
 | Continuous active play, manager, saveForNextBusiness | business purchase (100% of spend) | **stall:** 11.33 h from 20.93 h |
 | Continuous active play, handsOn, saveForNextBusiness | business purchase (100% of spend) | **stall:** 10.83 h from 29.17 h |
 | Sessions with offline gaps, manager, cheapestNext | business units (62% of spend) | 5.0 min from 1.65 h |
-| Sessions with offline gaps, handsOn, cheapestNext | business units (68% of spend) | 4.0 min from 1.62 h |
+| Sessions with offline gaps, handsOn, cheapestNext | business units (67% of spend) | 4.0 min from 1.62 h |
 | Sessions with offline gaps, manager, bestPayback | none | 13.8 min from 1.77 h |
-| Sessions with offline gaps, handsOn, bestPayback | none | 10.0 min from 2.17 h |
+| Sessions with offline gaps, handsOn, bestPayback | none | 9.9 min from 1.00 h |
 | Sessions with offline gaps, manager, saveForNextBusiness | business purchase (100% of spend) | **stall:** 1.50 h from 3.00 h |
 | Sessions with offline gaps, handsOn, saveForNextBusiness | business purchase (100% of spend) | **stall:** 1.50 h from 3.00 h |
 
@@ -94,15 +94,15 @@ At the end of each run (it stops at $1B peak net worth or 40 hours of active pla
 | Run | Ended at | Cash | Businesses | Properties | Markets | Net worth |
 | --- | --- | --- | --- | --- | --- | --- |
 | Continuous active play, manager, cheapestNext | 14.41 h | $6.11M | $939.84M | $54.09M | $0.00 | $1.00B |
-| Continuous active play, handsOn, cheapestNext | 13.80 h | $995.77K | $945.03M | $54.09M | $0.00 | $1.00B |
+| Continuous active play, handsOn, cheapestNext | 13.61 h | $4.88M | $941.42M | $54.09M | $0.00 | $1.00B |
 | Continuous active play, manager, bestPayback | 9.17 h | $5.36M | $995.18M | $0.00 | $0.00 | $1.00B |
-| Continuous active play, handsOn, bestPayback | 7.95 h | $24.26M | $975.92M | $0.00 | $0.00 | $1.00B |
+| Continuous active play, handsOn, bestPayback | 7.97 h | $15.78M | $985.01M | $0.00 | $0.00 | $1.00B |
 | Continuous active play, manager, saveForNextBusiness | 40.00 h | $147.37M | $264.45M | $0.00 | $0.00 | $411.83M |
 | Continuous active play, handsOn, saveForNextBusiness | 40.00 h | $233.28M | $350.36M | $0.00 | $0.00 | $583.64M |
 | Sessions with offline gaps, manager, cheapestNext | 3.30 h active (39.30 h elapsed) | $7.21M | $938.78M | $54.09M | $0.00 | $1.00B |
-| Sessions with offline gaps, handsOn, cheapestNext | 3.50 h active (42.50 h elapsed) | $374.56M | $1.06B | $54.09M | $0.00 | $1.48B |
+| Sessions with offline gaps, handsOn, cheapestNext | 3.50 h active (42.50 h elapsed) | $358.70M | $1.02B | $54.09M | $0.00 | $1.43B |
 | Sessions with offline gaps, manager, bestPayback | 2.50 h active (26.50 h elapsed) | $405.95M | $797.60M | $0.00 | $0.00 | $1.20B |
-| Sessions with offline gaps, handsOn, bestPayback | 2.50 h active (26.50 h elapsed) | $409.60M | $814.48M | $0.00 | $0.00 | $1.22B |
+| Sessions with offline gaps, handsOn, bestPayback | 2.50 h active (26.50 h elapsed) | $357.00M | $661.24M | $0.00 | $0.00 | $1.01B |
 | Sessions with offline gaps, manager, saveForNextBusiness | 6.50 h active (81.50 h elapsed) | $350.39M | $950.51M | $0.00 | $0.00 | $1.30B |
 | Sessions with offline gaps, handsOn, saveForNextBusiness | 6.50 h active (81.50 h elapsed) | $427.24M | $1.02B | $0.00 | $0.00 | $1.45B |
 
@@ -110,19 +110,19 @@ Net worth after each hour of active play:
 
 | Active play | Continuous active play, manager, cheapestNext | Continuous active play, handsOn, cheapestNext | Continuous active play, manager, bestPayback | Continuous active play, handsOn, bestPayback | Continuous active play, manager, saveForNextBusiness | Continuous active play, handsOn, saveForNextBusiness | Sessions with offline gaps, manager, cheapestNext | Sessions with offline gaps, handsOn, cheapestNext | Sessions with offline gaps, manager, bestPayback | Sessions with offline gaps, handsOn, bestPayback | Sessions with offline gaps, manager, saveForNextBusiness | Sessions with offline gaps, handsOn, saveForNextBusiness |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 h | $44.79K | $37.71K | $80.76K | $81.56K | $13.56K | $14.21K | $164.02K | $150.55K | $406.35K | $382.93K | $29.53K | $32.26K |
-| 2 h | $192.86K | $172.78K | $616.54K | $565.22K | $46.10K | $49.45K | $13.55M | $11.49M | $89.40M | $81.53M | $1.11M | $1.22M |
-| 3 h | $780.71K | $595.94K | $3.39M | $2.97M | $103.18K | $117.21K | $200.40M | $127.15M |  |  | $10.13M | $11.14M |
-| 4 h | $2.22M | $1.41M | $14.21M | $17.46M | $192.58K | $213.93K |  |  |  |  | $59.13M | $66.06M |
-| 5 h | $5.18M | $3.40M | $42.99M | $86.14M | $337.51K | $417.41K |  |  |  |  | $172.79M | $194.10M |
-| 6 h | $11.59M | $7.35M | $106.17M | $255.82M | $594.91K | $697.19K |  |  |  |  | $437.39M | $490.09M |
-| 7 h | $25.42M | $16.00M | $240.83M | $535.93M | $1.00M | $1.30M |  |  |  |  |  |  |
-| 8 h | $49.41M | $31.50M | $469.43M |  | $1.62M | $1.98M |  |  |  |  |  |  |
-| 9 h | $89.79M | $61.77M | $893.73M |  | $2.23M | $2.66M |  |  |  |  |  |  |
-| 10 h | $156.68M | $153.57M |  |  | $3.12M | $4.56M |  |  |  |  |  |  |
-| 11 h | $266.91M | $297.92M |  |  | $4.92M | $6.55M |  |  |  |  |  |  |
-| 12 h | $432.70M | $485.34M |  |  | $6.73M | $8.54M |  |  |  |  |  |  |
-| 13 h | $626.70M | $748.22M |  |  | $8.50M | $10.53M |  |  |  |  |  |  |
+| 1 h | $44.79K | $37.72K | $80.76K | $81.42K | $13.56K | $14.21K | $164.02K | $150.56K | $406.35K | $382.68K | $29.53K | $32.26K |
+| 2 h | $192.86K | $172.78K | $616.54K | $563.98K | $46.10K | $49.45K | $13.55M | $11.49M | $89.40M | $78.13M | $1.11M | $1.22M |
+| 3 h | $780.71K | $595.95K | $3.39M | $3.01M | $103.18K | $117.21K | $200.40M | $124.79M |  |  | $10.13M | $11.14M |
+| 4 h | $2.22M | $1.41M | $14.21M | $17.12M | $192.58K | $213.93K |  |  |  |  | $59.13M | $66.06M |
+| 5 h | $5.18M | $3.40M | $42.99M | $84.77M | $337.51K | $417.41K |  |  |  |  | $172.79M | $194.10M |
+| 6 h | $11.59M | $7.30M | $106.17M | $259.88M | $594.91K | $697.19K |  |  |  |  | $437.39M | $490.09M |
+| 7 h | $25.42M | $15.60M | $240.83M | $547.33M | $1.00M | $1.30M |  |  |  |  |  |  |
+| 8 h | $49.41M | $30.72M | $469.43M |  | $1.62M | $1.98M |  |  |  |  |  |  |
+| 9 h | $89.79M | $80.81M | $893.73M |  | $2.23M | $2.66M |  |  |  |  |  |  |
+| 10 h | $156.68M | $192.93M |  |  | $3.12M | $4.56M |  |  |  |  |  |  |
+| 11 h | $266.91M | $331.03M |  |  | $4.92M | $6.55M |  |  |  |  |  |  |
+| 12 h | $432.70M | $535.51M |  |  | $6.73M | $8.54M |  |  |  |  |  |  |
+| 13 h | $626.70M | $807.07M |  |  | $8.50M | $10.53M |  |  |  |  |  |  |
 | 14 h | $884.31M |  |  |  | $10.29M | $12.50M |  |  |  |  |  |  |
 | 15 h |  |  |  |  | $12.08M | $14.47M |  |  |  |  |  |  |
 | 16 h |  |  |  |  | $13.88M | $16.46M |  |  |  |  |  |  |
@@ -166,15 +166,15 @@ Incident losses below are direct treasury losses, excluding lost income from cap
 | Continuous active play, manager, cheapestNext | delivery | 4 | 35 | 11/6/1 | $26,994,084.87 | open | 0 | 1 | $0.00 |
 | Continuous active play, manager, cheapestNext | gym_chain | 4 | 25 | 12/6/1 | $97,307,951.29 | open | 0 | 1 | $0.00 |
 | Continuous active play, manager, cheapestNext | hotel_group | 1 | 3 | 2/1/0 | $3,693,057.33 | open | 0 | 0 | $0.00 |
-| Continuous active play, handsOn, cheapestNext | vending | 2 | 3 | 5/2/0 | $38,441.07 | open | 0 | 4 | $140.00 |
-| Continuous active play, handsOn, cheapestNext | food_cart | 5 | 72 | 17/10/0 | $444,123.22 | open | 0 | 2 | $0.00 |
-| Continuous active play, handsOn, cheapestNext | coffee_kiosk | 5 | 64 | 12/10/0 | $1,109,542.61 | open | 0 | 2 | $4,600.00 |
-| Continuous active play, handsOn, cheapestNext | laundromat | 5 | 60 | 12/10/0 | $1,240,460.95 | open | 0 | 1 | $0.00 |
-| Continuous active play, handsOn, cheapestNext | car_wash | 4 | 50 | 30/6/0 | $4,846,790.68 | open | 0 | 3 | $0.00 |
-| Continuous active play, handsOn, cheapestNext | bakery | 4 | 41 | 13/6/0 | $9,280,742.40 | open | 0 | 1 | $0.00 |
-| Continuous active play, handsOn, cheapestNext | delivery | 4 | 34 | 17/6/0 | $181,108,009.98 | open | 0 | 1 | $0.00 |
-| Continuous active play, handsOn, cheapestNext | gym_chain | 3 | 20 | 6/4/0 | $80,944,879.77 | open | 0 | 0 | $0.00 |
-| Continuous active play, handsOn, cheapestNext | hotel_group | 1 | 3 | 1/1/0 | $74,160.88 | open | 0 | 0 | $0.00 |
+| Continuous active play, handsOn, cheapestNext | vending | 2 | 3 | 5/2/0 | $38,056.75 | open | 0 | 4 | $140.00 |
+| Continuous active play, handsOn, cheapestNext | food_cart | 5 | 72 | 17/10/0 | $436,595.71 | open | 0 | 2 | $0.00 |
+| Continuous active play, handsOn, cheapestNext | coffee_kiosk | 5 | 64 | 12/10/0 | $1,086,898.88 | open | 0 | 2 | $4,600.00 |
+| Continuous active play, handsOn, cheapestNext | laundromat | 5 | 60 | 12/10/0 | $1,211,235.42 | open | 0 | 1 | $0.00 |
+| Continuous active play, handsOn, cheapestNext | car_wash | 4 | 50 | 22/6/0 | $4,536,688.10 | open | 0 | 3 | $0.00 |
+| Continuous active play, handsOn, cheapestNext | bakery | 4 | 41 | 9/6/0 | $8,597,780.26 | open | 0 | 1 | $0.00 |
+| Continuous active play, handsOn, cheapestNext | delivery | 4 | 34 | 17/6/0 | $183,986,915.26 | open | 0 | 1 | $0.00 |
+| Continuous active play, handsOn, cheapestNext | gym_chain | 3 | 20 | 6/4/0 | $82,972,183.81 | open | 0 | 0 | $0.00 |
+| Continuous active play, handsOn, cheapestNext | hotel_group | 1 | 3 | 1/1/0 | $465,973.73 | open | 0 | 0 | $0.00 |
 | Continuous active play, manager, bestPayback | vending | 2 | 3 | 5/2/1 | $10,652.49 | open | 0 | 2 | $140.00 |
 | Continuous active play, manager, bestPayback | food_cart | 4 | 30 | 12/6/1 | $808,091.74 | open | 0 | 1 | $0.00 |
 | Continuous active play, manager, bestPayback | coffee_kiosk | 4 | 29 | 13/6/1 | $2,602,715.04 | open | 0 | 2 | $4,600.00 |
@@ -185,16 +185,16 @@ Incident losses below are direct treasury losses, excluding lost income from cap
 | Continuous active play, manager, bestPayback | gym_chain | 4 | 24 | 11/6/1 | $62,095,739.09 | open | 0 | 0 | $0.00 |
 | Continuous active play, manager, bestPayback | hotel_group | 3 | 18 | 7/4/1 | $4,825,827.43 | open | 0 | 0 | $0.00 |
 | Continuous active play, manager, bestPayback | manufacturer | 1 | 3 | 1/1/0 | $54,845,492.19 | open | 0 | 0 | $0.00 |
-| Continuous active play, handsOn, bestPayback | vending | 2 | 3 | 5/2/0 | $16,787.01 | open | 0 | 1 | $140.00 |
-| Continuous active play, handsOn, bestPayback | food_cart | 4 | 29 | 8/6/0 | $514,576.74 | open | 0 | 0 | $0.00 |
-| Continuous active play, handsOn, bestPayback | coffee_kiosk | 4 | 29 | 9/6/0 | $1,507,905.39 | open | 0 | 2 | $4,600.00 |
-| Continuous active play, handsOn, bestPayback | laundromat | 4 | 27 | 8/6/0 | $1,976,827.76 | open | 0 | 0 | $0.00 |
-| Continuous active play, handsOn, bestPayback | car_wash | 4 | 29 | 25/6/0 | $7,986,010.29 | open | 0 | 1 | $26,000.00 |
-| Continuous active play, handsOn, bestPayback | bakery | 4 | 26 | 8/6/0 | $11,256,459.88 | open | 0 | 0 | $0.00 |
-| Continuous active play, handsOn, bestPayback | delivery | 4 | 25 | 15/6/0 | $123,506,074.67 | open | 1 | 0 | $0.00 |
-| Continuous active play, handsOn, bestPayback | gym_chain | 3 | 20 | 2/4/0 | $37,252,444.48 | open | 0 | 0 | $0.00 |
-| Continuous active play, handsOn, bestPayback | hotel_group | 3 | 17 | 4/4/0 | $13,084,600.29 | open | 0 | 0 | $0.00 |
-| Continuous active play, handsOn, bestPayback | manufacturer | 1 | 3 | 0/1/0 | $53,603,000.00 | open | 0 | 0 | $0.00 |
+| Continuous active play, handsOn, bestPayback | vending | 2 | 3 | 4/2/0 | $17,177.81 | open | 0 | 1 | $140.00 |
+| Continuous active play, handsOn, bestPayback | food_cart | 4 | 29 | 8/6/0 | $517,815.68 | open | 0 | 0 | $0.00 |
+| Continuous active play, handsOn, bestPayback | coffee_kiosk | 4 | 29 | 9/6/0 | $1,576,800.51 | open | 0 | 2 | $4,600.00 |
+| Continuous active play, handsOn, bestPayback | laundromat | 4 | 27 | 8/6/0 | $2,066,265.07 | open | 0 | 0 | $0.00 |
+| Continuous active play, handsOn, bestPayback | car_wash | 4 | 28 | 14/6/0 | $8,578,586.91 | open | 0 | 1 | $26,000.00 |
+| Continuous active play, handsOn, bestPayback | bakery | 4 | 25 | 8/6/0 | $12,425,758.01 | open | 0 | 0 | $0.00 |
+| Continuous active play, handsOn, bestPayback | delivery | 4 | 24 | 13/6/0 | $125,498,888.80 | open | 1 | 0 | $0.00 |
+| Continuous active play, handsOn, bestPayback | gym_chain | 3 | 20 | 5/4/0 | $84,686,602.95 | open | 0 | 0 | $0.00 |
+| Continuous active play, handsOn, bestPayback | hotel_group | 3 | 16 | 4/4/0 | $8,014,270.08 | open | 0 | 0 | $0.00 |
+| Continuous active play, handsOn, bestPayback | manufacturer | 1 | 3 | 0/1/0 | $48,521,000.00 | open | 0 | 0 | $0.00 |
 | Continuous active play, manager, saveForNextBusiness | vending | 1 | 1 | 0/0/0 | $10,521.58 | open | 0 | 10 | $1,120.00 |
 | Continuous active play, manager, saveForNextBusiness | food_cart | 1 | 1 | 0/0/0 | $58,678.72 | open | 0 | 7 | $0.00 |
 | Continuous active play, manager, saveForNextBusiness | coffee_kiosk | 1 | 1 | 0/0/0 | $170,581.33 | open | 0 | 7 | $13,800.00 |
@@ -224,14 +224,14 @@ Incident losses below are direct treasury losses, excluding lost income from cap
 | Sessions with offline gaps, manager, cheapestNext | delivery | 4 | 34 | 12/6/1 | $115,007,344.35 | open | 0 | 2 | $0.00 |
 | Sessions with offline gaps, manager, cheapestNext | gym_chain | 4 | 25 | 12/6/1 | $21,796,494.70 | open | 0 | 1 | $600,000.00 |
 | Sessions with offline gaps, manager, cheapestNext | hotel_group | 1 | 3 | 2/1/0 | $798,776.00 | open | 0 | 0 | $0.00 |
-| Sessions with offline gaps, handsOn, cheapestNext | vending | 2 | 3 | 5/2/0 | $96,911.19 | open | 0 | 10 | $1,120.00 |
-| Sessions with offline gaps, handsOn, cheapestNext | food_cart | 5 | 72 | 12/10/0 | $1,760,084.43 | open | 0 | 5 | $0.00 |
-| Sessions with offline gaps, handsOn, cheapestNext | coffee_kiosk | 5 | 64 | 12/10/0 | $4,931,803.67 | open | 0 | 4 | $9,200.00 |
-| Sessions with offline gaps, handsOn, cheapestNext | laundromat | 5 | 59 | 17/10/0 | $7,461,327.26 | open | 0 | 8 | $0.00 |
-| Sessions with offline gaps, handsOn, cheapestNext | car_wash | 4 | 49 | 17/6/0 | $24,969,999.10 | open | 0 | 1 | $0.00 |
-| Sessions with offline gaps, handsOn, cheapestNext | bakery | 4 | 41 | 12/6/0 | $71,111,140.42 | open | 0 | 2 | $80,000.00 |
-| Sessions with offline gaps, handsOn, cheapestNext | delivery | 4 | 34 | 16/6/0 | $148,849,842.23 | open | 0 | 4 | $190,000.00 |
-| Sessions with offline gaps, handsOn, cheapestNext | gym_chain | 4 | 24 | 12/6/0 | $192,201,307.35 | open | 0 | 2 | $600,000.00 |
+| Sessions with offline gaps, handsOn, cheapestNext | vending | 2 | 3 | 5/2/0 | $97,449.52 | open | 0 | 10 | $1,120.00 |
+| Sessions with offline gaps, handsOn, cheapestNext | food_cart | 5 | 72 | 12/10/0 | $1,715,526.69 | open | 0 | 5 | $0.00 |
+| Sessions with offline gaps, handsOn, cheapestNext | coffee_kiosk | 5 | 63 | 12/10/0 | $5,089,269.87 | open | 0 | 4 | $9,200.00 |
+| Sessions with offline gaps, handsOn, cheapestNext | laundromat | 5 | 59 | 17/10/0 | $7,276,531.34 | open | 0 | 8 | $0.00 |
+| Sessions with offline gaps, handsOn, cheapestNext | car_wash | 4 | 49 | 13/6/0 | $20,988,615.13 | open | 0 | 1 | $0.00 |
+| Sessions with offline gaps, handsOn, cheapestNext | bakery | 4 | 40 | 12/6/0 | $79,287,982.07 | open | 0 | 2 | $80,000.00 |
+| Sessions with offline gaps, handsOn, cheapestNext | delivery | 4 | 34 | 13/6/0 | $129,874,772.81 | open | 0 | 4 | $190,000.00 |
+| Sessions with offline gaps, handsOn, cheapestNext | gym_chain | 4 | 24 | 12/6/0 | $191,792,868.91 | open | 0 | 2 | $600,000.00 |
 | Sessions with offline gaps, manager, bestPayback | vending | 2 | 3 | 2/2/1 | $25,957.33 | open | 0 | 6 | $280.00 |
 | Sessions with offline gaps, manager, bestPayback | food_cart | 4 | 29 | 12/6/1 | $2,579,317.21 | open | 0 | 3 | $0.00 |
 | Sessions with offline gaps, manager, bestPayback | coffee_kiosk | 4 | 29 | 12/6/1 | $8,219,735.10 | open | 0 | 3 | $9,200.00 |
@@ -242,16 +242,15 @@ Incident losses below are direct treasury losses, excluding lost income from cap
 | Sessions with offline gaps, manager, bestPayback | gym_chain | 3 | 20 | 8/4/1 | $144,036,038.90 | open | 0 | 0 | $0.00 |
 | Sessions with offline gaps, manager, bestPayback | hotel_group | 2 | 8 | 2/2/1 | $158,477,649.26 | open | 0 | 0 | $0.00 |
 | Sessions with offline gaps, manager, bestPayback | manufacturer | 1 | 2 | 1/1/0 | $86,150,487.50 | open | 0 | 0 | $0.00 |
-| Sessions with offline gaps, handsOn, bestPayback | vending | 2 | 3 | 5/2/0 | $44,199.65 | open | 0 | 6 | $280.00 |
-| Sessions with offline gaps, handsOn, bestPayback | food_cart | 4 | 28 | 12/6/0 | $2,204,916.24 | open | 0 | 3 | $0.00 |
-| Sessions with offline gaps, handsOn, bestPayback | coffee_kiosk | 4 | 28 | 12/6/0 | $7,014,102.90 | open | 0 | 3 | $9,200.00 |
-| Sessions with offline gaps, handsOn, bestPayback | laundromat | 4 | 27 | 12/6/0 | $6,450,644.56 | open | 0 | 5 | $0.00 |
-| Sessions with offline gaps, handsOn, bestPayback | car_wash | 4 | 28 | 15/6/0 | $28,534,681.95 | open | 0 | 6 | $26,000.00 |
-| Sessions with offline gaps, handsOn, bestPayback | bakery | 4 | 25 | 12/6/0 | $53,338,011.24 | open | 0 | 3 | $0.00 |
-| Sessions with offline gaps, handsOn, bestPayback | delivery | 4 | 24 | 24/6/0 | $101,411,889.93 | open | 0 | 3 | $0.00 |
-| Sessions with offline gaps, handsOn, bestPayback | gym_chain | 3 | 20 | 8/4/0 | $130,266,701.67 | open | 0 | 0 | $0.00 |
+| Sessions with offline gaps, handsOn, bestPayback | vending | 2 | 3 | 4/2/0 | $47,360.38 | open | 0 | 6 | $280.00 |
+| Sessions with offline gaps, handsOn, bestPayback | food_cart | 4 | 28 | 12/6/0 | $2,227,987.60 | open | 0 | 3 | $0.00 |
+| Sessions with offline gaps, handsOn, bestPayback | coffee_kiosk | 4 | 28 | 12/6/0 | $7,096,797.16 | open | 0 | 3 | $9,200.00 |
+| Sessions with offline gaps, handsOn, bestPayback | laundromat | 4 | 27 | 12/6/0 | $6,453,326.96 | open | 0 | 5 | $0.00 |
+| Sessions with offline gaps, handsOn, bestPayback | car_wash | 4 | 28 | 15/6/0 | $29,207,888.89 | open | 0 | 6 | $26,000.00 |
+| Sessions with offline gaps, handsOn, bestPayback | bakery | 4 | 25 | 13/6/0 | $56,305,463.76 | open | 0 | 3 | $0.00 |
+| Sessions with offline gaps, handsOn, bestPayback | delivery | 4 | 23 | 12/6/0 | $53,741,363.92 | open | 0 | 3 | $0.00 |
+| Sessions with offline gaps, handsOn, bestPayback | gym_chain | 3 | 20 | 8/4/0 | $129,224,568.06 | open | 0 | 0 | $0.00 |
 | Sessions with offline gaps, handsOn, bestPayback | hotel_group | 2 | 8 | 2/2/0 | $146,169,756.90 | open | 0 | 0 | $0.00 |
-| Sessions with offline gaps, handsOn, bestPayback | manufacturer | 1 | 1 | 0/1/0 | $55,914,375.00 | open | 0 | 0 | $0.00 |
 | Sessions with offline gaps, manager, saveForNextBusiness | vending | 1 | 1 | 0/0/0 | $17,472.38 | open | 0 | 14 | $1,680.00 |
 | Sessions with offline gaps, manager, saveForNextBusiness | food_cart | 1 | 1 | 0/0/0 | $92,676.72 | open | 0 | 15 | $2,880.00 |
 | Sessions with offline gaps, manager, saveForNextBusiness | coffee_kiosk | 1 | 1 | 0/0/0 | $272,818.33 | open | 0 | 12 | $18,400.00 |
@@ -292,10 +291,10 @@ Incident losses below are direct treasury losses, excluding lost income from cap
 | Continuous active play, manager, cheapestNext | InstallDetailing | 1 |
 | Continuous active play, handsOn, cheapestNext | UpgradeWallet | 31 |
 | Continuous active play, handsOn, cheapestNext | BuyBusiness | 9 |
-| Continuous active play, handsOn, cheapestNext | SetPriceLevel | 677 |
-| Continuous active play, handsOn, cheapestNext | DepositToTreasury | 625 |
-| Continuous active play, handsOn, cheapestNext | HireStaff | 168 |
-| Continuous active play, handsOn, cheapestNext | UpgradeBusiness | 314 |
+| Continuous active play, handsOn, cheapestNext | SetPriceLevel | 72 |
+| Continuous active play, handsOn, cheapestNext | DepositToTreasury | 613 |
+| Continuous active play, handsOn, cheapestNext | HireStaff | 156 |
+| Continuous active play, handsOn, cheapestNext | UpgradeBusiness | 313 |
 | Continuous active play, handsOn, cheapestNext | BuyUnit | 338 |
 | Continuous active play, handsOn, cheapestNext | UpgradeStage | 24 |
 | Continuous active play, handsOn, cheapestNext | MoveVendingMachine | 3 |
@@ -305,8 +304,8 @@ Incident losses below are direct treasury losses, excluding lost income from cap
 | Continuous active play, handsOn, cheapestNext | UpgradeProperty | 162 |
 | Continuous active play, handsOn, cheapestNext | SetMemberCap | 11 |
 | Continuous active play, handsOn, cheapestNext | SetMembershipPrice | 1 |
-| Continuous active play, handsOn, cheapestNext | SetWashPackage | 1104 |
-| Continuous active play, handsOn, cheapestNext | AcceptContract | 96 |
+| Continuous active play, handsOn, cheapestNext | SetWashPackage | 44 |
+| Continuous active play, handsOn, cheapestNext | AcceptContract | 100 |
 | Continuous active play, manager, bestPayback | UpgradeWallet | 12 |
 | Continuous active play, manager, bestPayback | BuyBusiness | 10 |
 | Continuous active play, manager, bestPayback | DepositToTreasury | 342 |
@@ -316,18 +315,18 @@ Incident losses below are direct treasury losses, excluding lost income from cap
 | Continuous active play, manager, bestPayback | UpgradeStage | 23 |
 | Continuous active play, handsOn, bestPayback | UpgradeWallet | 12 |
 | Continuous active play, handsOn, bestPayback | BuyBusiness | 10 |
-| Continuous active play, handsOn, bestPayback | SetPriceLevel | 210 |
-| Continuous active play, handsOn, bestPayback | DepositToTreasury | 340 |
-| Continuous active play, handsOn, bestPayback | BuyUnit | 198 |
-| Continuous active play, handsOn, bestPayback | HireStaff | 131 |
-| Continuous active play, handsOn, bestPayback | UpgradeBusiness | 280 |
+| Continuous active play, handsOn, bestPayback | SetPriceLevel | 69 |
+| Continuous active play, handsOn, bestPayback | DepositToTreasury | 360 |
+| Continuous active play, handsOn, bestPayback | BuyUnit | 194 |
+| Continuous active play, handsOn, bestPayback | HireStaff | 120 |
+| Continuous active play, handsOn, bestPayback | UpgradeBusiness | 284 |
 | Continuous active play, handsOn, bestPayback | UpgradeStage | 23 |
 | Continuous active play, handsOn, bestPayback | MoveVendingMachine | 3 |
 | Continuous active play, handsOn, bestPayback | SetVendingMix | 4 |
 | Continuous active play, handsOn, bestPayback | SetMemberCap | 11 |
 | Continuous active play, handsOn, bestPayback | SetMembershipPrice | 1 |
-| Continuous active play, handsOn, bestPayback | SetWashPackage | 264 |
-| Continuous active play, handsOn, bestPayback | AcceptContract | 81 |
+| Continuous active play, handsOn, bestPayback | SetWashPackage | 26 |
+| Continuous active play, handsOn, bestPayback | AcceptContract | 79 |
 | Continuous active play, manager, saveForNextBusiness | BuyBusiness | 10 |
 | Continuous active play, handsOn, saveForNextBusiness | BuyBusiness | 10 |
 | Continuous active play, handsOn, saveForNextBusiness | SetPriceLevel | 70 |
@@ -344,11 +343,11 @@ Incident losses below are direct treasury losses, excluding lost income from cap
 | Sessions with offline gaps, manager, cheapestNext | InstallDetailing | 1 |
 | Sessions with offline gaps, handsOn, cheapestNext | UpgradeWallet | 31 |
 | Sessions with offline gaps, handsOn, cheapestNext | BuyBusiness | 8 |
-| Sessions with offline gaps, handsOn, cheapestNext | SetPriceLevel | 15 |
-| Sessions with offline gaps, handsOn, cheapestNext | DepositToTreasury | 474 |
-| Sessions with offline gaps, handsOn, cheapestNext | HireStaff | 159 |
-| Sessions with offline gaps, handsOn, cheapestNext | UpgradeBusiness | 292 |
-| Sessions with offline gaps, handsOn, cheapestNext | BuyUnit | 338 |
+| Sessions with offline gaps, handsOn, cheapestNext | SetPriceLevel | 18 |
+| Sessions with offline gaps, handsOn, cheapestNext | DepositToTreasury | 471 |
+| Sessions with offline gaps, handsOn, cheapestNext | HireStaff | 152 |
+| Sessions with offline gaps, handsOn, cheapestNext | UpgradeBusiness | 291 |
+| Sessions with offline gaps, handsOn, cheapestNext | BuyUnit | 336 |
 | Sessions with offline gaps, handsOn, cheapestNext | UpgradeStage | 25 |
 | Sessions with offline gaps, handsOn, cheapestNext | MoveVendingMachine | 3 |
 | Sessions with offline gaps, handsOn, cheapestNext | SetVendingMix | 4 |
@@ -358,7 +357,7 @@ Incident losses below are direct treasury losses, excluding lost income from cap
 | Sessions with offline gaps, handsOn, cheapestNext | SetMemberCap | 3 |
 | Sessions with offline gaps, handsOn, cheapestNext | SetMembershipPrice | 1 |
 | Sessions with offline gaps, handsOn, cheapestNext | SetWashPackage | 14 |
-| Sessions with offline gaps, handsOn, cheapestNext | AcceptContract | 24 |
+| Sessions with offline gaps, handsOn, cheapestNext | AcceptContract | 23 |
 | Sessions with offline gaps, manager, bestPayback | UpgradeWallet | 12 |
 | Sessions with offline gaps, manager, bestPayback | BuyBusiness | 10 |
 | Sessions with offline gaps, manager, bestPayback | DepositToTreasury | 240 |
@@ -367,19 +366,19 @@ Incident losses below are direct treasury losses, excluding lost income from cap
 | Sessions with offline gaps, manager, bestPayback | UpgradeBusiness | 233 |
 | Sessions with offline gaps, manager, bestPayback | UpgradeStage | 20 |
 | Sessions with offline gaps, handsOn, bestPayback | UpgradeWallet | 12 |
-| Sessions with offline gaps, handsOn, bestPayback | BuyBusiness | 10 |
+| Sessions with offline gaps, handsOn, bestPayback | BuyBusiness | 9 |
 | Sessions with offline gaps, handsOn, bestPayback | SetPriceLevel | 24 |
-| Sessions with offline gaps, handsOn, bestPayback | DepositToTreasury | 267 |
-| Sessions with offline gaps, handsOn, bestPayback | BuyUnit | 182 |
-| Sessions with offline gaps, handsOn, bestPayback | HireStaff | 147 |
+| Sessions with offline gaps, handsOn, bestPayback | DepositToTreasury | 260 |
+| Sessions with offline gaps, handsOn, bestPayback | BuyUnit | 181 |
+| Sessions with offline gaps, handsOn, bestPayback | HireStaff | 134 |
 | Sessions with offline gaps, handsOn, bestPayback | UpgradeBusiness | 255 |
 | Sessions with offline gaps, handsOn, bestPayback | UpgradeStage | 22 |
 | Sessions with offline gaps, handsOn, bestPayback | MoveVendingMachine | 3 |
 | Sessions with offline gaps, handsOn, bestPayback | SetVendingMix | 4 |
 | Sessions with offline gaps, handsOn, bestPayback | SetMembershipPrice | 1 |
-| Sessions with offline gaps, handsOn, bestPayback | SetWashPackage | 14 |
+| Sessions with offline gaps, handsOn, bestPayback | SetWashPackage | 16 |
 | Sessions with offline gaps, handsOn, bestPayback | SetMemberCap | 4 |
-| Sessions with offline gaps, handsOn, bestPayback | AcceptContract | 24 |
+| Sessions with offline gaps, handsOn, bestPayback | AcceptContract | 15 |
 | Sessions with offline gaps, manager, saveForNextBusiness | BuyBusiness | 11 |
 | Sessions with offline gaps, handsOn, saveForNextBusiness | BuyBusiness | 11 |
 | Sessions with offline gaps, handsOn, saveForNextBusiness | SetPriceLevel | 32 |
@@ -444,19 +443,19 @@ Payback is price divided by the extra income per minute the purchase adds (walle
 
 | Purchase | Count | Share of spend | Median payback |
 | --- | --- | --- | --- |
-| business units | 338 | 62.5% | 97.4 min |
-| business quality | 160 | 10.8% | 100.3 min |
-| business efficiency | 154 | 9.8% | 959.2 min |
+| business units | 338 | 63.1% | 105.3 min |
+| business quality | 160 | 10.9% | 97.1 min |
+| business efficiency | 153 | 8.8% | 923.6 min |
 | business stage | 24 | 3.6% | no immediate payback |
 | wallet upgrade | 31 | 3.0% | 438.9 min |
 | property renovation | 50 | 2.8% | 498.8 min |
-| property furnishings | 50 | 2.2% | 840.9 min |
+| property furnishings | 50 | 2.3% | 840.9 min |
 | property systems | 50 | 1.7% | 5057.2 min |
 | business purchase | 9 | 1.5% | 33.3 min |
 | property expansion | 12 | 1.2% | 156.7 min |
 | property purchase | 5 | 0.8% | 227.3 min |
-| business operations | 113 | 0.1% | 1.0 min |
 | business sales | 55 | <0.1% | 1.3 min |
+| business operations | 101 | <0.1% | 1.4 min |
 
 ### Continuous active play, manager, bestPayback
 
@@ -476,13 +475,13 @@ Payback is price divided by the extra income per minute the purchase adds (walle
 
 | Purchase | Count | Share of spend | Median payback |
 | --- | --- | --- | --- |
-| business units | 198 | 45.7% | 38.0 min |
-| business quality | 156 | 23.6% | 37.8 min |
-| business stage | 23 | 17.2% | no immediate payback |
-| business purchase | 10 | 8.4% | 34.5 min |
-| business efficiency | 124 | 4.5% | 60.6 min |
-| business sales | 47 | 0.4% | 11.7 min |
-| business operations | 84 | 0.2% | 1.3 min |
+| business units | 194 | 42.5% | 36.9 min |
+| business quality | 161 | 25.8% | 38.7 min |
+| business stage | 23 | 18.0% | no immediate payback |
+| business purchase | 10 | 8.8% | 34.5 min |
+| business efficiency | 123 | 4.2% | 58.7 min |
+| business sales | 47 | 0.5% | 11.7 min |
+| business operations | 73 | 0.2% | 2.2 min |
 | wallet upgrade | 12 | <0.1% | 13.1 min |
 
 ### Continuous active play, manager, saveForNextBusiness
@@ -521,18 +520,18 @@ Payback is price divided by the extra income per minute the purchase adds (walle
 
 | Purchase | Count | Share of spend | Median payback |
 | --- | --- | --- | --- |
-| business units | 338 | 67.6% | 93.2 min |
-| business stage | 25 | 8.2% | no immediate payback |
-| business quality | 154 | 7.3% | 67.7 min |
-| business efficiency | 138 | 3.9% | 693.4 min |
-| wallet upgrade | 31 | 3.2% | 438.9 min |
-| property renovation | 50 | 3.0% | 498.8 min |
-| property furnishings | 50 | 2.4% | 840.9 min |
-| property systems | 50 | 1.8% | 5057.2 min |
+| business units | 336 | 66.7% | 93.2 min |
+| business stage | 25 | 8.4% | no immediate payback |
+| business quality | 153 | 7.5% | 67.5 min |
+| business efficiency | 138 | 4.0% | 693.4 min |
+| wallet upgrade | 31 | 3.3% | 438.9 min |
+| property renovation | 50 | 3.1% | 498.8 min |
+| property furnishings | 50 | 2.5% | 840.9 min |
+| property systems | 50 | 1.9% | 5057.2 min |
 | property expansion | 12 | 1.3% | 156.7 min |
 | property purchase | 5 | 0.9% | 227.3 min |
 | business purchase | 8 | 0.2% | 31.7 min |
-| business operations | 103 | 0.1% | 1.9 min |
+| business operations | 96 | <0.1% | 2.1 min |
 | business sales | 56 | <0.1% | 1.6 min |
 
 ### Sessions with offline gaps, manager, bestPayback
@@ -553,13 +552,13 @@ Payback is price divided by the extra income per minute the purchase adds (walle
 
 | Purchase | Count | Share of spend | Median payback |
 | --- | --- | --- | --- |
-| business units | 182 | 37.5% | 36.9 min |
-| business purchase | 10 | 21.4% | 34.5 min |
-| business quality | 147 | 20.8% | 32.2 min |
-| business stage | 22 | 15.9% | no immediate payback |
-| business efficiency | 108 | 3.0% | 49.2 min |
-| business sales | 45 | 0.9% | 7.0 min |
-| business operations | 102 | 0.4% | 2.3 min |
+| business units | 181 | 45.3% | 37.4 min |
+| business quality | 151 | 25.7% | 34.4 min |
+| business stage | 22 | 19.6% | no immediate payback |
+| business purchase | 9 | 4.9% | 33.3 min |
+| business efficiency | 104 | 3.6% | 49.8 min |
+| business sales | 44 | 0.5% | 6.9 min |
+| business operations | 90 | 0.4% | 2.5 min |
 | wallet upgrade | 12 | <0.1% | 13.1 min |
 
 ### Sessions with offline gaps, manager, saveForNextBusiness
