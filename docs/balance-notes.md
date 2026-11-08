@@ -1,0 +1,17 @@
+# Deep business balance pass (#81)
+
+Reproduce with `bun run balance --seed pocket-mogul-balance-1`. See [the generated report](balance-report.md) for all twelve full runs and twenty-two payout probes. All runs are ad-free. Main runs use five-second decisions; payout probes use one-second decisions. This is a deterministic policy comparison, not a retention prediction or proof of optimal play.
+
+The baseline rerun, before adding deep business decisions, reached the first business in 125 seconds when saving for it and $1M in 3.06 active hours with bestPayback. The earlier checked-in report predated deep business implementation and was not a valid baseline for this pass.
+
+The expanded runs still buy the first business in 125 seconds when saving for it and buy the first wallet upgrade in 50 seconds with cheapestNext or bestPayback. The $1M results span 2.23–6.99 continuous active hours: cheapestNext reaches it in 3.19 hours with managers and 3.60 hands-on; bestPayback reaches it in 2.23 and 2.29 hours; saving exclusively for businesses takes 6.99 and 6.55. Offline runs are much faster in active time and retain elapsed time separately.
+
+Retain economy version 1 for this pass. The first-business target holds, and cheapestNext remains near the 3.5-hour hypothesis. Optimized reinvestment is faster, while ignoring reinvestment is slower. A universal slowdown to force bestPayback to 3.5 hours would move the other policies farther from that target. These results warrant playtesting the spread before a content retune; no cash grants or business-rule changes are introduced.
+
+The payout sweep finds 90% and 100% tied at 13.63 active minutes to the second business under bestPayback, versus 13.68 at the default 50%. The small difference does not justify changing the default. This is a fresh-save, continuous-play result for one purchase policy and seed, not an optimum for every business, stage or offline schedule. Managers cannot yet be hired in these short probes, explaining the matching operating-style results.
+
+Business units dominate cheapestNext spending, but bestPayback has no purchase category above half of spending. Saving exclusively for businesses stalls for over ten active hours late in continuous runs. These flags describe the policy, not proof that a choice is permanently dominant or progression impossible: alternative policies continue growing. Treasury totals, stage/unit/staff counts, closures, direct treasury incident losses, and accepted operating actions are recorded per run. Indirect incident losses are not estimated against a counterfactual.
+
+Stages and the first flagship operating hire take priority when affordable, as do managers in manager runs. Other purchases use the named ranking. Stage spending has no immediate payback: it buys access to later capacity. Both styles can deposit personal cash to fund treasury spending; neither withdraws treasury to accelerate business purchases. Hands-on changes only happen during active play. Managers retain the engine's daily behavior while away, including price, mix, member cap and renewal of previously selected insurance; they do not select new policies, relocate machines or accept contracts. Takeovers, listings and market speculation are outside these policies.
+
+No screen or native behavior changes, so simulator screenshots and recordings do not apply. The generated tables and regression tests are the evidence for this pass.

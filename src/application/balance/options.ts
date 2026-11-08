@@ -1,3 +1,4 @@
+import { growthOptions, treasuryFunded, type Improvement } from './growthOptions';
 import type { Content } from '@/content';
 import { businessEconomy, propertyEconomy } from '@/application/economy';
 import { findOwnedBusiness } from '@/domain/business/commands';
@@ -21,6 +22,11 @@ export type OptionKind =
   | 'wallet upgrade'
   | 'business purchase'
   | 'business units'
+  | 'business operations'
+  | 'business sales'
+  | 'business manager'
+  | 'business stage'
+  | 'business signature'
   | `business ${(typeof BUSINESS_TRACKS)[number]}`
   | 'property purchase'
   | `property ${(typeof PROPERTY_TRACKS)[number]}`;
@@ -38,6 +44,7 @@ export type OptionContext = {
   readonly state: GameState;
   readonly content: Content;
   readonly tapsPerMinute: number;
+  readonly management?: 'manager' | 'handsOn' | undefined;
 };
 
 const MS_PER_MINUTE = 60_000n;
@@ -60,36 +67,6 @@ function walletOptions({ state, content, tapsPerMinute }: OptionContext): Purcha
 
 function perMinute(perDayCents: bigint, pricing: BusinessPricing): MoneyCents {
   return moneyCents((perDayCents * MS_PER_MINUTE) / BigInt(pricing.rules.dayMs));
-}
-
-type Improvement = {
-  readonly kind: OptionKind;
-  readonly priceCents: MoneyCents;
-  readonly profitCents: MoneyCents;
-  readonly nextProfitCents: MoneyCents;
-  readonly command: GameCommand;
-};
-
-function treasuryFunded(
-  owned: OwnedBusiness,
-  improvement: Improvement & { readonly pricing: BusinessPricing },
-): PurchaseOption {
-  const businessId = owned.definitionId;
-  const shortfall = improvement.priceCents - owned.treasuryCents;
-  const cashCents = moneyCents(shortfall > 0n ? shortfall : 0n);
-  const deposit: GameCommand[] =
-    cashCents > 0n ? [{ type: 'DepositToTreasury', businessId, amountCents: cashCents }] : [];
-  return {
-    kind: improvement.kind,
-    assetId: businessId,
-    priceCents: improvement.priceCents,
-    cashCents,
-    benefitPerMinuteCents: perMinute(
-      improvement.nextProfitCents - improvement.profitCents,
-      improvement.pricing,
-    ),
-    commands: [...deposit, improvement.command],
-  };
 }
 
 function businessImprovements(owned: OwnedBusiness, pricing: BusinessPricing): PurchaseOption[] {
@@ -119,12 +96,21 @@ function businessImprovements(owned: OwnedBusiness, pricing: BusinessPricing): P
   );
 }
 
-function businessOptions({ state, content }: OptionContext): PurchaseOption[] {
+function businessOptions({ state, content, management }: OptionContext): PurchaseOption[] {
   const { catalog, rules } = businessEconomy(content);
   return catalog.flatMap((definition) => {
     const pricing = { definition, rules };
     const owned = findOwnedBusiness(state, definition.id);
-    if (owned !== undefined) return businessImprovements(owned, pricing);
+    if (owned !== undefined)
+      return businessImprovements(owned, pricing).concat(
+        management === undefined
+          ? []
+          : growthOptions(owned, {
+              pricing,
+              atMs: state.clock.simulationMs,
+              management,
+            }),
+      );
     if (!state.unlockedTiers.includes(definition.tier)) return [];
     const opened = newBusiness(definition, { rules, atMs: state.clock.simulationMs });
     return [

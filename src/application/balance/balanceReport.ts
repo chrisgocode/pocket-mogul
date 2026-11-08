@@ -1,3 +1,5 @@
+import { payoutReport, sweepPayouts } from './payoutSweep';
+import { actionReport, deepReport } from './deepReport';
 import type { Content } from '@/content';
 import { formatMoneyCompact, formatMoneyExact, moneyCents } from '@/domain/money';
 
@@ -12,6 +14,7 @@ export type BalanceReport = {
   readonly unlockableTiers: readonly number[];
   readonly runs: readonly BalanceRun[];
   readonly loops: readonly LoopCheck[];
+  readonly payoutRuns: readonly BalanceRun[];
 };
 
 const MS_PER_SECOND = 1000;
@@ -34,6 +37,7 @@ export function runBalance(options: {
     unlockableTiers: Object.keys(options.content.economy.tierUnlocks).map(Number),
     runs: scenarios.map((scenario) => simulateBalance(scenario, options.content)),
     loops: checkProfitLoops(options.content),
+    payoutRuns: options.scenarios === undefined ? sweepPayouts(options.seed, options.content) : [],
   };
 }
 
@@ -120,7 +124,9 @@ function spendTable(run: BalanceRun): string[] {
     share.kind,
     String(share.purchases),
     percent(share.percent),
-    `${share.medianPaybackMinutes.toFixed(1)} min`,
+    Number.isFinite(share.medianPaybackMinutes)
+      ? `${share.medianPaybackMinutes.toFixed(1)} min`
+      : 'no immediate payback',
   ]);
   return table(['Purchase', 'Count', 'Share of spend', 'Median payback'], rows);
 }
@@ -212,6 +218,9 @@ function introduction(report: BalanceReport): string[] {
     `- Tap rate: ${rates} taps per second of active play`,
     '- Every run is ad-free: no Tap Boost and no ads.',
     '- Policies: **cheapestNext** buys the cheapest purchase that adds income; **bestPayback** waits for the purchase with the shortest payback; **saveForNextBusiness** saves for the cheapest unowned business it can buy, and otherwise buys the best payback.',
+    '- Deep policies prioritize affordable stage upgrades, first flagship operating staff, and managers (manager style only), then follow the named purchase policy. Stages unlock capacity rather than immediate income.',
+    '- Hands-on play chooses the best current price, stock mixes and locations, restocks empty locations, adjusts wash packages and membership prices, uses the forecast for member caps, and accepts contracts with positive incremental profit. Managers make only engine-defined daily decisions; they never accept contracts or move machines.',
+    '- Main runs use five-second action steps; the payout sweep uses one-second steps. All purchases and operating changes go through the engine. Personal cash can fund treasury shortfalls.',
     '- Offline gaps are capped by the engine at 8 hours of credited time.',
   ];
 }
@@ -226,6 +235,9 @@ export function renderBalanceReport(report: BalanceReport): string {
     '',
     ...allocation(report),
     '',
+    ...deepReport(report.runs),
+    ...actionReport(report.runs),
+    ...payoutReport(report.payoutRuns),
     ...spending(report),
     '',
     ...profitLoops(report),

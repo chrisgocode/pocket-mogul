@@ -32,15 +32,19 @@ const SCHEDULES: readonly Schedule[] = [
 
 export function balanceScenarios(seed: string): readonly BalanceScenario[] {
   return SCHEDULES.flatMap((schedule) =>
-    BALANCE_POLICIES.map((policy) => ({
-      name: schedule.name,
-      seed,
-      policy,
-      tapsPerSecond: 2,
-      stepMs: 1000,
-      sessions: schedule.sessions,
-      maxActiveMs: ACTIVE_PLAY_LIMIT_MS,
-      stopAtPeakCents: dollars('1,000,000,000'),
-    })),
+    BALANCE_POLICIES.flatMap((policy) =>
+      (['manager', 'handsOn'] as const).map((management) => ({
+        name: `${schedule.name}, ${management}`,
+        management,
+        payoutPercent: 50,
+        seed,
+        policy,
+        tapsPerSecond: 2,
+        stepMs: 5000,
+        sessions: schedule.sessions,
+        maxActiveMs: ACTIVE_PLAY_LIMIT_MS,
+        stopAtPeakCents: dollars('1,000,000,000'),
+      })),
+    ),
   );
 }
