@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ListRowContent, type ListRowProps } from './ListRowContent';
 import { usePressedStyle } from './pressFeedback';
-import { minimumTouchTarget, spacing } from './tokens';
+import { colors, minimumTouchTarget, spacing } from './tokens';
 
 export function ListRow(props: ListRowProps) {
   const { title, subtitle, value, detail, dimmed = false, onPress } = props;
@@ -34,6 +34,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
     minHeight: minimumTouchTarget,
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
   },
   dimmed: { opacity: 0.55 },
 });

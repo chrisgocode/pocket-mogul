@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { selectBusinesses, type BusinessOffer, type TierView } from '@/application/businessesView';
 import { getContent } from '@/content';
@@ -7,13 +7,11 @@ import { useGameSnapshot } from '@/features/game/GameContext';
 import { useGameAction } from '@/features/game/useGameAction';
 import { TutorialHint } from '@/features/tutorial/TutorialHint';
 import { useTutorial } from '@/features/tutorial/useTutorial';
-import { EmptyState } from '@/ui/EmptyState';
 import { Screen } from '@/ui/Screen';
 
-import { BusinessCashCard } from './BusinessCashCard';
-import { BusinessTierSection } from './BusinessTierSection';
+import { BusinessSummary } from './BusinessSummary';
+import { BusinessBrowser } from './BusinessBrowser';
 import { BuyBusinessSheet } from './BuyBusinessSheet';
-import { NextTierCard } from './NextTierCard';
 
 const buyBusinessCommand = (offer: BusinessOffer): GameCommand => ({
   type: 'BuyBusiness',
@@ -39,33 +37,23 @@ function useFirstBusinessHighlight(tiers: readonly TierView[]): string | undefin
 }
 
 export function BusinessesScreen() {
+  const { tier } = useLocalSearchParams<{ tier?: string }>();
   const view = selectBusinesses(useGameSnapshot(), getContent());
   const { confirmation, review, close, confirm } = useGameAction(buyBusinessCommand);
   const manage = useManageBusiness();
   const highlightedId = useFirstBusinessHighlight(view.tiers);
   return (
-    <Screen>
-      <BusinessCashCard
-        cashCents={view.cashCents}
-        incomePerMinuteCents={view.incomePerMinuteCents}
-      />
+    <Screen tone="businesses">
+      <BusinessSummary />
       <TutorialHint steps={BUSINESS_STEPS} />
-      {view.nextUnlock === undefined ? null : <NextTierCard unlock={view.nextUnlock} />}
-      {view.owned.length === 0 ? (
-        <EmptyState
-          title="No businesses yet"
-          message="Save up from tapping to buy a Vending Machine, your first business."
-        />
-      ) : null}
-      {view.tiers.map((tier) => (
-        <BusinessTierSection
-          key={tier.tier}
-          tier={tier}
-          highlightedId={highlightedId}
-          onReview={review}
-          onManage={manage}
-        />
-      ))}
+      <BusinessBrowser
+        key={tier ?? 'default'}
+        initialFilter={tier === undefined ? undefined : `Tier ${tier}`}
+        view={view}
+        highlightedId={highlightedId}
+        onReview={review}
+        onManage={manage}
+      />
       <BuyBusinessSheet
         confirmation={confirmation}
         onConfirm={() => void confirm()}

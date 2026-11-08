@@ -1,15 +1,16 @@
 import { Tabs } from 'expo-router/js-tabs';
 
 import { useHomeBreak } from '@/features/ads/useHomeBreak';
-import { Icon, type IconName } from '@/ui/Icons';
-import { colors } from '@/ui/tokens';
+import type { IconName } from '@/ui/Icons';
+import { TabIcon } from '@/ui/TabIcon';
+import { colors, sectionColors, type SectionTone } from '@/ui/tokens';
 
-const TABS: { name: string; title: string; icon: IconName }[] = [
-  { name: 'businesses', title: 'Businesses', icon: 'businesses' },
-  { name: 'markets', title: 'Markets', icon: 'markets' },
-  { name: 'home', title: 'Earn', icon: 'home' },
-  { name: 'properties', title: 'Properties', icon: 'properties' },
-  { name: 'portfolio', title: 'Profile', icon: 'portfolio' },
+const TABS: { name: string; title: string; icon: IconName; tone: SectionTone }[] = [
+  { name: 'businesses', title: 'Businesses', icon: 'businesses', tone: 'businesses' },
+  { name: 'markets', title: 'Markets', icon: 'markets', tone: 'markets' },
+  { name: 'home', title: 'Earn', icon: 'home', tone: 'earn' },
+  { name: 'properties', title: 'Properties', icon: 'properties', tone: 'properties' },
+  { name: 'portfolio', title: 'Profile', icon: 'profile', tone: 'profile' },
 ];
 
 export default function TabsLayout() {
@@ -30,7 +31,10 @@ export default function TabsLayout() {
           listeners={tab.name === 'home' ? { blur: leftHome } : {}}
           options={{
             title: tab.title,
-            tabBarIcon: ({ color }) => <Icon name={tab.icon} color={color} />,
+            tabBarActiveTintColor: sectionColors[tab.tone],
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon name={tab.icon} color={color} focused={focused} />
+            ),
           }}
         />
       ))}

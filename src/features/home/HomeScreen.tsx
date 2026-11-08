@@ -1,4 +1,3 @@
-import { selectPassiveIncomePerMinuteCents } from '@/application/cashView';
 import { selectTapCard } from '@/application/tapCardView';
 import { getContent } from '@/content';
 import { TUTORIAL_STEPS } from '@/domain/tutorial';
@@ -7,7 +6,10 @@ import { TutorialHint } from '@/features/tutorial/TutorialHint';
 import { useTutorial } from '@/features/tutorial/useTutorial';
 import { Screen } from '@/ui/Screen';
 
-import { HomeCashCard } from './HomeCashCard';
+import { HomeOverview } from './HomeOverview';
+import { AttentionCard } from './AttentionCard';
+import { GrowthAction } from './GrowthAction';
+import { HomeAssets } from './HomeAssets';
 import { PinnedGoalCard } from './PinnedGoalCard';
 import { TapBoostCard } from './TapBoostCard';
 import { TapCard } from './TapCard';
@@ -27,12 +29,10 @@ export function HomeScreen() {
     playHaptic();
   };
   return (
-    <Screen>
-      <HomeCashCard
-        cashCents={view.cashCents}
-        perTapCents={view.perTapCents}
-        passivePerMinuteCents={selectPassiveIncomePerMinuteCents(snapshot, content)}
-      />
+    <Screen tone="earn">
+      <PinnedGoalCard />
+      <HomeOverview />
+      <AttentionCard />
       <TutorialHint steps={TUTORIAL_STEPS} />
       <TapCard
         perTapCents={view.perTapCents}
@@ -44,7 +44,8 @@ export function HomeScreen() {
       />
       <TapBoostCard />
       <WalletUpgrade tapCard={view} highlighted={tutorial.isOn('upgradeWallet')} />
-      <PinnedGoalCard />
+      <HomeAssets />
+      <GrowthAction />
     </Screen>
   );
 }

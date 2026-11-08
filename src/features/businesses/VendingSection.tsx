@@ -34,7 +34,7 @@ export function VendingSection({
   if (vending.status === 'locked') return <LockedVendingCard unlockStage={vending.unlockStage} />;
   const canRestockAll = vending.restockAll.priceCents > 0n && vending.restockAll.affordable;
   return (
-    <Section title="Locations" note={locationsNote(vending)}>
+    <Section id="mechanic" title="Locations" note={locationsNote(vending)}>
       {vending.coachMark === 'show' ? (
         <VendingCoachMark unlockStage={vending.unlockStage} onDismiss={actions.dismissCoachMark} />
       ) : null}

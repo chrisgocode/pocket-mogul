@@ -20,7 +20,7 @@ export function CarWashSection({
   if (carWash === undefined) return null;
   if (carWash.status === 'locked') return <LockedCarWashCard unlockStage={carWash.unlockStage} />;
   return (
-    <Section title="Washes" note="Packages, weather and memberships">
+    <Section id="mechanic" title="Washes" note="Packages, weather and memberships">
       {carWash.coachMark === 'show' ? (
         <CarWashCoachMark unlockStage={carWash.unlockStage} onDismiss={actions.dismissCoachMark} />
       ) : null}

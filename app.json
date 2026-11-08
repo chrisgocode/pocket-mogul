@@ -6,8 +6,8 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "backgroundColor": "#F6F7F9",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#16171D",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.pocketmogul.dev"

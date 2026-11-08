@@ -24,6 +24,7 @@ async function openCarWash(
   await session.game.checkpoint();
   mockGame = Promise.resolve({ status: 'ready', game: session.game });
   await renderRouter('src/app', { initialUrl: '/businesses/car_wash' });
+  await fireEvent.press(screen.getByRole('button', { name: '▸ Daily figures' }));
   return session;
 }
 
@@ -32,11 +33,8 @@ const carWashOf = (session: TestGame) => session.game.getSnapshot().state.busine
 describe('the Washes section (BUS20b)', () => {
   it('stays locked at Startup', async () => {
     await openCarWash(ownedBusiness('car_wash'));
-    expect(
-      screen.getByLabelText(
-        'Packages and memberships, Choose the packages you sell, plan around the weather and sign up members, Unlocks at Local',
-      ),
-    ).toBeOnTheScreen();
+    expect(screen.queryByRole('header', { name: 'Washes' })).not.toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: '▸ Next unlocks' })).toBeOnTheScreen();
   });
 
   it('shows a coach mark when the mechanic unlocks, until the player dismisses it', async () => {

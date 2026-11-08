@@ -21,10 +21,6 @@ import type { FlagshipActions } from './FlagshipSections';
 import type { VendingActions } from './vendingFormat';
 import { useBusinessCommand } from './useBusinessCommand';
 
-function screenTitle(detail: BusinessDetailView): string {
-  return detail.status === 'unknown' ? 'Business' : detail.business.name;
-}
-
 function treasuryActions(
   detail: Extract<BusinessDetailView, { status: 'owned' }>,
   handlers: {
@@ -111,13 +107,13 @@ function flagshipActions(
 }
 
 export function BusinessDetailScreen() {
-  const { businessId } = useLocalSearchParams<{ businessId: string }>();
+  const { businessId, section } = useLocalSearchParams<{ businessId: string; section?: string }>();
   const detail = selectBusinessDetail(useGameSnapshot(), { businessId, content: getContent() });
   const { confirmation, review, close, confirm } = useGameAction(businessActionCommand);
   const run = useBusinessCommand();
   return (
-    <Screen>
-      <Stack.Screen options={{ title: screenTitle(detail) }} />
+    <Screen tone="businesses" focusSection={section}>
+      <Stack.Screen options={{ title: 'Businesses', headerBackTitle: 'Businesses' }} />
       {detail.status === 'owned' ? (
         <OwnedBusinessDetails
           detail={detail}

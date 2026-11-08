@@ -1,37 +1,30 @@
+import { useRouter } from 'expo-router';
 import type { Holdings } from '@/application/holdingsView';
-import { formatMoneyExact, formatQuantity } from '@/domain/money';
-import { formatCashChange } from '@/features/game/priceFormat';
 import { Card } from '@/ui/Card';
 import { ListRow } from '@/ui/ListRow';
-
+import { AppText } from '@/ui/Typography';
+import { holdingRows } from './holdingRows';
 export function HoldingsCard({ holdings }: { holdings: Holdings }) {
+  const router = useRouter();
+  const rows = holdingRows(holdings);
+  const open = (row: (typeof rows)[number]) => {
+    if (row.kind === 'business')
+      router.push({ pathname: '/businesses/[businessId]', params: { businessId: row.id } });
+    else if (row.kind === 'property')
+      router.push({ pathname: '/properties/[propertyId]', params: { propertyId: row.id } });
+    else router.push({ pathname: '/markets/[assetId]', params: { assetId: row.id } });
+  };
   return (
     <Card>
-      {holdings.businesses.map((held) => (
+      {rows.length === 0 ? <AppText muted>Nothing owned yet</AppText> : null}
+      {rows.map((row) => (
         <ListRow
-          key={held.id}
-          title={held.name}
-          subtitle="Business"
-          value={formatMoneyExact(held.valueCents)}
-          detail={`Sells for ${formatMoneyExact(held.saleCents)}`}
-        />
-      ))}
-      {holdings.properties.map((held) => (
-        <ListRow
-          key={held.id}
-          title={held.name}
-          subtitle={held.rented ? 'Property · rented' : 'Property · vacant'}
-          value={formatMoneyExact(held.valueCents)}
-          detail={`Sells for ${formatMoneyExact(held.saleCents)}`}
-        />
-      ))}
-      {holdings.positions.map((held) => (
-        <ListRow
-          key={held.id}
-          title={held.name}
-          subtitle={`${formatQuantity(held.quantity)} ${held.ticker}`}
-          value={formatMoneyExact(held.valueCents)}
-          detail={`Unrealized ${formatCashChange(held.unrealizedCents)}`}
+          key={`${row.kind}:${row.id}`}
+          title={row.title}
+          subtitle={row.subtitle}
+          value={row.value}
+          detail={row.detail}
+          onPress={() => open(row)}
         />
       ))}
     </Card>

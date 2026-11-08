@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { useAccent } from './Accent';
 import { AppText } from './Typography';
-import { colors, minimumTouchTarget, radius, spacing } from './tokens';
+import { colors, minimumTouchTarget, radius } from './tokens';
 
 export type SegmentOption<Segment extends string> = { value: Segment; label: string };
 
@@ -14,6 +15,7 @@ export function SegmentedControl<Segment extends string>({
   selected: Segment;
   onSelect: (segment: Segment) => void;
 }) {
+  const accent = useAccent();
   return (
     <View style={styles.segments} accessibilityRole="tablist">
       {options.map((option) => {
@@ -24,9 +26,9 @@ export function SegmentedControl<Segment extends string>({
             accessibilityRole="tab"
             accessibilityState={{ selected: isSelected }}
             onPress={() => onSelect(option.value)}
-            style={[styles.segment, isSelected && styles.segmentSelected]}
+            style={[styles.segment, isSelected && [styles.selected, { borderBottomColor: accent }]]}
           >
-            <AppText variant="heading" style={isSelected ? styles.labelSelected : undefined}>
+            <AppText variant="heading" style={isSelected ? { color: accent } : styles.label}>
               {option.label}
             </AppText>
           </Pressable>
@@ -39,9 +41,8 @@ export function SegmentedControl<Segment extends string>({
 const styles = StyleSheet.create({
   segments: {
     flexDirection: 'row',
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: radius.md,
-    padding: spacing.xs,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
   },
   segment: {
     flex: 1,
@@ -50,6 +51,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: radius.sm,
   },
-  segmentSelected: { backgroundColor: colors.surface },
-  labelSelected: { color: colors.accent },
+  selected: { borderBottomWidth: 2 },
+  label: { color: colors.textMuted },
 });

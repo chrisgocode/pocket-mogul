@@ -20,7 +20,6 @@
     "knip:check": "knip",
     "doctor": "expo-doctor",
     "balance": "bun scripts/balance-report.ts",
-    "prototype:82": "bun src/features/businesses/prototype/index.html",
     "balance:taxes": "bun scripts/tax-balance-report.ts"
   },
   "dependencies": {

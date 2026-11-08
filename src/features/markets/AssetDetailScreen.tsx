@@ -28,7 +28,7 @@ export function AssetDetailScreen() {
   const detail = selectAssetDetail(snapshot, { assetId, content });
   if (detail.status === 'unknown') {
     return (
-      <Screen>
+      <Screen tone="markets">
         <Stack.Screen options={{ title: 'Asset' }} />
         <EmptyState title="Asset not found" message="Pick a stock or coin from Markets." />
       </Screen>
@@ -38,7 +38,7 @@ export function AssetDetailScreen() {
   const units = tradeUnits(detail.kind);
   const news = selectMarketNews(snapshot.state, { market, content, assetId, limit: NEWS_ITEMS });
   return (
-    <Screen>
+    <Screen tone="markets">
       <Stack.Screen options={{ title: detail.asset.name }} />
       <AssetOverview detail={detail} />
       {detail.position === undefined ? null : (

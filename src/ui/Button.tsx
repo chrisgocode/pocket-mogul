@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet } from 'react-native';
 
+import { useAccent } from './Accent';
 import { usePressedStyle } from './pressFeedback';
 import { AppText } from './Typography';
 import { colors, minimumTouchTarget, radius, spacing } from './tokens';
@@ -19,6 +20,7 @@ export function Button({
   variant?: ButtonVariant;
   disabled?: boolean;
 }) {
+  const accent = useAccent();
   const pressedStyle = usePressedStyle();
   return (
     <Pressable
@@ -29,7 +31,7 @@ export function Button({
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        variant === 'primary' ? styles.primary : styles.secondary,
+        variant === 'primary' ? { backgroundColor: accent } : styles.secondary,
         pressed && pressedStyle,
         disabled && styles.disabled,
       ]}
@@ -46,12 +48,12 @@ const styles = StyleSheet.create({
     minHeight: minimumTouchTarget,
     borderRadius: radius.md,
     paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  primary: { backgroundColor: colors.accent },
   secondary: { backgroundColor: colors.surfaceMuted },
-  disabled: { backgroundColor: colors.locked },
+  disabled: { opacity: 0.4 },
   onAccent: { color: colors.textOnAccent },
   onSurface: { color: colors.text },
 });

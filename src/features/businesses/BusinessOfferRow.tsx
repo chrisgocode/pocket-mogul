@@ -4,7 +4,7 @@ import type { BusinessOffer } from '@/application/businessesView';
 import { formatMoneyExact } from '@/domain/money';
 import { Button } from '@/ui/Button';
 import { ListRow } from '@/ui/ListRow';
-import { LogoMark } from '@/ui/LogoMark';
+import { BusinessArt } from '@/ui/BusinessArt';
 import { colors, highlightWidth, radius, spacing } from '@/ui/tokens';
 
 import { formatPerDay } from './businessFormat';
@@ -33,10 +33,11 @@ export function BusinessOfferRow({
   return (
     <View style={[styles.offer, highlighted && styles.highlighted]}>
       <ListRow
-        leading={<LogoMark logo={business.logo} />}
+        leading={<BusinessArt id={business.id} />}
         title={business.name}
         subtitle={`Profit ${formatPerDay(offer.profitPerDayCents)}`}
-        value={offer.status === 'owned' ? 'Owned' : formatMoneyExact(business.price)}
+        value={offer.status === 'owned' ? 'Open →' : formatMoneyExact(business.price)}
+        onPress={offer.status === 'owned' ? () => onManage(offer) : undefined}
         dimmed={offer.status === 'locked'}
       />
       {offer.status === 'available' ? (
@@ -45,14 +46,6 @@ export function BusinessOfferRow({
           accessibilityLabel={`Buy ${business.name}, ${label}`}
           onPress={() => onReview(offer)}
           disabled={!offer.affordable}
-        />
-      ) : null}
-      {offer.status === 'owned' ? (
-        <Button
-          label="Manage"
-          accessibilityLabel={`Manage ${business.name}`}
-          variant="secondary"
-          onPress={() => onManage(offer)}
         />
       ) : null}
     </View>

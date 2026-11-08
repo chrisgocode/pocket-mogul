@@ -1,21 +1,31 @@
 import type { TextStyle } from 'react-native';
 
 export const colors = {
-  background: '#F6F7F9',
-  surface: '#FFFFFF',
-  surfaceMuted: '#EEF0F3',
-  border: '#E1E4E8',
-  text: '#14171F',
-  textMuted: '#5B6270',
-  textOnAccent: '#FFFFFF',
-  accent: '#2563EB',
-  accentSoft: '#E3ECFD',
-  gain: '#12805C',
-  loss: '#C2362F',
-  locked: '#8A909C',
-  highlight: '#D97706',
-  scrim: 'rgba(20, 23, 31, 0.45)',
+  background: '#16171D',
+  surface: '#202229',
+  surfaceMuted: '#2B2E37',
+  border: '#383C48',
+  text: '#F1F0EB',
+  textMuted: '#AFB2BD',
+  textOnAccent: '#16171D',
+  accent: '#9AC6F1',
+  accentSoft: '#273A4C',
+  gain: '#85D6B3',
+  loss: '#F3A397',
+  locked: '#626775',
+  highlight: '#EABB72',
+  scrim: 'rgba(0, 0, 0, 0.65)',
 } as const;
+
+export const sectionColors = {
+  earn: '#EABB72',
+  businesses: '#76D5C0',
+  markets: '#B6A5EF',
+  properties: '#EDAB91',
+  profile: '#9AC6F1',
+} as const;
+
+export type SectionTone = keyof typeof sectionColors;
 
 export const trendColors = {
   gain: colors.gain,

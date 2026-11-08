@@ -20,7 +20,7 @@ export function PropertyDetailScreen() {
   const detail = selectPropertyDetail(useGameSnapshot(), { propertyId, content: getContent() });
   const { confirmation, review, close, confirm } = useGameAction(propertyActionCommand);
   return (
-    <Screen>
+    <Screen tone="properties">
       <Stack.Screen options={{ title: screenTitle(detail) }} />
       {detail.status === 'owned' ? (
         <OwnedPropertyDetails detail={detail} onReview={review} />

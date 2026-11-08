@@ -21,18 +21,17 @@ describe('Taxes', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Taxes' }));
     expect(screen).toHavePathname('/taxes');
     expect(screen.getByLabelText('Honest tax, $1,000.00')).toBeOnTheScreen();
-    await fireEvent.press(screen.getByRole('button', { name: 'Report everything · $1,000.00' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Pay & file · $1,000.00 now' }));
     expect(screen.getByLabelText('Personal cash collected, $1,000.00')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'File and pay available cash' }));
+    await fireEvent.press(screen.getByRole('button', { name: '▸ Payment history' }));
     expect(await screen.findByLabelText('Lifetime tax paid, $1,000.00')).toBeOnTheScreen();
     expect(session.game.getSnapshot().state.cashCents).toBe(dollars('1000'));
   });
 
   it('discloses the audit probability, back tax and additional fine before filing zero', async () => {
     await renderRouter('src/app', { initialUrl: '/taxes' });
-    await fireEvent.press(
-      screen.getByRole('button', { name: 'Report nothing · $0 · 40% audit risk' }),
-    );
+    await fireEvent.press(screen.getByRole('button', { name: 'Don’t report · $0 now' }));
     expect(
       screen.getByLabelText('One audit check, 40% after 10 credited minutes'),
     ).toBeOnTheScreen();
@@ -62,6 +61,7 @@ describe('Taxes', () => {
       await session.game.checkpoint();
     });
     expect(await screen.findByLabelText('Outstanding assessed debt, $2,500.00')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: '▸ Tax rules' }));
     expect(screen.getByText(/No interest, repeated fines or forced sales/)).toBeOnTheScreen();
   });
 });

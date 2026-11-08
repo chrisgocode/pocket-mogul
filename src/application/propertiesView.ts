@@ -2,7 +2,11 @@ import type { Content, Property } from '@/content';
 import type { GameState, OwnedProperty } from '@/domain/gameState';
 import type { MoneyCents } from '@/domain/money';
 import { findOwnedProperty } from '@/domain/properties';
-import { levelZeroProperty, quotePropertyIncome } from '@/domain/propertyQuotes';
+import {
+  estimatedValueCents,
+  levelZeroProperty,
+  quotePropertyIncome,
+} from '@/domain/propertyQuotes';
 
 import { affordability } from './affordability';
 import { selectCashCents, selectRentIncomePerMinuteCents } from './cashView';
@@ -13,6 +17,9 @@ export type PropertyStatus = 'available' | 'vacant' | 'rented';
 export type PropertyListing = {
   readonly property: Property;
   readonly status: PropertyStatus;
+  readonly valueCents: MoneyCents;
+  readonly renovationLevel: number;
+  readonly grossPerMinuteCents: MoneyCents;
   readonly rentedNetPerMinuteCents: MoneyCents;
   readonly affordable: boolean;
   readonly shortfallCents: MoneyCents;
@@ -41,6 +48,15 @@ function listing(
   );
   return {
     property,
+    valueCents:
+      owned === undefined
+        ? property.price
+        : estimatedValueCents(owned, {
+            definition: property,
+            rules: context.content.economy.propertyRules,
+          }),
+    renovationLevel: owned?.levels.renovation ?? 0,
+    grossPerMinuteCents: income.rentCents,
     status: listingStatus(owned),
     rentedNetPerMinuteCents: income.netPerMinuteCents,
     ...affordability(property.price, context.cashCents),

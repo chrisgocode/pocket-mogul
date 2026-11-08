@@ -15,7 +15,7 @@ import { RootStack } from '@/ui/RootStack';
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       {STARTUP_CONTENT_ISSUES.length > 0 ? (
         <ContentErrorScreen issues={STARTUP_CONTENT_ISSUES} />
       ) : (

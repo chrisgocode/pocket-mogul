@@ -1,20 +1,46 @@
-import { Link } from 'expo-router';
-
-import { Button } from '@/ui/Button';
-import { Card } from '@/ui/Card';
-
+import { useRouter, type Href } from 'expo-router';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Icon, type IconName } from '@/ui/Icons';
+import { AppText } from '@/ui/Typography';
+import { colors, minimumTouchTarget, radius, spacing } from '@/ui/tokens';
+const LINKS: { label: string; icon: IconName; href: Href }[] = [
+  { label: 'Goals', icon: 'goals', href: '/goals' },
+  { label: 'Taxes', icon: 'taxes', href: '/taxes' },
+  { label: 'Settings', icon: 'settings', href: '/settings' },
+];
 export function ProfileLinks() {
+  const router = useRouter();
   return (
-    <Card>
-      <Link href="/taxes" asChild>
-        <Button label="Taxes" onPress={() => undefined} />
-      </Link>
-      <Link href="/goals" asChild>
-        <Button label="Goals & achievements" variant="secondary" onPress={() => undefined} />
-      </Link>
-      <Link href="/settings" asChild>
-        <Button label="Settings" variant="secondary" onPress={() => undefined} />
-      </Link>
-    </Card>
+    <View style={styles.links}>
+      {LINKS.map((link) => (
+        <View key={link.label} style={styles.wrapper}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={link.label}
+            onPress={() => router.push(link.href)}
+            style={styles.link}
+          >
+            <Icon name={link.icon} color={colors.text} />
+            <AppText variant="caption">{link.label}</AppText>
+          </Pressable>
+        </View>
+      ))}
+    </View>
   );
 }
+const styles = StyleSheet.create({
+  links: { flexDirection: 'row', gap: spacing.sm },
+  wrapper: { flex: 1 },
+  link: {
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    padding: spacing.md,
+    minHeight: minimumTouchTarget,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+});
