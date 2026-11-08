@@ -2222,6 +2222,8 @@
       const button = (label, action, kind = 'secondary', disabled = false) =>
         `<button class="${kind}" data-action="${action}" ${disabled || (purchasesBlocked() && isDiscretionary(action)) ? 'disabled' : ''}>${label}</button>`;
       const owned = (id) => state.owned.includes(id);
+      const tradingUnlocked = () =>
+        state.owned.length > 0 || state.completedGoals.includes('first_business');
       const stageLabels = ['Startup', 'Local', 'Regional', 'National', 'Global'];
       const unitCaps = [3, 8, 20, 50, 120];
       const stageDays = [3, 10, 30, 60];
@@ -3043,7 +3045,7 @@
       function assetDetail() {
         const a = assetOf(),
           p = state.positions[a.id];
-        return `${button('← Markets', 'tab:markets', 'back')}<div class="row"><div><h2>${a.name}</h2><span class="muted">${a.symbol} · ${a.kind}</span></div>${button(state.watchlist.includes(a.id) ? '★' : '☆', 'watch', 'secondary')}</div><div class="price-heading">${money(a.price)} <small class="${a.change >= 0 ? 'green' : 'red'}">${a.change >= 0 ? '+' : ''}${a.change}% / 24h</small></div><svg class="price-chart ${a.change < 0 ? 'negative' : ''}" viewBox="0 0 320 90" role="img" aria-label="Illustrative price history; current sample price ${money(a.price)}"><g transform="${a.change < 0 ? 'translate(0 90) scale(1 -1)' : ''}"><path d="M0 72L20 67L40 73L60 48L80 53L100 39L120 44L140 26L160 40L180 30L200 35L220 15L240 28L260 10L280 18L320 8" fill="none" stroke="currentColor" stroke-width="2"/></g></svg><div class="stats-grid">${stat('Quantity', p?.quantity ?? 0)}${stat('Average cost', p ? money(p.cost / p.quantity) : '—')}${stat('Position value', money((p?.quantity ?? 0) * a.price))}${stat('Unrealized P&L', signedMoney((p?.quantity ?? 0) * a.price - (p?.cost ?? 0)))}</div><h2>Order quantity</h2>${selectedChips(['1', '10'], String(state.orderQuantity), 'quantity')}<div class="split">${button('Buy · ' + money(a.price * state.orderQuantity), 'trade:buy', 'primary', !state.owned.length)}${button('Sell · ' + money(a.price * state.orderQuantity), 'trade:sell', 'secondary', !p || p.quantity < state.orderQuantity)}</div>${!state.owned.length ? '<p class="footnote">Trading unlocks with your first business.</p>' : ''}<div class="dense-line row"><span>Dividend / share</span><b>${money(a.dividend)}/hour</b></div>`;
+        return `${button('← Markets', 'tab:markets', 'back')}<div class="row"><div><h2>${a.name}</h2><span class="muted">${a.symbol} · ${a.kind}</span></div>${button(state.watchlist.includes(a.id) ? '★' : '☆', 'watch', 'secondary')}</div><div class="price-heading">${money(a.price)} <small class="${a.change >= 0 ? 'green' : 'red'}">${a.change >= 0 ? '+' : ''}${a.change}% / 24h</small></div><svg class="price-chart ${a.change < 0 ? 'negative' : ''}" viewBox="0 0 320 90" role="img" aria-label="Illustrative price history; current sample price ${money(a.price)}"><g transform="${a.change < 0 ? 'translate(0 90) scale(1 -1)' : ''}"><path d="M0 72L20 67L40 73L60 48L80 53L100 39L120 44L140 26L160 40L180 30L200 35L220 15L240 28L260 10L280 18L320 8" fill="none" stroke="currentColor" stroke-width="2"/></g></svg><div class="stats-grid">${stat('Quantity', p?.quantity ?? 0)}${stat('Average cost', p ? money(p.cost / p.quantity) : '—')}${stat('Position value', money((p?.quantity ?? 0) * a.price))}${stat('Unrealized P&L', signedMoney((p?.quantity ?? 0) * a.price - (p?.cost ?? 0)))}</div><h2>Order quantity</h2>${selectedChips(['1', '10'], String(state.orderQuantity), 'quantity')}<div class="split">${button('Buy · ' + money(a.price * state.orderQuantity), 'trade:buy', 'primary', !tradingUnlocked())}${button('Sell · ' + money(a.price * state.orderQuantity), 'trade:sell', 'secondary', !p || p.quantity < state.orderQuantity)}</div>${!tradingUnlocked() ? '<p class="footnote">Trading unlocks with your first business.</p>' : ''}<div class="dense-line row"><span>Dividend / share</span><b>${money(a.dividend)}/hour</b></div>`;
       }
       function propertyScene(h) {
         const windows = (x, y, cols, rows) =>
@@ -3110,7 +3112,7 @@
             gross = qty * a.price,
             fee = gross * (a.kind === 'Crypto' ? 0.02 : 0.01),
             p = state.positions[a.id] ?? { quantity: 0, cost: 0 };
-          if (kind === 'tradeBuy' && state.owned.length && state.cash >= gross + fee) {
+          if (kind === 'tradeBuy' && tradingUnlocked() && state.cash >= gross + fee) {
             state.cash -= gross + fee;
             state.positions[a.id] = { quantity: p.quantity + qty, cost: p.cost + gross + fee };
             log('Bought ' + qty + ' ' + a.symbol + ' · ' + money(gross + fee));
@@ -3191,7 +3193,7 @@
         if (['tradeBuy', 'tradeSell', 'propertyBuy', 'propertySell'].includes(state.confirmation))
           return transactionSheet();
         const withdraw = state.confirmation === 'withdraw';
-        const quote = cashCreditQuote(withdraw ? state.treasury : 150 + state.treasury);
+        const quote = cashCreditQuote(withdraw ? state.treasury : businessSaleProceeds());
         return `<div class="sheet" role="dialog" aria-label="Review transaction"><h3>${withdraw ? 'Withdraw treasury?' : 'Sell Vending Machine?'}</h3>${cashCreditLines(quote)}<div class="dense-line row"><span>Business after</span><b>${withdraw ? 'Still owned' : 'Sold · income removed'}</b></div><div class="dense-line row"><span>Treasury after</span><b>$0.00</b></div>${sheetActions((withdraw ? 'Withdraw · ' : 'Sell · ') + money(quote.net))}</div>`;
       }
 
@@ -3256,6 +3258,9 @@
           2,
         );
       }
+      const businessSaleProceeds = () =>
+        Math.floor((Math.round((state.capitalizedSpend.vending ?? 0) * 100) * 60) / 100) / 100 +
+        state.treasury;
       const unitPrice = () => Math.round(100 * Math.pow(1.15, state.units - 1));
       function cycle(delta) {
         variant = variants[(variants.indexOf(variant) + delta + 3) % 3];
@@ -3319,7 +3324,7 @@
           state.notice = 'Treasury withdrawn to cash';
         }
         if (state.confirmation === 'sell') {
-          creditCash(150 + state.treasury);
+          creditCash(businessSaleProceeds());
           state.treasury = 0;
           state.owned = state.owned.filter((id) => id !== 'vending');
           state.screen = 'businesses';
