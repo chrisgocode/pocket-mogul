@@ -40,6 +40,8 @@ describe('Studio native flows', () => {
       await screen.findByRole('button', { name: 'Every location is stocked' }),
     ).toBeOnTheScreen();
     expect(session.game.getSnapshot().state.businesses[0]?.treasuryCents).toBe(dollars('6'));
+    await fireEvent.press(screen.getByRole('button', { name: 'Back to Businesses' }));
+    expect(screen).toHavePathname('/businesses');
   });
 
   it('keeps Startup mechanics hidden and exposes the Local controls', async () => {

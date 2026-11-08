@@ -30,5 +30,5 @@ export function Screen({
 }
 const styles = StyleSheet.create({
   scroll: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.xl },
+  content: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.lg },
 });

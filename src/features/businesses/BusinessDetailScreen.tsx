@@ -6,6 +6,7 @@ import { ActionSheet } from '@/features/game/ActionSheet';
 import { useGameSnapshot } from '@/features/game/GameContext';
 import { useGameAction } from '@/features/game/useGameAction';
 import { EmptyState } from '@/ui/EmptyState';
+import { BackLink } from '@/ui/BackLink';
 import { Screen } from '@/ui/Screen';
 
 import {
@@ -20,6 +21,8 @@ import type { DeliveryActions } from './deliveryFormat';
 import type { FlagshipActions } from './FlagshipSections';
 import type { VendingActions } from './vendingFormat';
 import { useBusinessCommand } from './useBusinessCommand';
+
+const BACK_OPTIONS = { headerLeft: () => <BackLink href="/businesses" label="Businesses" /> };
 
 function treasuryActions(
   detail: Extract<BusinessDetailView, { status: 'owned' }>,
@@ -113,7 +116,7 @@ export function BusinessDetailScreen() {
   const run = useBusinessCommand();
   return (
     <Screen tone="businesses" focusSection={section}>
-      <Stack.Screen options={{ title: 'Businesses', headerBackTitle: 'Businesses' }} />
+      <Stack.Screen options={{ ...BACK_OPTIONS, title: '' }} />
       {detail.status === 'owned' ? (
         <OwnedBusinessDetails
           detail={detail}
