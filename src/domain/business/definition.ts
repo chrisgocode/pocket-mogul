@@ -103,6 +103,7 @@ export type BusinessPricing = {
 };
 
 export type BusinessEconomy = {
+  readonly listedSaleFeeBps?: number;
   readonly catalog: BusinessCatalog;
   readonly rules: BusinessRules;
 };

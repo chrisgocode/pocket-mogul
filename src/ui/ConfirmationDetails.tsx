@@ -21,7 +21,12 @@ export function ConfirmationDetails({
         {title}
       </AppText>
       {lines.map((line) => (
-        <View key={line.label} style={styles.line}>
+        <View
+          key={line.label}
+          style={styles.line}
+          accessible
+          accessibilityLabel={`${line.label}, ${line.value}`}
+        >
           <AppText muted>{line.label}</AppText>
           <AppText variant="number">{line.value}</AppText>
         </View>

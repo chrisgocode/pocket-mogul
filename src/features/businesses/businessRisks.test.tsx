@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
 import type { OpenedGame } from '@/application/game';
@@ -14,7 +15,7 @@ jest.mock('@/bootstrap/deviceGame', () => ({ loadDeviceGame: () => mockGame }));
 
 async function openVending(business: Partial<OwnedBusiness>, day = 0): Promise<TestGame> {
   const session = await startTestGameFrom({
-    ...freshGameState({ saveId: 'risks', economyVersion: 1, wallMs: 0 }),
+    ...freshGameState({ saveId: 'risks', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
     clock: { simulationMs: day * DAY_MS, lastWallCheckpointMs: 0 },
     businesses: [ownedBusiness('vending', business)],
   });

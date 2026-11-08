@@ -154,11 +154,16 @@ export type DepositToTreasury = {
 
 export type WithdrawFromTreasury = {
   readonly type: 'WithdrawFromTreasury';
+  readonly quotedRevision?: number;
   readonly businessId: string;
   readonly amountCents: MoneyCents;
 };
 
-export type SellBusiness = { readonly type: 'SellBusiness'; readonly businessId: string };
+export type SellBusiness = {
+  readonly type: 'SellBusiness';
+  readonly businessId: string;
+  readonly quotedRevision?: number;
+};
 
 export type BuyProperty = { readonly type: 'BuyProperty'; readonly propertyId: string };
 
@@ -175,7 +180,11 @@ export type SetRentalStatus = {
   readonly rented: boolean;
 };
 
-export type SellProperty = { readonly type: 'SellProperty'; readonly propertyId: string };
+export type SellProperty = {
+  readonly type: 'SellProperty';
+  readonly propertyId: string;
+  readonly quotedRevision?: number;
+};
 
 export type ExecuteTrade = {
   readonly type: 'ExecuteTrade';
@@ -183,6 +192,7 @@ export type ExecuteTrade = {
   readonly side: TradeSide;
   readonly quantity: QuantityMicrounits;
   readonly quotedTick: number;
+  readonly quotedRevision?: number;
 };
 
 export type SetWatchlist = {
@@ -214,6 +224,13 @@ export type GoPublic = {
 };
 
 export type GameCommand =
+  | {
+      readonly type: 'FileTaxReturn';
+      readonly returnId: number;
+      readonly method: 'honest' | 'zero';
+      readonly revision: number;
+    }
+  | { readonly type: 'PayTaxDebt'; readonly amountCents: MoneyCents }
   | GoPublic
   | TapBatch
   | UpgradeWallet
@@ -263,6 +280,8 @@ export type CommandEnvelope = {
 };
 
 export const GAME_ERROR_CODES = [
+  'TAX_RETURN_UNAVAILABLE',
+  'TAX_ACTION_REQUIRED',
   'INSUFFICIENT_CASH',
   'INSUFFICIENT_TREASURY',
   'BUSINESS_CLOSED',

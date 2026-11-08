@@ -7,7 +7,7 @@ import { useDisclosure } from '@/ui/state/useDisclosure';
 import { AppText } from '@/ui/Typography';
 
 const VALUATION_NOTES = [
-  'Cash is what you can spend now.',
+  'Cash is what you can spend now. Net worth subtracts estimated and assessed tax once; paying a booked bill is not a second loss.',
   'Businesses count at what you paid to buy and upgrade them. Selling pays 60% of that. Managers are an expense and are not counted.',
   'Properties count at their estimated value: the purchase price plus 80% of upgrade spending. Selling pays 95% of it.',
   'Stocks and coins count at what selling would pay before fees.',
@@ -26,6 +26,10 @@ export function WorthCard({ worth }: { worth: Worth }) {
     <Card>
       <DetailLine label="Net worth" value={formatMoneyExact(worth.netWorthCents)} emphasis />
       <DetailLine label="Cash" value={formatMoneyExact(worth.cashCents)} />
+      <DetailLine
+        label="Estimated and assessed tax liability"
+        value={formatMoneyExact(worth.taxLiabilityCents)}
+      />
       <DetailLine label="Owned assets" value={formatMoneyExact(worth.assetsCents)} />
       {expanded ? (
         <>

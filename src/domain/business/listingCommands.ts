@@ -69,7 +69,7 @@ function listed(
     ...updated,
     state: {
       ...updated.state,
-      minReaderVersion: LISTING_READER_VERSION,
+      minReaderVersion: Math.max(state.minReaderVersion, LISTING_READER_VERSION),
       market: { ...state.market, quotes: { ...state.market.quotes, [id]: price } },
       positions: [...state.positions, retainedPosition({ owned, sharesHeld, id })],
     },

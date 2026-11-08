@@ -1,3 +1,4 @@
+import { ProfileLinks } from './ProfileLinks';
 import { selectPortfolio } from '@/application/portfolioView';
 import { getContent } from '@/content';
 import { useGameSnapshot } from '@/features/game/GameContext';
@@ -20,6 +21,7 @@ export function PortfolioScreen() {
     holdings.businesses.length + holdings.properties.length + holdings.positions.length > 0;
   return (
     <Screen>
+      <ProfileLinks />
       <WorthCard worth={view.worth} />
       <Section title="Income by source">
         <IncomeCard income={view.income} />

@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { freshGameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 import { ownedBusiness } from '@/domain/testRules';
@@ -24,7 +25,7 @@ const buyUnit = (game: Game, fromUnits: number) =>
 
 async function startWith(cash: string): Promise<TestGame> {
   return startTestGameFrom({
-    ...freshGameState({ saveId: 'saver', economyVersion: 1, wallMs: 0 }),
+    ...freshGameState({ saveId: 'saver', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
     cashCents: dollars(cash),
   });
 }

@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 import { ownedBusiness } from '@/domain/testRules';
@@ -8,7 +9,11 @@ const DAY_MS = 600_000;
 const LEFT_AT_MS = 1_800_000_000_000;
 
 const regional: GameState = {
-  ...freshGameState({ saveId: 'rivals', economyVersion: 1, wallMs: LEFT_AT_MS }),
+  ...freshGameState({
+    saveId: 'rivals',
+    economyVersion: CURRENT_ECONOMY_VERSION,
+    wallMs: LEFT_AT_MS,
+  }),
   businesses: [
     ownedBusiness('vending', {
       stage: 3,

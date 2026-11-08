@@ -1,8 +1,13 @@
+import type { MarketHistory } from './marketHistory';
 import { accumulatedPayouts } from './business/listingPayout';
 import { cashPerMinuteCents } from './business/core';
 import { findBusiness, type BusinessEconomy } from './business/definition';
 import type { StruckIncident } from './business/risks';
-import { settleBusinesses, type BusinessClosure } from './business/treasury';
+import {
+  settleBusinesses,
+  type BusinessClosure,
+  type BusinessAccounting,
+} from './business/treasury';
 import { advanceDividends, type DividendRates } from './dividends';
 import type { GameState, IncomeBySource, IncomeState } from './gameState';
 import { moneyCents, type MoneyCents } from './money';
@@ -84,6 +89,7 @@ function accrue(streams: readonly Stream[], period: { elapsedMs: number; remaind
 }
 
 type Accrued = {
+  readonly accounting: readonly BusinessAccounting[];
   readonly shareholderPayouts: GameState['shareholderPayouts'];
   readonly earnings: IncomeBySource;
   readonly income: IncomeState;
@@ -114,6 +120,7 @@ function accruedIncome(
     { fromMs, toMs: fromMs + advance.elapsedMs, rates: advance.economy.dividendRates },
   );
   return {
+    accounting: business.accounting,
     shareholderPayouts: accumulatedPayouts(state.shareholderPayouts, business.outsidePayouts),
     earnings: {
       businesses: business.toCashCents,
@@ -134,6 +141,8 @@ function accruedIncome(
 }
 
 export type AdvancedTime = {
+  readonly history?: MarketHistory;
+  readonly accounting: readonly BusinessAccounting[];
   readonly state: GameState;
   readonly earnedCents: MoneyCents;
   readonly earnings: IncomeBySource;
@@ -146,6 +155,7 @@ export function advanceTime(
   advance: { elapsedMs: number; wallMs: number; economy: PassiveEconomy },
 ): AdvancedTime {
   const {
+    accounting,
     earnings,
     income,
     businesses,
@@ -156,6 +166,7 @@ export function advanceTime(
   } = accruedIncome(state, advance);
   const earnedCents = totalIncome(earnings);
   return {
+    accounting,
     earnedCents,
     earnings,
     closures,

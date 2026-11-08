@@ -1,4 +1,4 @@
-import { getContent } from '@/content';
+import { CURRENT_ECONOMY_VERSION, getContent } from '@/content';
 import { ownedBusiness } from '@/domain/testRules';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollarPrice, dollars, units } from '@/domain/money';
@@ -7,7 +7,11 @@ import { levelZeroProperty } from '@/domain/propertyQuotes';
 import type { GameSnapshot } from './game';
 import { selectPortfolio } from './portfolioView';
 
-const fresh = freshGameState({ saveId: 'portfolio', economyVersion: 1, wallMs: 0 });
+const fresh = freshGameState({
+  saveId: 'portfolio',
+  economyVersion: CURRENT_ECONOMY_VERSION,
+  wallMs: 0,
+});
 
 const holder: GameState = {
   ...fresh,
@@ -52,6 +56,7 @@ describe('portfolio', () => {
       propertiesCents: dollars('20,000'),
       positionsCents: dollars('300'),
       pendingDividendsCents: dollars('0.10'),
+      taxLiabilityCents: dollars('0'),
       assetsCents: dollars('20,600.10'),
       netWorthCents: dollars('20,700.10'),
     });

@@ -1,4 +1,4 @@
-import { getContent } from '@/content';
+import { CURRENT_ECONOMY_VERSION, getContent } from '@/content';
 import type { GameCommand } from '@/domain/commands';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars, units } from '@/domain/money';
@@ -12,7 +12,7 @@ const HOUR_MS = 60 * MINUTE_MS;
 
 function startWith(overrides: Partial<GameState> = {}): Promise<TestGame> {
   return startTestGameFrom({
-    ...freshGameState({ saveId: 'activity', economyVersion: 1, wallMs: 0 }),
+    ...freshGameState({ saveId: 'activity', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
     ...overrides,
   });
 }
@@ -96,7 +96,11 @@ describe('activity from closures', () => {
     });
     const session = await startTestGameFrom(
       {
-        ...freshGameState({ saveId: 'activity', economyVersion: 1, wallMs: 0 }),
+        ...freshGameState({
+          saveId: 'activity',
+          economyVersion: CURRENT_ECONOMY_VERSION,
+          wallMs: 0,
+        }),
         businesses: [ownedBusiness('vending', { treasuryCents: dollars('10') })],
       },
       { content: losing },

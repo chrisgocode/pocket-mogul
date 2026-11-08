@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { impactAsync } from 'expo-haptics';
 import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
@@ -15,7 +16,11 @@ let mockGame: Promise<OpenedGame>;
 jest.mock('@/bootstrap/deviceGame', () => ({ loadDeviceGame: () => mockGame }));
 
 const saved = {
-  ...freshGameState({ saveId: 'settings', economyVersion: 1, wallMs: 1_800_000_000_000 }),
+  ...freshGameState({
+    saveId: 'settings',
+    economyVersion: CURRENT_ECONOMY_VERSION,
+    wallMs: 1_800_000_000_000,
+  }),
   cashCents: dollars('1,234.56'),
 };
 

@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
 import type { OpenedGame } from '@/application/game';
@@ -16,7 +17,7 @@ async function openCarWash(
   seenCoachMarks: readonly string[] = ['car_wash'],
 ): Promise<TestGame> {
   const session = await startTestGameFrom({
-    ...freshGameState({ saveId: 'wash', economyVersion: 1, wallMs: 0 }),
+    ...freshGameState({ saveId: 'wash', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
     businesses: [business],
     seenCoachMarks,
   });

@@ -1,6 +1,8 @@
 import type { GameErrorCode } from '@/domain/commands';
 
 const MESSAGES: Record<GameErrorCode, string> = {
+  TAX_RETURN_UNAVAILABLE: 'No tax return is ready to file.',
+  TAX_ACTION_REQUIRED: 'File your tax return or clear assessed tax debt before investing.',
   INSUFFICIENT_CASH: "You don't have enough cash for this yet. Nothing was spent.",
   INSUFFICIENT_TREASURY: "This business's treasury can't pay for this yet. Nothing was spent.",
   BUSINESS_CLOSED: 'This business is closed. Deposit cash into its treasury to reopen it.',

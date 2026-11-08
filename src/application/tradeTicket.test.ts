@@ -1,4 +1,4 @@
-import { getContent } from '@/content';
+import { CURRENT_ECONOMY_VERSION, getContent } from '@/content';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollarPrice, dollars, units } from '@/domain/money';
 
@@ -9,7 +9,7 @@ const content = getContent();
 
 function snapshotWith(overrides: Partial<GameState>): GameSnapshot {
   const state = {
-    ...freshGameState({ saveId: 'ticket', economyVersion: 1, wallMs: 0 }),
+    ...freshGameState({ saveId: 'ticket', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
     tradingUnlocked: true,
     ...overrides,
   };

@@ -24,6 +24,13 @@ const vendingLocation = z.enum(VENDING_LOCATIONS);
 
 const gameCommandSchema = z.discriminatedUnion('type', [
   z.object({
+    type: z.literal('FileTaxReturn'),
+    returnId: z.number().int().positive(),
+    method: z.enum(['honest', 'zero']),
+    revision: fromLevel,
+  }),
+  z.object({ type: z.literal('PayTaxDebt'), amountCents }),
+  z.object({
     type: z.literal('TapBatch'),
     taps: z.number().int().positive(),
     boosted: z.boolean().default(false),
@@ -100,8 +107,17 @@ const gameCommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('DismissCoachMark'), coachMark: z.enum(COACH_MARKS) }),
   z.object({ type: z.literal('SetPayout'), businessId, payoutPercent: z.number().int() }),
   z.object({ type: z.literal('DepositToTreasury'), businessId, amountCents }),
-  z.object({ type: z.literal('WithdrawFromTreasury'), businessId, amountCents }),
-  z.object({ type: z.literal('SellBusiness'), businessId }),
+  z.object({
+    type: z.literal('WithdrawFromTreasury'),
+    businessId,
+    amountCents,
+    quotedRevision: fromLevel.exactOptional(),
+  }),
+  z.object({
+    type: z.literal('SellBusiness'),
+    businessId,
+    quotedRevision: fromLevel.exactOptional(),
+  }),
   z.object({ type: z.literal('BuyProperty'), propertyId }),
   z.object({
     type: z.literal('UpgradeProperty'),
@@ -110,13 +126,18 @@ const gameCommandSchema = z.discriminatedUnion('type', [
     fromLevel,
   }),
   z.object({ type: z.literal('SetRentalStatus'), propertyId, rented: z.boolean() }),
-  z.object({ type: z.literal('SellProperty'), propertyId }),
+  z.object({
+    type: z.literal('SellProperty'),
+    propertyId,
+    quotedRevision: fromLevel.exactOptional(),
+  }),
   z.object({
     type: z.literal('ExecuteTrade'),
     assetId,
     side: z.enum(['buy', 'sell']),
     quantity: z.bigint().transform(quantityMicrounits),
     quotedTick: z.number().int().nonnegative(),
+    quotedRevision: z.number().int().nonnegative().exactOptional(),
   }),
   z.object({ type: z.literal('SetWatchlist'), assetId, watched: z.boolean() }),
   z.object({ type: z.literal('RecordAdReward'), presentationId: z.string().min(1) }),

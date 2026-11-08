@@ -1,3 +1,4 @@
+import { taxRulesSchema } from './taxSchema';
 import { z } from 'zod';
 
 import { PRICE_LEVELS } from '@/domain/business/definition';
@@ -31,7 +32,6 @@ const bps = z.number().int();
 const nonNegativeBps = bps.nonnegative();
 const positiveInt = z.number().int().positive();
 const nonNegativeInt = z.number().int().nonnegative();
-const milliseconds = positiveInt;
 
 const growthRatio = z
   .object({ numerator: positiveInt, denominator: positiveInt })
@@ -182,10 +182,10 @@ const economySchema = z.object({
   }),
   boost: z.object({
     tapMultiplier: positiveInt,
-    durationMs: milliseconds,
+    durationMs: positiveInt,
   }),
   businessRules: z.object({
-    dayMs: milliseconds,
+    dayMs: positiveInt,
     priceBps: byPriceLevel,
     demandBps: byPriceLevel,
     defaultPriceLevel: z.enum(PRICE_LEVELS),
@@ -248,7 +248,7 @@ const economySchema = z.object({
     saleValuePercent: z.number().int().min(0).max(100),
   }),
   market: z.object({
-    tickMs: milliseconds,
+    tickMs: positiveInt,
     regimeEveryTicks: positiveInt,
     regimeChancePercent: z.object({
       bear: nonNegativeInt,
@@ -271,10 +271,11 @@ const economySchema = z.object({
     minuteHistoryLength: positiveInt,
     hourlyHistoryLength: positiveInt,
   }),
+  taxes: taxRulesSchema.optional(),
   time: z.object({
-    offlineCapMs: milliseconds,
-    tapBatchMaxMs: milliseconds,
-    foregroundCheckpointMs: milliseconds,
+    offlineCapMs: positiveInt,
+    tapBatchMaxMs: positiveInt,
+    foregroundCheckpointMs: positiveInt,
   }),
   save: z.object({
     historyEntries: positiveInt,
@@ -282,15 +283,15 @@ const economySchema = z.object({
     receiptRetentionDays: positiveInt,
   }),
   ads: z.object({
-    gateAfterForegroundMs: milliseconds,
-    interstitialMinGapMs: milliseconds,
+    gateAfterForegroundMs: positiveInt,
+    interstitialMinGapMs: positiveInt,
     interstitialDailyCap: positiveInt,
-    tapIdleBeforeAdMs: milliseconds,
-    adBreakCardMs: milliseconds,
-    afterRewardedQuietMs: milliseconds,
+    tapIdleBeforeAdMs: positiveInt,
+    adBreakCardMs: positiveInt,
+    afterRewardedQuietMs: positiveInt,
     appOpenMinSession: positiveInt,
-    appOpenMinAwayMs: milliseconds,
-    appOpenMinGapMs: milliseconds,
+    appOpenMinAwayMs: positiveInt,
+    appOpenMinGapMs: positiveInt,
   }),
 });
 

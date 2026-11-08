@@ -1,3 +1,6 @@
+import { hasOwnedTaxBasis } from './taxSaveValidation';
+import { TAX_READER_VERSION } from '@/domain/tax/types';
+import { savedTax } from './taxSaveSchema';
 import { z } from 'zod';
 
 import { activityLog, goalProgress } from './activitySchemas';
@@ -121,6 +124,7 @@ const absenceIncident = z.object({
 });
 
 export const saveDocumentSchema = z.looseObject({
+  tax: savedTax.default({ status: 'notStarted' }),
   saveId: z.string().min(1),
   schemaVersion: formatVersion,
   minReaderVersion: formatVersion,
@@ -174,4 +178,13 @@ export const saveDocumentSchema = z.looseObject({
   seenCoachMarks: z.array(z.string().min(1)).default([]),
 });
 
-export const saveSchema = saveDocumentSchema.transform(fromSaveDocument);
+export const saveSchema = saveDocumentSchema
+  .refine(hasOwnedTaxBasis, 'Missing owned asset tax basis')
+  .refine(
+    (document) =>
+      document.tax.status === 'notStarted'
+        ? document.minReaderVersion < TAX_READER_VERSION
+        : document.minReaderVersion >= TAX_READER_VERSION,
+    'Tax state and minimum reader must agree',
+  )
+  .transform(fromSaveDocument);

@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { renderRouter, screen } from 'expo-router/testing-library';
 
 import type { OpenedGame } from '@/application/game';
@@ -12,7 +13,7 @@ const MINUTE_MS = 60_000;
 
 async function open(initialUrl: string, overrides: Partial<GameState> = {}): Promise<void> {
   const session = await startTestGameFrom({
-    ...freshGameState({ saveId: 'holder', economyVersion: 1, wallMs: 0 }),
+    ...freshGameState({ saveId: 'holder', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
     cashCents: dollars('1,000'),
     tradingUnlocked: true,
     clock: { simulationMs: 20 * MINUTE_MS, lastWallCheckpointMs: 0 },

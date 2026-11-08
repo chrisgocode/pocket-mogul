@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import type { CommandEnvelope, GameCommand } from '@/domain/commands';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars, units } from '@/domain/money';
@@ -9,7 +10,7 @@ const HOUR_MS = 3_600_000;
 
 function startWith(overrides: Partial<GameState> = {}): Promise<TestGame> {
   return startTestGameFrom({
-    ...freshGameState({ saveId: 'goals', economyVersion: 1, wallMs: 0 }),
+    ...freshGameState({ saveId: 'goals', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
     ...overrides,
   });
 }

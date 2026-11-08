@@ -1,4 +1,4 @@
-import { getContent } from '@/content';
+import { CURRENT_ECONOMY_VERSION, getContent } from '@/content';
 import type { GameCommand } from '@/domain/commands';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
@@ -18,7 +18,11 @@ function startWith(
   business: Parameters<typeof ownedBusiness>[1],
   ownedDays = 0,
 ): Promise<TestGame> {
-  const fresh = freshGameState({ saveId: 'risky', economyVersion: 1, wallMs: LEFT_AT_MS });
+  const fresh = freshGameState({
+    saveId: 'risky',
+    economyVersion: CURRENT_ECONOMY_VERSION,
+    wallMs: LEFT_AT_MS,
+  });
   const state: GameState = {
     ...fresh,
     clock: { ...fresh.clock, simulationMs: ownedDays * DAY_MS },

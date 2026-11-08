@@ -1,3 +1,4 @@
+import { quoteTaxCommand, type TaxQuote } from './taxQuotes';
 import { availableListedShares } from '@/domain/business/listingTrades';
 import type { Content } from '@/content';
 import type { GameErrorCode } from '@/domain/commands';
@@ -32,7 +33,13 @@ export type TradeTicket =
       readonly error: GameErrorCode;
       readonly quote: TradeQuote;
     }
-  | { readonly status: 'ready'; readonly tick: number; readonly quote: TradeQuote };
+  | {
+      readonly status: 'ready';
+      readonly tick: number;
+      readonly revision: number;
+      readonly quote: TradeQuote;
+      readonly tax: TaxQuote | undefined;
+    };
 
 type TicketRequest = { readonly assetId: string; readonly content: Content };
 
@@ -103,7 +110,7 @@ export function selectTradeTicket(
     quantity: order.quantity,
     economy: tradeEconomy(request.content, snapshot.state),
   });
-  if (checked.ok) return { status: 'ready', tick, quote: checked.quote };
+  if (checked.ok) return readyTicket(snapshot, { ...request, quote: checked.quote });
   if (checked.quote === undefined) return { status: 'invalid', tick, error: checked.error };
   return { status: 'refused', tick, error: checked.error, quote: checked.quote };
 }
@@ -126,4 +133,29 @@ export function presetQuantity(
   );
   const available = availableListedShares(state, request.assetId) ?? affordable;
   return quantityMicrounits(affordable < available ? affordable : available);
+}
+
+function readyTicket(
+  snapshot: GameSnapshot,
+  request: TicketRequest & { side: TradeSide; quote: TradeQuote },
+): TradeTicket {
+  const { state } = snapshot;
+  const tax = quoteTaxCommand(state, {
+    content: request.content,
+    command: {
+      type: 'ExecuteTrade',
+      assetId: request.assetId,
+      side: request.side,
+      quantity: request.quote.quantity,
+      quotedTick: state.market.tick,
+      quotedRevision: state.revision,
+    },
+  });
+  return {
+    status: 'ready',
+    tick: state.market.tick,
+    revision: state.revision,
+    quote: request.quote,
+    tax,
+  };
 }

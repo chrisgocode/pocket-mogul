@@ -13,10 +13,10 @@ beforeEach(async () => {
 const renderApp = (initialUrl = '/') => renderRouter('src/app', { initialUrl });
 
 describe('app shell', () => {
-  it('opens on Home with all five tabs visible', async () => {
+  it('opens on Earn with all five tabs visible', async () => {
     await renderApp();
     expect(screen).toHavePathname('/home');
-    for (const tab of ['Home', 'Businesses', 'Markets', 'Properties', 'Portfolio']) {
+    for (const tab of ['Earn', 'Businesses', 'Markets', 'Properties', 'Profile']) {
       expect(screen.getByRole('button', { name: new RegExp(`^${tab}`) })).toBeOnTheScreen();
     }
     expect(screen.getByLabelText('Cash $0.00')).toBeOnTheScreen();

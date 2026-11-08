@@ -1,3 +1,4 @@
+import { ReturnTaxLines } from './ReturnTaxLines';
 import { StyleSheet, View } from 'react-native';
 
 import { formatMoneyExact } from '@/domain/money';
@@ -27,6 +28,7 @@ export function ReturnSummarySheet() {
         <DetailLine key={line.label} label={line.label} value={formatMoneyExact(line.cents)} />
       ))}
       <DetailLine label="Total earned" value={formatMoneyExact(summary.totalCents)} emphasis />
+      <ReturnTaxLines taxes={summary.taxes} />
       {summary.incidents.map((incident) => (
         <AppText key={incident.key} muted>
           {`${incident.title}. ${incident.detail}.`}

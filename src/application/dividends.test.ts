@@ -1,3 +1,4 @@
+import { CURRENT_ECONOMY_VERSION } from '@/content';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars, units, type QuantityMicrounits } from '@/domain/money';
 import type { TradeSide } from '@/domain/tradeQuotes';
@@ -22,7 +23,7 @@ const trade = (game: Game, order: { side: TradeSide; quantity: QuantityMicrounit
 
 function startWith(overrides: Partial<GameState> = {}): Promise<TestGame> {
   return startTestGameFrom({
-    ...freshGameState({ saveId: 'holder', economyVersion: 1, wallMs: 0 }),
+    ...freshGameState({ saveId: 'holder', economyVersion: CURRENT_ECONOMY_VERSION, wallMs: 0 }),
     cashCents: dollars('1,000'),
     tradingUnlocked: true,
     ...overrides,

@@ -19,7 +19,8 @@
     "prepare": "husky",
     "knip:check": "knip",
     "doctor": "expo-doctor",
-    "balance": "bun scripts/balance-report.ts"
+    "balance": "bun scripts/balance-report.ts",
+    "balance:taxes": "bun scripts/tax-balance-report.ts"
   },
   "dependencies": {
     "expo": "~58.0.23",

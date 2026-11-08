@@ -1,4 +1,4 @@
-import { getContent } from '@/content';
+import { CURRENT_ECONOMY_VERSION, getContent } from '@/content';
 import { freshGameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 import { ownedBusiness } from '@/domain/testRules';
@@ -6,7 +6,11 @@ import { ownedBusiness } from '@/domain/testRules';
 import { startTestGameFrom, withoutIncidents } from './testGame';
 
 const initial = {
-  ...freshGameState({ saveId: 'quote-history', economyVersion: 1, wallMs: 1_800_000_000_000 }),
+  ...freshGameState({
+    saveId: 'quote-history',
+    economyVersion: CURRENT_ECONOMY_VERSION,
+    wallMs: 1_800_000_000_000,
+  }),
   businesses: [
     ownedBusiness('coffee_kiosk', { stage: 4, payoutPercent: 0, treasuryCents: dollars('1000') }),
   ],

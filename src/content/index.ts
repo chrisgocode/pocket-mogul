@@ -1,3 +1,4 @@
+import { economyV2 } from './economy-v2';
 import { economyV1 } from './economy-v1';
 import type { Content } from './schema';
 import { findContentIssues, validateContent } from './validate';
@@ -8,8 +9,8 @@ export type { Rival } from './takeoverSchema';
 export { businessDefinition } from './businessCore';
 export { ContentValidationError, findContentIssues, validateContent } from './validate';
 
-const bundledContentByEconomyVersion = { 1: economyV1 } as const;
-export const CURRENT_ECONOMY_VERSION = 1;
+const bundledContentByEconomyVersion = { 1: economyV1, 2: economyV2 } as const;
+export const CURRENT_ECONOMY_VERSION = 2;
 
 let cached: Content | undefined;
 

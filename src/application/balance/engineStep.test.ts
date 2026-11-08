@@ -1,11 +1,15 @@
-import { getContent } from '@/content';
+import { CURRENT_ECONOMY_VERSION, getContent } from '@/content';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 
 import { engineStep } from './engineStep';
 
 const boosted: GameState = {
-  ...freshGameState({ saveId: 'balance-boost', economyVersion: 1, wallMs: 0 }),
+  ...freshGameState({
+    saveId: 'balance-boost',
+    economyVersion: CURRENT_ECONOMY_VERSION,
+    wallMs: 0,
+  }),
   reward: {
     boost: { status: 'active', grantId: 'grant', remainingMs: 1_500 },
     processedRewardIds: ['grant'],

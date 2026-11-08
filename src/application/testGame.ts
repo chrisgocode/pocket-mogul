@@ -132,7 +132,7 @@ export type TestGame = {
 
 type TestHooks = Pick<
   GamePorts,
-  'beforeWarmReturnSummary' | 'pastContent' | 'telemetry' | 'saveFormat'
+  'beforeWarmReturnSummary' | 'pastContent' | 'telemetry' | 'saveFormat' | 'taxEntitlement'
 > & {
   content?: Content;
   ads?: ScriptedAds;

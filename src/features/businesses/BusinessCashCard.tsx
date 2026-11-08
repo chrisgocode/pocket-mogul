@@ -1,3 +1,4 @@
+import { TaxIncomeNote } from '@/features/taxes/TaxIncomeNote';
 import type { MoneyCents } from '@/domain/money';
 import { useMoneyFormat } from '@/features/game/useMoneyFormat';
 import { Card } from '@/ui/Card';
@@ -20,7 +21,8 @@ export function BusinessCashCard({
       <AppText variant="number" accessibilityLabel={`Cash ${cash}`}>
         {cash}
       </AppText>
-      <AppText muted>Business income {format.rate(incomePerMinuteCents)} net</AppText>
+      <AppText muted>Business income {format.rate(incomePerMinuteCents)} cash</AppText>
+      <TaxIncomeNote />
     </Card>
   );
 }
