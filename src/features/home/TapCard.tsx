@@ -52,12 +52,11 @@ export function TapCard({
 const styles = StyleSheet.create({
   card: {
     minHeight: 210,
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
+    borderColor: colors.transparent,
     borderWidth: 1,
     alignItems: 'center',
     borderRadius: radius.lg,
-    padding: spacing.xl,
+    padding: spacing.md,
     justifyContent: 'center',
     gap: spacing.xs,
   },
