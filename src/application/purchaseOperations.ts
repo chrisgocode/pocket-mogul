@@ -20,7 +20,7 @@ export function purchaseOperations(
   const enabled = billingEnabled(ports);
   const workflow: Workflow = {
     state: { status: enabled ? 'initializing' : 'disabled' },
-    sinceMs: ports.clock.wallMs(),
+    reconciliation: 'idle',
     blocked: undefined,
     purchase: undefined,
     recovery: undefined,
@@ -29,7 +29,7 @@ export function purchaseOperations(
   const operations = workflowOperations({ ports, core, delivery, workflow });
   const unsubscribe = enabled
     ? ports.billing.subscribe(() => {
-        void operations.recover();
+        void operations.ownershipChanged();
       })
     : () => undefined;
   return {
@@ -55,14 +55,20 @@ function workflowOperations(context: Context) {
   const { workflow } = context;
   const recover = () => {
     workflow.recovery ??= queue
-      .run(() => recoverWorkflow(context))
-      .finally(() => {
+      .run(() => drainRecovery(context))
+      .then(async () => {
         workflow.recovery = undefined;
+        if (recoveryChanged(workflow) && !disposed(context)) await recover();
+        return undefined;
       });
     return workflow.recovery;
   };
   return {
     recover,
+    ownershipChanged: () => {
+      if (workflow.recovery !== undefined) workflow.reconciliation = 'changed';
+      return recover();
+    },
     restore: () => {
       workflow.restoration ??= queue
         .run(async () => {
@@ -148,7 +154,6 @@ function updateGuard(context: Context, evidence: RestoreResult | undefined): voi
 function changeState(context: Context, state: PurchaseOperationState): void {
   if (context.workflow.state.status === 'disposed') return;
   context.workflow.state = state;
-  if (state.status === 'reconciling') context.workflow.sinceMs = context.ports.clock.wallMs();
   const details = state.status === 'failed' ? { outcome: state.reason } : { outcome: state.status };
   diagnostic(context, { ...details, operation: state.status });
 }
@@ -162,16 +167,6 @@ async function restore(context: Context): Promise<RestoreResult> {
   const result = await context.delivery.restore();
   await reconciled(context, result);
   return result;
-}
-
-function freshEvidence(context: Context, evidence: RestoreResult | undefined): boolean {
-  return (
-    evidence?.status === 'current' &&
-    evidence.authority === 'authoritative' &&
-    evidence.coverage === 'complete' &&
-    Number.isFinite(evidence.observedAtMs) &&
-    evidence.observedAtMs >= context.workflow.sinceMs
-  );
 }
 
 function reconciledState(
@@ -276,7 +271,7 @@ async function refreshGuard(context: Context, evidence: RestoreResult | undefine
   const blocked = context.workflow.blocked;
   if (blocked !== undefined && (await deliveredProduct(context, blocked.productId)))
     context.workflow.blocked = { ...blocked, status: 'delivered' };
-  else if (freshEvidence(context, evidence)) updateGuard(context, evidence);
+  else updateGuard(context, evidence);
 }
 
 async function recoverWorkflow(context: Context): Promise<void> {
@@ -289,4 +284,16 @@ async function recoverWorkflow(context: Context): Promise<void> {
   } catch {
     changeState(context, { status: 'failed', reason: 'saveFailed' });
   }
+}
+
+async function drainRecovery(context: Context): Promise<void> {
+  const { workflow } = context;
+  workflow.reconciliation = 'querying';
+  await recoverWorkflow(context);
+  if (recoveryChanged(workflow) && !disposed(context)) return drainRecovery(context);
+  workflow.reconciliation = 'idle';
+}
+
+function recoveryChanged(workflow: Workflow): boolean {
+  return workflow.reconciliation === 'changed';
 }

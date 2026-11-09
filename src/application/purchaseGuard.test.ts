@@ -75,3 +75,35 @@ it('permits an explicit retry only after authoritative inventory excludes owners
   expect(reopened.game.purchases.getState()).toEqual({ status: 'ready' });
   expect(await reopened.purchaseRecords()).toEqual([]);
 });
+
+it('retains an interrupted checkout guard when absence predates the ownership request', async () => {
+  const absent = {
+    status: 'current',
+    authority: 'authoritative',
+    coverage: 'complete',
+    observedAtMs: 1_800_000_000_000,
+    ownership: [],
+    removals: [],
+    pendingProductIds: [],
+  } as const;
+  const billing = scriptedBilling({
+    ownership: [{ status: 'unavailable' }, absent, absent],
+    purchases: [{ status: 'unavailable' }, { status: 'cancelled' }],
+  });
+  const session = await startObservedTestGame({ billing, purchasePolicy });
+  session.clock.advance(1_000);
+  expect(await session.game.purchases.purchase('test-exemption')).toEqual({
+    status: 'unavailable',
+  });
+  expect(session.game.purchases.getState()).toEqual({
+    status: 'interrupted',
+    productId: 'test-exemption',
+  });
+  expect((await session.purchaseIdentity())?.checkout).toBeDefined();
+  expect(await session.game.purchases.purchase('test-exemption')).toEqual({
+    status: 'unavailable',
+  });
+  expect(billing.operations.filter((operation) => operation.startsWith('purchase:'))).toHaveLength(
+    1,
+  );
+});

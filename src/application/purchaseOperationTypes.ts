@@ -19,7 +19,7 @@ export type GamePurchases = Omit<PurchaseDriver, 'recover'> & {
 
 export type Workflow = {
   state: PurchaseOperationState;
-  sinceMs: number;
+  reconciliation: 'idle' | 'querying' | 'changed';
   blocked: CheckoutGuard | undefined;
   purchase: Promise<CheckoutResult> | undefined;
   recovery: Promise<void> | undefined;

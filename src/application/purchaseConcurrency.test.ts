@@ -127,3 +127,89 @@ it('recovers a dropped approval callback through rapid foregrounds with one deli
   expect(billing.operations.filter((operation) => operation === 'ownership')).toHaveLength(2);
   expect(events.filter((event) => event.name === 'offline_settled')).toHaveLength(1);
 });
+
+it('drains removal events received during an ownership query before recovery resolves', async () => {
+  const requested = deferred();
+  const response = deferred();
+  const requests = [deferred(), requested];
+  const billing = scriptedBilling({
+    completionOwner: 'application',
+    ownership: [
+      { status: 'unavailable' },
+      response.promise.then(() => current),
+      {
+        ...current,
+        ownership: [],
+        removals: [ownership.reference],
+      },
+    ],
+  });
+  const session = await startObservedTestGame({
+    purchasePolicy,
+    billing: {
+      ...billing,
+      currentOwnership: () => {
+        const result = billing.currentOwnership();
+        requests.shift()?.resolve();
+        return result;
+      },
+    },
+  });
+  const recovering = session.game.purchases.recover();
+  await requested.promise;
+  billing.emit({ type: 'ownershipChanged' });
+  response.resolve();
+  await recovering;
+  expect(session.game.getSnapshot().state.tax.status).toBe('active');
+  expect(await session.purchaseRecords()).toMatchObject([
+    { currentOwnership: { status: 'removed' } },
+  ]);
+  expect(billing.operations.filter((operation) => operation === 'ownership')).toHaveLength(3);
+  session.game.purchases.dispose();
+  billing.emit({ type: 'ownershipChanged' });
+  await session.game.purchases.recover();
+  expect(billing.operations.filter((operation) => operation === 'ownership')).toHaveLength(3);
+});
+
+it('drains approval events arriving during pending reconciliation before recovery resolves', async () => {
+  const requested = deferred();
+  const response = deferred();
+  const requests = [deferred(), requested];
+  const billing = scriptedBilling({
+    completionOwner: 'application',
+    purchases: [{ status: 'pending', productId: 'test-exemption' }],
+    ownership: [
+      { status: 'unavailable' },
+      response.promise.then(() => ({
+        ...current,
+        ownership: [],
+        pendingProductIds: ['test-exemption'],
+      })),
+      current,
+    ],
+  });
+  const session = await startObservedTestGame({
+    purchasePolicy,
+    billing: {
+      ...billing,
+      currentOwnership: () => {
+        const result = billing.currentOwnership();
+        requests.shift()?.resolve();
+        return result;
+      },
+    },
+  });
+  await session.game.purchases.purchase('test-exemption');
+  const recovering = session.game.purchases.recover();
+  const duplicate = session.game.purchases.recover();
+  await requested.promise;
+  billing.emit({ type: 'ownershipChanged' });
+  billing.emit({ type: 'ownershipChanged' });
+  response.resolve();
+  await Promise.all([recovering, duplicate]);
+  expect(session.game.getSnapshot().state.tax.status).toBe('exempt');
+  expect(session.game.purchases.getState()).toEqual({ status: 'ready' });
+  expect(await session.purchaseRecords()).toHaveLength(1);
+  expect(billing.completions).toEqual([ownership]);
+  expect(billing.operations.filter((operation) => operation === 'ownership')).toHaveLength(3);
+});
