@@ -506,6 +506,16 @@ Each command envelope has a unique ID, expected state revision, accepted clock i
 
 Use typed errors including INSUFFICIENT_CASH, INSUFFICIENT_TREASURY, BUSINESS_CLOSED, STAGE_LOCKED, AT_CAP, OFFER_PENDING, OFFER_LOCKED, ALREADY_LISTED, ALREADY_OWNED, LOCKED_TIER, MAX_LEVEL, INVALID_QUANTITY, INSUFFICIENT_HOLDING, STALE_QUOTE, BOOST_ACTIVE, AD_UNAVAILABLE, SAVE_FAILED, and UNSUPPORTED_SAVE_VERSION. Map them to clear UI text. Preserve entered trade quantity when a quote becomes stale.
 
+### Disabled purchase port (#96, parent #95)
+
+The Game receives one application `BillingPort` at composition and exposes it as `Game.purchases`. Normal device builds bind `disabledBilling`: its catalogue is empty and purchase, restore, ownership and initialization requests return `disabled`. Launch, restart and resume perform no billing initialization or provider work. No store SDK, native configuration, real product, price, benefit mapping or public checkout/restore control is supplied.
+
+The normalized contract covers initialization, product metadata with an unchanged store-formatted display price, purchase outcomes, current ownership, explicit restore, event subscription with owned unsubscribe/disposal, and completion capability. Cancellation, declined payment, pending approval, verification failure and unavailable/disabled billing are separate outcomes. Store completion is separate from application delivery (`delivered` or `saveFailed`); a billing error is not a Game `SAVE_FAILED`. A completed port result is evidence, never proof of local benefit delivery.
+
+Evidence references include store (Apple or Google), app and sandbox/production environment, product and authoritative purchase identity (Apple transaction reference or Google purchase token, never an order or callback ID). Verification records source and verification time. Ownership queries distinguish authoritative/cached and complete/incomplete observations with observation time and explicit removal references. Unavailable verification is not empty authoritative ownership. Completion declares application-owned finish/consume versus provider-managed completion. SDK-specific objects do not enter this contract, the domain or shared UI.
+
+This first slice only establishes the port and disabled baseline. Scripted responses, deferred promises and deterministic change events use the existing Game startup/restart harness, injected clock and persistence fault controls. No purchase data or effects are persisted, and no automatic billing listener or reconciliation is started yet. Later slices under #95 add the coordinator, validation, atomic delivery/ledger, lifecycle recovery and retention across Reset Save. Existing tax entitlement restoration and offline ordering are unchanged. Future delivery guarantees are local to a surviving purchase database unless reconstructed from verified ownership; no global consumable-wallet guarantee is implied. Real native checkout and provider selection remain separate follow-ups.
+
 ## 14 Save model and transaction flow
 
 Use one validated state snapshot as the authoritative representation of ownership and balances. Other database tables support deduplication, history, and recovery; they are not independent competing balances.

@@ -38,6 +38,9 @@ describe('Home Tap Boost button', () => {
     expect(
       within(screen.getByLabelText('Tap earnings')).getByRole('button', { name: /^Tap card/ }),
     ).toBeOnTheScreen();
+    expect(
+      screen.queryByRole('button', { name: /purchase|restore|checkout|subscribe/i }),
+    ).toBeNull();
   });
 
   it('starts a boost after the ad, shows the timer and pays 5x per tap', async () => {

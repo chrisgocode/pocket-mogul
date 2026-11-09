@@ -1,3 +1,4 @@
+import { disabledBilling } from '@/infrastructure/disabledBilling';
 import { randomUUID } from 'expo-crypto';
 
 import { createGame, type OpenedGame } from '@/application/game';
@@ -24,6 +25,7 @@ async function startDeviceGame(): Promise<OpenedGame> {
     store: await openSqlSaveStore(driver),
     content: getContent(),
     ads: googleMobileAds(),
+    billing: disabledBilling(),
     pastContent: getPastContent(),
     createId: randomUUID,
     ...(developmentTelemetry === undefined ? {} : { telemetry: developmentTelemetry }),
