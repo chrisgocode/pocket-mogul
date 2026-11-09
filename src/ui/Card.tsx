@@ -7,12 +7,21 @@ export function Card({
   children,
   style,
   highlighted = false,
+  accessibilityLabel,
 }: {
   children: ReactNode;
   style?: ViewStyle;
   highlighted?: boolean;
+  accessibilityLabel?: string;
 }) {
-  return <View style={[styles.card, highlighted && styles.highlighted, style]}>{children}</View>;
+  return (
+    <View
+      accessibilityLabel={accessibilityLabel}
+      style={[styles.card, highlighted && styles.highlighted, style]}
+    >
+      {children}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({

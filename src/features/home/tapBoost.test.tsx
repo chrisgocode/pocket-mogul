@@ -1,4 +1,4 @@
-import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
+import { act, fireEvent, renderRouter, screen, within } from 'expo-router/testing-library';
 
 import type { OpenedGame } from '@/application/game';
 import { scriptedAds } from '@/application/scriptedAds';
@@ -19,7 +19,10 @@ async function openHome(ads = scriptedAds()): Promise<TestGame> {
   return session;
 }
 
-const boostButton = (label: string) => screen.getByRole('button', { name: `Tap Boost, ${label}` });
+const boostButton = (label: string) =>
+  within(screen.getByLabelText('Tap earnings')).getByRole('button', {
+    name: `Tap Boost, ${label}`,
+  });
 const tapCard = () => screen.getByRole('button', { name: /^Tap card/ });
 
 async function watchAd(session: TestGame) {
@@ -32,6 +35,9 @@ describe('Home Tap Boost button', () => {
     await openHome();
     expect(screen.getByText('Watch an ad to earn 5x per tap for 60 seconds.')).toBeOnTheScreen();
     expect(boostButton('Watch ad · 5x for 60s')).toBeEnabled();
+    expect(
+      within(screen.getByLabelText('Tap earnings')).getByRole('button', { name: /^Tap card/ }),
+    ).toBeOnTheScreen();
   });
 
   it('starts a boost after the ad, shows the timer and pays 5x per tap', async () => {

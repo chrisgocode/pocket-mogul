@@ -1,18 +1,20 @@
+import { StyleSheet, View } from 'react-native';
+
 import { selectTapBoost } from '@/application/tapBoostView';
 import { getContent } from '@/content';
 import { useGame, useGameSnapshot } from '@/features/game/GameContext';
 import { Button } from '@/ui/Button';
-import { Card } from '@/ui/Card';
+import { colors, spacing } from '@/ui/tokens';
 import { AppText } from '@/ui/Typography';
 
 import { tapBoostText } from './tapBoostText';
 
-export function TapBoostCard() {
+export function TapBoostControl() {
   const game = useGame();
   const view = selectTapBoost(useGameSnapshot(), getContent());
   const text = tapBoostText(view);
   return (
-    <Card>
+    <View style={styles.control}>
       <AppText variant="heading" accessibilityRole="header">
         {text.title}
       </AppText>
@@ -24,6 +26,15 @@ export function TapBoostCard() {
         onPress={() => void game.pressTapBoost()}
         disabled={!text.enabled}
       />
-    </Card>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  control: {
+    gap: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+    paddingTop: spacing.md,
+  },
+});
