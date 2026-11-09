@@ -12,7 +12,7 @@ import type { SaveStore } from './ports';
 
 export type TaxEntitlementPort = { readonly current: () => Promise<VerifiedTaxEntitlement> };
 
-function applyTaxEntitlement(
+export function applyTaxEntitlement(
   state: GameState,
   change: { entitlement: VerifiedTaxEntitlement; content: Content },
 ): GameState {
@@ -30,7 +30,9 @@ function applyTaxEntitlement(
     !state.tax.entitlementIds.includes(entitlement.transactionId)
   )
     return state;
-  return revokedExemption(state, content);
+  const entitlementIds = state.tax.entitlementIds.filter((id) => id !== entitlement.transactionId);
+  const updated = { ...state, tax: { ...state.tax, entitlementIds } };
+  return entitlementIds.length > 0 ? updated : revokedExemption(updated, content);
 }
 
 export async function commitTaxEntitlement(

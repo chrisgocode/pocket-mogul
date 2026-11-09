@@ -28,6 +28,12 @@ const purchaseRecord = z.object({
   benefit: z.literal('taxExemption'),
   result: z.object({ status: z.literal('delivered') }),
   completion: z.enum(['pending', 'completed']),
+  currentOwnership: z
+    .object({
+      status: z.enum(['active', 'removed']),
+      observedAtMs: z.number(),
+    })
+    .optional(),
 });
 const identity = z.object({ id: z.string(), providerReference: z.string().optional() });
 

@@ -14,6 +14,12 @@ export type PurchaseRecord = {
   readonly benefit: 'taxExemption';
   readonly result: { readonly status: 'delivered' };
   readonly completion: 'pending' | 'completed';
+  readonly currentOwnership?:
+    | undefined
+    | {
+        readonly status: 'active' | 'removed';
+        readonly observedAtMs: number;
+      };
 };
 
 export function purchaseKey(reference: PurchaseScope & { readonly purchaseId: string }): string {
