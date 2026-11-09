@@ -85,7 +85,6 @@ it.each([
   { ...current, authority: 'cached', ownership: [] },
   { ...current, coverage: 'incomplete', ownership: [] },
   { ...current, observedAtMs: 1, ownership: [] },
-  { ...current, ownership: [], removals: [ownership.reference] },
   { status: 'unavailable' },
 ] as const)(
   'keeps cached permanent access when reconciliation cannot establish removal %#',

@@ -99,3 +99,28 @@ it.each([record, managedRecord])(
     database.close();
   },
 );
+it('opens legacy purchase documents and retains additive removal evidence through physical reopen', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'mogul-removal-'));
+  const path = join(directory, 'save.sqlite');
+  const database = new DatabaseSync(path);
+  try {
+    const store = await openSqlSaveStore(nodeSqliteDriver(database));
+    await store.transact((tx) => tx.writePurchase(record));
+    expect(await store.transact((tx) => tx.readPurchases())).toEqual([record]);
+    const removed = {
+      ...record,
+      currentOwnership: { status: 'removed', observedAtMs: 456 },
+    } as const;
+    await store.transact((tx) => tx.writePurchase(removed));
+    database.close();
+    const reopenedDatabase = new DatabaseSync(path);
+    try {
+      const reopened = await openSqlSaveStore(nodeSqliteDriver(reopenedDatabase));
+      expect(await reopened.transact((tx) => tx.readPurchases())).toEqual([removed]);
+    } finally {
+      reopenedDatabase.close();
+    }
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

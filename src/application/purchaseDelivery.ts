@@ -1,3 +1,4 @@
+import { reconcileOwnership } from './purchaseReconciliation';
 import {
   boundedBilling,
   preparePurchases,
@@ -196,7 +197,7 @@ async function recoverDelivery(
     await completePending(context);
     const sinceMs = context.ports.clock.wallMs();
     const evidence = await context.ports.billing.currentOwnership();
-    await applyOwnership(evidence, { ...operations, sinceMs });
+    await applyOwnership(evidence, { ...operations, context, sinceMs });
     await completePending(context);
   } catch {
     return;
@@ -209,6 +210,7 @@ async function applyOwnership(
     deliver: ReturnType<typeof deliveryOperation>;
     active: () => boolean;
     sinceMs: number;
+    context: DeliveryContext | undefined;
   },
 ): Promise<{ status: 'saveFailed' } | undefined> {
   if (
@@ -217,15 +219,8 @@ async function applyOwnership(
     !freshInventory(evidence, operations.sinceMs)
   )
     return undefined;
-  return evidence.ownership.reduce<Promise<{ status: 'saveFailed' } | undefined>>(
-    async (previous, ownership) => {
-      const failed = await previous;
-      if (failed !== undefined) return failed;
-      const result = await operations.deliver(ownership);
-      return result.status === 'saveFailed' ? result : undefined;
-    },
-    Promise.resolve(undefined),
-  );
+  if (operations.context === undefined) return undefined;
+  return reconcileOwnership(operations.context, evidence);
 }
 
 function freshInventory(
@@ -281,6 +276,7 @@ function canComplete(context: DeliveryContext, record: PurchaseRecord): boolean 
     context.active() &&
     record.completion === 'pending' &&
     record.ownership.completion.owner === 'application' &&
+    record.currentOwnership?.status !== 'removed' &&
     acceptsPurchase(context.policy, record.ownership)
   );
 }
