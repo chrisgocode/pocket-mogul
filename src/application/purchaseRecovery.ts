@@ -3,6 +3,8 @@ import { authorizesPurchaseScope, purchaseKey } from './purchaseLedger';
 import { moneyCents } from '@/domain/money';
 import type { BillingPort } from './billingPort';
 import type { Committer, GamePorts } from './game';
+import type { PurchaseRecord } from './purchaseLedger';
+import type { GameState } from '@/domain/gameState';
 
 const PROVIDER_WAIT_MS = 2_000;
 
@@ -35,6 +37,9 @@ export function boundedBilling(ports: GamePorts): BillingPort {
       });
       return initialization;
     },
+    purchase: (productId) =>
+      bounded(ports, () => billing.purchase(productId), { status: 'unavailable' }),
+    products: () => bounded(ports, billing.products, { status: 'unavailable', products: [] }),
     currentOwnership: () => bounded(ports, billing.currentOwnership, { status: 'unavailable' }),
     restore: () => bounded(ports, billing.restore, { status: 'unavailable' }),
     completion:
@@ -76,43 +81,57 @@ export async function restoreCachedPurchases(
   ports: GamePorts,
   operation: { core: Committer; active: () => boolean },
 ): Promise<void> {
-  await operation.core.commit(async (current) => {
-    try {
-      requireActive(operation.active);
-      return await ports.store.transact(async (tx) => {
+  await operation.core.commit(
+    async (current) => {
+      try {
         requireActive(operation.active);
-        const records = (await tx.readPurchases()).filter(
-          (record) =>
-            record.currentOwnership?.status !== 'removed' &&
-            ports.purchasePolicy !== undefined &&
-            authorizesPurchaseScope(ports.purchasePolicy, record.ownership.reference),
-        );
-        const rules = ports.content.economy.taxes;
-        if (rules === undefined) return { outcome: { ok: false, error: 'TAX_RETURN_UNAVAILABLE' } };
-        const state = records.reduce(
-          (previous, record) =>
-            exemptTaxes(previous, {
-              transactionId: purchaseKey(record.ownership.reference),
-              rules,
-              dayMs: ports.content.economy.businessRules.dayMs,
-            }),
-          current,
-        );
-        const updated = state === current ? current : { ...state, revision: state.revision + 1 };
-        requireActive(operation.active);
-        if (updated !== current) await tx.writeState(updated);
-        requireActive(operation.active);
-        return {
-          state: updated,
-          outcome: { ok: true, revision: updated.revision, cashChangeCents: moneyCents(0) },
-        };
-      });
-    } catch {
-      return { outcome: { ok: false, error: 'SAVE_FAILED' } };
-    }
-  });
+        return await ports.store.transact(async (tx) => {
+          requireActive(operation.active);
+          const records = (await tx.readPurchases()).filter(
+            (record) =>
+              record.currentOwnership?.status !== 'removed' &&
+              ports.purchasePolicy !== undefined &&
+              authorizesPurchaseScope(ports.purchasePolicy, record.ownership.reference),
+          );
+          const rules = ports.content.economy.taxes;
+          if (rules === undefined)
+            return { outcome: { ok: false, error: 'TAX_RETURN_UNAVAILABLE' } };
+          const state = projectCachedPurchases(ports, current, records);
+          const updated = state === current ? current : { ...state, revision: state.revision + 1 };
+          requireActive(operation.active);
+          if (updated !== current) await tx.writeState(updated);
+          requireActive(operation.active);
+          return {
+            state: updated,
+            outcome: { ok: true, revision: updated.revision, cashChangeCents: moneyCents(0) },
+          };
+        });
+      } catch {
+        return { outcome: { ok: false, error: 'SAVE_FAILED' } };
+      }
+    },
+    { active: operation.active },
+  );
 }
 
 export function requireActive(active: () => boolean): void {
   if (!active()) throw new Error('Purchases disposed');
+}
+
+function projectCachedPurchases(
+  ports: GamePorts,
+  current: GameState,
+  records: readonly PurchaseRecord[],
+): GameState {
+  const rules = ports.content.economy.taxes;
+  if (rules === undefined) return current;
+  return records.reduce(
+    (previous, record) =>
+      exemptTaxes(previous, {
+        transactionId: purchaseKey(record.ownership.reference),
+        rules,
+        dayMs: ports.content.economy.businessRules.dayMs,
+      }),
+    current,
+  );
 }

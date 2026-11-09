@@ -15,6 +15,7 @@ import { snapshotStore } from './snapshotStore';
 import { gameTelemetry } from './telemetry';
 
 type RunOptions = {
+  active?: () => boolean;
   retryUntilSaved?: boolean;
   settled?: SettledTaps;
   issuedAtWallMs?: number;
@@ -64,12 +65,14 @@ function commitOperations(context: CommitContext) {
   const perform = async (step: CommitStep, options: RunOptions, captured: CommandTime) => {
     const time = timing.remaining(captured);
     const committed = await step(clocks.scheduled(snapshots.get().state), time);
-    live.record(committed);
+    if (options.active?.() === false) return committed.outcome;
     if (committed.state !== undefined) {
       timing.saved(time);
       await backUp(ports, { revision: committed.state.revision, wallMs: time.wallMs });
       await runBeforePublish(options.beforePublish);
     }
+    if (options.active?.() === false) return committed.outcome;
+    live.record(committed);
     publish({ state: committed.state, settled: options.settled ?? NO_SETTLED_TAPS });
     observe({ events: live.events, telemetry, state: snapshots.get().state }, committed);
     return committed.outcome;
@@ -84,7 +87,8 @@ function commitOperations(context: CommitContext) {
         perform: (ownTurn) =>
           perform(step, ownTurn ? options : { ...options, beforePublish: undefined }, attempt()),
       });
-      if (result.blocked) publish({ settled: options.settled ?? NO_SETTLED_TAPS });
+      if (result.blocked && options.active?.() !== false)
+        publish({ settled: options.settled ?? NO_SETTLED_TAPS });
       return result.outcome;
     });
   };

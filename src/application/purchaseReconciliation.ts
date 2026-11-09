@@ -192,14 +192,17 @@ export async function reconcileOwnership(
   context: Context,
   evidence: Inventory,
 ): Promise<{ status: 'saveFailed' } | undefined> {
-  const result = await context.core.commit(async (current, time) => {
-    try {
-      return await context.ports.store.transact((tx) =>
-        writeInventory(tx, context, { current, time, evidence }),
-      );
-    } catch {
-      return { outcome: { ok: false, error: 'SAVE_FAILED' } };
-    }
-  });
+  const result = await context.core.commit(
+    async (current, time) => {
+      try {
+        return await context.ports.store.transact((tx) =>
+          writeInventory(tx, context, { current, time, evidence }),
+        );
+      } catch {
+        return { outcome: { ok: false, error: 'SAVE_FAILED' } };
+      }
+    },
+    { active: context.active },
+  );
   return result.ok ? undefined : { status: 'saveFailed' };
 }

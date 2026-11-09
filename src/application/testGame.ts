@@ -1,3 +1,5 @@
+import { deferred } from './testDeferred';
+import { transactionResponses } from './testTransactionResponses';
 import type { PurchaseIdentity, PurchaseRecord } from './purchaseLedger';
 import { disabledBilling } from '@/infrastructure/disabledBilling';
 import { DatabaseSync } from 'node:sqlite';
@@ -15,6 +17,8 @@ import { decodeSave } from './saveFormat';
 import { createGame, type Game, type GamePorts, type OpenedGame } from './game';
 import type { Clock, Diagnostic } from './ports';
 import { scriptedAds, type ScriptedAds } from './scriptedAds';
+
+export { deferred } from './testDeferred';
 
 const TEST_WALL_START_MS = 1_800_000_000_000;
 const DAY_MS = 86_400_000;
@@ -64,16 +68,6 @@ export type ReadFaults = { failReads: boolean };
 
 type SaveGate = { passed: () => Promise<void>; hold: () => () => void };
 
-const doNothing = (): void => undefined;
-
-export function deferred(): { promise: Promise<void>; resolve: () => void } {
-  let resolve: () => void = doNothing;
-  const promise = new Promise<void>((settle) => {
-    resolve = settle;
-  });
-  return { promise, resolve };
-}
-
 function saveGate(): SaveGate {
   let held: Promise<void> = Promise.resolve();
   return {
@@ -122,6 +116,7 @@ export type TestGame = {
   faults: WriteFaults;
   readFaults: ReadFaults;
   holdSaves: () => () => void;
+  holdSaveResponses: ReturnType<typeof transactionResponses>['hold'];
   restart: (relaunch?: Relaunch) => Promise<TestGame>;
   reopen: (relaunch?: Relaunch) => Promise<OpenedGame>;
   diagnostics: () => Promise<readonly Diagnostic[]>;
@@ -197,6 +192,7 @@ type OpenedTestGame = {
   faults: WriteFaults;
   readFaults: ReadFaults;
   holdSaves: () => () => void;
+  holdSaveResponses: ReturnType<typeof transactionResponses>['hold'];
   diagnostics: () => Promise<readonly Diagnostic[]>;
   purchaseIdentity: () => Promise<PurchaseIdentity | undefined>;
   purchaseRecords: () => Promise<readonly PurchaseRecord[]>;
@@ -208,8 +204,9 @@ async function openTestGame(save: TestSave = freshTestSave()): Promise<OpenedTes
   const readFaults: ReadFaults = { failReads: false };
   const gate = saveGate();
   const ads = save.hooks.ads ?? scriptedAds();
+  const responses = transactionResponses(nodeSqliteDriver(save.database));
   const store = await openSqlSaveStore(
-    faultyDriver(nodeSqliteDriver(save.database), { writes: faults, reads: readFaults }, gate),
+    faultyDriver(responses.driver, { writes: faults, reads: readFaults }, gate),
   );
   const opened = await createGame({
     content: getContent(),
@@ -227,6 +224,7 @@ async function openTestGame(save: TestSave = freshTestSave()): Promise<OpenedTes
     faults,
     readFaults,
     holdSaves: gate.hold,
+    holdSaveResponses: responses.hold,
     diagnostics: store.loadDiagnostics,
     purchaseIdentity: () => store.transact((tx) => tx.readPurchaseIdentity()),
     purchaseRecords: () => store.transact((tx) => tx.readPurchases()),

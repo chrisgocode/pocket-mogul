@@ -8,7 +8,6 @@ import {
 import { exemptTaxes } from '@/domain/tax/exemption';
 import { moneyCents } from '@/domain/money';
 import type {
-  BillingPort,
   DeliveryResult,
   OwnershipResult,
   PurchaseResult,
@@ -25,14 +24,9 @@ import {
   type PurchaseRecord,
 } from './purchaseLedger';
 import { serialQueue } from './serialQueue';
+import { purchaseOperations, type GamePurchases } from './purchaseOperations';
 
-export type GamePurchases = {
-  readonly products: BillingPort['products'];
-  readonly dispose: () => void;
-  readonly purchase: (productId: string) => Promise<PurchaseResult | DeliveryResult>;
-  readonly restore: () => Promise<OwnershipResult | { status: 'saveFailed' }>;
-  readonly recover: () => Promise<void>;
-};
+export type { GamePurchases } from './purchaseOperations';
 
 type DeliveryContext = {
   ports: GamePorts;
@@ -83,16 +77,19 @@ async function commitDelivery(
   context: DeliveryContext,
   ownership: VerifiedOwnership,
 ): Promise<DeliveryResult | { status: 'unavailable' }> {
-  const outcome = await context.core.commit(async (current): Promise<Committed> => {
-    try {
-      requireActive(context.active);
-      return await context.ports.store.transact((tx) =>
-        writeDelivery(tx, { context, ownership, current }),
-      );
-    } catch {
-      return { outcome: { ok: false, error: 'SAVE_FAILED' } };
-    }
-  });
+  const outcome = await context.core.commit(
+    async (current): Promise<Committed> => {
+      try {
+        requireActive(context.active);
+        return await context.ports.store.transact((tx) =>
+          writeDelivery(tx, { context, ownership, current }),
+        );
+      } catch {
+        return { outcome: { ok: false, error: 'SAVE_FAILED' } };
+      }
+    },
+    { active: context.active },
+  );
   if (!context.active()) return { status: 'unavailable' };
   return { status: outcome.ok ? 'delivered' : 'saveFailed' };
 }
@@ -144,33 +141,26 @@ export function purchaseDelivery(input: GamePorts, core: Committer): GamePurchas
   const deliver = deliveryOperation(context, () => active);
   const recover = () =>
     queue.run(async () => {
-      if (!active) return;
+      if (!active) return undefined;
       await restoreCachedPurchases(ports, { core, active: () => active });
-      if (!active || context === undefined) return;
+      if (!active || context === undefined) return undefined;
       await preparePurchases(ports, () => active).catch(() => undefined);
-      await recoverDelivery(context, { deliver, active: () => active });
+      return recoverDelivery(context, { deliver, active: () => active });
     });
-  const unsubscribe =
-    context === undefined
-      ? () => undefined
-      : ports.billing.subscribe(() => {
-          void recover().catch(() => undefined);
-        });
-  return {
+  return purchaseOperations(ports, core, {
     products: ports.billing.products,
     recover,
     restore: () =>
       queue.run(() => restoreOwnership(ports, { context, deliver, active: () => active })),
     dispose: () => {
       active = false;
-      unsubscribe();
       ports.billing.dispose();
     },
     purchase: (productId) =>
       queue.run(() =>
         purchaseAndDeliver(ports, { context, active: () => active, deliver }, productId),
       ),
-  };
+  });
 }
 
 function deliveryOperation(context: DeliveryContext | undefined, active: () => boolean) {
@@ -191,16 +181,18 @@ function deliveryOperation(context: DeliveryContext | undefined, active: () => b
 async function recoverDelivery(
   context: DeliveryContext | undefined,
   operations: { deliver: ReturnType<typeof deliveryOperation>; active: () => boolean },
-): Promise<void> {
-  if (context === undefined || !operations.active()) return;
+): Promise<OwnershipResult | { status: 'saveFailed' } | undefined> {
+  if (context === undefined || !operations.active()) return undefined;
   try {
     await completePending(context);
     const sinceMs = context.ports.clock.wallMs();
-    const evidence = await context.ports.billing.currentOwnership();
-    await applyOwnership(evidence, { ...operations, context, sinceMs });
+    const evidence = validatedInventory(await context.ports.billing.currentOwnership(), sinceMs);
+    const failed = await applyOwnership(evidence, { ...operations, context });
+    if (failed !== undefined) return failed;
     await completePending(context);
+    return evidence;
   } catch {
-    return;
+    return undefined;
   }
 }
 
@@ -209,30 +201,22 @@ async function applyOwnership(
   operations: {
     deliver: ReturnType<typeof deliveryOperation>;
     active: () => boolean;
-    sinceMs: number;
     context: DeliveryContext | undefined;
   },
 ): Promise<{ status: 'saveFailed' } | undefined> {
-  if (
-    evidence.status !== 'current' ||
-    !operations.active() ||
-    !freshInventory(evidence, operations.sinceMs)
-  )
-    return undefined;
+  if (evidence.status !== 'current' || !operations.active()) return undefined;
   if (operations.context === undefined) return undefined;
   return reconcileOwnership(operations.context, evidence);
 }
 
-function freshInventory(
-  evidence: Extract<OwnershipResult, { status: 'current' }>,
-  sinceMs: number,
-): boolean {
-  return (
-    evidence.authority === 'authoritative' &&
+function validatedInventory(evidence: OwnershipResult, sinceMs: number): OwnershipResult {
+  if (evidence.status !== 'current') return evidence;
+  return evidence.authority === 'authoritative' &&
     evidence.coverage === 'complete' &&
     Number.isFinite(evidence.observedAtMs) &&
     evidence.observedAtMs >= sinceMs
-  );
+    ? evidence
+    : { status: 'unavailable' };
 }
 
 async function purchaseAndDeliver(
@@ -263,8 +247,8 @@ async function restoreOwnership(
 ): Promise<OwnershipResult | { status: 'saveFailed' }> {
   if (!operation.active()) return { status: 'unavailable' };
   const sinceMs = ports.clock.wallMs();
-  const evidence = await ports.billing.restore();
-  const delivered = await applyOwnership(evidence, { ...operation, sinceMs });
+  const evidence = validatedInventory(await ports.billing.restore(), sinceMs);
+  const delivered = await applyOwnership(evidence, operation);
   if (delivered !== undefined) return delivered;
   if (operation.context !== undefined && operation.active())
     await completePending(operation.context);

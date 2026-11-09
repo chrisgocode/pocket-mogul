@@ -84,3 +84,39 @@ it('preserves a second managed source through reset and unavailable verification
   expect(await session.purchaseRecords()).toHaveLength(2);
   expect(billing.completions).toEqual([]);
 });
+
+it('recovers pending managed approval once and keeps its durable guard safe after removal', async () => {
+  const pending = scriptedBilling({
+    completionOwner: 'provider',
+    purchases: [{ status: 'pending', productId: 'test-exemption' }],
+  });
+  const session = await startObservedTestGame({ billing: pending, purchasePolicy });
+  expect(await session.game.purchases.purchase('test-exemption')).toEqual({
+    status: 'pending',
+    productId: 'test-exemption',
+  });
+  const approved = scriptedBilling({
+    completionOwner: 'provider',
+    ownership: [current, current],
+    restores: [removed],
+  });
+  const back = await session.restart({ billing: approved });
+  expect(back.game.getSnapshot().state.tax.status).toBe('exempt');
+  expect(back.game.purchases.getState()).toEqual({ status: 'ready' });
+  await back.game.purchases.restore();
+  approved.emit({ type: 'ownershipChanged' });
+  await Promise.all([back.game.purchases.recover(), back.game.purchases.recover()]);
+  expect(back.game.getSnapshot().state.tax.status).toBe('active');
+  expect(await back.purchaseRecords()).toMatchObject([
+    { completion: 'completed', currentOwnership: { status: 'removed' } },
+  ]);
+  const unavailable = scriptedBilling({ completionOwner: 'provider' });
+  const reopened = await back.restart({ billing: unavailable });
+  expect(await reopened.game.purchases.purchase('test-exemption')).toEqual({ status: 'delivered' });
+  expect(reopened.game.getSnapshot().state.tax.status).toBe('active');
+  expect(unavailable.operations.filter((operation) => operation.startsWith('purchase:'))).toEqual(
+    [],
+  );
+  expect(approved.completions).toEqual([]);
+  expect(unavailable.completions).toEqual([]);
+});
