@@ -1,4 +1,5 @@
 import type { BillingPort, OwnershipResult } from '@/application/billingPort';
+import type { PurchasePolicy } from '@/application/purchaseLedger';
 import { disabledBilling } from './disabledBilling';
 import { readRevenueCatConfig } from './revenueCatConfig';
 import type { RevenueCatConfig } from './revenueCatConfig';
@@ -6,18 +7,7 @@ import type { RevenueCatInfo, RevenueCatSdk } from './revenueCatRuntime';
 
 type Selection = {
   readonly billing: BillingPort;
-  readonly purchasePolicy?: {
-    readonly scopes: readonly {
-      store: 'apple' | 'google';
-      appId: string;
-      environment: 'sandbox';
-    }[];
-    readonly products: readonly {
-      productId: string;
-      productClass: 'nonConsumable';
-      benefit: 'taxExemption';
-    }[];
-  };
+  readonly purchasePolicy?: PurchasePolicy;
 };
 
 type Options = {
