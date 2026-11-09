@@ -24,6 +24,7 @@ export type TelemetryEventName =
   | 'ad_interstitial_suppressed'
   | 'ad_app_open_shown'
   | 'ad_clicked'
+  | 'purchase_operation'
   | 'save_failed'
   | 'migration_completed';
 
@@ -220,6 +221,8 @@ export function gameTelemetry(ports: { telemetry?: TelemetryPort; content: Conte
       send(committedEvents(observed, { firstBusinessGoals, content: ports.content, state }), state),
     adRequested: (request: AdRequest, state: GameState) =>
       send([{ name: 'ad_requested', details: { placement: TAP_BOOST_PLACEMENT, request } }], state),
+    purchase: (details: TelemetryDetails, state: GameState) =>
+      send([{ name: 'purchase_operation', details }], state),
     ad: (event: AdTelemetry, state: GameState) => send([event], state),
     opened: (opened: { state: GameState; migratedFromSchema?: number }) => {
       if (opened.migratedFromSchema === undefined) return;

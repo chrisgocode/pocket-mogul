@@ -8,7 +8,6 @@ import {
 import { exemptTaxes } from '@/domain/tax/exemption';
 import { moneyCents } from '@/domain/money';
 import type {
-  BillingPort,
   DeliveryResult,
   OwnershipResult,
   PurchaseResult,
@@ -25,14 +24,9 @@ import {
   type PurchaseRecord,
 } from './purchaseLedger';
 import { serialQueue } from './serialQueue';
+import { purchaseOperations, type GamePurchases } from './purchaseOperations';
 
-export type GamePurchases = {
-  readonly products: BillingPort['products'];
-  readonly dispose: () => void;
-  readonly purchase: (productId: string) => Promise<PurchaseResult | DeliveryResult>;
-  readonly restore: () => Promise<OwnershipResult | { status: 'saveFailed' }>;
-  readonly recover: () => Promise<void>;
-};
+export type { GamePurchases } from './purchaseOperations';
 
 type DeliveryContext = {
   ports: GamePorts;
@@ -144,33 +138,26 @@ export function purchaseDelivery(input: GamePorts, core: Committer): GamePurchas
   const deliver = deliveryOperation(context, () => active);
   const recover = () =>
     queue.run(async () => {
-      if (!active) return;
+      if (!active) return undefined;
       await restoreCachedPurchases(ports, { core, active: () => active });
-      if (!active || context === undefined) return;
+      if (!active || context === undefined) return undefined;
       await preparePurchases(ports, () => active).catch(() => undefined);
-      await recoverDelivery(context, { deliver, active: () => active });
+      return recoverDelivery(context, { deliver, active: () => active });
     });
-  const unsubscribe =
-    context === undefined
-      ? () => undefined
-      : ports.billing.subscribe(() => {
-          void recover().catch(() => undefined);
-        });
-  return {
+  return purchaseOperations(ports, core, {
     products: ports.billing.products,
     recover,
     restore: () =>
       queue.run(() => restoreOwnership(ports, { context, deliver, active: () => active })),
     dispose: () => {
       active = false;
-      unsubscribe();
       ports.billing.dispose();
     },
     purchase: (productId) =>
       queue.run(() =>
         purchaseAndDeliver(ports, { context, active: () => active, deliver }, productId),
       ),
-  };
+  });
 }
 
 function deliveryOperation(context: DeliveryContext | undefined, active: () => boolean) {
@@ -191,16 +178,18 @@ function deliveryOperation(context: DeliveryContext | undefined, active: () => b
 async function recoverDelivery(
   context: DeliveryContext | undefined,
   operations: { deliver: ReturnType<typeof deliveryOperation>; active: () => boolean },
-): Promise<void> {
-  if (context === undefined || !operations.active()) return;
+): Promise<OwnershipResult | { status: 'saveFailed' } | undefined> {
+  if (context === undefined || !operations.active()) return undefined;
   try {
     await completePending(context);
     const sinceMs = context.ports.clock.wallMs();
     const evidence = await context.ports.billing.currentOwnership();
-    await applyOwnership(evidence, { ...operations, context, sinceMs });
+    const failed = await applyOwnership(evidence, { ...operations, context, sinceMs });
+    if (failed !== undefined) return failed;
     await completePending(context);
+    return evidence;
   } catch {
-    return;
+    return undefined;
   }
 }
 

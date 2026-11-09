@@ -35,7 +35,16 @@ const purchaseRecord = z.object({
     })
     .optional(),
 });
-const identity = z.object({ id: z.string(), providerReference: z.string().optional() });
+const identity = z.object({
+  id: z.string(),
+  providerReference: z.string().optional(),
+  checkout: z
+    .object({
+      status: z.enum(['pending', 'interrupted', 'delivered']),
+      productId: z.string(),
+    })
+    .optional(),
+});
 
 const rows = z.array(z.object({ document: z.string() }));
 
