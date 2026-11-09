@@ -34,12 +34,7 @@ export function acceptsPurchase(policy: PurchasePolicy, ownership: VerifiedOwner
     ownership.productClass === 'nonConsumable' &&
     completion.owner === 'application' &&
     completion.action === 'finish' &&
-    policy.scopes.some(
-      (scope) =>
-        scope.store === reference.store &&
-        scope.appId === reference.appId &&
-        scope.environment === reference.environment,
-    ) &&
+    authorizesPurchaseScope(policy, reference) &&
     policy.products.some(
       (product) =>
         product.productId === reference.productId &&
@@ -52,3 +47,12 @@ export type PurchaseIdentity = {
   readonly id: string;
   readonly providerReference?: string | undefined;
 };
+
+export function authorizesPurchaseScope(policy: PurchasePolicy, reference: PurchaseScope): boolean {
+  return policy.scopes.some(
+    (scope) =>
+      scope.store === reference.store &&
+      scope.appId === reference.appId &&
+      scope.environment === reference.environment,
+  );
+}

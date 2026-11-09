@@ -60,7 +60,7 @@ it('reconstructs cached permanent access before offline settlement without a cat
   session.deleteSaveDocument();
   const reopened = await session.restart({
     billing: scriptedBilling(),
-    purchasePolicy: { scopes: [], products: [] },
+    purchasePolicy: { scopes: purchasePolicy.scopes, products: [] },
     awayMs: 36_000_000,
   });
   expect(reopened.game.getSnapshot().state.tax.status).toBe('exempt');
@@ -147,3 +147,24 @@ it('reports failed restore delivery without publishing partial ownership and ret
   expect(back.game.getSnapshot().state.tax.status).toBe('exempt');
   expect(await back.purchaseRecords()).toHaveLength(1);
 });
+
+it.each([
+  { scopes: [{ store: 'apple', appId: 'test.app', environment: 'production' }] },
+  { scopes: [{ store: 'google', appId: 'test.app', environment: 'sandbox' }] },
+  { scopes: [{ store: 'apple', appId: 'another.app', environment: 'sandbox' }] },
+  { scopes: [] },
+] as const)(
+  'does not project cached ownership outside authorized namespaces %#',
+  async ({ scopes }) => {
+    const billing = scriptedBilling({ completionOwner: 'application', restores: [current] });
+    const session = await startObservedTestGame({ billing, purchasePolicy });
+    await session.game.purchases.restore();
+    session.deleteSaveDocument();
+    const reopened = await session.restart({
+      billing: scriptedBilling(),
+      purchasePolicy: { scopes, products: [] },
+    });
+    expect(reopened.game.getSnapshot().state.tax.status).toBe('notStarted');
+    expect(await reopened.purchaseRecords()).toHaveLength(1);
+  },
+);

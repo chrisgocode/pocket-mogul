@@ -1,5 +1,5 @@
 import { exemptTaxes } from '@/domain/tax/exemption';
-import { purchaseKey } from './purchaseLedger';
+import { authorizesPurchaseScope, purchaseKey } from './purchaseLedger';
 import { moneyCents } from '@/domain/money';
 import type { BillingPort } from './billingPort';
 import type { Committer, GamePorts } from './game';
@@ -72,11 +72,21 @@ export async function preparePurchases(ports: GamePorts, active: () => boolean):
     );
 }
 
-export async function restoreCachedPurchases(ports: GamePorts, core: Committer): Promise<void> {
-  await core.commit(async (current) => {
+export async function restoreCachedPurchases(
+  ports: GamePorts,
+  operation: { core: Committer; active: () => boolean },
+): Promise<void> {
+  await operation.core.commit(async (current) => {
     try {
+      requireActive(operation.active);
       return await ports.store.transact(async (tx) => {
-        const records = await tx.readPurchases();
+        requireActive(operation.active);
+        const records = (await tx.readPurchases()).filter(
+          (record) =>
+            ports.purchasePolicy !== undefined &&
+            authorizesPurchaseScope(ports.purchasePolicy, record.ownership.reference),
+        );
+        requireActive(operation.active);
         const rules = ports.content.economy.taxes;
         if (rules === undefined) return { outcome: { ok: false, error: 'TAX_RETURN_UNAVAILABLE' } };
         const state = records.reduce(
@@ -89,7 +99,9 @@ export async function restoreCachedPurchases(ports: GamePorts, core: Committer):
           current,
         );
         const updated = state === current ? current : { ...state, revision: state.revision + 1 };
+        requireActive(operation.active);
         if (updated !== current) await tx.writeState(updated);
+        requireActive(operation.active);
         return {
           state: updated,
           outcome: { ok: true, revision: updated.revision, cashChangeCents: moneyCents(0) },
@@ -99,4 +111,8 @@ export async function restoreCachedPurchases(ports: GamePorts, core: Committer):
       return { outcome: { ok: false, error: 'SAVE_FAILED' } };
     }
   });
+}
+
+export function requireActive(active: () => boolean): void {
+  if (!active()) throw new Error('Purchases disposed');
 }

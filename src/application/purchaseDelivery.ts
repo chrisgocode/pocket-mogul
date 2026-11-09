@@ -1,4 +1,9 @@
-import { boundedBilling, preparePurchases, restoreCachedPurchases } from './purchaseRecovery';
+import {
+  boundedBilling,
+  preparePurchases,
+  restoreCachedPurchases,
+  requireActive,
+} from './purchaseRecovery';
 import { exemptTaxes } from '@/domain/tax/exemption';
 import { moneyCents } from '@/domain/money';
 import type {
@@ -20,7 +25,9 @@ import {
 } from './purchaseLedger';
 import { serialQueue } from './serialQueue';
 
-export type GamePurchases = Omit<BillingPort, 'purchase' | 'restore'> & {
+export type GamePurchases = {
+  readonly products: BillingPort['products'];
+  readonly dispose: () => void;
   readonly purchase: (productId: string) => Promise<PurchaseResult | DeliveryResult>;
   readonly restore: () => Promise<OwnershipResult | { status: 'saveFailed' }>;
   readonly recover: () => Promise<void>;
@@ -37,6 +44,7 @@ async function writeDelivery(
   tx: SaveTransaction,
   change: { context: DeliveryContext; ownership: VerifiedOwnership; current: GameState },
 ): Promise<Committed> {
+  requireActive(change.context.active);
   const previous = (await tx.readPurchases()).find(
     (record) => purchaseKey(record.ownership.reference) === purchaseKey(change.ownership.reference),
   );
@@ -44,6 +52,7 @@ async function writeDelivery(
     return {
       outcome: { ok: true, revision: change.current.revision, cashChangeCents: moneyCents(0) },
     };
+  requireActive(change.context.active);
   const rules = change.context.ports.content.economy.taxes;
   if (rules === undefined) return { outcome: { ok: false, error: 'TAX_RETURN_UNAVAILABLE' } };
   const state = {
@@ -55,12 +64,14 @@ async function writeDelivery(
     revision: change.current.revision + 1,
   };
   await tx.writeState(state);
+  requireActive(change.context.active);
   await tx.writePurchase({
     ownership: change.ownership,
     benefit: 'taxExemption',
     result: { status: 'delivered' },
     completion: 'pending',
   });
+  requireActive(change.context.active);
   return {
     state,
     outcome: { ok: true, revision: state.revision, cashChangeCents: moneyCents(0) },
@@ -70,9 +81,10 @@ async function writeDelivery(
 async function commitDelivery(
   context: DeliveryContext,
   ownership: VerifiedOwnership,
-): Promise<DeliveryResult> {
+): Promise<DeliveryResult | { status: 'unavailable' }> {
   const outcome = await context.core.commit(async (current): Promise<Committed> => {
     try {
+      requireActive(context.active);
       return await context.ports.store.transact((tx) =>
         writeDelivery(tx, { context, ownership, current }),
       );
@@ -80,6 +92,7 @@ async function commitDelivery(
       return { outcome: { ok: false, error: 'SAVE_FAILED' } };
     }
   });
+  if (!context.active()) return { status: 'unavailable' };
   return { status: outcome.ok ? 'delivered' : 'saveFailed' };
 }
 
@@ -91,11 +104,14 @@ async function completeRecord(context: DeliveryContext, record: PurchaseRecord):
     const result = await completion.complete(record.ownership);
     if (result.status === 'unavailable' || result.status === 'disabled') return;
     if (!context.active()) return;
-    await context.core.queue.run(() =>
-      context.ports.store.transact((tx) =>
-        tx.writePurchase({ ...record, completion: 'completed' }),
-      ),
-    );
+    await context.core.queue.run(() => {
+      requireActive(context.active);
+      return context.ports.store.transact(async (tx) => {
+        requireActive(context.active);
+        await tx.writePurchase({ ...record, completion: 'completed' });
+        requireActive(context.active);
+      });
+    });
   } catch {
     return;
   }
@@ -118,7 +134,7 @@ async function completePending(context: DeliveryContext): Promise<void> {
 export function purchaseDelivery(input: GamePorts, core: Committer): GamePurchases {
   const ports = { ...input, billing: boundedBilling(input) };
   const queue = serialQueue();
-  const policy = ports.purchasePolicy;
+  const { purchasePolicy: policy } = ports;
   let active = true;
   const context =
     policy === undefined || policy.products.length === 0
@@ -128,8 +144,8 @@ export function purchaseDelivery(input: GamePorts, core: Committer): GamePurchas
   const recover = () =>
     queue.run(async () => {
       if (!active) return;
-      await restoreCachedPurchases(ports, core);
-      if (context === undefined) return;
+      await restoreCachedPurchases(ports, { core, active: () => active });
+      if (!active || context === undefined) return;
       await preparePurchases(ports, () => active).catch(() => undefined);
       await recoverDelivery(context, { deliver, active: () => active });
     });
@@ -140,7 +156,7 @@ export function purchaseDelivery(input: GamePorts, core: Committer): GamePurchas
           void recover().catch(() => undefined);
         });
   return {
-    ...ports.billing,
+    products: ports.billing.products,
     recover,
     restore: () =>
       queue.run(() => restoreOwnership(ports, { context, deliver, active: () => active })),
@@ -159,7 +175,7 @@ export function purchaseDelivery(input: GamePorts, core: Committer): GamePurchas
 function deliveryOperation(context: DeliveryContext | undefined, active: () => boolean) {
   return async (
     ownership: VerifiedOwnership,
-  ): Promise<DeliveryResult | { status: 'verificationFailed' }> => {
+  ): Promise<DeliveryResult | { status: 'verificationFailed' | 'unavailable' }> => {
     if (
       context === undefined ||
       !active() ||
