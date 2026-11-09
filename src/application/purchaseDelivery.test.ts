@@ -1,24 +1,7 @@
 import { scriptedBilling } from './scriptedBilling';
 import { startObservedTestGame } from './testGame';
 
-const ownership = {
-  reference: {
-    store: 'apple',
-    appId: 'test.app',
-    environment: 'sandbox',
-    purchaseId: 'transaction-1',
-    productId: 'test-exemption',
-  },
-  productClass: 'nonConsumable',
-  verification: { source: 'store', verifiedAtMs: 1_800_000_000_000 },
-  completion: { owner: 'application', action: 'finish' },
-} as const;
-const purchasePolicy = {
-  scopes: [{ store: 'apple', appId: 'test.app', environment: 'sandbox' }],
-  products: [
-    { productId: 'test-exemption', productClass: 'nonConsumable', benefit: 'taxExemption' },
-  ],
-} as const;
+import { ownership, purchasePolicy } from './purchaseTesting';
 
 it('delivers a verified test entitlement durably before finishing the raw transaction', async () => {
   const billing = scriptedBilling({

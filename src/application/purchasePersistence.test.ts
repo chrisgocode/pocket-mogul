@@ -35,17 +35,29 @@ it('migrates an existing database and keeps purchase receipts and completion wor
       tx.writeState(freshGameState({ saveId: 'existing', economyVersion: 2, wallMs: 123 })),
     );
     database.exec('DROP TABLE purchase_receipts');
-    database.exec('DELETE FROM schema_migrations WHERE version = 6');
+    database.exec('DROP TABLE purchase_identity');
+    database.exec('DELETE FROM schema_migrations WHERE version >= 6');
     const migrated = await openSqlSaveStore(nodeSqliteDriver(database));
     expect(await migrated.transact((tx) => tx.readPurchases())).toEqual([]);
+    expect(await migrated.transact((tx) => tx.readPurchaseIdentity())).toBeUndefined();
     expect(await migrated.transact((tx) => tx.readSave())).toContain('existing');
-    await migrated.transact((tx) => tx.writePurchase(record));
+    await migrated.transact(async (tx) => {
+      await tx.writePurchaseIdentity({
+        id: 'independent-identity',
+        providerReference: 'provider-customer',
+      });
+      await tx.writePurchase(record);
+    });
     database.close();
     const reopenedDatabase = new DatabaseSync(path);
     try {
       const reopened = await openSqlSaveStore(nodeSqliteDriver(reopenedDatabase));
       await reopened.transact((tx) => tx.pruneReceipts(999_999));
       expect(await reopened.transact((tx) => tx.readPurchases())).toEqual([record]);
+      expect(await reopened.transact((tx) => tx.readPurchaseIdentity())).toEqual({
+        id: 'independent-identity',
+        providerReference: 'provider-customer',
+      });
     } finally {
       reopenedDatabase.close();
     }

@@ -3,6 +3,9 @@ import type { SaveTransaction } from '@/application/ports';
 import { purchaseKey } from '@/application/purchaseLedger';
 import type { SqlExecutor } from './sqlDriver';
 
+export const CREATE_PURCHASE_IDENTITY =
+  'CREATE TABLE purchase_identity (id INTEGER PRIMARY KEY CHECK (id = 1), document TEXT NOT NULL)';
+
 export const CREATE_PURCHASES =
   'CREATE TABLE purchase_receipts (purchase_key TEXT PRIMARY KEY, document TEXT NOT NULL)';
 
@@ -26,12 +29,27 @@ const purchaseRecord = z.object({
   result: z.object({ status: z.literal('delivered') }),
   completion: z.enum(['pending', 'completed']),
 });
+const identity = z.object({ id: z.string(), providerReference: z.string().optional() });
+
 const rows = z.array(z.object({ document: z.string() }));
 
 export function purchasesOver(
   sql: SqlExecutor,
-): Pick<SaveTransaction, 'readPurchases' | 'writePurchase'> {
+): Pick<
+  SaveTransaction,
+  'readPurchases' | 'writePurchase' | 'readPurchaseIdentity' | 'writePurchaseIdentity'
+> {
   return {
+    readPurchaseIdentity: async () => {
+      const saved = rows.parse(await sql.all('SELECT document FROM purchase_identity'));
+      const row = saved.at(0);
+      return row === undefined ? undefined : identity.parse(JSON.parse(row.document));
+    },
+    writePurchaseIdentity: (value) =>
+      sql.run(
+        'INSERT INTO purchase_identity (id, document) VALUES (1, ?) ON CONFLICT (id) DO UPDATE SET document = excluded.document',
+        [JSON.stringify(value)],
+      ),
     readPurchases: async () =>
       rows
         .parse(await sql.all('SELECT document FROM purchase_receipts ORDER BY purchase_key'))

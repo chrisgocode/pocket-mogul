@@ -47,3 +47,8 @@ export function acceptsPurchase(policy: PurchasePolicy, ownership: VerifiedOwner
     )
   );
 }
+
+export type PurchaseIdentity = {
+  readonly id: string;
+  readonly providerReference?: string | undefined;
+};

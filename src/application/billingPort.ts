@@ -1,3 +1,4 @@
+import type { PurchaseIdentity } from './purchaseLedger';
 export type PurchaseScope = {
   readonly store: 'apple' | 'google';
   readonly appId: string;
@@ -52,7 +53,11 @@ export type DeliveryResult = { readonly status: 'delivered' } | { readonly statu
 export type BillingEvent = { readonly type: 'ownershipChanged' };
 
 export type BillingPort = {
-  readonly initialize: () => Promise<BillingUnavailable | { readonly status: 'ready' }>;
+  readonly initialize: (
+    identity?: PurchaseIdentity,
+  ) => Promise<
+    BillingUnavailable | { readonly status: 'ready'; readonly providerReference?: string }
+  >;
   readonly subscribe: (listener: (event: BillingEvent) => void) => () => void;
   readonly dispose: () => void;
   readonly products: () => Promise<
