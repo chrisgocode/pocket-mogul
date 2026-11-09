@@ -69,7 +69,7 @@ async function writeDelivery(
     ownership: change.ownership,
     benefit: 'taxExemption',
     result: { status: 'delivered' },
-    completion: 'pending',
+    completion: change.ownership.completion.owner === 'provider' ? 'completed' : 'pending',
   });
   requireActive(change.context.active);
   return {
@@ -179,7 +179,7 @@ function deliveryOperation(context: DeliveryContext | undefined, active: () => b
     if (
       context === undefined ||
       !active() ||
-      context.ports.billing.completion.owner !== 'application' ||
+      context.ports.billing.completion.owner !== ownership.completion.owner ||
       !acceptsPurchase(context.policy, ownership)
     )
       return { status: 'verificationFailed' };
@@ -280,6 +280,7 @@ function canComplete(context: DeliveryContext, record: PurchaseRecord): boolean 
   return (
     context.active() &&
     record.completion === 'pending' &&
+    record.ownership.completion.owner === 'application' &&
     acceptsPurchase(context.policy, record.ownership)
   );
 }
