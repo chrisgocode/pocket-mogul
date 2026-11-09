@@ -39,6 +39,7 @@ it('recovers provider-completed ownership after local failure without claiming d
       benefit: 'taxExemption',
       result: { status: 'delivered' },
       completion: 'completed',
+      currentOwnership: { status: 'active', observedAtMs: current.observedAtMs },
     },
   ]);
   expect(retry.completions).toEqual([]);

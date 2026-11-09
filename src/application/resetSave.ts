@@ -44,12 +44,15 @@ export async function commitReset(
 }
 
 function preserveExemption(fresh: GameState, previous: GameState, content: Content): GameState {
-  if (previous.tax.status !== 'exempt' || content.economy.taxes === undefined) return fresh;
-  const transactionId = previous.tax.entitlementIds.at(-1);
-  if (transactionId === undefined) return fresh;
-  return exemptTaxes(fresh, {
-    transactionId,
-    dayMs: content.economy.businessRules.dayMs,
-    rules: content.economy.taxes,
-  });
+  const rules = content.economy.taxes;
+  if (previous.tax.status !== 'exempt' || rules === undefined) return fresh;
+  return previous.tax.entitlementIds.reduce(
+    (state, transactionId) =>
+      exemptTaxes(state, {
+        transactionId,
+        dayMs: content.economy.businessRules.dayMs,
+        rules,
+      }),
+    fresh,
+  );
 }

@@ -1,0 +1,86 @@
+import { ownership, purchasePolicy } from './purchaseTesting';
+import { scriptedBilling } from './scriptedBilling';
+import { startObservedTestGame } from './testGame';
+
+const managed = {
+  ...ownership,
+  verification: { ...ownership.verification, source: 'provider' },
+  completion: { owner: 'provider' },
+} as const;
+const current = {
+  status: 'current',
+  authority: 'authoritative',
+  coverage: 'complete',
+  observedAtMs: 1_800_000_000_000,
+  ownership: [managed],
+  removals: [],
+} as const;
+const removed = { ...current, ownership: [], removals: [managed.reference] };
+
+it('recovers managed delivery, removes it atomically and rejects stale managed replays after restart', async () => {
+  const billing = scriptedBilling({
+    completionOwner: 'provider',
+    purchases: [{ status: 'completed', ownership: managed }],
+    restores: [current, removed, removed],
+  });
+  const session = await startObservedTestGame({ billing, purchasePolicy });
+  session.faults.failWritesMatching = /INSERT INTO purchase_receipts/;
+  expect(await session.game.purchases.purchase('test-exemption')).toEqual({ status: 'saveFailed' });
+  session.faults.failWritesMatching = undefined;
+  await session.game.purchases.restore();
+  expect(session.game.getSnapshot().state.tax.status).toBe('exempt');
+  const before = session.game.getSnapshot();
+  session.faults.failWritesMatching = /INSERT INTO save_state/;
+  expect(await session.game.purchases.restore()).toEqual({ status: 'saveFailed' });
+  expect(session.game.getSnapshot()).toEqual(before);
+  expect(await session.purchaseRecords()).toMatchObject([
+    { completion: 'completed', currentOwnership: { status: 'active' } },
+  ]);
+  session.faults.failWritesMatching = undefined;
+  await session.game.purchases.restore();
+  const replay = scriptedBilling({
+    completionOwner: 'provider',
+    purchases: [{ status: 'completed', ownership: managed }],
+    ownership: [current],
+    restores: [current],
+  });
+  const back = await session.restart({ billing: replay });
+  await back.game.purchases.purchase('test-exemption');
+  await back.game.purchases.restore();
+  expect(back.game.getSnapshot().state.tax.status).toBe('active');
+  expect(await back.purchaseRecords()).toMatchObject([
+    { completion: 'completed', currentOwnership: { status: 'removed' } },
+  ]);
+  expect(billing.completions).toEqual([]);
+  expect(replay.completions).toEqual([]);
+});
+
+it('preserves a second managed source through reset and unavailable verification before final removal', async () => {
+  const second = {
+    ...managed,
+    reference: { ...managed.reference, purchaseId: 'managed-second' },
+  };
+  const billing = scriptedBilling({
+    completionOwner: 'provider',
+    restores: [
+      { ...current, ownership: [managed, second] },
+      removed,
+      { status: 'unavailable' },
+      { ...removed, removals: [second.reference] },
+    ],
+  });
+  const session = await startObservedTestGame({ billing, purchasePolicy });
+  await session.game.purchases.restore();
+  await session.game.resetSave('managed-sources');
+  await session.game.purchases.restore();
+  expect(session.game.getSnapshot().state.tax).toMatchObject({
+    status: 'exempt',
+    entitlementIds: ['["apple","test.app","sandbox","managed-second"]'],
+  });
+  await session.game.purchases.restore();
+  expect(session.game.getSnapshot().state.tax.status).toBe('exempt');
+  await session.game.purchases.restore();
+  expect(session.game.getSnapshot().state.tax.status).toBe('active');
+  expect(await session.purchaseRecords()).toHaveLength(2);
+  expect(billing.completions).toEqual([]);
+});

@@ -83,10 +83,10 @@ export async function restoreCachedPurchases(
         requireActive(operation.active);
         const records = (await tx.readPurchases()).filter(
           (record) =>
+            record.currentOwnership?.status !== 'removed' &&
             ports.purchasePolicy !== undefined &&
             authorizesPurchaseScope(ports.purchasePolicy, record.ownership.reference),
         );
-        requireActive(operation.active);
         const rules = ports.content.economy.taxes;
         if (rules === undefined) return { outcome: { ok: false, error: 'TAX_RETURN_UNAVAILABLE' } };
         const state = records.reduce(
