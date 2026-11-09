@@ -1,3 +1,4 @@
+import { disabledBilling } from '@/infrastructure/disabledBilling';
 import { DatabaseSync } from 'node:sqlite';
 
 import { z } from 'zod';
@@ -130,9 +131,16 @@ export type TestGame = {
   receiptIds: () => readonly string[];
 };
 
-type TestHooks = Pick<
-  GamePorts,
-  'beforeWarmReturnSummary' | 'pastContent' | 'telemetry' | 'saveFormat' | 'taxEntitlement'
+type TestHooks = Partial<
+  Pick<
+    GamePorts,
+    | 'beforeWarmReturnSummary'
+    | 'pastContent'
+    | 'telemetry'
+    | 'saveFormat'
+    | 'taxEntitlement'
+    | 'billing'
+  >
 > & {
   content?: Content;
   ads?: ScriptedAds;
@@ -198,6 +206,7 @@ async function openTestGame(save: TestSave = freshTestSave()): Promise<OpenedTes
   );
   const opened = await createGame({
     content: getContent(),
+    billing: disabledBilling(),
     ...save.hooks,
     ads,
     clock,

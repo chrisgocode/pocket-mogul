@@ -1,3 +1,4 @@
+import type { BillingPort } from './billingPort';
 import { commitTaxEntitlement, type TaxEntitlementPort } from './taxEntitlement';
 import type { Content } from '@/content';
 import type { NaturalBreak } from '@/domain/adSchedule';
@@ -28,6 +29,7 @@ export type GamePorts = {
   store: SaveStore;
   content: Content;
   ads: AdPort;
+  billing: BillingPort;
   pastContent?: readonly Content[];
   createId: () => string;
   beforeWarmReturnSummary?: () => Promise<void>;
@@ -50,6 +52,7 @@ export type GameSnapshot = {
 export type GameEvent = { readonly type: 'goalsCompleted'; readonly goalIds: readonly string[] };
 
 export type Game = {
+  purchases: BillingPort;
   getSnapshot: () => GameSnapshot;
   subscribe: (listener: () => void) => () => void;
   subscribeEvents: (listener: (event: GameEvent) => void) => () => void;
@@ -168,6 +171,7 @@ async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
     refresh: refreshWhileEarning(core),
   });
   return {
+    purchases: ports.billing,
     restoreTaxExemption,
     getSnapshot: core.snapshots.get,
     subscribe: core.snapshots.subscribe,

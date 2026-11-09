@@ -52,6 +52,8 @@ Phase 1 is a runnable shell. It has five tabs, each with its own Stack, and Goal
 
 #79 adds takeovers. Each business type has three fictional rivals with a unit count and a Quality level. From stage 3 (Regional) the Deals section values each rival at 10 days of its profit and lets the player offer 90, 105, 120 or 140 percent of that. One offer runs at a time; at the next day boundary the rival accepts with a chance drawn from the save's seed (none at 80 percent, certain at 140). A yes pays the offer from the treasury and merges the rival: its units join, even above the stage cap, and Quality rises to the higher of the two. A no locks offers for that rival for 5 days.
 
+#96 adds the disabled purchase port from the canonical [purchase scaffold spec (#95)](https://github.com/chrisgocode/pocket-mogul/issues/95). The device composition supplies a disabled adapter and an empty catalogue: purchase and restore requests report `disabled`, with no billing initialization, store networking or public purchase controls. `Game.purchases` exposes provider-independent operations and normalized evidence for later slices; scripted adapters use the existing Game test harness. This slice adds no purchase delivery, ledger or SDK, and leaves the existing tax entitlement interface unchanged. RevenueCat remains a candidate. Durable recovery and Reset Save purchase retention belong to subsequent slices; no global consumable-wallet or reinstall guarantee is implemented here.
+
 ## Setup
 
 Requires Bun 1.4 or later (the package manager and script runner) and Node 22.13 or later (used by Expo and by Jest for screen tests). The app uses **development builds only**: Expo Go can't load the native ads library this game needs.
