@@ -33,7 +33,8 @@
           "iosAppId": "ca-app-pub-3940256099942544~1458002511",
           "userTrackingUsageDescription": "Pocket Mogul uses this to show ads that are more relevant to you. The game works the same either way."
         }
-      ]
+      ],
+      "./plugins/withRevenueCatPins"
     ],
     "experiments": {
       "typedRoutes": true
