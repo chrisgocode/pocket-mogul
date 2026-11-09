@@ -140,6 +140,7 @@ type TestHooks = Partial<
     | 'saveFormat'
     | 'taxEntitlement'
     | 'billing'
+    | 'purchasePolicy'
   >
 > & {
   content?: Content;
