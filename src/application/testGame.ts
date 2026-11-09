@@ -1,3 +1,4 @@
+import type { PurchaseIdentity, PurchaseRecord } from './purchaseLedger';
 import { disabledBilling } from '@/infrastructure/disabledBilling';
 import { DatabaseSync } from 'node:sqlite';
 
@@ -24,7 +25,7 @@ export type FakeClock = Clock & { advance: (ms: number) => void };
 
 type Timeline = { readonly elapsedMs: number; readonly tasks: readonly ScheduledTask[] };
 
-function fakeClock(wallStartMs: number): FakeClock {
+export function fakeClock(wallStartMs: number): FakeClock {
   let timeline: Timeline = { elapsedMs: 0, tasks: [] };
   return {
     monotonicMs: () => timeline.elapsedMs,
@@ -124,6 +125,8 @@ export type TestGame = {
   restart: (relaunch?: Relaunch) => Promise<TestGame>;
   reopen: (relaunch?: Relaunch) => Promise<OpenedGame>;
   diagnostics: () => Promise<readonly Diagnostic[]>;
+  purchaseIdentity: () => Promise<PurchaseIdentity | undefined>;
+  purchaseRecords: () => Promise<readonly PurchaseRecord[]>;
   saveDocument: () => string;
   replaceSaveDocument: (document: string) => void;
   deleteSaveDocument: () => void;
@@ -143,6 +146,7 @@ type TestHooks = Partial<
     | 'purchasePolicy'
   >
 > & {
+  clock?: FakeClock;
   content?: Content;
   ads?: ScriptedAds;
 };
@@ -194,10 +198,12 @@ type OpenedTestGame = {
   readFaults: ReadFaults;
   holdSaves: () => () => void;
   diagnostics: () => Promise<readonly Diagnostic[]>;
+  purchaseIdentity: () => Promise<PurchaseIdentity | undefined>;
+  purchaseRecords: () => Promise<readonly PurchaseRecord[]>;
 };
 
 async function openTestGame(save: TestSave = freshTestSave()): Promise<OpenedTestGame> {
-  const clock = fakeClock(save.wallStartMs);
+  const clock = save.hooks.clock ?? fakeClock(save.wallStartMs);
   const faults: WriteFaults = { failWrites: false };
   const readFaults: ReadFaults = { failReads: false };
   const gate = saveGate();
@@ -222,6 +228,8 @@ async function openTestGame(save: TestSave = freshTestSave()): Promise<OpenedTes
     readFaults,
     holdSaves: gate.hold,
     diagnostics: store.loadDiagnostics,
+    purchaseIdentity: () => store.transact((tx) => tx.readPurchaseIdentity()),
+    purchaseRecords: () => store.transact((tx) => tx.readPurchases()),
   };
 }
 
@@ -237,7 +245,10 @@ export async function startTestGame(save: TestSave = freshTestSave()): Promise<T
     ...session,
     ...rawSave(save.database),
     game: opened.game,
-    restart: (absence) => startTestGame(awayFrom(absence)),
+    restart: (absence) => {
+      opened.game.purchases.dispose();
+      return startTestGame(awayFrom(absence));
+    },
     reopen: async (absence) => (await openTestGame(awayFrom(absence))).opened,
   };
 }

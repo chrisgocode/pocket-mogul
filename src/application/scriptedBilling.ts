@@ -10,6 +10,7 @@ import type {
 type Response<T> = T | Promise<T>;
 
 type BillingScript = {
+  readonly initialize?: Response<Awaited<ReturnType<BillingPort['initialize']>>>;
   readonly products?: readonly ProductMetadata[];
   readonly purchases?: readonly Response<PurchaseResult>[];
   readonly ownership?: readonly Response<OwnershipResult>[];
@@ -33,7 +34,7 @@ export function scriptedBilling(script: BillingScript = {}) {
     return Promise.resolve(response);
   };
   const port: BillingPort = {
-    initialize: () => observe('initialize', { status: 'ready' }),
+    initialize: () => observe('initialize', script.initialize ?? { status: 'ready' }),
     subscribe: (listener) => {
       listeners.add(listener);
       return () => listeners.delete(listener);

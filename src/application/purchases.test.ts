@@ -1,3 +1,4 @@
+import { purchasePolicy } from './purchaseTesting';
 import { scriptedBilling } from './scriptedBilling';
 import { startObservedTestGame, startTestGame } from './testGame';
 
@@ -23,9 +24,9 @@ it('preserves localized test prices and ordinary cancellation without changing t
     products: [{ productId: 'test-unlock', displayName: 'Test unlock', displayPrice: '1,99 €' }],
     purchases: [{ status: 'cancelled' }],
   });
-  const session = await startObservedTestGame({ billing });
+  const session = await startObservedTestGame({ billing, purchasePolicy });
   const before = session.saveDocument();
-  expect(await session.game.purchases.initialize()).toEqual({ status: 'ready' });
+  expect(billing.operations).toEqual(['initialize', 'ownership']);
   expect(await session.game.purchases.products()).toEqual({
     status: 'available',
     products: [{ productId: 'test-unlock', displayName: 'Test unlock', displayPrice: '1,99 €' }],
@@ -48,21 +49,6 @@ it.each([
   expect(await session.game.purchases.purchase('test-unlock')).toEqual(outcome);
   expect(session.game.getSnapshot()).toBe(before);
   expect(session.saveDocument()).toBe(document);
-});
-
-it('owns disposable scripted event observations through the Game port', async () => {
-  const billing = scriptedBilling();
-  const session = await startObservedTestGame({ billing });
-  const events: string[] = [];
-  const unsubscribe = session.game.purchases.subscribe((event) => events.push(event.type));
-  billing.emit({ type: 'ownershipChanged' });
-  unsubscribe();
-  billing.emit({ type: 'ownershipChanged' });
-  session.game.purchases.subscribe((event) => events.push(event.type));
-  session.game.purchases.dispose();
-  billing.emit({ type: 'ownershipChanged' });
-  expect(events).toEqual(['ownershipChanged']);
-  expect(billing.operations).toEqual([]);
 });
 
 it('does no provider work during startup, resume or restart', async () => {

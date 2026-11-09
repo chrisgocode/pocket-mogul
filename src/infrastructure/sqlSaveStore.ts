@@ -1,4 +1,4 @@
-import { CREATE_PURCHASES, purchasesOver } from './sqlPurchases';
+import { CREATE_PURCHASES, CREATE_PURCHASE_IDENTITY, purchasesOver } from './sqlPurchases';
 import { z } from 'zod';
 
 import type { Diagnostic, SaveStore, SaveTransaction } from '@/application/ports';
@@ -24,6 +24,7 @@ const MIGRATIONS: readonly (readonly string[])[] = [
   ],
   [CREATE_LEDGER_ENTRIES],
   [CREATE_PURCHASES],
+  [CREATE_PURCHASE_IDENTITY],
 ];
 
 const versionRow = z.object({ version: z.number().int().nullable() });
