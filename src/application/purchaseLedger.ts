@@ -26,14 +26,12 @@ export function purchaseKey(reference: PurchaseScope & { readonly purchaseId: st
 }
 
 export function acceptsPurchase(policy: PurchasePolicy, ownership: VerifiedOwnership): boolean {
-  const { reference, completion } = ownership;
+  const { reference } = ownership;
   return (
     reference.purchaseId.length > 0 &&
     Number.isFinite(ownership.verification.verifiedAtMs) &&
-    ownership.verification.source === 'store' &&
     ownership.productClass === 'nonConsumable' &&
-    completion.owner === 'application' &&
-    completion.action === 'finish' &&
+    acceptsCompletion(ownership) &&
     authorizesPurchaseScope(policy, reference) &&
     policy.products.some(
       (product) =>
@@ -55,4 +53,11 @@ export function authorizesPurchaseScope(policy: PurchasePolicy, reference: Purch
       scope.appId === reference.appId &&
       scope.environment === reference.environment,
   );
+}
+
+function acceptsCompletion(ownership: VerifiedOwnership): boolean {
+  const { completion, verification } = ownership;
+  return completion.owner === 'provider'
+    ? verification.source === 'provider'
+    : verification.source === 'store' && completion.action === 'finish';
 }
