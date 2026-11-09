@@ -1,3 +1,4 @@
+import { CREATE_PURCHASES, purchasesOver } from './sqlPurchases';
 import { z } from 'zod';
 
 import type { Diagnostic, SaveStore, SaveTransaction } from '@/application/ports';
@@ -22,6 +23,7 @@ const MIGRATIONS: readonly (readonly string[])[] = [
     'CREATE TABLE save_backups (id INTEGER PRIMARY KEY AUTOINCREMENT, document TEXT NOT NULL, recorded_wall_ms INTEGER NOT NULL)',
   ],
   [CREATE_LEDGER_ENTRIES],
+  [CREATE_PURCHASES],
 ];
 
 const versionRow = z.object({ version: z.number().int().nullable() });
@@ -131,6 +133,7 @@ function transactionOver(sql: SqlExecutor): SaveTransaction {
   return {
     ...backupsOver(sql),
     ...receiptsOver(sql),
+    ...purchasesOver(sql),
     async readSave() {
       const row = await sql.first('SELECT document FROM save_state WHERE id = 1');
       return isMissing(row) ? undefined : documentRow.parse(row).document;

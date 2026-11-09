@@ -1,3 +1,4 @@
+import type { PurchaseRecord } from './purchaseLedger';
 import type { ActivityEntry } from '@/domain/activity';
 import type { CommandOutcome } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
@@ -44,6 +45,8 @@ export type CommandReceipt = {
 export type SaveBackup = { readonly document: string; readonly recordedWallMs: number };
 
 export type SaveTransaction = {
+  readPurchases: () => Promise<readonly PurchaseRecord[]>;
+  writePurchase: (record: PurchaseRecord) => Promise<void>;
   readSave: () => Promise<string | undefined>;
   readBackups: () => Promise<readonly SaveBackup[]>;
   writeBackup: (backup: SaveBackup) => Promise<void>;

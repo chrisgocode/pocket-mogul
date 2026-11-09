@@ -17,6 +17,7 @@ export type ProductMetadata = {
 
 export type VerifiedOwnership = {
   readonly reference: PurchaseReference;
+  readonly productClass: 'nonConsumable' | 'consumable' | 'subscription';
   readonly verification: {
     readonly source: 'store' | 'provider';
     readonly verifiedAtMs: number;
@@ -68,6 +69,6 @@ export type BillingPort = {
         readonly owner: 'application';
         readonly complete: (
           ownership: VerifiedOwnership,
-        ) => Promise<BillingUnavailable | { readonly status: 'completed' }>;
+        ) => Promise<BillingUnavailable | { readonly status: 'completed' | 'alreadyCompleted' }>;
       };
 };

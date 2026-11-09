@@ -1,3 +1,5 @@
+import { purchaseDelivery, type GamePurchases } from './purchaseDelivery';
+import type { PurchasePolicy } from './purchaseLedger';
 import type { BillingPort } from './billingPort';
 import { commitTaxEntitlement, type TaxEntitlementPort } from './taxEntitlement';
 import type { Content } from '@/content';
@@ -30,6 +32,7 @@ export type GamePorts = {
   content: Content;
   ads: AdPort;
   billing: BillingPort;
+  purchasePolicy?: PurchasePolicy;
   pastContent?: readonly Content[];
   createId: () => string;
   beforeWarmReturnSummary?: () => Promise<void>;
@@ -52,7 +55,7 @@ export type GameSnapshot = {
 export type GameEvent = { readonly type: 'goalsCompleted'; readonly goalIds: readonly string[] };
 
 export type Game = {
-  purchases: BillingPort;
+  purchases: GamePurchases;
   getSnapshot: () => GameSnapshot;
   subscribe: (listener: () => void) => () => void;
   subscribeEvents: (listener: (event: GameEvent) => void) => () => void;
@@ -147,31 +150,42 @@ function adsAroundPlay(
   return { ads, onWarmResume };
 }
 
-async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
-  const core = committer(ports, opened);
-  const wallMs = ports.clock.wallMs();
-  await core.backUp({ revision: opened.state.revision, wallMs });
-  const { offline, restoreTaxExemption } = await beginOffline(ports, core);
-  const { dispatch, tap, flushTaps } = gameTaps({
-    ...core,
-    clock: ports.clock,
-    windowMs: ports.content.economy.time.tapBatchMaxMs,
-    createId: ports.createId,
-    queueIdle: () => core.queue.run(() => Promise.resolve()),
-  });
-  const { boost, activatePendingGrant } = rewardedBoost(ports, { core, flushTaps });
-  await activatePendingGrant();
-  const { ads, onWarmResume } = adsAroundPlay(ports, { core, boost, offline });
-  const checkpoint = () =>
-    dispatch({ id: `checkpoint-${ports.createId()}`, command: { type: 'AdvanceTime' } });
+function playLifecycle(ports: GamePorts, game: Omit<Parameters<typeof lifecycle>[0], 'loops'>) {
+  const { core, checkpoint } = game;
   const loops = foregroundLoops({
     clock: ports.clock,
     checkpointMs: ports.content.economy.time.foregroundCheckpointMs,
     checkpoint: () => void checkpoint(),
     refresh: refreshWhileEarning(core),
   });
+  return lifecycle({ ...game, loops });
+}
+
+function bufferedTaps(ports: GamePorts, core: Committer) {
+  return gameTaps({
+    ...core,
+    clock: ports.clock,
+    windowMs: ports.content.economy.time.tapBatchMaxMs,
+    createId: ports.createId,
+    queueIdle: () => core.queue.run(() => Promise.resolve()),
+  });
+}
+
+async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
+  const core = committer(ports, opened);
+  const wallMs = ports.clock.wallMs();
+  await core.backUp({ revision: opened.state.revision, wallMs });
+  const purchases = purchaseDelivery(ports, core);
+  await purchases.recover();
+  const { offline, restoreTaxExemption } = await beginOffline(ports, core);
+  const { dispatch, tap, flushTaps } = bufferedTaps(ports, core);
+  const { boost, activatePendingGrant } = rewardedBoost(ports, { core, flushTaps });
+  await activatePendingGrant();
+  const { ads, onWarmResume } = adsAroundPlay(ports, { core, boost, offline });
+  const checkpoint = () =>
+    dispatch({ id: `checkpoint-${ports.createId()}`, command: { type: 'AdvanceTime' } });
   return {
-    purchases: ports.billing,
+    purchases,
     restoreTaxExemption,
     getSnapshot: core.snapshots.get,
     subscribe: core.snapshots.subscribe,
@@ -184,7 +198,16 @@ async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
     createCommandId: ports.createId,
     ...saveControls(ports, { core, flushTaps }),
     ...gameReads(ports, core),
-    ...lifecycle({ core, boost, ads, checkpoint, loops, onWarmResume }),
+    ...playLifecycle(ports, {
+      core,
+      boost,
+      ads,
+      checkpoint,
+      onWarmResume: async (awayMs) => {
+        await purchases.recover();
+        await onWarmResume(awayMs);
+      },
+    }),
   };
 }
 

@@ -14,6 +14,9 @@ type BillingScript = {
   readonly purchases?: readonly Response<PurchaseResult>[];
   readonly ownership?: readonly Response<OwnershipResult>[];
   readonly restores?: readonly Response<OwnershipResult>[];
+  readonly completions?: readonly Response<{
+    readonly status: 'completed' | 'alreadyCompleted' | 'unavailable';
+  }>[];
   readonly completionOwner?: 'application' | 'provider';
 };
 
@@ -24,6 +27,7 @@ export function scriptedBilling(script: BillingScript = {}) {
   const restores = [...(script.restores ?? [])];
   const operations: string[] = [];
   const completions: VerifiedOwnership[] = [];
+  const responses = [...(script.completions ?? [])];
   const observe = <T>(operation: string, response: Response<T>) => {
     operations.push(operation);
     return Promise.resolve(response);
@@ -40,7 +44,7 @@ export function scriptedBilling(script: BillingScript = {}) {
       observe(`purchase:${productId}`, purchases.shift() ?? { status: 'unavailable' }),
     currentOwnership: () => observe('ownership', ownership.shift() ?? { status: 'unavailable' }),
     restore: () => observe('restore', restores.shift() ?? { status: 'unavailable' }),
-    completion: completion({ script, completions, observe }),
+    completion: completion({ script, completions, observe, responses }),
   };
   return {
     ...port,
@@ -53,6 +57,7 @@ export function scriptedBilling(script: BillingScript = {}) {
 }
 
 function completion(context: {
+  responses: Response<{ readonly status: 'completed' | 'alreadyCompleted' | 'unavailable' }>[];
   script: BillingScript;
   completions: VerifiedOwnership[];
   observe: <T>(operation: string, response: Response<T>) => Promise<T>;
@@ -62,7 +67,7 @@ function completion(context: {
     owner: 'application',
     complete: (ownership) => {
       context.completions.push(ownership);
-      return context.observe('complete', { status: 'completed' });
+      return context.observe('complete', context.responses.shift() ?? { status: 'completed' });
     },
   };
 }
