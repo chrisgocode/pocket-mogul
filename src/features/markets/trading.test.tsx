@@ -122,7 +122,7 @@ describe('Watchlist', () => {
 
   it('lists watched stocks at the top of Markets', async () => {
     await open('/markets', { watchlist: ['prism'] });
-    expect(await screen.findByRole('header', { name: 'Watchlist' })).toBeOnTheScreen();
-    expect(screen.getAllByRole('button', { name: /^Prism Labs, PRZM/ })).toHaveLength(2);
+    await fireEvent.press(screen.getByRole('tab', { name: 'Watchlist' }));
+    expect(screen.getAllByRole('button', { name: /^Prism Labs, PRZM/ })).toHaveLength(1);
   });
 });

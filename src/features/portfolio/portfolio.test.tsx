@@ -38,6 +38,7 @@ describe('Portfolio', () => {
     expect(screen.getByLabelText('Net worth, $1,000.00')).toBeOnTheScreen();
     expect(screen.getByLabelText('Cash, $750.00')).toBeOnTheScreen();
     expect(screen.getByLabelText('Owned assets, $250.00')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('tab', { name: 'Holdings' }));
     expect(
       screen.getByLabelText('Vending Machine, Business, $250.00, Sells for $150.00'),
     ).toBeOnTheScreen();
@@ -49,12 +50,14 @@ describe('Portfolio', () => {
   it('shows income by source with net rates', async () => {
     await buyVending();
     await renderRouter('src/app', { initialUrl: '/portfolio' });
+    await fireEvent.press(screen.getByRole('button', { name: '▸ Income by source' }));
     expect(screen.getByLabelText('Businesses, $5.00/min net, $0.00, earned')).toBeOnTheScreen();
   });
 
   it('lists recent activity and opens the full history with lifetime totals', async () => {
     await renderRouter('src/app', { initialUrl: '/portfolio' });
     await buyVending();
+    await fireEvent.press(screen.getByRole('tab', { name: 'Activity' }));
     expect(
       await screen.findByLabelText('Bought Vending Machine, Day 1, 00:00, -$250.00'),
     ).toBeOnTheScreen();

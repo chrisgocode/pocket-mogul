@@ -1,5 +1,4 @@
-import { TabStack } from '@/ui/TabStack';
-
+import { GameTabStack } from '@/features/navigation/GameTabStack';
 export default function Layout() {
-  return <TabStack title="Businesses" />;
+  return <GameTabStack title="Businesses" />;
 }

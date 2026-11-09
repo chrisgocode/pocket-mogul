@@ -12,6 +12,7 @@ import type { GameSnapshot } from './game';
 
 export type BusinessOffer = {
   readonly business: Business;
+  readonly operation: 'open' | 'closed' | 'not_owned';
   readonly profitPerDayCents: MoneyCents;
   readonly status: 'owned' | 'locked' | 'available';
   readonly affordable: boolean;
@@ -61,6 +62,7 @@ function offer(business: Business, context: OfferContext): BusinessOffer {
   const available = context.unlocked ? 'available' : 'locked';
   return {
     business,
+    operation: owned?.status ?? 'not_owned',
     profitPerDayCents: profitOf(business, context),
     status: owned === undefined ? available : 'owned',
     ...affordability(business.price, context.cashCents),

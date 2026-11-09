@@ -37,6 +37,7 @@ async function openVending(business: OwnedBusiness): Promise<TestGame> {
 describe('the Deals section (BUS18)', () => {
   it('stays locked until the Regional stage', async () => {
     await openVending(ownedBusiness('vending', { stage: 2 }));
+    await fireEvent.press(screen.getByRole('button', { name: '▸ Next unlocks' }));
     expect(screen.getByText('Unlocks at Regional')).toBeOnTheScreen();
   });
 

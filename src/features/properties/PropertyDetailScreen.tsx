@@ -6,10 +6,13 @@ import { ActionSheet } from '@/features/game/ActionSheet';
 import { useGameSnapshot } from '@/features/game/GameContext';
 import { useGameAction } from '@/features/game/useGameAction';
 import { EmptyState } from '@/ui/EmptyState';
+import { BackLink } from '@/ui/BackLink';
 import { Screen } from '@/ui/Screen';
 
 import { OwnedPropertyDetails } from './OwnedPropertyDetails';
 import { propertyActionCommand, propertyActionSheetText } from './propertyAction';
+
+const BACK_OPTIONS = { headerLeft: () => <BackLink href="/properties" label="Properties" /> };
 
 function screenTitle(detail: PropertyDetailView): string {
   return detail.status === 'unknown' ? 'Property' : detail.property.name;
@@ -20,8 +23,8 @@ export function PropertyDetailScreen() {
   const detail = selectPropertyDetail(useGameSnapshot(), { propertyId, content: getContent() });
   const { confirmation, review, close, confirm } = useGameAction(propertyActionCommand);
   return (
-    <Screen>
-      <Stack.Screen options={{ title: screenTitle(detail) }} />
+    <Screen tone="properties">
+      <Stack.Screen options={{ ...BACK_OPTIONS, title: screenTitle(detail) }} />
       {detail.status === 'owned' ? (
         <OwnedPropertyDetails detail={detail} onReview={review} />
       ) : null}

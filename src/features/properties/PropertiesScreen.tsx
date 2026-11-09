@@ -5,14 +5,12 @@ import { getContent } from '@/content';
 import { ActionSheet } from '@/features/game/ActionSheet';
 import { useGameSnapshot } from '@/features/game/GameContext';
 import { useGameAction } from '@/features/game/useGameAction';
-import { Card } from '@/ui/Card';
-import { EmptyState } from '@/ui/EmptyState';
 import { Screen } from '@/ui/Screen';
-import { Section } from '@/ui/Section';
+import { PageTitle } from '@/ui/PageTitle';
 
 import { propertyActionCommand, propertyActionSheetText } from './propertyAction';
-import { PropertyListingRow } from './PropertyListingRow';
-import { RentIncomeCard } from './RentIncomeCard';
+import { PropertyRegister } from './PropertyRegister';
+import { PropertySummary } from './PropertySummary';
 
 export function PropertiesScreen() {
   const view = selectProperties(useGameSnapshot(), getContent());
@@ -24,26 +22,14 @@ export function PropertiesScreen() {
       params: { propertyId: listing.property.id },
     });
   return (
-    <Screen>
-      <RentIncomeCard cashCents={view.cashCents} rentPerMinuteCents={view.rentPerMinuteCents} />
-      {view.ownsAny ? null : (
-        <EmptyState
-          title="No properties yet"
-          message="Buy a listing when you can afford it, then rent it out for income."
-        />
-      )}
-      <Section title="Listings" note="Bought properties start vacant">
-        <Card>
-          {view.listings.map((listing) => (
-            <PropertyListingRow
-              key={listing.property.id}
-              listing={listing}
-              onBuy={(bought) => review({ kind: 'buy', listing: bought })}
-              onManage={manage}
-            />
-          ))}
-        </Card>
-      </Section>
+    <Screen tone="properties">
+      <PageTitle title="Properties" />
+      <PropertySummary />
+      <PropertyRegister
+        listings={view.listings}
+        onBuy={(listing) => review({ kind: 'buy', listing })}
+        onManage={manage}
+      />
       <ActionSheet
         confirmation={confirmation}
         describe={propertyActionSheetText}

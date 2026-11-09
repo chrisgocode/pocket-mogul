@@ -39,6 +39,7 @@ async function openDelivery(
   await session.game.checkpoint();
   mockGame = Promise.resolve({ status: 'ready', game: session.game });
   await renderRouter('src/app', { initialUrl: '/businesses/delivery' });
+  await fireEvent.press(screen.getByRole('button', { name: '▸ Daily figures' }));
   return session;
 }
 
@@ -48,12 +49,8 @@ const deliveryOf = (session: TestGame) =>
 describe('the Contracts section (BUS20c)', () => {
   it('stays locked at Startup and warns that vans will need drivers', async () => {
     await openDelivery(ownedBusiness('delivery'));
-    expect(
-      screen.getByText(
-        'Take on client contracts. From Local, each driver runs 2 vans and a van without a driver delivers nothing',
-      ),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('Efficiency 0/20')).toBeOnTheScreen();
+    expect(screen.queryByRole('header', { name: 'Contracts' })).not.toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: '▸ Next unlocks' })).toBeOnTheScreen();
   });
 
   it('says what Local unlocks and warns about vans without drivers before growing', async () => {

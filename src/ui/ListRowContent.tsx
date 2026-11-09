@@ -14,7 +14,7 @@ export type ListRowProps = {
   detailTrend?: Trend;
   dimmed?: boolean;
   accessibilityLabel?: string;
-  onPress?: () => void;
+  onPress?: (() => void) | undefined;
 };
 
 export function ListRowContent({
@@ -43,6 +43,6 @@ export function ListRowContent({
 }
 
 const styles = StyleSheet.create({
-  main: { flex: 1, gap: 2 },
-  trailing: { alignItems: 'flex-end', gap: 2, flexShrink: 0 },
+  main: { flex: 1, minWidth: 0, gap: 2 },
+  trailing: { alignItems: 'flex-end', gap: 2, flexShrink: 1, maxWidth: '48%' },
 });

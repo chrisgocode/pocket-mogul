@@ -39,16 +39,14 @@ const button = (name: string) => screen.getByRole('button', { name });
 describe('the Locations section (BUS20a)', () => {
   it('stays locked at Startup, so the first business shows only the shared core', async () => {
     await openVending(ownedBusiness('vending'));
-    expect(
-      screen.getByLabelText(
-        'Locations and stock, Place machines at five locations, pick what they sell and keep them stocked, Unlocks at Local',
-      ),
-    ).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: '▸ Daily figures' }));
+    expect(screen.queryByRole('header', { name: 'Locations' })).not.toBeOnTheScreen();
     expect(screen.queryByRole('radiogroup', { name: 'Office mix' })).not.toBeOnTheScreen();
   });
 
   it('shows a coach mark when the mechanic unlocks, until the player dismisses it', async () => {
     const session = await openVending(vendingBusiness(officeOf(600)), []);
+    await fireEvent.press(screen.getByRole('button', { name: '▸ Daily figures' }));
     expect(screen.getByText('Locations and stock')).toBeOnTheScreen();
     await fireEvent.press(button('Got it'));
     expect(screen.queryByText('Locations and stock')).not.toBeOnTheScreen();
@@ -59,6 +57,7 @@ describe('the Locations section (BUS20a)', () => {
     const session = await openVending(
       vendingBusiness(officeOf(0), { treasuryCents: dollars('10') }),
     );
+    await fireEvent.press(screen.getByRole('button', { name: '▸ Daily figures' }));
     expect(
       screen.getByLabelText('Office, 2/120 machines · Traffic 100%, Out of stock'),
     ).toBeOnTheScreen();
@@ -77,6 +76,7 @@ describe('the Locations section (BUS20a)', () => {
         { treasuryCents: dollars('20') },
       ),
     );
+    await fireEvent.press(screen.getByRole('button', { name: '▸ Daily figures' }));
     await fireEvent.press(button('Restock all · $7.00'));
     expect(
       await screen.findByRole('button', { name: 'Every location is stocked' }),
@@ -86,6 +86,7 @@ describe('the Locations section (BUS20a)', () => {
 
   it('places a machine at another location and picks its mix, starring the best match', async () => {
     const session = await openVending(vendingBusiness(officeOf(600)));
+    await fireEvent.press(screen.getByRole('button', { name: '▸ Daily figures' }));
     await fireEvent.press(button('Place a machine at the School'));
     expect(
       await screen.findByLabelText('School, 1/25 machines · Traffic 120%, Stock 300/300'),
@@ -101,6 +102,7 @@ describe('the Locations section (BUS20a)', () => {
     await openVending(
       vendingBusiness(officeOf(600), { stage: 5, treasuryCents: dollars('40,000') }),
     );
+    await fireEvent.press(screen.getByRole('button', { name: '▸ Daily figures' }));
     await fireEvent.press(button('Install card readers · $37,500.00'));
     expect(screen.getByRole('header', { name: 'Install card readers' })).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: /^Confirm/ }));

@@ -33,7 +33,7 @@ export function GoalRow({
         accessibilityLabel={`${goal.title}, not reached, ${goal.progressLabel}`}
       />
       <Button
-        label={goal.pinned ? 'Unpin from Home' : 'Pin to Home'}
+        label={goal.pinned ? 'Unpin from Earn' : 'Pin to Earn'}
         accessibilityLabel={`${goal.pinned ? 'Unpin' : 'Pin'} ${goal.title}`}
         variant="secondary"
         onPress={() => onPin(goal.pinned ? null : goal.id)}

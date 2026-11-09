@@ -6,6 +6,7 @@ import { selectAssetDetail } from '@/application/marketsView';
 import { FICTIONAL_NOTICE, getContent } from '@/content';
 import { useGameSnapshot } from '@/features/game/GameContext';
 import { EmptyState } from '@/ui/EmptyState';
+import { BackLink } from '@/ui/BackLink';
 import { Screen } from '@/ui/Screen';
 import { Section } from '@/ui/Section';
 import { AppText } from '@/ui/Typography';
@@ -19,6 +20,8 @@ import { PriceChartCard } from './PriceChartCard';
 import { tradeUnits } from './tradeUnits';
 import { AssetTrading } from './AssetTrading';
 
+const BACK_OPTIONS = { headerLeft: () => <BackLink href="/markets" label="Markets" /> };
+
 const NEWS_ITEMS = 3;
 
 export function AssetDetailScreen() {
@@ -28,8 +31,8 @@ export function AssetDetailScreen() {
   const detail = selectAssetDetail(snapshot, { assetId, content });
   if (detail.status === 'unknown') {
     return (
-      <Screen>
-        <Stack.Screen options={{ title: 'Asset' }} />
+      <Screen tone="markets">
+        <Stack.Screen options={{ ...BACK_OPTIONS, title: 'Asset' }} />
         <EmptyState title="Asset not found" message="Pick a stock or coin from Markets." />
       </Screen>
     );
@@ -38,8 +41,8 @@ export function AssetDetailScreen() {
   const units = tradeUnits(detail.kind);
   const news = selectMarketNews(snapshot.state, { market, content, assetId, limit: NEWS_ITEMS });
   return (
-    <Screen>
-      <Stack.Screen options={{ title: detail.asset.name }} />
+    <Screen tone="markets">
+      <Stack.Screen options={{ ...BACK_OPTIONS, title: detail.asset.name }} />
       <AssetOverview detail={detail} />
       {detail.position === undefined ? null : (
         <PositionCard position={detail.position} units={units} />

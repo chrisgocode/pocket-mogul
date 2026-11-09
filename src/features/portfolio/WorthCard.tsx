@@ -1,53 +1,44 @@
 import type { Worth } from '@/application/portfolioView';
 import { formatMoneyExact } from '@/domain/money';
+import { ValuationDetails } from './ValuationDetails';
 import { Button } from '@/ui/Button';
-import { Card } from '@/ui/Card';
+import { StyleSheet, View } from 'react-native';
+import { sectionColors, spacing } from '@/ui/tokens';
 import { DetailLine } from '@/ui/DetailLine';
 import { useDisclosure } from '@/ui/state/useDisclosure';
 import { AppText } from '@/ui/Typography';
 
-const VALUATION_NOTES = [
-  'Cash is what you can spend now. Net worth subtracts estimated and assessed tax once; paying a booked bill is not a second loss.',
-  'Businesses count at what you paid to buy and upgrade them. Selling pays 60% of that. Managers are an expense and are not counted.',
-  'Properties count at their estimated value: the purchase price plus 80% of upgrade spending. Selling pays 95% of it.',
-  'Stocks and coins count at what selling would pay before fees.',
-  'Pending dividends count once earned, before they are paid at the market hour.',
-];
-
 export function WorthCard({ worth }: { worth: Worth }) {
   const { expanded, toggle } = useDisclosure();
-  const lines = [
-    { label: 'Businesses', cents: worth.businessesCents },
-    { label: 'Properties', cents: worth.propertiesCents },
-    { label: 'Stocks and coins', cents: worth.positionsCents },
-    { label: 'Pending dividends', cents: worth.pendingDividendsCents },
-  ];
   return (
-    <Card>
-      <DetailLine label="Net worth" value={formatMoneyExact(worth.netWorthCents)} emphasis />
+    <View style={styles.content}>
+      <AppText variant="caption" muted>
+        Net worth
+      </AppText>
+      <AppText
+        variant="display"
+        style={styles.worth}
+        accessibilityLabel={`Net worth, ${formatMoneyExact(worth.netWorthCents)}`}
+      >
+        {formatMoneyExact(worth.netWorthCents)}
+      </AppText>
       <DetailLine label="Cash" value={formatMoneyExact(worth.cashCents)} />
       <DetailLine
         label="Estimated and assessed tax liability"
         value={formatMoneyExact(worth.taxLiabilityCents)}
       />
       <DetailLine label="Owned assets" value={formatMoneyExact(worth.assetsCents)} />
-      {expanded ? (
-        <>
-          {lines.map((line) => (
-            <DetailLine key={line.label} label={line.label} value={formatMoneyExact(line.cents)} />
-          ))}
-          {VALUATION_NOTES.map((note) => (
-            <AppText key={note} variant="caption" muted>
-              {note}
-            </AppText>
-          ))}
-        </>
-      ) : null}
+      {expanded ? <ValuationDetails worth={worth} /> : null}
       <Button
         label={expanded ? 'Hide how net worth is valued' : 'How net worth is valued'}
         variant="secondary"
         onPress={toggle}
       />
-    </Card>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  content: { gap: spacing.sm },
+  worth: { color: sectionColors.profile },
+});

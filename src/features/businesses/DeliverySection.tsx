@@ -27,7 +27,11 @@ export function DeliverySection({
     );
   }
   return (
-    <Section title="Contracts" note="Contracts go out first; missed parcels pay a penalty">
+    <Section
+      id="mechanic"
+      title="Contracts"
+      note="Contracts go out first; missed parcels pay a penalty"
+    >
       {delivery.coachMark === 'show' ? (
         <DeliveryCoachMark
           unlockStage={delivery.unlockStage}

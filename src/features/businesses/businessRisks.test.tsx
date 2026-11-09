@@ -28,28 +28,16 @@ async function openVending(business: Partial<OwnedBusiness>, day = 0): Promise<T
 const row = (text: string) => screen.getByLabelText(text);
 
 describe('the Risks section', () => {
-  it('lists the three incidents and locks insurance until Local (BUS16, BUS17)', async () => {
+  it('defers risk controls until Local', async () => {
     await openVending({});
-    expect(screen.getByRole('header', { name: 'Risks' })).toBeOnTheScreen();
-    expect(screen.getByText('No incidents for 30 days more')).toBeOnTheScreen();
-    expect(
-      row('Breakdown, Equipment · 2.5% a day · Capacity down 30% for 4 days, Insurance at Local'),
-    ).toBeOnTheScreen();
-    expect(
-      row(
-        "Vandalism, Liability · 1.5% a day · Treasury loss of 2 days' revenue, Insurance at Local",
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      row(
-        "Expired stock, Supply · 2% a day · Treasury loss of a day's revenue, Insurance at Local",
-      ),
-    ).toBeOnTheScreen();
+    expect(screen.queryByRole('header', { name: 'Risks' })).not.toBeOnTheScreen();
     expect(screen.queryByRole('button', { name: /^Insure/ })).not.toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: '▸ Next unlocks' })).toBeOnTheScreen();
   });
 
   it('insures a category in one tap and shows the premium in the day figures', async () => {
     const session = await openVending({ stage: 2, treasuryCents: dollars('50') }, 40);
+    await fireEvent.press(screen.getByRole('button', { name: '▸ Daily figures' }));
     await fireEvent.press(
       screen.getByRole('button', { name: 'Insure equipment risks, $2.80/day' }),
     );
@@ -65,6 +53,7 @@ describe('the Risks section', () => {
       stage: 2,
       insurance: { equipment: 'lapsed', liability: 'none', supply: 'none' },
     });
+    await fireEvent.press(screen.getByRole('button', { name: '▸ Daily figures' }));
     expect(
       screen.getByRole('button', { name: 'Renew equipment risks, $2.80/day' }),
     ).toBeOnTheScreen();
@@ -83,6 +72,7 @@ describe('the Risks section', () => {
       },
       31,
     );
+    await fireEvent.press(screen.getByRole('button', { name: '▸ Daily figures' }));
     expect(row('Breakdown now, Capacity down 30%, 3 days left')).toBeOnTheScreen();
     expect(row('Customers per day, 70 of 110 served, capacity 70')).toBeOnTheScreen();
   });

@@ -22,15 +22,17 @@ describe('app shell', () => {
     expect(screen.getByLabelText('Cash $0.00')).toBeOnTheScreen();
   });
 
-  it('opens Goals from the header', async () => {
+  it('opens Goals from Profile', async () => {
     await renderApp();
+    await fireEvent.press(screen.getByRole('button', { name: /^Profile/ }));
     await fireEvent.press(screen.getByLabelText('Goals'));
     expect(screen).toHavePathname('/goals');
     expect(await screen.findByText('Worth $1B')).toBeOnTheScreen();
   });
 
-  it('opens Settings from the header', async () => {
+  it('opens Settings from Profile', async () => {
     await renderApp();
+    await fireEvent.press(screen.getByRole('button', { name: /^Profile/ }));
     await fireEvent.press(screen.getByLabelText('Settings'));
     expect(screen).toHavePathname('/settings');
     expect(await screen.findByText('All companies and coins are fictional.')).toBeOnTheScreen();
@@ -38,8 +40,11 @@ describe('app shell', () => {
 
   it('previews locked tiers with their unlock threshold', async () => {
     await renderApp('/businesses');
+    await fireEvent.press(screen.getByRole('tab', { name: 'Tier 2' }));
     expect(screen.getByText('Unlocks at $5,000.00 peak net worth')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('tab', { name: 'Tier 4' }));
     expect(screen.getByText('Unlocks at $8,000,000.00 peak net worth')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('tab', { name: 'Tier 1' }));
     expect(screen.getByText('Profit $100.00/day')).toBeOnTheScreen();
   });
 

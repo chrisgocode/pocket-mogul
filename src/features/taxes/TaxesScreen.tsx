@@ -5,10 +5,10 @@ import { useGameSnapshot } from '@/features/game/GameContext';
 import { ActionSheet } from '@/features/game/ActionSheet';
 import { useGameAction } from '@/features/game/useGameAction';
 import { Screen } from '@/ui/Screen';
-import { Section } from '@/ui/Section';
+import { Disclosure } from '@/ui/Disclosure';
 import { AppText } from '@/ui/Typography';
 
-import { CurrentTaxCard } from './CurrentTaxCard';
+import { TaxCurrentSection } from './TaxCurrentSection';
 import { TaxDebtCard } from './TaxDebtCard';
 import { TaxReturnCard } from './TaxReturnCard';
 import { taxActionText } from './taxActionText';
@@ -20,29 +20,24 @@ export function TaxesScreen() {
   const action = useGameAction(commandIdentity);
   return (
     <Screen>
-      <AppText variant="title" accessibilityRole="header">
-        Taxes
-      </AppText>
-      <AppText muted>
-        {view.status === 'exempt'
-          ? 'Permanent tax exemption active. No filing or tax payments are required.'
-          : 'Taps and Tap Boost are exempt. The first $10,000 of wealth is protected; wealth bands blend your profit-tax rate. Returns close every six credited hours.'}
-      </AppText>
-      {view.lines.length === 0 && view.returns.length === 0 ? (
-        <AppText>No taxable earnings yet</AppText>
-      ) : null}
-      <CurrentTaxCard view={view} />
-      <TaxDebtCard view={view} review={action.review} />
-      <Section title="Returns and audits">
-        {orderedTaxReturns(view.returns).map((statement) => (
-          <TaxReturnCard
-            key={statement.id}
-            statement={statement}
-            view={view}
-            review={action.review}
-          />
-        ))}
-      </Section>
+      {view.debtCents > 0n ? <TaxDebtCard view={view} review={action.review} /> : null}
+      {orderedTaxReturns(view.returns).map((statement) => (
+        <TaxReturnCard
+          key={statement.id}
+          statement={statement}
+          view={view}
+          review={action.review}
+        />
+      ))}
+      <TaxCurrentSection view={view} />
+      {view.debtCents === 0n ? <TaxDebtCard view={view} review={action.review} /> : null}
+      <Disclosure title="Tax rules">
+        <AppText muted>
+          Taps and Tap Boost are exempt. Returns close every six credited hours. The first $10,000
+          of wealth is protected when blending the profit-tax rate. Ordinary tax is paid at filing.
+          Debt collects 25% of eligible credits. No interest, repeated fines or forced sales.
+        </AppText>
+      </Disclosure>
       <ActionSheet
         confirmation={action.confirmation}
         describe={(command) => taxActionText(command, view)}

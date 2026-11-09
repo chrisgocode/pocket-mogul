@@ -1,5 +1,4 @@
-import { businessTaxSource, rentalTaxSource } from '@/domain/tax/sources';
-import { quotePropertyIncome } from '@/domain/propertyQuotes';
+import { businessTaxSource } from '@/domain/tax/sources';
 import type { Content } from '@/content';
 import { quoteBusinessDay } from '@/domain/business/core';
 import type { GameState } from '@/domain/gameState';
@@ -50,38 +49,4 @@ export function businessTaxForecast(
 
 function carriedLoss(pool: { readonly lossCents: ReturnType<typeof moneyCents> } | undefined) {
   return pool?.lossCents ?? moneyCents(0);
-}
-
-export function passiveProfitAfterTaxCents(state: GameState, content: Content) {
-  const businesses = state.businesses.reduce(
-    (sum, business) =>
-      sum +
-      (businessTaxForecast(state, { businessId: business.definitionId, content })?.perMinuteCents ??
-        0n),
-    0n,
-  );
-  const rentals = state.properties.reduce((sum, property) => {
-    const definition = content.properties.find((p) => p.id === property.definitionId);
-    if (!property.rented || definition === undefined) return sum;
-    const quote = quotePropertyIncome(property, {
-      definition,
-      rules: content.economy.propertyRules,
-    });
-    const pool =
-      state.tax.status === 'active'
-        ? state.tax.pools[rentalTaxSource(property.definitionId)]
-        : undefined;
-    const dayMinutes = BigInt(content.economy.businessRules.dayMs) / MS_PER_MINUTE;
-    const rateBps = state.tax.status === 'active' ? state.tax.rateBps : 0;
-    const tax = assessPool(
-      {
-        ...emptyTaxPool(),
-        profitCents: moneyCents(quote.netPerMinuteCents * dayMinutes),
-        lossCents: carriedLoss(pool),
-      },
-      { source: property.definitionId, atMs: 0, rateBps },
-    );
-    return sum + quote.netPerMinuteCents - tax.taxCents / dayMinutes;
-  }, 0n);
-  return moneyCents(businesses + rentals);
 }

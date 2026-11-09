@@ -5,6 +5,7 @@ import { AppText } from '@/ui/Typography';
 import { usePressedStyle } from '@/ui/pressFeedback';
 import { colors, highlightCardWidth, radius, spacing } from '@/ui/tokens';
 
+import { WalletDrawing } from './WalletDrawing';
 import type { WalletArtwork } from './walletArtwork';
 
 export function TapCard({
@@ -31,16 +32,17 @@ export function TapCard({
       onPress={onTap}
       style={({ pressed }) => [
         styles.card,
-        { backgroundColor: artwork.color },
+
         highlight === 'tutorial' && styles.highlighted,
         pressed && pressedStyle,
       ]}
     >
-      <AppText variant="title" style={styles.text}>
-        {artwork.name}
+      <WalletDrawing artwork={artwork} />
+      <AppText variant="display" style={styles.value}>
+        +{payout}
       </AppText>
-      <AppText style={styles.text}>
-        Level {walletLevel} · +{payout}
+      <AppText variant="caption" muted>
+        per tap · wallet level {walletLevel}
         {boosted ? ' · Boosted' : ''}
       </AppText>
     </Pressable>
@@ -49,12 +51,16 @@ export function TapCard({
 
 const styles = StyleSheet.create({
   card: {
-    aspectRatio: 1.6,
+    minHeight: 210,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderWidth: 1,
+    alignItems: 'center',
     borderRadius: radius.lg,
     padding: spacing.xl,
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
     gap: spacing.xs,
   },
   highlighted: { borderWidth: highlightCardWidth, borderColor: colors.highlight },
-  text: { color: colors.textOnAccent },
+  value: { color: colors.highlight },
 });

@@ -6,6 +6,7 @@ import { ActionSheet } from '@/features/game/ActionSheet';
 import { useGameSnapshot } from '@/features/game/GameContext';
 import { useGameAction } from '@/features/game/useGameAction';
 import { EmptyState } from '@/ui/EmptyState';
+import { BackLink } from '@/ui/BackLink';
 import { Screen } from '@/ui/Screen';
 
 import {
@@ -21,9 +22,7 @@ import type { FlagshipActions } from './FlagshipSections';
 import type { VendingActions } from './vendingFormat';
 import { useBusinessCommand } from './useBusinessCommand';
 
-function screenTitle(detail: BusinessDetailView): string {
-  return detail.status === 'unknown' ? 'Business' : detail.business.name;
-}
+const BACK_OPTIONS = { headerLeft: () => <BackLink href="/businesses" label="Businesses" /> };
 
 function treasuryActions(
   detail: Extract<BusinessDetailView, { status: 'owned' }>,
@@ -111,13 +110,13 @@ function flagshipActions(
 }
 
 export function BusinessDetailScreen() {
-  const { businessId } = useLocalSearchParams<{ businessId: string }>();
+  const { businessId, section } = useLocalSearchParams<{ businessId: string; section?: string }>();
   const detail = selectBusinessDetail(useGameSnapshot(), { businessId, content: getContent() });
   const { confirmation, review, close, confirm } = useGameAction(businessActionCommand);
   const run = useBusinessCommand();
   return (
-    <Screen>
-      <Stack.Screen options={{ title: screenTitle(detail) }} />
+    <Screen tone="businesses" focusSection={section}>
+      <Stack.Screen options={{ ...BACK_OPTIONS, title: '' }} />
       {detail.status === 'owned' ? (
         <OwnedBusinessDetails
           detail={detail}

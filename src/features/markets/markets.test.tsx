@@ -37,7 +37,7 @@ describe('Markets', () => {
 
   it('explains market news with its duration', async () => {
     await open('/markets');
-    expect(screen.getByRole('header', { name: 'Market news' })).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: '▸ Market news' }));
     expect(screen.getByText('Live now · ends in 10 market minutes')).toBeOnTheScreen();
   });
 });

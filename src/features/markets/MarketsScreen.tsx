@@ -1,6 +1,4 @@
 import { StyleSheet } from 'react-native';
-
-import { selectMarketNews } from '@/application/marketNews';
 import {
   selectCoinQuotes,
   selectStockQuotes,
@@ -8,64 +6,46 @@ import {
 } from '@/application/marketsView';
 import { FICTIONAL_NOTICE, getContent } from '@/content';
 import { useGameSnapshot } from '@/features/game/GameContext';
-import { EmptyState } from '@/ui/EmptyState';
+import { PageTitle } from '@/ui/PageTitle';
 import { Screen } from '@/ui/Screen';
-import { Section } from '@/ui/Section';
-import { SegmentedControl, type SegmentOption } from '@/ui/SegmentedControl';
+import { SegmentedControl } from '@/ui/SegmentedControl';
 import { useSegment } from '@/ui/state/useSegment';
 import { AppText } from '@/ui/Typography';
-
-import { QuoteSection } from './QuoteSection';
-import { NewsList } from './NewsList';
-
-type Market = 'stocks' | 'crypto';
-
-const MARKET_OPTIONS: readonly SegmentOption<Market>[] = [
-  { value: 'stocks', label: 'Stocks' },
-  { value: 'crypto', label: 'Crypto' },
-];
-
-const NEWS_ITEMS = 4;
-
+import { MarketExplore } from './MarketExplore';
+import { MarketPortfolio } from './MarketPortfolio';
+import { AssetQuoteRow } from './AssetQuoteRow';
+const MODES = ['Portfolio', 'Explore', 'Watchlist'] as const;
 export function MarketsScreen() {
-  const market = useSegment<Market>('stocks');
   const snapshot = useGameSnapshot();
   const content = getContent();
-  const quotes =
-    market.selected === 'stocks'
-      ? selectStockQuotes(snapshot, content)
-      : selectCoinQuotes(snapshot, content);
+  const mode = useSegment<string>(snapshot.state.positions.length > 0 ? 'Portfolio' : 'Explore');
+  const quotes = [...selectStockQuotes(snapshot, content), ...selectCoinQuotes(snapshot, content)];
   const watched = selectWatchedQuotes(snapshot, quotes);
-  const news = selectMarketNews(snapshot.state, {
-    market: market.selected,
-    content,
-    limit: NEWS_ITEMS,
-  });
   return (
-    <Screen>
+    <Screen tone="markets">
+      <PageTitle title="Markets" />
       <SegmentedControl
-        options={MARKET_OPTIONS}
-        selected={market.selected}
-        onSelect={market.select}
+        options={MODES.map((label) => ({ value: label, label }))}
+        selected={mode.selected}
+        onSelect={mode.select}
       />
       {snapshot.state.tradingUnlocked ? null : (
-        <EmptyState
-          title="Look around first"
-          message="Markets become tradable after you buy your first business."
-        />
+        <AppText variant="caption" muted>
+          Trading unlocks with your first business.
+        </AppText>
       )}
-      {watched.length === 0 ? null : <QuoteSection title="Watchlist" quotes={watched} />}
-      <QuoteSection title="Prices" note="Change this market hour" quotes={quotes} />
-      <Section title="Market news" note="What moved prices, not what happens next">
-        <NewsList items={news} empty="No market news yet." />
-      </Section>
+      {mode.selected === 'Portfolio' ? <MarketPortfolio quotes={quotes} /> : null}
+      {mode.selected === 'Explore' ? <MarketExplore quotes={quotes} /> : null}
+      {mode.selected === 'Watchlist'
+        ? watched.map((quote) => <AssetQuoteRow key={quote.asset.id} quote={quote} />)
+        : null}
+      {mode.selected === 'Watchlist' && watched.length === 0 ? (
+        <AppText muted>No watched assets</AppText>
+      ) : null}
       <AppText variant="caption" muted style={styles.notice}>
         {FICTIONAL_NOTICE}
       </AppText>
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  notice: { textAlign: 'center' },
-});
+const styles = StyleSheet.create({ notice: { textAlign: 'center' } });
