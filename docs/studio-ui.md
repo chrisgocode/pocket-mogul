@@ -28,3 +28,9 @@ Simulator inspection also verified native attention → Locations scrolling and 
 ## Visual UX once-over
 
 A subagent reviewed nine native screenshots, recording frames and alternate-state source for placement, copy, navigation and financial clarity. Three follow-ups are implemented: assessed debt/payment precedes return history and future filing controls; closed Owned rows say “Closed · deposit to reopen” and use “Manage” instead of implying they are open/earning; Goals consistently names the Earn tab. Native regressions cover closed-state presentation, debt-action order and Earn wording. Optional pre-release polish remains shortening the Profile liability label and keeping large-text `/min` together; larger text is readable and scrollable.
+
+## Studio objects · option A
+
+The selected A direction replaces thin business wireframes and their unrelated background rectangles with compact solid SVG objects. All twelve businesses have a distinct silhouette, using muted mint, cream, clay, slate and lavender. The artwork is decorative; business names and status remain the accessible content of each row.
+
+Primary buttons retain their section accent with a subtle gradient, top highlight and shallow lower edge. Pressing depresses the control; reduced motion uses opacity feedback. Secondary buttons use a quiet surface and outline. Disabled actions keep their disabled semantics and lose the highlight and shadow. Touch targets and wrapping labels remain intact. This implements A without the stage-dependent artwork or progression cards explored in C.

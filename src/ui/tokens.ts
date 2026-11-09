@@ -15,6 +15,11 @@ export const colors = {
   locked: '#626775',
   highlight: '#EABB72',
   scrim: 'rgba(0, 0, 0, 0.65)',
+  buttonHighlight: '#FFFFFF',
+  buttonTopEdge: 'rgba(255, 255, 255, 0.28)',
+  buttonLowerEdge: 'rgba(0, 0, 0, 0.24)',
+  buttonShadow: '#000000',
+  transparent: 'transparent',
 } as const;
 
 export const sectionColors = {
@@ -55,6 +60,9 @@ export const highlightCardWidth = 4;
 
 export const feedback = {
   pressedScale: 0.97,
+  buttonPressedScale: 0.985,
+  buttonPressedOffset: 2,
+  buttonHighlightOpacity: 0.15,
   pressedOpacity: 0.7,
   hapticMinIntervalMs: 100,
 } as const;
