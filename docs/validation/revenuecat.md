@@ -13,7 +13,7 @@ Example shape (replace the public SDK key with the validation app's real public 
   "profile": "revenuecat-validation",
   "environment": "sandbox",
   "store": "apple",
-  "appId": "com.pocketmogul.dev",
+  "appId": "com.pocketfortune.dev",
   "apiKey": "appl_REPLACE",
   "productId": "pm_validation_exemption",
   "entitlementId": "pm_validation_exemption"
@@ -22,7 +22,7 @@ Example shape (replace the public SDK key with the validation app's real public 
 
 Android uses `store: google` and its `goog_` public key. All fields are required; unknown fields, other app IDs, production environment, platform/store/key mismatches and product/entitlement IDs outside `pm_validation_` are rejected. These explicit build mappings authorize only test metadata queries. They cannot establish runtime store scope or grant access. Ordinary artifacts must be built with the variable absent; verify disabled status in the artifact before distribution.
 
-A valid configuration installs the test driver `await globalThis.pocketMogulBillingValidation()` in the JavaScript debugger. It uses only Game products/restore/state operations, returning localized product titles/prices, normalized ownership status and operation status. It exposes no anonymous identifier, transaction, receipt, token, raw CustomerInfo or SDK error. `restore()` here performs a read, not RevenueCat's store restoration operation. There is no purchase control. The driver's ownership result is unavailable until the existing contract can be satisfied.
+A valid configuration installs the test driver `await globalThis.pocketFortuneBillingValidation()` in the JavaScript debugger. It uses only Game products/restore/state operations, returning localized product titles/prices, normalized ownership status and operation status. It exposes no anonymous identifier, transaction, receipt, token, raw CustomerInfo or SDK error. `restore()` here performs a read, not RevenueCat's store restoration operation. There is no purchase control. The driver's ownership result is unavailable until the existing contract can be satisfied.
 
 ## SDK evidence and blocking gaps
 
@@ -74,3 +74,7 @@ Outstanding native gates: initialization with real public validation keys, local
 - Android: clean prebuild plus `./gradlew app:assembleDebug` succeeded in 14m 10s (558 tasks executed), producing `android/app/build/outputs/apk/debug/app-debug.apk` for arm64-v8a, armeabi-v7a, x86 and x86_64. Gradle 9.4.1, compile SDK 37, target SDK 36, NDK 27.1.12297006 and Kotlin 2.2.10 were used. The `:app:dependencies --configuration debugRuntimeClasspath` report resolved hybrid 19.17.0 → Purchases 10.30.0 → Play Billing 8.3.0, matching the config-plugin pins. This is a debug compilation, not Play store acceptance.
 - The iOS app installed and loaded its JavaScript bundle on the iPhone 17 Pro simulator (iOS 26.0) with validation configuration absent. Live RevenueCat initialization and store reads were not attempted without the owner's validation setup.
 - Final `bun run check`: 828 logic tests, 135 screen tests, all static checks and 20/20 Expo Doctor checks passed. Mandatory commit hooks also passed. Review findings were addressed by reusing PurchasePolicy and adding the adapter-backed Offline settlement regression.
+
+### Rename configuration
+
+The Pocket Fortune rename changes the development identifier to `com.pocketfortune.dev` and the validation driver to `pocketFortuneBillingValidation`. Configure new Apple/Google RevenueCat apps with that matching identifier and use their platform public SDK keys. Earlier compilation evidence above describes the pre-rename binaries; rename build validation is separate. Production billing remains disabled.

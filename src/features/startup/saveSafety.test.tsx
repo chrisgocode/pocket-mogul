@@ -54,7 +54,7 @@ describe('opening a save from a newer version', () => {
     mockGame = first.reopen();
     await renderRouter('src/app', { initialUrl: '/home' });
     expect(
-      screen.getByRole('header', { name: 'Update Pocket Mogul to keep playing' }),
+      screen.getByRole('header', { name: 'Update Pocket Fortune to keep playing' }),
     ).toBeOnTheScreen();
     expect(first.saveDocument()).toBe(newer);
   });

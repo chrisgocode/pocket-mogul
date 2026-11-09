@@ -2,7 +2,7 @@ import type { Game } from '@/application/game';
 
 export function installBillingValidationDriver(game: Game): void {
   Object.assign(globalThis, {
-    pocketMogulBillingValidation: async () => {
+    pocketFortuneBillingValidation: async () => {
       const products = await game.purchases.products();
       const ownership = await game.purchases.restore();
       return {
