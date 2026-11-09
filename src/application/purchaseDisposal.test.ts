@@ -5,6 +5,7 @@ import { deferred, startObservedTestGame } from './testGame';
 
 it('does not deliver ownership queued behind a held save after disposal', async () => {
   const requested = deferred();
+  const response = deferred();
   const billing = scriptedBilling({
     completionOwner: 'application',
     purchases: [{ status: 'completed', ownership }],
@@ -15,14 +16,15 @@ it('does not deliver ownership queued behind a held save after disposal', async 
       ...billing,
       purchase: (productId) => {
         requested.resolve();
-        return billing.purchase(productId);
+        return response.promise.then(() => billing.purchase(productId));
       },
     },
   });
-  const release = session.holdSaves();
-  const saving = session.game.dispatch({ id: 'held', command: { type: 'AdvanceTime' } });
   const purchasing = session.game.purchases.purchase('test-exemption');
   await requested.promise;
+  const release = session.holdSaves();
+  const saving = session.game.dispatch({ id: 'held', command: { type: 'AdvanceTime' } });
+  response.resolve();
   await Promise.resolve();
   session.game.purchases.dispose();
   release();
@@ -98,6 +100,7 @@ it('retains pending completion when its marker is queued behind a held save at d
 
 it('does not write a delivery whose transaction waits for storage until after disposal', async () => {
   const requested = deferred();
+  const response = deferred();
   const billing = scriptedBilling({ completionOwner: 'application' });
   const session = await startObservedTestGame({
     purchasePolicy,
@@ -105,14 +108,15 @@ it('does not write a delivery whose transaction waits for storage until after di
       ...billing,
       purchase: () => {
         requested.resolve();
-        return Promise.resolve({ status: 'completed', ownership });
+        return response.promise.then(() => ({ status: 'completed', ownership }));
       },
     },
   });
   const before = session.game.getSnapshot().state;
-  const release = session.holdSaves();
   const purchasing = session.game.purchases.purchase('test-exemption');
   await requested.promise;
+  const release = session.holdSaves();
+  response.resolve();
   await Promise.resolve();
   await Promise.resolve();
   await Promise.resolve();

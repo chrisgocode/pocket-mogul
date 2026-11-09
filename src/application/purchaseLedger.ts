@@ -1,3 +1,4 @@
+import type { CheckoutGuard } from './purchaseGuard';
 import type { PurchaseScope, VerifiedOwnership } from './billingPort';
 
 export type PurchasePolicy = {
@@ -46,6 +47,7 @@ export function acceptsPurchase(policy: PurchasePolicy, ownership: VerifiedOwner
 export type PurchaseIdentity = {
   readonly id: string;
   readonly providerReference?: string | undefined;
+  readonly checkout?: CheckoutGuard | undefined;
 };
 
 export function authorizesPurchaseScope(policy: PurchasePolicy, reference: PurchaseScope): boolean {

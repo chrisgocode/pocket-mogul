@@ -40,6 +40,7 @@ export type OwnershipResult =
       readonly observedAtMs: number;
       readonly ownership: readonly VerifiedOwnership[];
       readonly removals: readonly PurchaseReference[];
+      readonly pendingProductIds?: readonly string[];
     };
 
 export type PurchaseResult =

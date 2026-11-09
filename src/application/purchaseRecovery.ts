@@ -35,6 +35,9 @@ export function boundedBilling(ports: GamePorts): BillingPort {
       });
       return initialization;
     },
+    purchase: (productId) =>
+      bounded(ports, () => billing.purchase(productId), { status: 'unavailable' }),
+    products: () => bounded(ports, billing.products, { status: 'unavailable', products: [] }),
     currentOwnership: () => bounded(ports, billing.currentOwnership, { status: 'unavailable' }),
     restore: () => bounded(ports, billing.restore, { status: 'unavailable' }),
     completion:

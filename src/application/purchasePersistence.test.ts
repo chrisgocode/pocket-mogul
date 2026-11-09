@@ -45,6 +45,7 @@ it('migrates an existing database and keeps purchase receipts and completion wor
       await tx.writePurchaseIdentity({
         id: 'independent-identity',
         providerReference: 'provider-customer',
+        checkout: { status: 'pending', productId: 'test-exemption' },
       });
       await tx.writePurchase(record);
     });
@@ -57,6 +58,7 @@ it('migrates an existing database and keeps purchase receipts and completion wor
       expect(await reopened.transact((tx) => tx.readPurchaseIdentity())).toEqual({
         id: 'independent-identity',
         providerReference: 'provider-customer',
+        checkout: { status: 'pending', productId: 'test-exemption' },
       });
     } finally {
       reopenedDatabase.close();
