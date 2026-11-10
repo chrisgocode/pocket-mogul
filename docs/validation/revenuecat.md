@@ -13,7 +13,7 @@ Example shape (replace the public SDK key with the validation app's real public 
   "profile": "revenuecat-validation",
   "environment": "sandbox",
   "store": "apple",
-  "appId": "com.pocketfortune.dev",
+  "appId": "com.chrisgocode.pocketfortune",
   "apiKey": "appl_REPLACE",
   "productId": "pm_validation_exemption",
   "entitlementId": "pm_validation_exemption"
@@ -77,4 +77,4 @@ Outstanding native gates: initialization with real public validation keys, local
 
 ### Rename configuration
 
-The Pocket Fortune rename changes the development identifier to `com.pocketfortune.dev` and the validation driver to `pocketFortuneBillingValidation`. Configure new Apple/Google RevenueCat apps with that matching identifier and use their platform public SDK keys. Earlier compilation evidence above describes the pre-rename binaries; rename build validation is separate. Production billing remains disabled.
+The Pocket Fortune rename introduced `pocketFortuneBillingValidation`. The owner subsequently chose one app record for sandbox testing and eventual release, using the permanent identifier `com.chrisgocode.pocketfortune` in Apple, Google, RevenueCat and app configuration. The earlier `com.pocketfortune.dev` and `com.pocketmogul.dev` identifiers are retired placeholders. Earlier compilation evidence above describes the earlier binaries. The permanent identifier does not enable production billing: explicit sandbox validation configuration and test-only product mappings remain required. See [the setup guide](../ios-revenuecat-setup.md).

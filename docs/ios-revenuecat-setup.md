@@ -1,0 +1,52 @@
+# Pocket Fortune: iOS and RevenueCat setup
+
+Use one Pocket Fortune app record for sandbox testing and eventual release. The permanent iOS bundle ID and Android package are `com.chrisgocode.pocketfortune`, chosen from the owner's existing `chrisgocode` developer identity. Apple must confirm availability when registering it. The `.dev` identifiers from earlier development builds are retired.
+
+| Field | Value |
+| --- | --- |
+| App Store name | Pocket Fortune |
+| App Store subtitle | Business Empire |
+| Bundle ID | `com.chrisgocode.pocketfortune` |
+| App Store Connect SKU | `pocket-fortune` |
+| RevenueCat project | Pocket Fortune |
+| RevenueCat Apple app | Pocket Fortune iOS |
+
+## 1. Complete the Apple account prerequisites
+
+Use an active Apple Developer Program membership. In App Store Connect → Business, complete the Paid Applications Agreement and required tax/banking information. These are required for sandbox purchase testing. Follow [RevenueCat's Apple prerequisites](https://www.revenuecat.com/docs/getting-started/entitlements/ios-products).
+
+## 2. Register the permanent bundle ID
+
+In Apple Developer → Certificates, Identifiers & Profiles → Identifiers, add an App ID for an app. Set the description to Pocket Fortune and the explicit Bundle ID to `com.chrisgocode.pocketfortune`. Follow [Apple's registration guide](https://developer.apple.com/help/account/identifiers/register-an-app-id/). If Apple rejects the identifier as unavailable, resolve that before creating the app record or uploading a binary; code and every service must agree on the identifier.
+
+## 3. Create the App Store Connect app
+
+In App Store Connect → Apps → + → New App, choose iOS, name Pocket Fortune, primary language English (U.S.), the bundle ID above and SKU `pocket-fortune`. Enter Business Empire in the subtitle field when completing the listing. Choose United States only when configuring release availability. Creating the app record is preparation; public release is a later submission. Follow [Apple's app-record guide](https://developer.apple.com/help/app-store-connect/create-an-app-record/add-a-new-app/).
+
+## 4. Create the sandbox test product
+
+Inside the app, open In-App Purchases and add a Non-Consumable. Use reference name Validation Tax Exemption, product ID `pm_validation_exemption`, localized display name Validation Tax Exemption and description Permanent tax exemption for validation testing. Complete required localization and a test price. This is the existing sandbox fixture, not an approved commercial product or price. The app remains named Pocket Fortune. See [Apple product setup](https://www.revenuecat.com/docs/getting-started/entitlements/ios-products).
+
+## 5. Connect the Apple app to RevenueCat
+
+Create or rename the RevenueCat project to Pocket Fortune. Under Apps, add an Apple App Store app named Pocket Fortune iOS using `com.chrisgocode.pocketfortune`.
+
+In App Store Connect → Users and Access → Integrations → In-App Purchase, generate an In-App Purchase key named RevenueCat Pocket Fortune. Download its original `.p8` file once, keep it securely, and upload it directly into RevenueCat's In-App Purchase key configuration. Enter its Key ID and Issuer ID where requested, save and check credential validation. This is the required StoreKit 2 credential. See [RevenueCat's key instructions](https://www.revenuecat.com/docs/service-credentials/itunesconnect-app-specific-shared-secret/in-app-purchase-key-configuration).
+
+For automatic product imports, also configure the optional App Store Connect API key: generate it under Users and Access → Integrations → App Store Connect API with at least App Manager access, and upload its original `AuthKey_*.p8` file to RevenueCat's separate App Store Connect API section. Follow [the API-key instructions](https://www.revenuecat.com/docs/service-credentials/itunesconnect-app-specific-shared-secret/app-store-connect-api-key-configuration). It is a different key from the In-App Purchase key. RevenueCat's [credential reference](https://www.revenuecat.com/docs/service-credentials/itunesconnect-app-specific-shared-secret) describes the shared secret as a legacy StoreKit 1 requirement; this app uses StoreKit 2.
+
+## 6. Add the product and entitlement
+
+In RevenueCat → Product catalog → Products, import or manually add the Apple product with exact ID `pm_validation_exemption` and Non-Consumable type. Under Entitlements, create `pm_validation_exemption` and attach that Apple product. The current read-only integration fetches products directly by ID, so it does not require an Offering or paywall. See [the entitlement guide](https://www.revenuecat.com/docs/getting-started/entitlements).
+
+## 7. Prepare the sandbox tester and public SDK key
+
+Create a Sandbox Apple Account in App Store Connect → Users and Access → Sandbox, using an email you control and United States as its country/region. See [Apple's tester guide](https://developer.apple.com/help/app-store-connect/test-in-app-purchases/create-a-sandbox-apple-account/).
+
+Find the Apple public SDK key beginning `appl_` in RevenueCat → API keys or the Apple app settings. Provide that public key and confirm the two exact product/entitlement IDs when configuring the binary. Private `.p8` files stay in Apple/RevenueCat and secure owner storage; they are not needed in the app or chat. See [RevenueCat's API-key guide](https://www.revenuecat.com/docs/projects/authentication).
+
+## App configuration and remaining gates
+
+The repository uses the same permanent identifier in app.json and the infrastructure validation allowlist. Ordinary builds still select disabled billing. Explicit `revenuecat-validation` configuration, sandbox environment and allowlisted test product mappings are still required to initialize the read-only provider. Registering the permanent app identity does not enable production billing or checkout. Existing ownership-evidence feasibility gaps and actual store acceptance remain tracked in #112 and [the evidence record](validation/revenuecat.md).
+
+The simulator can remain shut down during account setup. New native binaries are needed before live SDK reads with the permanent identifier; generated prebuild configuration alone is not a compiled or store-tested binary.

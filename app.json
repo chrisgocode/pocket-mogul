@@ -10,10 +10,10 @@
     "backgroundColor": "#16171D",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.pocketfortune.dev"
+      "bundleIdentifier": "com.chrisgocode.pocketfortune"
     },
     "android": {
-      "package": "com.pocketfortune.dev",
+      "package": "com.chrisgocode.pocketfortune",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",

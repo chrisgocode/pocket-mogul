@@ -5,7 +5,7 @@ const configSchema = z
     profile: z.literal('revenuecat-validation'),
     environment: z.literal('sandbox'),
     store: z.enum(['apple', 'google']),
-    appId: z.literal('com.pocketfortune.dev'),
+    appId: z.literal('com.chrisgocode.pocketfortune'),
     apiKey: z.string().regex(/^(appl|goog)_[A-Za-z0-9]+$/),
     productId: z.string().regex(/^pm_validation_[a-z0-9_]+$/),
     entitlementId: z.string().regex(/^pm_validation_[a-z0-9_]+$/),
