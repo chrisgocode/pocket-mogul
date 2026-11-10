@@ -7,8 +7,8 @@ const configSchema = z
     store: z.enum(['apple', 'google']),
     appId: z.literal('com.chrisgocode.pocketfortune'),
     apiKey: z.string().regex(/^(appl|goog)_[A-Za-z0-9]+$/),
-    productId: z.string().regex(/^pm_validation_[a-z0-9_]+$/),
-    entitlementId: z.string().regex(/^pm_validation_[a-z0-9_]+$/),
+    productId: z.literal('pm_tax_exemption'),
+    entitlementId: z.literal('pm_tax_exemption'),
   })
   .strict();
 

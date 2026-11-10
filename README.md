@@ -2,7 +2,7 @@
 
 # Pocket Fortune
 
-Store name: **Pocket Fortune**. App Store subtitle: **Business Empire**. Full marketing name: **Pocket Fortune: Business Empire**.
+Store name: **Pocket Fortune Business Empire**. Home-screen name: **Pocket Fortune**. App Store subtitle: **Business Empire**. Full marketing name: **Pocket Fortune: Business Empire**.
 
 A portrait mobile idle wealth game for iOS and Android: tap for cash, then build wealth through businesses, fictional markets and rental property. Built with Expo, React Native and TypeScript.
 
