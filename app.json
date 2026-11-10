@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Pocket Mogul",
-    "slug": "pocket-mogul",
-    "scheme": "pocketmogul",
+    "name": "Pocket Fortune",
+    "slug": "pocket-fortune",
+    "scheme": "pocketfortune",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,10 +10,10 @@
     "backgroundColor": "#16171D",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.pocketmogul.dev"
+      "bundleIdentifier": "com.pocketfortune.dev"
     },
     "android": {
-      "package": "com.pocketmogul.dev",
+      "package": "com.pocketfortune.dev",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -31,7 +31,7 @@
         {
           "androidAppId": "ca-app-pub-3940256099942544~3347511713",
           "iosAppId": "ca-app-pub-3940256099942544~1458002511",
-          "userTrackingUsageDescription": "Pocket Mogul uses this to show ads that are more relevant to you. The game works the same either way."
+          "userTrackingUsageDescription": "Pocket Fortune uses this to show ads that are more relevant to you. The game works the same either way."
         }
       ],
       "./plugins/withRevenueCatPins"

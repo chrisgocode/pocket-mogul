@@ -4,7 +4,7 @@ export const validationConfig = {
   profile: 'revenuecat-validation',
   environment: 'sandbox',
   store: 'apple',
-  appId: 'com.pocketmogul.dev',
+  appId: 'com.pocketfortune.dev',
   apiKey: 'appl_validation',
   productId: 'pm_validation_exemption',
   entitlementId: 'pm_validation_exemption',

@@ -71,7 +71,7 @@ describe('reporting an ad', () => {
     await openApp('/settings');
     await fireEvent.press(screen.getByRole('button', { name: 'Report an ad' }));
     expect(openURL).toHaveBeenCalledWith(
-      'mailto:ads@pocketmogul.example?subject=Report%20an%20ad%20in%20Pocket%20Mogul',
+      'mailto:ads@pocketfortune.example?subject=Report%20an%20ad%20in%20Pocket%20Fortune',
     );
   });
 });
