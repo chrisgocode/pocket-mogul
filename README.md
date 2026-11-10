@@ -191,7 +191,7 @@ iOS builds need **Xcode 27** (SDK 58 targets Xcode 27 and iOS 27). Xcode 26.x fa
 
 ## Owner-supplied release configuration
 
-`app.json` uses the placeholder identifiers `com.pocketfortune.dev` for iOS and Android. The final app identity, signing, production ad IDs and store disclosures come from the owner before release (spec §19).
+`app.json` uses `com.chrisgocode.pocketfortune` for both the iOS bundle ID and Android package. Register this identifier for the Pocket Fortune store apps. Signing, production ad IDs and store disclosures still come from the owner before release (spec §19).
 
 #102 adds provider-managed permanent ownership recovery. A verified provider-completed purchase is separate from local delivery: a failed SQLite commit returns `saveFailed`, publishes no benefit and saves no delivered receipt. Launch, foreground/events or explicit restore can re-read fresh, complete, authoritative ownership and retry the permanent effect once. Provider-owned receipts record completion as completed alongside local delivery and never enter the application's finish/acknowledge/consume path, including after restart with a raw-store adapter. Unavailable verification preserves committed access and allows later retry. Existing raw-store completion retries and ledger records remain compatible.
 
@@ -199,8 +199,8 @@ This validates scripted application recovery only. Before native launch, choose 
 
 ## Branding and app identity
 
-The development bundle ID and Android package are `com.pocketfortune.dev`, with deep links using `pocketfortune://`. Choose and register the production app identifier under the owner's developer namespace before uploading a store build. Configure RevenueCat validation apps with the matching development identifier; old `com.pocketmogul.dev` validation configuration is rejected.
+The permanent bundle ID and Android package are `com.chrisgocode.pocketfortune`, with deep links using `pocketfortune://`. Use Pocket Fortune for both the store app and RevenueCat project. The same app identity is used for sandbox testing and eventual release; billing remains disabled outside explicit sandbox validation configuration. Follow [the iOS and RevenueCat setup guide](docs/ios-revenuecat-setup.md). Earlier `com.pocketfortune.dev` and `com.pocketmogul.dev` validation configurations are rejected.
 
-The SQLite filename `pocket-mogul.db` remains stable to preserve existing saves when updating an installation with the same app identifier. The deterministic balance seed, internal lint-rule namespace and GitHub repository URLs retain their existing identifiers. Installing the renamed development bundle creates a separate app sandbox; it does not transfer saves from `com.pocketmogul.dev` automatically. No save or economy version changes are part of the rename.
+The SQLite filename `pocket-mogul.db` remains stable to preserve existing saves when updating an installation with the same app identifier. The deterministic balance seed, internal lint-rule namespace and GitHub repository URLs retain their existing identifiers. Installing the permanent bundle creates a separate app sandbox; it does not transfer saves from `com.pocketfortune.dev` or `com.pocketmogul.dev` automatically. No save or economy version changes are part of the rename.
 
 The current icons are development placeholders. A branded icon and launch-screen artwork are separate design work. Historical native build commands in the RevenueCat evidence record describe the original binaries and retain their original project names.
