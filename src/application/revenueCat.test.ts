@@ -3,29 +3,61 @@ import { revenueCatRuntime } from '@/infrastructure/revenueCatRuntime';
 import { revenueCatFake, validationConfig } from '@/infrastructure/revenueCatTesting';
 import { deferred, fakeClock, startObservedTestGame } from './testGame';
 
-it('reads localized products through Game without inventing ownership or enabling checkout', async () => {
+it.each([
+  { platform: 'ios', config: validationConfig, key: 'appl_validation' },
+  {
+    platform: 'android',
+    config: { ...validationConfig, store: 'google', apiKey: 'goog_validation' },
+    key: 'goog_validation',
+  },
+])(
+  'reads localized products without enabling checkout on $platform',
+  async ({ platform, config, key }) => {
+    const sdk = revenueCatFake();
+    const selected = revenueCatBilling({
+      config,
+      platform,
+      runtime: revenueCatRuntime(() => Promise.resolve(sdk)),
+    });
+    const session = await startObservedTestGame(selected);
+    expect(await session.game.purchases.products()).toEqual({
+      status: 'available',
+      products: [
+        { productId: 'pm_tax_exemption', displayName: 'Exonération', displayPrice: '1,99 €' },
+      ],
+    });
+    expect(await session.game.purchases.restore()).toEqual({ status: 'unavailable' });
+    expect(await session.game.purchases.purchase('pm_tax_exemption')).toEqual({
+      status: 'disabled',
+    });
+    expect(await session.purchaseRecords()).toEqual([]);
+    expect(sdk.configurations).toEqual([key]);
+    expect(await session.purchaseIdentity()).toHaveProperty(
+      'providerReference',
+      '$RCAnonymousID:test',
+    );
+    session.game.tap();
+    await session.game.flushTaps();
+    expect(session.game.getSnapshot().state.cashCents).toBe(100n);
+  },
+);
+
+it('leaves an externally configured SDK untouched and keeps Game usable', async () => {
   const sdk = revenueCatFake();
   const selected = revenueCatBilling({
     config: validationConfig,
     platform: 'ios',
-    runtime: revenueCatRuntime(() => Promise.resolve(sdk)),
+    runtime: revenueCatRuntime(() =>
+      Promise.resolve({ ...sdk, isConfigured: () => Promise.resolve(true) }),
+    ),
   });
   const session = await startObservedTestGame(selected);
-  expect(await session.game.purchases.products()).toEqual({
-    status: 'available',
-    products: [
-      { productId: 'pm_tax_exemption', displayName: 'Exonération', displayPrice: '1,99 €' },
-    ],
-  });
+  expect(await session.game.purchases.products()).toEqual({ status: 'unavailable', products: [] });
   expect(await session.game.purchases.restore()).toEqual({ status: 'unavailable' });
-  expect(await session.game.purchases.purchase('pm_tax_exemption')).toEqual({
-    status: 'disabled',
-  });
+  expect(sdk.configurations).toEqual([]);
+  expect(sdk.listeners.size).toBe(0);
+  expect(await session.purchaseIdentity()).not.toHaveProperty('providerReference');
   expect(await session.purchaseRecords()).toEqual([]);
-  expect(await session.purchaseIdentity()).toHaveProperty(
-    'providerReference',
-    '$RCAnonymousID:test',
-  );
   session.game.tap();
   await session.game.flushTaps();
   expect(session.game.getSnapshot().state.cashCents).toBe(100n);
