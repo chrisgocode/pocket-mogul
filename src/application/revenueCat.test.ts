@@ -14,11 +14,11 @@ it('reads localized products through Game without inventing ownership or enablin
   expect(await session.game.purchases.products()).toEqual({
     status: 'available',
     products: [
-      { productId: 'pm_validation_exemption', displayName: 'Exonération', displayPrice: '1,99 €' },
+      { productId: 'pm_tax_exemption', displayName: 'Exonération', displayPrice: '1,99 €' },
     ],
   });
   expect(await session.game.purchases.restore()).toEqual({ status: 'unavailable' });
-  expect(await session.game.purchases.purchase('pm_validation_exemption')).toEqual({
+  expect(await session.game.purchases.purchase('pm_tax_exemption')).toEqual({
     status: 'disabled',
   });
   expect(await session.purchaseRecords()).toEqual([]);
@@ -37,6 +37,9 @@ it.each([
   { ...validationConfig, environment: 'production' },
   { ...validationConfig, apiKey: 'goog_wrong' },
   { ...validationConfig, productId: 'commercial' },
+  { ...validationConfig, productId: 'pm_tax_exemption_other' },
+  { ...validationConfig, entitlementId: 'pm_tax_exemption_other' },
+  { ...validationConfig, productId: 'pm_validation_exemption' },
 ])('keeps invalid validation configuration disabled without loading the SDK %#', async (config) => {
   const sdk = revenueCatFake();
   const loaded: string[] = [];

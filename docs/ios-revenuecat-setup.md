@@ -4,7 +4,7 @@ Use one Pocket Fortune app record for sandbox testing and eventual release. The 
 
 | Field | Value |
 | --- | --- |
-| App Store name | Pocket Fortune |
+| App Store name | Pocket Fortune Business Empire |
 | App Store subtitle | Business Empire |
 | Bundle ID | `com.chrisgocode.pocketfortune` |
 | App Store Connect SKU | `pocket-fortune` |
@@ -21,11 +21,11 @@ In Apple Developer → Certificates, Identifiers & Profiles → Identifiers, add
 
 ## 3. Create the App Store Connect app
 
-In App Store Connect → Apps → + → New App, choose iOS, name Pocket Fortune, primary language English (U.S.), the bundle ID above and SKU `pocket-fortune`. Enter Business Empire in the subtitle field when completing the listing. Choose United States only when configuring release availability. Creating the app record is preparation; public release is a later submission. Follow [Apple's app-record guide](https://developer.apple.com/help/app-store-connect/create-an-app-record/add-a-new-app/).
+In App Store Connect → Apps → + → New App, choose iOS, name Pocket Fortune Business Empire, primary language English (U.S.), the bundle ID above and SKU `pocket-fortune`. Enter Business Empire in the subtitle field when completing the listing. Choose United States only when configuring release availability. Creating the app record is preparation; public release is a later submission. Follow [Apple's app-record guide](https://developer.apple.com/help/app-store-connect/create-an-app-record/add-a-new-app/).
 
 ## 4. Create the sandbox test product
 
-Inside the app, open In-App Purchases and add a Non-Consumable. Use reference name Validation Tax Exemption, product ID `pm_validation_exemption`, localized display name Validation Tax Exemption and description Permanent tax exemption for validation testing. Complete required localization and a test price. This is the existing sandbox fixture, not an approved commercial product or price. The app remains named Pocket Fortune. See [Apple product setup](https://www.revenuecat.com/docs/getting-started/entitlements/ios-products).
+Inside the app, open In-App Purchases and add a Non-Consumable. Use reference name Tax Exemption, product ID `pm_tax_exemption`, localized display name Tax Exemption and description Permanent tax exemption in-game. Complete required localization and a test price. This is the existing sandbox fixture, not an approved commercial product or price. The app remains named Pocket Fortune. See [Apple product setup](https://www.revenuecat.com/docs/getting-started/entitlements/ios-products).
 
 ## 5. Connect the Apple app to RevenueCat
 
@@ -37,7 +37,7 @@ For automatic product imports, also configure the optional App Store Connect API
 
 ## 6. Add the product and entitlement
 
-In RevenueCat → Product catalog → Products, import or manually add the Apple product with exact ID `pm_validation_exemption` and Non-Consumable type. Under Entitlements, create `pm_validation_exemption` and attach that Apple product. The current read-only integration fetches products directly by ID, so it does not require an Offering or paywall. See [the entitlement guide](https://www.revenuecat.com/docs/getting-started/entitlements).
+In RevenueCat → Product catalog → Products, import or manually add the Apple product with exact ID `pm_tax_exemption` and Non-Consumable type. Under Entitlements, create `pm_tax_exemption` and attach that Apple product. The current read-only integration fetches products directly by ID, so it does not require an Offering or paywall. See [the entitlement guide](https://www.revenuecat.com/docs/getting-started/entitlements).
 
 ## 7. Prepare the sandbox tester and public SDK key
 
@@ -50,3 +50,5 @@ Find the Apple public SDK key beginning `appl_` in RevenueCat → API keys or th
 The repository uses the same permanent identifier in app.json and the infrastructure validation allowlist. Ordinary builds still select disabled billing. Explicit `revenuecat-validation` configuration, sandbox environment and allowlisted test product mappings are still required to initialize the read-only provider. Registering the permanent app identity does not enable production billing or checkout. Existing ownership-evidence feasibility gaps and actual store acceptance remain tracked in #112 and [the evidence record](validation/revenuecat.md).
 
 The simulator can remain shut down during account setup. New native binaries are needed before live SDK reads with the permanent identifier; generated prebuild configuration alone is not a compiled or store-tested binary.
+
+For an explicitly configured development build, open Expo’s developer menu with a three-finger long press and select **Read billing validation** to view the redacted Game report. This reads metadata and ownership status; it does not start checkout.

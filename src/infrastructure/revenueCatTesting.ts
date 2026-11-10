@@ -6,8 +6,8 @@ export const validationConfig = {
   store: 'apple',
   appId: 'com.chrisgocode.pocketfortune',
   apiKey: 'appl_validation',
-  productId: 'pm_validation_exemption',
-  entitlementId: 'pm_validation_exemption',
+  productId: 'pm_tax_exemption',
+  entitlementId: 'pm_tax_exemption',
 } as const;
 
 export function revenueCatFake() {
