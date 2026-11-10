@@ -24,6 +24,8 @@ Android uses `store: google` and its `goog_` public key. All fields are required
 
 A valid configuration installs the test driver `await globalThis.pocketFortuneBillingValidation()` in the JavaScript debugger. It uses only Game products/restore/state operations, returning localized product titles/prices, normalized ownership status and operation status. It exposes no anonymous identifier, transaction, receipt, token, raw CustomerInfo or SDK error. `restore()` here performs a read, not RevenueCat's store restoration operation. There is no purchase control. The driver's ownership result is unavailable until the existing contract can be satisfied.
 
+In development builds, the same explicitly configured driver is available through Expo’s developer menu as **Read billing validation**. It displays only the normalized Game report in an alert. The menu action is absent from ordinary disabled composition and is registered only when `__DEV__` is true; the global driver remains available for explicitly configured non-development validation builds.
+
 ## SDK evidence and blocking gaps
 
 Evidence below is source/API inspection of the pinned release, not a successful native transaction or live freshness probe.
@@ -78,3 +80,28 @@ Outstanding native gates: initialization with real public validation keys, local
 ### Rename configuration
 
 The Pocket Fortune rename introduced `pocketFortuneBillingValidation`. The owner subsequently chose one app record for sandbox testing and eventual release, using the permanent identifier `com.chrisgocode.pocketfortune` in Apple, Google, RevenueCat and app configuration. The earlier `com.pocketfortune.dev` and `com.pocketmogul.dev` identifiers are retired placeholders. Earlier compilation evidence above describes the earlier binaries. The permanent identifier does not enable production billing: explicit sandbox validation configuration and test-only product mappings remain required. See [the setup guide](../ios-revenuecat-setup.md).
+
+
+### Owner-configured Apple product probe (2026-11-10)
+
+The owner created the Apple non-consumable `pm_tax_exemption` and confirmed that its RevenueCat entitlement identifier is also `pm_tax_exemption`. The infrastructure allowlist now accepts exactly this pair under the existing explicit sandbox profile. Earlier `pm_validation_*` examples are no longer accepted. The actual App Store app name is Pocket Fortune Business Empire; the installed app remains Pocket Fortune.
+
+The owner supplied an Apple public SDK key through the private input card. It is stored only in ignored local configuration, outside automatic Expo `.env` loading, and was not committed or included in the source archive. Metro was started with the validation variable explicitly injected for that process. Ordinary builds remain disabled when that variable is absent.
+
+A new unsigned iOS simulator binary for `com.chrisgocode.pocketfortune` compiled successfully with the pinned SDK. On the iPhone 17 Pro simulator, the developer-menu action executed Game product and ownership reads against the native RevenueCat adapter. The observed report was:
+
+```json
+{
+  "products": {
+    "status": "available",
+    "products": [
+      { "productId": "pm_tax_exemption", "displayName": "Tax Exemption", "displayPrice": "$1.99" }
+    ]
+  },
+  "ownership": "unavailable",
+  "operation": "unavailable",
+  "checkout": "disabled"
+}
+```
+
+This proves native SDK configuration and a live localized StoreKit product read through Game. The ownership status means no authoritative ownership inventory was accepted; that status alone cannot distinguish insufficient evidence from provider unavailability. Product metadata alone does not establish backend credential validity, transaction scope, fresh ownership, refund behavior or store purchase acceptance. No checkout or store restoration was attempted. Physical-device/TestFlight transactions, Google setup and the ownership-evidence feasibility gates remain outstanding.

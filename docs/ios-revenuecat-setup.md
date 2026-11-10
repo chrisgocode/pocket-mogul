@@ -50,3 +50,5 @@ Find the Apple public SDK key beginning `appl_` in RevenueCat → API keys or th
 The repository uses the same permanent identifier in app.json and the infrastructure validation allowlist. Ordinary builds still select disabled billing. Explicit `revenuecat-validation` configuration, sandbox environment and allowlisted test product mappings are still required to initialize the read-only provider. Registering the permanent app identity does not enable production billing or checkout. Existing ownership-evidence feasibility gaps and actual store acceptance remain tracked in #112 and [the evidence record](validation/revenuecat.md).
 
 The simulator can remain shut down during account setup. New native binaries are needed before live SDK reads with the permanent identifier; generated prebuild configuration alone is not a compiled or store-tested binary.
+
+For an explicitly configured development build, open Expo’s developer menu with a three-finger long press and select **Read billing validation** to view the redacted Game report. This reads metadata and ownership status; it does not start checkout.
