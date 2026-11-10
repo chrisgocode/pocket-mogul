@@ -1,4 +1,4 @@
-# Pocket Mogul
+# Pocket Fortune
 
 A portrait mobile idle wealth game: the player taps for cash, then builds wealth through businesses, fictional markets and rental property.
 
@@ -25,7 +25,7 @@ The application's interface to an ad SDK: availability, load, show, earned-rewar
 _Avoid_: Ad service, ad manager
 
 **Automatic ad**:
-Any ad shown without the player choosing it (interstitial or app open ad). Pocket Mogul shows no banners.
+Any ad shown without the player choosing it (interstitial or app open ad). Pocket Fortune shows no banners.
 _Avoid_: Random ad, forced ad, popup
 
 **Natural break**:

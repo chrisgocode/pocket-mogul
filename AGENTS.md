@@ -1,4 +1,4 @@
-# Pocket Mogul
+# Pocket Fortune
 
 Portrait mobile idle wealth game (React Native + Expo + TypeScript). Planning lives in the wayfinder map: https://github.com/chrisgocode/pocket-mogul/issues/1
 

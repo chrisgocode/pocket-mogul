@@ -7,7 +7,7 @@ import { colors, spacing } from '@/ui/tokens';
 
 const EXPLANATIONS: Record<SaveStopReason, { title: string; body: string }> = {
   UNSUPPORTED_SAVE_VERSION: {
-    title: 'Update Pocket Mogul to keep playing',
+    title: 'Update Pocket Fortune to keep playing',
     body: 'Your save was made by a newer version of the game. Update the app to open it.',
   },
   DAMAGED_SAVE: {

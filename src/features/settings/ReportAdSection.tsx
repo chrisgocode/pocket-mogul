@@ -4,9 +4,9 @@ import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Section } from '@/ui/Section';
 
-const REPORT_SUBJECT = 'Report an ad in Pocket Mogul';
+const REPORT_SUBJECT = 'Report an ad in Pocket Fortune';
 
-const AD_REPORT_ADDRESS = 'ads@pocketmogul.example';
+const AD_REPORT_ADDRESS = 'ads@pocketfortune.example';
 
 function reportAd(): void {
   const subject = encodeURIComponent(REPORT_SUBJECT);
