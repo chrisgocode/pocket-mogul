@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import { revenueCatBilling } from '@/infrastructure/revenueCatBilling';
-import { nativeRevenueCat } from '@/infrastructure/nativeRevenueCat';
+import { nativeRevenueCat, nativeRevenueCatEvidence } from '@/infrastructure/nativeRevenueCat';
 import { installBillingValidationDriver } from './billingValidation';
 import { randomUUID } from 'expo-crypto';
 
@@ -35,7 +35,7 @@ async function startDeviceGame(): Promise<OpenedGame> {
     ...(developmentTelemetry === undefined ? {} : { telemetry: developmentTelemetry }),
   });
   if (opened.status === 'ready' && billing.purchasePolicy !== undefined)
-    installBillingValidationDriver(opened.game);
+    installBillingValidationDriver(opened.game, nativeRevenueCatEvidence);
   return opened;
 }
 
