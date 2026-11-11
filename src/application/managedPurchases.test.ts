@@ -123,7 +123,6 @@ it('deduplicates managed restore, purchase replays and restart even through a ra
 });
 
 it.each([
-  { ...managed, verification: ownership.verification },
   { ...managed, productClass: 'consumable' },
   { ...managed, productClass: 'subscription' },
   { ...managed, completion: ownership.completion },

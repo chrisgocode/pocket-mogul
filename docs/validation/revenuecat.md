@@ -58,6 +58,12 @@ Evidence below is source/API inspection of the pinned release, not a successful 
 
 The facade deliberately exposes only the fields used for conservative normalization. It stays in infrastructure, including SDK types and the deterministic fake. Game validates cached/incomplete reads as unavailable, retains committed access and unresolved guards, and performs ordinary Offline settlement independently. Adding backend evidence, custom native APIs or weakening the ownership contract is outside the approved scope. Dependent checkout work is blocked on a separately approved resolution of these gaps.
 
+### Resolution (#124)
+
+The owner approved [ADR 1](../adr/0001-ios-ownership-evidence-from-storekit.md) on 2026-11-11. On iOS, explicit restore now syncs with the App Store and reads verified StoreKit 2 transactions through the local `StoreKitEvidence` module, which supplies app, environment, product class, stable `originalID`, revocation and a sync-based observation time. Background reads still use the conservative RevenueCat result above. StoreKit has no pending-payment list; the owner accepted the App Store's single-charge guarantee for the Apple non-consumable instead, subject to native proof. The table above remains accurate for the RevenueCat SDK itself. Checkout stays disabled; #113 enables it only after the ADR's native checks pass.
+
+Compilation (2026-11-11): `pod install` installed `StoreKitEvidence (1.0.0)` from `modules/storekit-evidence/ios` through Expo autolinking, with no generated native file edited. An unsigned `xcodebuild -workspace ios/PocketFortune.xcworkspace -scheme PocketFortune -configuration Release -sdk iphoneos CODE_SIGNING_ALLOWED=NO build` on Xcode 27.2 finished with **BUILD SUCCEEDED**, and the binary contains the `StoreKitEvidenceModule` symbols. A simulator Debug link in the same reused build folder failed on React Native core symbols, outside this module; it was not pursued. No StoreKit read, sync or transaction has run on a device yet. Those are the native checks in the ADR.
+
 Sources for the pinned release:
 
 - [React Native 10.16.0 API implementation](https://github.com/RevenueCat/react-native-purchases/blob/10.16.0/src/purchases.ts): getCustomerInfo, invalidation, listener registration/removal, configuration and product reads.

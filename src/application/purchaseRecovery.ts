@@ -7,10 +7,23 @@ import type { PurchaseRecord } from './purchaseLedger';
 import type { GameState } from '@/domain/gameState';
 
 const PROVIDER_WAIT_MS = 2_000;
+const STORE_SHEET_WAIT_MS = 300_000;
 
-function bounded<T>(ports: GamePorts, work: () => Promise<T>, fallback: T): Promise<T> {
+const bounded = boundedBy(PROVIDER_WAIT_MS);
+const boundedStoreSheet = boundedBy(STORE_SHEET_WAIT_MS);
+
+function boundedBy(waitMs: number) {
+  return <T>(ports: GamePorts, work: () => Promise<T>, fallback: T): Promise<T> =>
+    boundedWait(ports, { work, fallback, waitMs });
+}
+
+function boundedWait<T>(
+  ports: GamePorts,
+  wait: { work: () => Promise<T>; fallback: T; waitMs: number },
+): Promise<T> {
+  const { work, fallback, waitMs } = wait;
   return new Promise((resolve) => {
-    const cancel = ports.clock.schedule(PROVIDER_WAIT_MS, () => resolve(fallback));
+    const cancel = ports.clock.schedule(waitMs, () => resolve(fallback));
     void Promise.resolve()
       .then(work)
       .then(
@@ -38,10 +51,10 @@ export function boundedBilling(ports: GamePorts): BillingPort {
       return initialization;
     },
     purchase: (productId) =>
-      bounded(ports, () => billing.purchase(productId), { status: 'unavailable' }),
+      boundedStoreSheet(ports, () => billing.purchase(productId), { status: 'unavailable' }),
     products: () => bounded(ports, billing.products, { status: 'unavailable', products: [] }),
     currentOwnership: () => bounded(ports, billing.currentOwnership, { status: 'unavailable' }),
-    restore: () => bounded(ports, billing.restore, { status: 'unavailable' }),
+    restore: () => boundedStoreSheet(ports, billing.restore, { status: 'unavailable' }),
     completion:
       billing.completion.owner === 'provider'
         ? billing.completion

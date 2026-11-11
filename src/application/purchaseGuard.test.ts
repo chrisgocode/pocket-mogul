@@ -107,3 +107,37 @@ it('retains an interrupted checkout guard when absence predates the ownership re
     1,
   );
 });
+
+it.each([
+  { policy: purchasePolicy, cleared: false },
+  {
+    policy: {
+      ...purchasePolicy,
+      products: [{ ...purchasePolicy.products[0], duplicateCharge: 'storePrevents' }],
+    },
+    cleared: true,
+  },
+] as const)(
+  'clears a guard without a pending list only for store-protected products %#',
+  async ({ policy, cleared }) => {
+    const absent = {
+      status: 'current',
+      authority: 'authoritative',
+      coverage: 'complete',
+      observedAtMs: 1_800_000_000_000,
+      ownership: [],
+      removals: [],
+    } as const;
+    const billing = scriptedBilling({
+      purchases: [{ status: 'pending', productId: 'test-exemption' }],
+    });
+    const session = await startObservedTestGame({ billing, purchasePolicy: policy });
+    await session.game.purchases.purchase('test-exemption');
+    const reopened = await session.restart({
+      billing: scriptedBilling({ ownership: [absent], restores: [absent] }),
+      purchasePolicy: policy,
+    });
+    await reopened.game.purchases.restore();
+    expect((await reopened.purchaseIdentity())?.checkout === undefined).toBe(cleared);
+  },
+);

@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import { revenueCatBilling } from '@/infrastructure/revenueCatBilling';
 import { nativeRevenueCat, nativeRevenueCatEvidence } from '@/infrastructure/nativeRevenueCat';
+import { nativeStoreKit } from '@/infrastructure/nativeStoreKit';
 import { installBillingValidationDriver } from './billingValidation';
 import { randomUUID } from 'expo-crypto';
 
@@ -43,7 +44,12 @@ function deviceBilling() {
   try {
     const raw = process.env.EXPO_PUBLIC_BILLING_VALIDATION;
     const config: unknown = raw === undefined ? undefined : JSON.parse(raw);
-    return revenueCatBilling({ config, platform: Platform.OS, runtime: nativeRevenueCat });
+    return revenueCatBilling({
+      config,
+      platform: Platform.OS,
+      runtime: nativeRevenueCat,
+      ...(Platform.OS === 'ios' ? { storeKit: nativeStoreKit, clock: deviceClock } : {}),
+    });
   } catch {
     return revenueCatBilling({
       config: undefined,

@@ -7,6 +7,7 @@ export type PurchasePolicy = {
     readonly productId: string;
     readonly productClass: 'nonConsumable';
     readonly benefit: 'taxExemption';
+    readonly duplicateCharge?: 'storePrevents';
   }[];
 };
 
@@ -65,7 +66,8 @@ export function authorizesPurchaseScope(policy: PurchasePolicy, reference: Purch
 
 function acceptsCompletion(ownership: VerifiedOwnership): boolean {
   const { completion, verification } = ownership;
-  return completion.owner === 'provider'
-    ? verification.source === 'provider'
-    : verification.source === 'store' && completion.action === 'finish';
+  return (
+    completion.owner === 'provider' ||
+    (verification.source === 'store' && completion.action === 'finish')
+  );
 }

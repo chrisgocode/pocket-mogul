@@ -51,6 +51,11 @@ it('bounds interrupted checkout and reconciles before accepting another charge',
   const purchasing = session.game.purchases.purchase('test-exemption');
   await requested.promise;
   session.clock.advance(2_000);
+  expect(session.game.purchases.getState()).toEqual({
+    status: 'purchasing',
+    productId: 'test-exemption',
+  });
+  session.clock.advance(298_000);
   expect(await purchasing).toEqual({ status: 'unavailable' });
   expect(session.game.purchases.getState()).toEqual({
     status: 'interrupted',
