@@ -55,6 +55,8 @@ For an explicitly configured development build, open Expo’s developer menu wit
 
 For physical offline validation, use a development-signed standalone build with an embedded JavaScript bundle and explicit sandbox validation configuration. After Game opens, its read-only report offers **Read again** and **Continue**; a cold relaunch displays it again. This does not depend on Metro. Ordinary builds with validation configuration absent have no report or driver.
 
+Native validation additionally offers **Refresh ownership** for controlled cache probes. It requests SDK cache invalidation before repeating the Game reads and displays only the last SDK result's redacted status, provider observation time and verification label. Compare online, offline and reconnected results. Invalidation and a verified signature do not establish freshness or authoritative ownership; checkout remains disabled. See the [evidence semantics](validation/revenuecat.md#explicit-configuration).
+
 Generate the iOS project with `bunx expo prebuild --clean --platform ios`, then build the connected device target locally with Xcode. Set `EXPO_PUBLIC_BILLING_VALIDATION` in the build process using the protected local configuration described in the evidence record. Select the owner's signing team and automatic signing; keep generated native projects unmodified. A command-line build can use:
 
 ```bash

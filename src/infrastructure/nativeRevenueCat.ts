@@ -1,4 +1,10 @@
 import { revenueCatRuntime } from './revenueCatRuntime';
+import type { RevenueCatSdk } from './revenueCatRuntime';
+import { revenueCatEvidenceProbe } from './revenueCatEvidenceProbe';
+import { deviceClock } from './deviceClock';
+
+const probe = revenueCatEvidenceProbe(deviceClock);
+export const nativeRevenueCatEvidence = { read: probe.read, invalidate: probe.invalidate };
 
 export const nativeRevenueCat = revenueCatRuntime(async () => {
   const {
@@ -6,7 +12,7 @@ export const nativeRevenueCat = revenueCatRuntime(async () => {
     PRODUCT_CATEGORY,
     LOG_LEVEL,
   } = await import('react-native-purchases');
-  return {
+  const sdk: RevenueCatSdk = {
     isConfigured: () => Purchases.isConfigured(),
     configure: (apiKey) => {
       Purchases.setLogHandler(() => undefined);
@@ -23,4 +29,5 @@ export const nativeRevenueCat = revenueCatRuntime(async () => {
     removeCustomerInfoUpdateListener: (listener) =>
       Purchases.removeCustomerInfoUpdateListener(listener),
   };
+  return probe.attach({ sdk, invalidate: () => Purchases.invalidateCustomerInfoCache() });
 });
