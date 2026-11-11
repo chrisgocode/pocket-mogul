@@ -232,3 +232,20 @@ it('starts no native checkout for a product outside the authorized mapping', asy
   expect(await session.game.purchases.purchase('pm_other')).toEqual({ status: 'disabled' });
   expect(sdk.checkouts).toEqual([]);
 });
+
+it('traces a RevenueCat failure without reading StoreKit and keeps the StoreKit step on success', async () => {
+  const failing = checkoutSelection({ purchase: failed('STORE_PROBLEM_ERROR') });
+  const session = await startObservedTestGame(failing.selected);
+  await session.game.purchases.purchase(PRODUCT);
+  expect(failing.selected.validation?.lastCheckout()).toEqual({
+    revenueCat: 'STORE_PROBLEM_ERROR',
+    storeKit: 'notRead',
+  });
+  const missing = checkoutSelection({ storeKit: storeKitFake() });
+  const second = await startObservedTestGame(missing.selected);
+  await second.game.purchases.purchase(PRODUCT);
+  expect(missing.selected.validation?.lastCheckout()).toEqual({
+    revenueCat: 'purchased',
+    storeKit: 'unavailable',
+  });
+});

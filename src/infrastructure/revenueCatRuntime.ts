@@ -10,6 +10,8 @@ export type RevenueCatPurchase =
   | { readonly status: 'purchased'; readonly productId: string }
   | { readonly status: 'failed'; readonly error: RevenueCatErrorName | 'unknown' };
 
+export type RefundRequest = 'requested' | 'cancelled' | 'failed';
+
 export type RevenueCatSdk = {
   readonly isConfigured: () => Promise<boolean>;
   readonly configure: (apiKey: string) => void;
@@ -22,6 +24,7 @@ export type RevenueCatSdk = {
     }[]
   >;
   readonly purchase: (productId: string) => Promise<RevenueCatPurchase>;
+  readonly requestRefund: (productId: string) => Promise<RefundRequest>;
   readonly getCustomerInfo: () => Promise<RevenueCatInfo>;
   readonly addCustomerInfoUpdateListener: (listener: (info: RevenueCatInfo) => void) => void;
   readonly removeCustomerInfoUpdateListener: (listener: (info: RevenueCatInfo) => void) => void;

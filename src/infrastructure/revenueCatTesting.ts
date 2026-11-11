@@ -34,6 +34,7 @@ export function revenueCatFake(script: RevenueCatScript = {}) {
       checkouts.push(productId);
       return script.purchase?.(productId) ?? Promise.resolve({ status: 'purchased', productId });
     },
+    requestRefund: () => Promise.resolve('requested'),
     getCustomerInfo: () => Promise.resolve(info),
     addCustomerInfoUpdateListener: (listener) => {
       listeners.add(listener);

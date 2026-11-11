@@ -11,7 +11,7 @@ type Driver = {
   readonly validation?: BillingValidation | undefined;
 };
 
-type Action = 'purchase' | 'restore' | 'recover';
+type Action = 'purchase' | 'refund' | 'restore' | 'recover';
 
 type LastAction = { readonly action: Action; readonly outcome: string };
 
@@ -26,6 +26,7 @@ type Session = {
 
 const ACTION_LABELS: Record<Action, string> = {
   purchase: 'Purchase test product',
+  refund: 'Request refund',
   restore: 'Restore purchases',
   recover: 'Recover',
 };
@@ -36,6 +37,7 @@ export function installBillingValidationDriver(driver: Driver): void {
     purchase: () => session.run('purchase'),
     restore: () => session.run('restore'),
     recover: () => session.run('recover'),
+    refund: () => session.run('refund'),
   });
   Object.assign(globalThis, { pocketFortuneBillingValidation: global });
   if (__DEV__) void registerValidationMenu(session).catch(() => undefined);
@@ -49,9 +51,9 @@ function validationSession(driver: Driver): Session {
   return {
     read,
     probe: driver.probe,
-    actions: checkout ? ['purchase', 'restore', 'recover'] : ['restore', 'recover'],
+    actions: checkout ? ['purchase', 'refund', 'restore', 'recover'] : ['restore', 'recover'],
     run: async (action) => {
-      if (action === 'purchase' && !checkout) return read();
+      if ((action === 'purchase' || action === 'refund') && !checkout) return read();
       last.current = { action, outcome: await runAction(driver, action) };
       return read();
     },
@@ -62,6 +64,7 @@ async function runAction(driver: Driver, action: Action): Promise<string> {
   const purchases = driver.game.purchases;
   if (action === 'purchase')
     return (await purchases.purchase(driver.validation?.productId ?? '')).status;
+  if (action === 'refund') return (await driver.validation?.requestRefund()) ?? 'disabled';
   if (action === 'restore') return (await purchases.restore()).status;
   await purchases.recover();
   return purchases.getState().status;
@@ -110,8 +113,16 @@ async function readValidation(driver: Driver, last: LastAction | undefined) {
       entitlements: tax.status === 'exempt' ? tax.entitlementIds.length : 0,
     },
     ...(last === undefined ? {} : { last }),
-    ...(validation === undefined ? {} : { storeKit: await validation.storeKit() }),
+    ...(validation === undefined ? {} : await validationEvidence(validation)),
     ...(probe === undefined ? {} : { evidence: probe.read() }),
+  };
+}
+
+async function validationEvidence(validation: BillingValidation) {
+  const trace = validation.lastCheckout();
+  return {
+    ...(trace === undefined ? {} : { checkoutTrace: trace }),
+    storeKit: await validation.storeKit(),
   };
 }
 

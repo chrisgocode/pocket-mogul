@@ -105,6 +105,9 @@ it('purchases the test product through Game once when sandbox checkout is enable
   press(alert, 'Purchase test product');
   await waitFor(() => expect(alert).toHaveBeenCalledTimes(2));
   expect(alert.mock.lastCall?.[1]).toContain('"last":{"action":"purchase","outcome":"delivered"}');
+  expect(alert.mock.lastCall?.[1]).toContain(
+    '"checkoutTrace":{"revenueCat":"purchased","storeKit":"completed"}',
+  );
   press(alert, 'Purchase test product');
   await waitFor(() => expect(alert).toHaveBeenCalledTimes(3));
   expect(sdk.checkouts).toEqual(['pm_tax_exemption', 'pm_tax_exemption']);
@@ -128,5 +131,33 @@ it('offers no purchase control and starts no checkout without the sandbox opt-in
     status: 'disabled',
   });
   expect(sdk.checkouts).toEqual([]);
+  session.game.purchases.dispose();
+});
+
+it('requests a sandbox refund through RevenueCat only with the checkout opt-in', async () => {
+  const { session, sdk, alert } = await validationGame({
+    checkout: true,
+    storeKit: storeKitFake(),
+  });
+  const refunds = jest.spyOn(sdk, 'requestRefund');
+  expect(labels(alert)).toContain('Request refund');
+  press(alert, 'Request refund');
+  await waitFor(() => expect(alert).toHaveBeenCalledTimes(2));
+  expect(refunds).toHaveBeenCalledWith('pm_tax_exemption');
+  expect(alert.mock.lastCall?.[1]).toContain('"last":{"action":"refund","outcome":"requested"}');
+  session.game.purchases.dispose();
+});
+
+it('offers no refund control without the sandbox opt-in', async () => {
+  const { session, sdk, alert } = await validationGame({
+    checkout: false,
+    storeKit: storeKitFake(),
+  });
+  const refunds = jest.spyOn(sdk, 'requestRefund');
+  expect(labels(alert)).not.toContain('Request refund');
+  const driver = (globalThis as { pocketFortuneBillingValidation?: { refund: () => unknown } })
+    .pocketFortuneBillingValidation;
+  await driver?.refund();
+  expect(refunds).not.toHaveBeenCalled();
   session.game.purchases.dispose();
 });
