@@ -1,4 +1,4 @@
-import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
+import { fireEvent, renderRouter, screen, testRouter } from 'expo-router/testing-library';
 import type { OpenedGame } from '@/application/game';
 import { taxReturnOwner } from '@/application/taxTesting';
 import { startTestGameFrom } from '@/application/testGame';
@@ -106,5 +106,16 @@ describe('Studio native flows', () => {
     await open('/taxes', { tax: { status: 'notStarted' } });
     expect(screen.getByRole('button', { name: 'Pay & file' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Don’t report' })).toBeDisabled();
+  });
+});
+
+describe('Detail back link', () => {
+  it('returns from a business to the list by popping the stack, not pushing a new list', async () => {
+    await open('/businesses', { businesses: [ownedBusiness('vending')] });
+    await fireEvent.press(screen.getByRole('button', { name: /Manage →/ }));
+    expect(screen).toHavePathname('/businesses/vending');
+    await fireEvent.press(screen.getByRole('button', { name: 'Back to Businesses' }));
+    expect(screen).toHavePathname('/businesses');
+    expect(testRouter.canGoBack()).toBe(false);
   });
 });

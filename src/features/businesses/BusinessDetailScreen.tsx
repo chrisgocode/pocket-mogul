@@ -6,7 +6,7 @@ import { ActionSheet } from '@/features/game/ActionSheet';
 import { useGameSnapshot } from '@/features/game/GameContext';
 import { useGameAction } from '@/features/game/useGameAction';
 import { EmptyState } from '@/ui/EmptyState';
-import { BackLink } from '@/ui/BackLink';
+import { backLinkOptions } from '@/ui/backLinkOptions';
 import { Screen } from '@/ui/Screen';
 
 import {
@@ -22,7 +22,7 @@ import type { FlagshipActions } from './FlagshipSections';
 import type { VendingActions } from './vendingFormat';
 import { useBusinessCommand } from './useBusinessCommand';
 
-const BACK_OPTIONS = { headerLeft: () => <BackLink href="/businesses" label="Businesses" /> };
+const BACK_OPTIONS = backLinkOptions({ href: '/businesses', label: 'Businesses' });
 
 function treasuryActions(
   detail: Extract<BusinessDetailView, { status: 'owned' }>,
