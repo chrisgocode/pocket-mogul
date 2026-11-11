@@ -4,6 +4,9 @@ import { disabledBilling } from './disabledBilling';
 import { readRevenueCatConfig } from './revenueCatConfig';
 import type { RevenueCatConfig } from './revenueCatConfig';
 import type { RevenueCatInfo, RevenueCatSdk } from './revenueCatRuntime';
+import type { StoreKitEvidence } from './storeKitEvidence';
+import { syncedStoreKitOwnership } from './storeKitOwnership';
+import type { Clock } from '@/application/ports';
 
 type Selection = {
   readonly billing: BillingPort;
@@ -14,44 +17,59 @@ type Options = {
   readonly config: unknown;
   readonly platform: string;
   readonly runtime: (config: RevenueCatConfig) => Promise<RevenueCatSdk>;
+  readonly storeKit?: StoreKitSource;
+};
+
+type StoreKitSource = {
+  readonly evidence: () => Promise<StoreKitEvidence>;
+  readonly clock: Pick<Clock, 'wallMs'>;
 };
 
 export function revenueCatBilling(options: Options): Selection {
   const config = readRevenueCatConfig(options.config, options.platform);
   if (config === undefined) return { billing: disabledBilling() };
   return {
-    billing: validationBilling(config, options.runtime),
+    billing: validationBilling(config, options),
     purchasePolicy: {
       scopes: [{ store: config.store, appId: config.appId, environment: config.environment }],
       products: [
-        { productId: config.productId, productClass: 'nonConsumable', benefit: 'taxExemption' },
+        {
+          productId: config.productId,
+          productClass: 'nonConsumable',
+          benefit: 'taxExemption',
+          ...(config.store === 'apple' ? { duplicateCharge: 'storePrevents' } : {}),
+        },
       ],
     },
   };
 }
 
+type Started = { readonly native: RevenueCatSdk; readonly stopUpdates: () => void };
+
 type Session =
   | { readonly status: 'idle' | 'disposed' }
-  | { readonly status: 'starting'; readonly ready: Promise<RevenueCatSdk> };
+  | { readonly status: 'starting'; readonly ready: Promise<Started> };
 
 type BillingSession = Pick<BillingPort, 'initialize' | 'subscribe' | 'dispose'> & {
   readonly sdk: () => Promise<RevenueCatSdk>;
 };
 
-function billingSession(config: RevenueCatConfig, runtime: Options['runtime']): BillingSession {
+function billingSession(config: RevenueCatConfig, options: Options): BillingSession {
   let session: Session = { status: 'idle' };
   const listeners = new Set<(event: { type: 'ownershipChanged' }) => void>();
   const changed = () => {
     for (const listener of listeners) listener({ type: 'ownershipChanged' });
   };
-  const sdk = () =>
+  const started = () =>
     session.status === 'starting' ? session.ready : Promise.reject(new Error('Billing not ready'));
-  const start = async (reference?: string) => {
-    const native = await runtime(config);
+  const sdk = () => started().then(({ native }) => native);
+  const start = async (reference?: string): Promise<Started> => {
+    const native = await options.runtime(config);
     if (reference !== undefined && reference !== (await native.getAppUserID()))
       throw new Error('Billing identity mismatch');
-    if (session.status !== 'disposed') native.addCustomerInfoUpdateListener(changed);
-    return native;
+    if (session.status === 'disposed') return { native, stopUpdates: () => undefined };
+    native.addCustomerInfoUpdateListener(changed);
+    return { native, stopUpdates: await storeKitUpdates(options, changed) };
   };
   return {
     sdk,
@@ -68,8 +86,8 @@ function billingSession(config: RevenueCatConfig, runtime: Options['runtime']): 
       return () => listeners.delete(listener);
     },
     dispose: () => {
-      void sdk()
-        .then((native) => native.removeCustomerInfoUpdateListener(changed))
+      void started()
+        .then((running) => stopListening(running, changed))
         .catch(() => undefined);
       session = { status: 'disposed' };
       listeners.clear();
@@ -77,14 +95,34 @@ function billingSession(config: RevenueCatConfig, runtime: Options['runtime']): 
   };
 }
 
-function validationBilling(config: RevenueCatConfig, runtime: Options['runtime']): BillingPort {
-  const { sdk, ...session } = billingSession(config, runtime);
+function stopListening(running: Started, changed: () => void): void {
+  running.native.removeCustomerInfoUpdateListener(changed);
+  running.stopUpdates();
+}
+
+async function storeKitUpdates(options: Options, changed: () => void): Promise<() => void> {
+  if (options.storeKit === undefined) return () => undefined;
+  try {
+    return (await options.storeKit.evidence()).addUpdatesListener(changed);
+  } catch {
+    return () => undefined;
+  }
+}
+
+function validationBilling(config: RevenueCatConfig, options: Options): BillingPort {
+  const { sdk, ...session } = billingSession(config, options);
+  const { storeKit } = options;
   return {
     ...disabledBilling(),
     ...session,
     products: () => localizedProducts(sdk, config.productId),
     currentOwnership: () => readOwnership(sdk),
-    restore: () => readOwnership(sdk),
+    restore: () =>
+      storeKit === undefined
+        ? readOwnership(sdk)
+        : sdk().then(() =>
+            syncedStoreKitOwnership({ storeKit: storeKit.evidence, config, clock: storeKit.clock }),
+          ),
   };
 }
 

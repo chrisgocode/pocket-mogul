@@ -1,3 +1,4 @@
+import type { StoreKitEvidence, StoreKitTransaction } from './storeKitEvidence';
 import type { RevenueCatInfo, RevenueCatSdk } from './revenueCatRuntime';
 
 export const validationConfig = {
@@ -38,6 +39,49 @@ export function revenueCatFake() {
     listeners,
     emit: () => {
       for (const listener of listeners) listener(info);
+    },
+  };
+}
+
+export const storeKitPurchase = {
+  originalId: '2000000123456789',
+  productId: validationConfig.productId,
+  productType: 'nonConsumable',
+  appBundleId: validationConfig.appId,
+  environment: 'sandbox',
+  ownershipType: 'purchased',
+  signedDateMs: 1_799_999_000_000,
+  verified: true,
+} as const;
+
+type StoreKitScript = {
+  entitlements?: readonly StoreKitTransaction[];
+  latest?: StoreKitTransaction;
+  sync?: () => Promise<void>;
+};
+
+export function storeKitFake(script: StoreKitScript = {}) {
+  const listeners = new Set<() => void>();
+  const state = { syncs: 0, script };
+  const evidence: StoreKitEvidence = {
+    entitlements: () => Promise.resolve(state.script.entitlements ?? []),
+    latest: () => Promise.resolve(state.script.latest),
+    sync: () => {
+      state.syncs += 1;
+      return state.script.sync?.() ?? Promise.resolve();
+    },
+    addUpdatesListener: (listener) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+  };
+  return {
+    ...evidence,
+    listeners,
+    syncs: () => state.syncs,
+    change: (next: StoreKitScript) => {
+      state.script = next;
+      for (const listener of listeners) listener();
     },
   };
 }

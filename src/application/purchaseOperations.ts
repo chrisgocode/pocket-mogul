@@ -147,8 +147,18 @@ function updateGuard(context: Context, evidence: RestoreResult | undefined): voi
   const blocked = context.workflow.blocked;
   if (evidence?.status !== 'current' || blocked === undefined) return;
   const owned = evidence.ownership.some((item) => item.reference.productId === blocked.productId);
-  if (!owned && evidence.pendingProductIds?.includes(blocked.productId) === false)
-    context.workflow.blocked = undefined;
+  const notPending =
+    evidence.pendingProductIds?.includes(blocked.productId) === false ||
+    storePreventsDuplicateCharge(context.ports, blocked.productId);
+  if (!owned && notPending) context.workflow.blocked = undefined;
+}
+
+function storePreventsDuplicateCharge(ports: GamePorts, productId: string): boolean {
+  return (
+    ports.purchasePolicy?.products.some(
+      (product) => product.productId === productId && product.duplicateCharge === 'storePrevents',
+    ) ?? false
+  );
 }
 
 function changeState(context: Context, state: PurchaseOperationState): void {
