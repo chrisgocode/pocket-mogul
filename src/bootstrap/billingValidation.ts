@@ -1,4 +1,5 @@
 import { Alert } from 'react-native';
+import type { AlertButton } from 'react-native';
 import { registerDevMenuItems } from 'expo-dev-client';
 import type { Game } from '@/application/game';
 
@@ -6,6 +7,17 @@ export function installBillingValidationDriver(game: Game): void {
   const read = () => readValidation(game);
   Object.assign(globalThis, { pocketFortuneBillingValidation: read });
   if (__DEV__) void registerValidationMenu(read).catch(() => undefined);
+  else showStandaloneReport(read);
+}
+
+function showStandaloneReport(read: () => ReturnType<typeof readValidation>): void {
+  const buttons: AlertButton[] = [
+    { text: 'Read again', onPress: () => showStandaloneReport(read) },
+    { text: 'Continue', style: 'cancel' },
+  ];
+  void read()
+    .then((report) => Alert.alert('Billing validation', JSON.stringify(report), buttons))
+    .catch(() => Alert.alert('Billing validation', 'Unavailable', buttons));
 }
 
 async function readValidation(game: Game) {

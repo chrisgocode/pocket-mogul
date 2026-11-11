@@ -11,6 +11,35 @@ jest.mock('expo-dev-client', () => ({
   registerDevMenuItems: jest.fn().mockResolvedValue(undefined),
 }));
 
+afterEach(() => {
+  jest.restoreAllMocks();
+  jest.clearAllMocks();
+});
+
+it('shows a repeatable read-only report without a development menu in a standalone build', async () => {
+  jest.replaceProperty(Object.assign(globalThis, { __DEV__ }), '__DEV__', false);
+  const sdk = revenueCatFake();
+  const session = await startObservedTestGame(
+    revenueCatBilling({
+      config: validationConfig,
+      platform: 'ios',
+      runtime: revenueCatRuntime(() => Promise.resolve(sdk)),
+    }),
+  );
+  const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+  installBillingValidationDriver(session.game);
+  await waitFor(() => expect(alert).toHaveBeenCalledTimes(1));
+  expect(alert.mock.calls[0]?.[1]).toContain('"checkout":"disabled"');
+  expect(alert.mock.calls[0]?.[1]).toContain('"displayPrice":"1,99 €"');
+  expect(registerDevMenuItems).not.toHaveBeenCalled();
+  const retry = alert.mock.calls[0]?.[2]?.[0];
+  expect(retry?.text).toBe('Read again');
+  retry?.onPress?.();
+  await waitFor(() => expect(alert).toHaveBeenCalledTimes(2));
+  expect(await session.purchaseRecords()).toEqual([]);
+  session.game.purchases.dispose();
+});
+
 it('runs read-only validation through Game and displays only localized metadata and redacted status', async () => {
   const sdk = revenueCatFake();
   const session = await startObservedTestGame(

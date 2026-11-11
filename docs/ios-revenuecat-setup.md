@@ -52,3 +52,17 @@ The repository uses the same permanent identifier in app.json and the infrastruc
 The simulator can remain shut down during account setup. New native binaries are needed before live SDK reads with the permanent identifier; generated prebuild configuration alone is not a compiled or store-tested binary.
 
 For an explicitly configured development build, open Expo’s developer menu with a three-finger long press and select **Read billing validation** to view the redacted Game report. This reads metadata and ownership status; it does not start checkout.
+
+For physical offline validation, use a development-signed standalone build with an embedded JavaScript bundle and explicit sandbox validation configuration. After Game opens, its read-only report offers **Read again** and **Continue**; a cold relaunch displays it again. This does not depend on Metro. Ordinary builds with validation configuration absent have no report or driver.
+
+Generate the iOS project with `bunx expo prebuild --clean --platform ios`, then build the connected device target locally with Xcode. Set `EXPO_PUBLIC_BILLING_VALIDATION` in the build process using the protected local configuration described in the evidence record. Select the owner's signing team and automatic signing; keep generated native projects unmodified. A command-line build can use:
+
+```bash
+xcodebuild -workspace ios/PocketFortune.xcworkspace -scheme PocketFortune \
+  -configuration Release -destination 'id=<DEVICE_ID>' \
+  -derivedDataPath /tmp/pocket-fortune-validation \
+  DEVELOPMENT_TEAM=<TEAM_ID> CODE_SIGN_STYLE=Automatic \
+  -allowProvisioningUpdates -allowProvisioningDeviceRegistration build
+```
+
+The Release configuration embeds the bundle; development signing permits installation on the registered test phone. This is a local validation artifact, not a store submission. If signing over SSH returns `errSecInternalComponent` while the certificate validates and local Keychain Access already permits codesign, try the same build from Terminal in the owner's logged-in Mac session. Keep passwords in local system prompts.
