@@ -6,13 +6,13 @@ import { ActionSheet } from '@/features/game/ActionSheet';
 import { useGameSnapshot } from '@/features/game/GameContext';
 import { useGameAction } from '@/features/game/useGameAction';
 import { EmptyState } from '@/ui/EmptyState';
-import { BackLink } from '@/ui/BackLink';
+import { backLinkOptions } from '@/ui/backLinkOptions';
 import { Screen } from '@/ui/Screen';
 
 import { OwnedPropertyDetails } from './OwnedPropertyDetails';
 import { propertyActionCommand, propertyActionSheetText } from './propertyAction';
 
-const BACK_OPTIONS = { headerLeft: () => <BackLink href="/properties" label="Properties" /> };
+const BACK_OPTIONS = backLinkOptions({ href: '/properties', label: 'Properties' });
 
 function screenTitle(detail: PropertyDetailView): string {
   return detail.status === 'unknown' ? 'Property' : detail.property.name;

@@ -6,7 +6,7 @@ import { selectAssetDetail } from '@/application/marketsView';
 import { FICTIONAL_NOTICE, getContent } from '@/content';
 import { useGameSnapshot } from '@/features/game/GameContext';
 import { EmptyState } from '@/ui/EmptyState';
-import { BackLink } from '@/ui/BackLink';
+import { backLinkOptions } from '@/ui/backLinkOptions';
 import { Screen } from '@/ui/Screen';
 import { Section } from '@/ui/Section';
 import { AppText } from '@/ui/Typography';
@@ -20,7 +20,7 @@ import { PriceChartCard } from './PriceChartCard';
 import { tradeUnits } from './tradeUnits';
 import { AssetTrading } from './AssetTrading';
 
-const BACK_OPTIONS = { headerLeft: () => <BackLink href="/markets" label="Markets" /> };
+const BACK_OPTIONS = backLinkOptions({ href: '/markets', label: 'Markets' });
 
 const NEWS_ITEMS = 3;
 

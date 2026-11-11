@@ -7,6 +7,7 @@ export function TabStack({ title }: { title: string }) {
     <Stack
       screenOptions={{
         animation,
+        animationTypeForReplace: 'pop',
         headerStyle: { backgroundColor: colors.background },
         headerShadowVisible: false,
         headerTintColor: colors.text,

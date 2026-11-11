@@ -8,7 +8,7 @@ export function BackLink({ href, label }: { href: Href; label: string }) {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`Back to ${label}`}
-      onPress={() => router.navigate(href)}
+      onPress={() => router.dismissTo(href)}
       style={styles.back}
     >
       <AppText style={styles.label}>← {label}</AppText>
