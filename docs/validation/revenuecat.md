@@ -2,6 +2,14 @@
 
 This is a read-only feasibility build for #111. Checkout is disabled, including direct calls through Game. No commercial product is authorized. No save or economy format changes are needed.
 
+## Current scope: iOS validation (owner decision, 2026-11-11)
+
+The owner explicitly deferred Android support. Issue #112 now covers the iOS read-only validation slice. Google Play registration, physical Android account verification, product/credential setup, live Android metadata and outage probes, and eventual Play purchase acceptance are deferred to [#118](https://github.com/chrisgocode/pocket-mogul/issues/118). They do not block the current iOS milestone. Existing Android configuration, pins, fake coverage and historical compilation records remain available for resumption; none establish Google Play acceptance. Parent #111 retains the longer-term cross-platform integration work.
+
+Closing #112 still requires the remaining iOS evidence: genuine offline startup and ordinary Offline settlement, controlled failed-refresh/cache behavior, disabled ordinary-build composition, and the documented lifecycle guarantees at their approved testing seams. The successful native metadata reads and repeated provider timestamps below are partial evidence. Deferring Android does not complete these iOS checks or authorize merging/closing automatically.
+
+For ownership feasibility, #112 must document the concrete SDK fields, supported guarantees and limitations. A documented inability to satisfy the existing ownership contract is a valid feasibility result; #112 does not require adding an excluded backend/native extension or weakening that contract. Those limitations continue to block dependent checkout work, including #113, until a separately approved resolution exists. No purchase, restore, refund or production acceptance is claimed by closing this read-only slice.
+
 ## Explicit configuration
 
 Leave `EXPO_PUBLIC_BILLING_VALIDATION` unset in ordinary builds. The variable is JSON inlined by Expo, so changing it requires rebuilding the bundle/binary. It contains a public SDK key, never a RevenueCat secret key or store credential. Development mode alone never enables billing. An explicitly configured release-mode sandbox build uses the same gate.
@@ -108,17 +116,17 @@ This proves native SDK configuration and a live localized StoreKit product read 
 
 ### Remaining validation gates (#112, 2026-11-10)
 
-The implementation already landed in #119, followed by the Apple configuration and probe in #122. The following matrix separates their recorded evidence from outstanding acceptance. Keep #112 open until the required native probes pass or the owner explicitly approves a narrower acceptance scope. Checkout work remains blocked by the evidence gaps above.
+The implementation already landed in #119, followed by the Apple configuration and probe in #122. The following matrix separates their recorded evidence from outstanding acceptance, updated for the owner's iOS-only scope decision above. Keep #112 open until its remaining iOS requirements pass. Checkout work remains blocked by the evidence gaps above.
 
 | Case | Available evidence | Remaining probe and pass condition |
 | --- | --- | --- |
 | Reproducible native compilation | Clean iOS and Android development builds and resolved versions recorded above | Rebuild whenever native dependencies or app configuration change; retain resolved versions and binary identity with each new result. |
-| Native configuration and localized metadata | Apple simulator probe returned Tax Exemption / $1.99 through Game | Configure the Google validation app and authorized permanent product, then read metadata through the same Game driver on Android. Record device/OS, binary, store channel and redacted report. |
+| Native configuration and localized metadata | Apple simulator probe returned Tax Exemption / $1.99 through Game | iOS metadata is observed. Google setup and live Android metadata are deferred to #118. |
 | Default and invalid configuration | Game fake coverage proves disabled operations and no SDK load | Launch an ordinary artifact with the validation variable absent. Confirm free play works and the validation driver/menu is absent. The earlier installed iOS build loaded without validation configuration; that alone does not prove all these observations. |
 | Ownership freshness and cached failure | Source inspection identifies insufficient evidence; Game tests preserve access and pending guards | With the actual SDK, read online, repeat offline after a successful read, and repeat after a provider failure. Record whether the provider observation time changes and whether cached data is returned. The redacted driver intentionally cannot expose raw CustomerInfo; controlled SDK evidence inspection is still needed for these probes. Never treat an unavailable Game result as proof of fresh-only behavior. |
 | Native offline free play and bounded startup | Injected-clock Game tests prove bounded waits, taps and unchanged Offline settlement | Prepare progress, terminate the app, disconnect networking and relaunch the same installed validation binary. Confirm taps work, startup completes and the Return summary settles once; repeat foreground and reconciliation without another payment or settlement. Record timing and redacted outcomes. |
 | Configuration ownership and subscription disposal | Game + SDK fake tests cover shared configuration, external configuration rejection and listener cleanup | No new native result claimed. Include repeated Game lifetimes and native event handling in the next controlled lifecycle session. |
-| Authoritative ownership and checkout readiness | Contract deliberately rejects incomplete/cached inventory | Resolve fresh-only reads, scope, complete permanent inventory, explicit removals and pending-payment absence within approved scope. Backend/native extensions or contract changes require a separate specification. No store purchase acceptance is claimed. |
+| Ownership feasibility and dependent checkout readiness | Contract deliberately rejects incomplete/cached inventory | For #112, document field-level guarantees and limitations, including targeted iOS cache/failure probes. Unresolved freshness, scope, inventory, removal and pending-payment evidence blocks dependent checkout work. Backend/native extensions or contract changes require a separate specification. No store purchase acceptance is claimed. |
 
 During the initial follow-up, the device tools reported the configured Mac host unavailable: `Could not connect to this host over SSH.` The local Linux host has neither an iOS simulator nor an Android SDK. At that point no new native probe or compilation result was obtained. Automated coverage now exercises valid Apple and Google selection through Game and rejects an externally configured SDK without changing it, adding listeners or preventing free play. These are fake-backed results, not Google SDK configuration or store acceptance.
 
