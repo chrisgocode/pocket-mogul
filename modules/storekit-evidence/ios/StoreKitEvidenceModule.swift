@@ -41,6 +41,11 @@ public final class StoreKitEvidenceModule: Module {
       self?.updates?.cancel()
       self?.updates = nil
     }
+
+    OnDestroy { [weak self] in
+      self?.updates?.cancel()
+      self?.updates = nil
+    }
   }
 
   private static func record(_ result: VerificationResult<StoreKit.Transaction>) -> [String: Any] {

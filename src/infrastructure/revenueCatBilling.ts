@@ -17,8 +17,12 @@ type Options = {
   readonly config: unknown;
   readonly platform: string;
   readonly runtime: (config: RevenueCatConfig) => Promise<RevenueCatSdk>;
-  readonly storeKit?: () => Promise<StoreKitEvidence>;
-  readonly clock?: Pick<Clock, 'wallMs'>;
+  readonly storeKit?: StoreKitSource;
+};
+
+type StoreKitSource = {
+  readonly evidence: () => Promise<StoreKitEvidence>;
+  readonly clock: Pick<Clock, 'wallMs'>;
 };
 
 export function revenueCatBilling(options: Options): Selection {
@@ -58,6 +62,7 @@ function billingSession(config: RevenueCatConfig, options: Options): BillingSess
   };
   const started = () =>
     session.status === 'starting' ? session.ready : Promise.reject(new Error('Billing not ready'));
+  const sdk = () => started().then(({ native }) => native);
   const start = async (reference?: string): Promise<Started> => {
     const native = await options.runtime(config);
     if (reference !== undefined && reference !== (await native.getAppUserID()))
@@ -67,14 +72,14 @@ function billingSession(config: RevenueCatConfig, options: Options): BillingSess
     return { native, stopUpdates: await storeKitUpdates(options, changed) };
   };
   return {
-    sdk: () => started().then(({ native }) => native),
+    sdk,
     initialize: async (identity) => {
       if (session.status === 'disposed') return { status: 'unavailable' };
       session =
         session.status === 'idle'
           ? { status: 'starting', ready: start(identity?.providerReference) }
           : session;
-      return readyIdentity(() => started().then(({ native }) => native));
+      return readyIdentity(sdk);
     },
     subscribe: (listener) => {
       listeners.add(listener);
@@ -98,7 +103,7 @@ function stopListening(running: Started, changed: () => void): void {
 async function storeKitUpdates(options: Options, changed: () => void): Promise<() => void> {
   if (options.storeKit === undefined) return () => undefined;
   try {
-    return (await options.storeKit()).addUpdatesListener(changed);
+    return (await options.storeKit.evidence()).addUpdatesListener(changed);
   } catch {
     return () => undefined;
   }
@@ -106,16 +111,18 @@ async function storeKitUpdates(options: Options, changed: () => void): Promise<(
 
 function validationBilling(config: RevenueCatConfig, options: Options): BillingPort {
   const { sdk, ...session } = billingSession(config, options);
-  const { storeKit, clock } = options;
+  const { storeKit } = options;
   return {
     ...disabledBilling(),
     ...session,
     products: () => localizedProducts(sdk, config.productId),
     currentOwnership: () => readOwnership(sdk),
     restore: () =>
-      storeKit === undefined || clock === undefined
+      storeKit === undefined
         ? readOwnership(sdk)
-        : sdk().then(() => syncedStoreKitOwnership({ storeKit, config, clock })),
+        : sdk().then(() =>
+            syncedStoreKitOwnership({ storeKit: storeKit.evidence, config, clock: storeKit.clock }),
+          ),
   };
 }
 

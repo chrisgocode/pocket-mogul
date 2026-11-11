@@ -19,8 +19,7 @@ function storeKitSelection(storeKit: ReturnType<typeof storeKitFake>, clock: Fak
     config: validationConfig,
     platform: 'ios',
     runtime: revenueCatRuntime(() => Promise.resolve(revenueCatFake())),
-    storeKit: () => Promise.resolve(storeKit),
-    clock,
+    storeKit: { evidence: () => Promise.resolve(storeKit), clock },
   });
   return { ...selected, clock };
 }
@@ -232,4 +231,29 @@ it('subscribes to StoreKit updates for each Game and removes the subscription on
   session.game.purchases.dispose();
   await Promise.resolve();
   expect(storeKit.listeners.size).toBe(0);
+});
+
+it('keeps the two-second limit for product reads while restore waits for the App Store', async () => {
+  const clock = fakeClock(START_MS);
+  const requested = deferred();
+  const sdk = revenueCatFake();
+  const selected = revenueCatBilling({
+    config: validationConfig,
+    platform: 'ios',
+    runtime: revenueCatRuntime(() =>
+      Promise.resolve({
+        ...sdk,
+        getProducts: () => {
+          requested.resolve();
+          return new Promise<never>(() => undefined);
+        },
+      }),
+    ),
+    storeKit: { evidence: () => Promise.resolve(storeKitFake()), clock },
+  });
+  const session = await startObservedTestGame({ ...selected, clock });
+  const products = session.game.purchases.products();
+  await requested.promise;
+  clock.advance(2_000);
+  expect(await products).toEqual({ status: 'unavailable', products: [] });
 });

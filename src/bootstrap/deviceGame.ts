@@ -48,7 +48,9 @@ function deviceBilling() {
       config,
       platform: Platform.OS,
       runtime: nativeRevenueCat,
-      ...(Platform.OS === 'ios' ? { storeKit: nativeStoreKit, clock: deviceClock } : {}),
+      ...(Platform.OS === 'ios'
+        ? { storeKit: { evidence: nativeStoreKit, clock: deviceClock } }
+        : {}),
     });
   } catch {
     return revenueCatBilling({
