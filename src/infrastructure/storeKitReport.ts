@@ -1,0 +1,53 @@
+import type { RevenueCatConfig } from './revenueCatConfig';
+import type { StoreKitEvidence, StoreKitTransaction } from './storeKitEvidence';
+
+const VISIBLE_ID_CHARACTERS = 4;
+
+export type StoreKitReport =
+  | { readonly status: 'unavailable' | 'none' }
+  | {
+      readonly status: 'read';
+      readonly originalId: string;
+      readonly appBundleId: string;
+      readonly environment: string;
+      readonly productType: string;
+      readonly ownershipType: string;
+      readonly signature: 'verified' | 'unverified';
+      readonly revocation: 'none' | 'revoked';
+      readonly entitlement: 'current' | 'absent';
+    };
+
+type Source = {
+  readonly storeKit: () => Promise<StoreKitEvidence>;
+  readonly config: Pick<RevenueCatConfig, 'productId'>;
+};
+
+export async function storeKitReport(source: Source): Promise<StoreKitReport> {
+  try {
+    const storeKit = await source.storeKit();
+    const { productId } = source.config;
+    const [latest, entitlements] = await Promise.all([
+      storeKit.latest(productId),
+      storeKit.entitlements(),
+    ]);
+    if (latest === undefined) return { status: 'none' };
+    const current = entitlements.some((record) => record.productId === productId);
+    return redacted(latest, current ? 'current' : 'absent');
+  } catch {
+    return { status: 'unavailable' };
+  }
+}
+
+function redacted(record: StoreKitTransaction, entitlement: 'current' | 'absent'): StoreKitReport {
+  return {
+    status: 'read',
+    originalId: `…${record.originalId.slice(-VISIBLE_ID_CHARACTERS)}`,
+    appBundleId: record.appBundleId,
+    environment: record.environment,
+    productType: record.productType,
+    ownershipType: record.ownershipType,
+    signature: record.verified ? 'verified' : 'unverified',
+    revocation: record.revocationDateMs === undefined ? 'none' : 'revoked',
+    entitlement,
+  };
+}

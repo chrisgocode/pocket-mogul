@@ -51,11 +51,24 @@ The repository uses the same permanent identifier in app.json and the infrastruc
 
 The simulator can remain shut down during account setup. New native binaries are needed before live SDK reads with the permanent identifier; generated prebuild configuration alone is not a compiled or store-tested binary.
 
-For an explicitly configured development build, open Expo’s developer menu with a three-finger long press and select **Read billing validation** to view the redacted Game report. This reads metadata and ownership status; it does not start checkout.
+For an explicitly configured development build, open Expo’s developer menu with a three-finger long press and select **Billing validation** to view the redacted Game report and its controls. Reading the report never syncs with the App Store, so it never shows a sign-in prompt.
+
+## Sandbox checkout (#113)
+
+Checkout needs a second, separate opt-in: add `"checkout": "sandbox"` to the validation configuration. Without it the report offers only **Restore purchases** and **Recover**, and Game purchases return `disabled` without contacting RevenueCat. The opt-in is accepted only for the Apple store on iOS, where the StoreKit evidence module can confirm the transaction; Android stays disabled (#118). Ordinary builds have no configuration and no controls.
+
+Before the first sandbox purchase, confirm in the owner's accounts:
+
+- App Store Connect: the Paid Applications Agreement is active, `pm_tax_exemption` is a Non-Consumable with a price and localization (status *Ready to Submit* is enough for sandbox), and a Sandbox Apple Account exists.
+- RevenueCat: the In-App Purchase key is valid, `pm_tax_exemption` is attached to the `pm_tax_exemption` entitlement, and **Project settings → Restore behavior** is *Transfer to new App User ID* so reinstall and second-device restores work for anonymous users.
+- App Store Connect → the app → App Information → App Store Server Notifications: set the Sandbox Server URL to the URL RevenueCat shows in its Apple app settings, so sandbox refunds reach RevenueCat. The Game itself reads refunds from StoreKit at the next Restore.
+- On the iPhone: Settings → Developer → Sandbox Apple Account signed in with the tester. Never use a real Apple Account for these purchases.
+
+The report's controls are **Purchase test product**, **Restore purchases** (the only control that calls `AppStore.sync()` and can prompt), **Recover** (background reconciliation, never prompts) and **Refresh ownership** (RevenueCat cache invalidation, then Recover). Each result appears under `last`; `tax` shows the Game's exemption status and how many purchases granted it; `storeKit` shows the redacted latest StoreKit transaction for the product. The same actions are available from the JavaScript debugger as `pocketFortuneBillingValidation.purchase()`, `.restore()` and `.recover()`.
 
 For physical offline validation, use a development-signed standalone build with an embedded JavaScript bundle and explicit sandbox validation configuration. After Game opens, its read-only report offers **Read again** and **Continue**; a cold relaunch displays it again. This does not depend on Metro. Ordinary builds with validation configuration absent have no report or driver.
 
-Native validation additionally offers **Refresh ownership** for controlled cache probes. It requests SDK cache invalidation before repeating the Game reads and displays only the last SDK result's redacted status, provider observation time and verification label. Compare online, offline and reconnected results. Invalidation and a verified signature do not establish freshness or authoritative ownership; checkout remains disabled. See the [evidence semantics](validation/revenuecat.md#explicit-configuration).
+Native validation additionally offers **Refresh ownership** for controlled cache probes. It requests SDK cache invalidation, runs the Game's background Recover and repeats the Game reads and displays only the last SDK result's redacted status, provider observation time and verification label. Compare online, offline and reconnected results. Invalidation and a verified signature do not establish freshness or authoritative ownership. See the [evidence semantics](validation/revenuecat.md#explicit-configuration).
 
 Generate the iOS project with `bunx expo prebuild --clean --platform ios`, then build the connected device target locally with Xcode. Set `EXPO_PUBLIC_BILLING_VALIDATION` in the build process using the protected local configuration described in the evidence record. Select the owner's signing team and automatic signing; keep generated native projects unmodified. A command-line build can use:
 

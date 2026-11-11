@@ -30,11 +30,11 @@ Example shape (replace the public SDK key with the validation app's real public 
 
 Android uses `store: google` and its `goog_` public key. All fields are required; unknown fields, other app IDs, production environment, platform/store/key mismatches and product/entitlement IDs other than the explicitly authorized `pm_tax_exemption` pair are rejected. These explicit build mappings authorize only test metadata queries. They cannot establish runtime store scope or grant access. Ordinary artifacts must be built with the variable absent; verify disabled status in the artifact before distribution.
 
-A valid configuration installs the test driver `await globalThis.pocketFortuneBillingValidation()` in the JavaScript debugger. It uses only Game products/restore/state operations, returning localized product titles/prices, normalized ownership status and operation status. It exposes no anonymous identifier, transaction, receipt, token, raw CustomerInfo or SDK error. `restore()` here performs a read, not RevenueCat's store restoration operation. There is no purchase control. The driver's ownership result is unavailable until the existing contract can be satisfied.
+A valid configuration installs the test driver `await globalThis.pocketFortuneBillingValidation()` in the JavaScript debugger, with `.restore()`, `.recover()` and, only with the sandbox checkout opt-in, `.purchase()`. It uses only Game products, purchase, restore, recover and state operations, returning localized product titles/prices, operation status, the Game's tax exemption status and the last action's normalized outcome. It exposes no anonymous identifier, full transaction ID, receipt, token, raw CustomerInfo or SDK error. Reading the report never restores; on iOS only `.restore()` syncs with the App Store. See [Sandbox checkout](#sandbox-checkout-113).
 
-In development builds, the same explicitly configured driver is available through Expo’s developer menu as **Read billing validation**. It displays only the normalized Game report in an alert. The menu action is absent from ordinary disabled composition and is registered only when `__DEV__` is true; the global driver remains available for explicitly configured non-development validation builds.
+In development builds, the same explicitly configured driver is available through Expo’s developer menu as **Billing validation**. It displays the normalized Game report and the same controls as the standalone report. The menu action is absent from ordinary disabled composition and is registered only when `__DEV__` is true; the global driver remains available for explicitly configured non-development validation builds.
 
-An explicitly configured standalone build displays the same read-only report after Game opens. **Read again** repeats the Game reads; **Continue** dismisses the report for free play. A cold relaunch displays it again. This entry point works with an embedded JavaScript bundle and does not require Metro or a development menu. Ordinary builds without valid validation configuration do not install the driver or display this dialog.
+An explicitly configured standalone build displays the same report after Game opens. **Read again** repeats the Game reads; **Restore purchases**, **Recover** and, with the checkout opt-in, **Purchase test product** run the Game operation and show the report again; **Continue** dismisses the report for free play. A cold relaunch displays it again. This entry point works with an embedded JavaScript bundle and does not require Metro or a development menu. Ordinary builds without valid validation configuration do not install the driver or display this dialog.
 
 Configured native validation reports also include `evidence`: the last completed SDK CustomerInfo read's redacted result, its parsed provider `requestDate` as `observedAtMs`, and an allowlisted verification label. It includes no identity, product ownership record, token, receipt or vendor error text. This diagnostic is observed inside infrastructure while Game performs its usual reads; it does not alter BillingPort or delivery policy. The last completed SDK result may predate the current Game operation's timeout and is not evidence that the current query completed or fetched fresh data.
 
@@ -60,7 +60,7 @@ The facade deliberately exposes only the fields used for conservative normalizat
 
 ### Resolution (#124)
 
-The owner approved [ADR 1](../adr/0001-ios-ownership-evidence-from-storekit.md) on 2026-11-11. On iOS, explicit restore now syncs with the App Store and reads verified StoreKit 2 transactions through the local `StoreKitEvidence` module, which supplies app, environment, product class, stable `originalID`, revocation and a sync-based observation time. Background reads still use the conservative RevenueCat result above. StoreKit has no pending-payment list; the owner accepted the App Store's single-charge guarantee for the Apple non-consumable instead, subject to native proof. The table above remains accurate for the RevenueCat SDK itself. Checkout stays disabled; #113 enables it only after the ADR's native checks pass.
+The owner approved [ADR 1](../adr/0001-ios-ownership-evidence-from-storekit.md) on 2026-11-11. On iOS, explicit restore now syncs with the App Store and reads verified StoreKit 2 transactions through the local `StoreKitEvidence` module, which supplies app, environment, product class, stable `originalID`, revocation and a sync-based observation time. Background reads still use the conservative RevenueCat result above. StoreKit has no pending-payment list; the owner accepted the App Store's single-charge guarantee for the Apple non-consumable instead, subject to native proof. The table above remains accurate for the RevenueCat SDK itself. #113 adds a validation-only checkout behind a separate opt-in so the ADR's native checks can run; see [Sandbox checkout](#sandbox-checkout-113). Checkout is not enabled for ordinary use.
 
 Compilation (2026-11-11): `pod install` installed `StoreKitEvidence (1.0.0)` from `modules/storekit-evidence/ios` through Expo autolinking, with no generated native file edited. An unsigned `xcodebuild -workspace ios/PocketFortune.xcworkspace -scheme PocketFortune -configuration Release -sdk iphoneos CODE_SIGNING_ALLOWED=NO build` on Xcode 27.2 finished with **BUILD SUCCEEDED**, and the binary contains the `StoreKitEvidenceModule` symbols. A simulator Debug link in the same reused build folder failed on React Native core symbols, outside this module; it was not pursued. A later review added an `OnDestroy` handler that cancels the update listener; it uses the same ExpoModulesCore closure form as the compiled `OnStopObserving` but has not been recompiled, because the shared Mac build folders were cleared for disk space. No StoreKit read, sync or transaction has run on a device yet. Those are the native checks in the ADR.
 
@@ -71,6 +71,50 @@ Sources for the pinned release:
 - [RevenueCat caching](https://www.revenuecat.com/docs/test-and-launch/debugging/caching) and [trusted entitlements](https://www.revenuecat.com/docs/entitlements/trusted-entitlements).
 - [Permanent products and refunds](https://www.revenuecat.com/docs/platform-resources/non-subscriptions) and [Android non-consumable setup](https://www.revenuecat.com/docs/getting-started/entitlements/android-products#add-non-consumable-products).
 - [Expo 58](https://docs.expo.dev/versions/v58.0.0/) and [RevenueCat Expo integration](https://www.revenuecat.com/docs/getting-started/installation/expo): native development builds are required.
+
+## Sandbox checkout (#113)
+
+Owner-operated setup and the tester controls are in [the setup guide](../ios-revenuecat-setup.md#sandbox-checkout-113).
+
+**Selection.** Checkout runs only when the validation configuration also contains `"checkout": "sandbox"`, the store is `apple`, the platform is iOS and the StoreKit evidence module is present. Otherwise `BillingPort.purchase` stays `disabled` and RevenueCat is never asked to purchase. A product other than the authorized `pm_tax_exemption` is also `disabled`. Ordinary builds carry no configuration, so they have neither checkout nor the validation entry point.
+
+**Native call.** The SDK facade gains one method, `purchase(productId)`: it reads the store product with `getProducts` (non-subscription category) and calls `purchaseStoreProduct`. Errors are reduced to the name of the pinned SDK's `PURCHASES_ERROR_CODE`; no message, user ID, `CustomerInfo` or transaction leaves the facade. RevenueCat keeps its default managed completion. The facade has no finish, acknowledge, consume, sync or restore method, and `BillingPort.completion.owner` is `provider`.
+
+**Normalization.**
+
+| RevenueCat outcome | `PurchaseResult` | Guard |
+| --- | --- | --- |
+| Resolved for the requested product | StoreKit `latest(productId)` decides (below) | Cleared on delivery |
+| Resolved for another product | `verificationFailed` | Cleared |
+| `PRODUCT_ALREADY_PURCHASED_ERROR` | StoreKit `latest(productId)` decides; no new checkout | Cleared on delivery |
+| `PURCHASE_CANCELLED_ERROR` | `cancelled` | Cleared |
+| `PURCHASE_NOT_ALLOWED_ERROR`, `PURCHASE_INVALID_ERROR`, `PRODUCT_NOT_AVAILABLE_FOR_PURCHASE_ERROR` | `declined` | Cleared |
+| `SIGNATURE_VERIFICATION_ERROR` | `verificationFailed` | Cleared |
+| `PAYMENT_PENDING_ERROR` (Ask to Buy) | `pending` | Kept as `pending` |
+| Any other error, a thrown call, or no answer within the five-minute interactive bound | `unavailable` | Kept as `interrupted` |
+
+A resolved purchase grants nothing by itself (ADR decision 5). The adapter then reads StoreKit's `latest(productId)` without syncing. `completed` requires a verified record for `pm_tax_exemption` with the configured bundle, `sandbox` environment, `nonConsumable` type, `purchased` ownership, a non-empty `originalID` and no `revocationDate`; the ownership is `verification.source: 'store'`, `completion.owner: 'provider'`, keyed by `originalID`. Any failed check is `verificationFailed`. No record, or a failed read, is `unavailable`, which keeps the guard until a Restore whose App Store sync succeeds. Delivery then uses the Game's existing atomic path: ownership, delivery receipt and tax exemption commit together, and a repeated or already-owned completion with the same `originalID` changes nothing.
+
+**Validation entry point.** The report no longer calls Restore on its own. Before this change it ran `restore()` on every read, which after #126 would have called `AppStore.sync()` and shown the App Store sign-in prompt on launch. Now only **Restore purchases** syncs. The report adds `checkout` (`sandbox` or `disabled`), `tax` (Game exemption status and the number of granting purchases), `last` (the last control and its normalized outcome) and `storeKit`, the latest StoreKit transaction for the product with redacted fields: the last four characters of `originalID`, bundle, environment, product type, ownership type, signature, revocation and whether it is in current entitlements.
+
+**Automated evidence.** `src/application/revenueCatCheckout.test.ts` drives the real adapter, the RevenueCat and StoreKit fakes and the SQLite Game harness: confirmed delivery with the stored ownership record; provider completion; no duplicate benefit across repeated purchase, already-owned and restore; each error mapping and its guard; every StoreKit scope and verification rejection; a mismatched product; a missing StoreKit record kept until Restore; the interactive timeout with a late success ignored; a failed local commit recovered at the next Restore after restart; and no native checkout without the opt-in, on Android or for an unauthorized product. `src/bootstrap/billingCheckoutValidation.test.tsx` proves the launch report never syncs, shows only redacted StoreKit fields, syncs only from Restore and buys once through Game.
+
+### Native checks (open)
+
+These need the owner's iPhone, a Sandbox Apple Account and a new development-signed validation build with `"checkout": "sandbox"`. Fakes and compilation do not satisfy them. Until each passes, checkout stays limited to that explicitly configured build.
+
+| Check from #124 / ADR 1 | How to run it | Result |
+| --- | --- | --- |
+| Recompile `StoreKitEvidence` including its `OnDestroy` handler | Clean prebuild and device build | Not yet run |
+| StoreKit reads `pm_tax_exemption` with the expected bundle, environment, product type, ownership type and `originalID` | Purchase, then read the `storeKit` block | Not yet run |
+| Sign-in prompt only from Restore | Cold launch, foreground, Recover and Purchase; then Restore | Not yet run |
+| Purchase while owned does not charge again | Purchase twice; check the sandbox account's purchase history | Not yet run |
+| Ask to Buy twice, then approved: one transaction, one charge | Sandbox Ask to Buy; if unavailable, record that and use Xcode StoreKit testing as supplementary evidence | Not yet run |
+| Sandbox refund appears as `revocationDate`, leaves current entitlements, next Restore removes access | Refund in the sandbox account, then Restore | Not yet run |
+| Reading StoreKit never finishes a transaction RevenueCat has not finished | The module has no `finish()`; confirm with an unfinished Ask to Buy transaction still delivered through `Transaction.updates` | Not yet run |
+| First real sandbox purchase and cancellation | Purchase, and cancel the sheet | Not yet run |
+
+If the duplicate-charge checks fail, ADR 1's `storePrevents` guard rule is void: remove it and keep checkout blocked. Android purchase and Play license testing stay deferred in #118; the Android non-consumable classification and acknowledgement-without-consumption criteria are not attempted here.
 
 ## Configuration ownership
 

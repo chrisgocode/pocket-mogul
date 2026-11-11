@@ -1,16 +1,25 @@
-import type { BillingPort, OwnershipResult } from '@/application/billingPort';
+import type { BillingPort, OwnershipResult, PurchaseResult } from '@/application/billingPort';
 import type { PurchasePolicy } from '@/application/purchaseLedger';
 import { disabledBilling } from './disabledBilling';
 import { readRevenueCatConfig } from './revenueCatConfig';
 import type { RevenueCatConfig } from './revenueCatConfig';
 import type { RevenueCatInfo, RevenueCatSdk } from './revenueCatRuntime';
 import type { StoreKitEvidence } from './storeKitEvidence';
-import { syncedStoreKitOwnership } from './storeKitOwnership';
+import { confirmedStoreKitPurchase, syncedStoreKitOwnership } from './storeKitOwnership';
+import { checkoutFailure } from './revenueCatPurchase';
+import { storeKitReport, type StoreKitReport } from './storeKitReport';
 import type { Clock } from '@/application/ports';
+
+export type BillingValidation = {
+  readonly productId: string;
+  readonly checkout: 'sandbox' | 'disabled';
+  readonly storeKit: () => Promise<StoreKitReport>;
+};
 
 type Selection = {
   readonly billing: BillingPort;
   readonly purchasePolicy?: PurchasePolicy;
+  readonly validation?: BillingValidation;
 };
 
 type Options = {
@@ -30,6 +39,7 @@ export function revenueCatBilling(options: Options): Selection {
   if (config === undefined) return { billing: disabledBilling() };
   return {
     billing: validationBilling(config, options),
+    validation: billingValidation(config, options.storeKit),
     purchasePolicy: {
       scopes: [{ store: config.store, appId: config.appId, environment: config.environment }],
       products: [
@@ -42,6 +52,24 @@ export function revenueCatBilling(options: Options): Selection {
       ],
     },
   };
+}
+
+function billingValidation(
+  config: RevenueCatConfig,
+  storeKit: StoreKitSource | undefined,
+): BillingValidation {
+  return {
+    productId: config.productId,
+    checkout: checkoutEnabled(config, storeKit) ? 'sandbox' : 'disabled',
+    storeKit: () =>
+      storeKit === undefined
+        ? Promise.resolve({ status: 'unavailable' })
+        : storeKitReport({ storeKit: storeKit.evidence, config }),
+  };
+}
+
+function checkoutEnabled(config: RevenueCatConfig, storeKit: StoreKitSource | undefined): boolean {
+  return config.checkout === 'sandbox' && config.store === 'apple' && storeKit !== undefined;
 }
 
 type Started = { readonly native: RevenueCatSdk; readonly stopUpdates: () => void };
@@ -116,6 +144,9 @@ function validationBilling(config: RevenueCatConfig, options: Options): BillingP
     ...disabledBilling(),
     ...session,
     products: () => localizedProducts(sdk, config.productId),
+    ...(storeKit !== undefined && checkoutEnabled(config, storeKit)
+      ? { purchase: (productId: string) => checkout({ sdk, storeKit, config }, productId) }
+      : {}),
     currentOwnership: () => readOwnership(sdk),
     restore: () =>
       storeKit === undefined
@@ -124,6 +155,28 @@ function validationBilling(config: RevenueCatConfig, options: Options): BillingP
             syncedStoreKitOwnership({ storeKit: storeKit.evidence, config, clock: storeKit.clock }),
           ),
   };
+}
+
+type Checkout = {
+  readonly sdk: () => Promise<RevenueCatSdk>;
+  readonly storeKit: StoreKitSource;
+  readonly config: RevenueCatConfig;
+};
+
+async function checkout(source: Checkout, productId: string): Promise<PurchaseResult> {
+  if (productId !== source.config.productId) return { status: 'disabled' };
+  const confirm = () =>
+    confirmedStoreKitPurchase({ storeKit: source.storeKit.evidence, config: source.config });
+  try {
+    const outcome = await (await source.sdk()).purchase(productId);
+    if (outcome.status === 'purchased')
+      return outcome.productId === productId ? confirm() : { status: 'verificationFailed' };
+    const failure = checkoutFailure(outcome.error);
+    if (failure === 'alreadyOwned') return await confirm();
+    return failure === 'pending' ? { status: 'pending', productId } : { status: failure };
+  } catch {
+    return { status: 'unavailable' };
+  }
 }
 
 async function localizedProducts(

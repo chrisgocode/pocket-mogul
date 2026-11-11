@@ -9,6 +9,7 @@ const configSchema = z
     apiKey: z.string().regex(/^(appl|goog)_[A-Za-z0-9]+$/),
     productId: z.literal('pm_tax_exemption'),
     entitlementId: z.literal('pm_tax_exemption'),
+    checkout: z.literal('sandbox').optional(),
   })
   .strict();
 

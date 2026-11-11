@@ -3,59 +3,124 @@ import type { AlertButton } from 'react-native';
 import { registerDevMenuItems } from 'expo-dev-client';
 import type { Game } from '@/application/game';
 import type { BillingValidationProbe } from '@/infrastructure/revenueCatEvidenceProbe';
+import type { BillingValidation } from '@/infrastructure/revenueCatBilling';
 
-export function installBillingValidationDriver(game: Game, probe?: BillingValidationProbe): void {
-  const read = () => readValidation(game, probe);
-  Object.assign(globalThis, { pocketFortuneBillingValidation: read });
-  if (__DEV__) void registerValidationMenu(read).catch(() => undefined);
-  else showStandaloneReport(read, probe);
+type Driver = {
+  readonly game: Game;
+  readonly probe?: BillingValidationProbe | undefined;
+  readonly validation?: BillingValidation | undefined;
+};
+
+type Action = 'purchase' | 'restore' | 'recover';
+
+type LastAction = { readonly action: Action; readonly outcome: string };
+
+type Report = Awaited<ReturnType<typeof readValidation>>;
+
+type Session = {
+  readonly read: () => Promise<Report>;
+  readonly run: (action: Action) => Promise<Report>;
+  readonly actions: readonly Action[];
+  readonly probe?: BillingValidationProbe | undefined;
+};
+
+const ACTION_LABELS: Record<Action, string> = {
+  purchase: 'Purchase test product',
+  restore: 'Restore purchases',
+  recover: 'Recover',
+};
+
+export function installBillingValidationDriver(driver: Driver): void {
+  const session = validationSession(driver);
+  const global = Object.assign(session.read, {
+    purchase: () => session.run('purchase'),
+    restore: () => session.run('restore'),
+    recover: () => session.run('recover'),
+  });
+  Object.assign(globalThis, { pocketFortuneBillingValidation: global });
+  if (__DEV__) void registerValidationMenu(session).catch(() => undefined);
+  else showReport(session, session.read);
 }
 
-function showStandaloneReport(
-  read: () => ReturnType<typeof readValidation>,
-  probe?: BillingValidationProbe,
-): void {
+function validationSession(driver: Driver): Session {
+  const last: { current?: LastAction } = {};
+  const read = () => readValidation(driver, last.current);
+  const checkout = driver.validation?.checkout === 'sandbox';
+  return {
+    read,
+    probe: driver.probe,
+    actions: checkout ? ['purchase', 'restore', 'recover'] : ['restore', 'recover'],
+    run: async (action) => {
+      if (action === 'purchase' && !checkout) return read();
+      last.current = { action, outcome: await runAction(driver, action) };
+      return read();
+    },
+  };
+}
+
+async function runAction(driver: Driver, action: Action): Promise<string> {
+  const purchases = driver.game.purchases;
+  if (action === 'purchase')
+    return (await purchases.purchase(driver.validation?.productId ?? '')).status;
+  if (action === 'restore') return (await purchases.restore()).status;
+  await purchases.recover();
+  return purchases.getState().status;
+}
+
+function showReport(session: Session, report: () => Promise<Report>): void {
+  const again = (next: () => Promise<Report>) => () => showReport(session, next);
   const buttons: AlertButton[] = [
-    { text: 'Read again', onPress: () => showStandaloneReport(read, probe) },
-    ...(probe === undefined
-      ? []
-      : [
-          {
-            text: 'Refresh ownership',
-            onPress: () => {
-              void probe.invalidate().then(() => showStandaloneReport(read, probe));
-            },
-          },
-        ]),
+    { text: 'Read again', onPress: again(session.read) },
+    ...refreshButton(session, again),
+    ...session.actions.map((action) => ({
+      text: ACTION_LABELS[action],
+      onPress: again(() => session.run(action)),
+    })),
     { text: 'Continue', style: 'cancel' },
   ];
-  void read()
-    .then((report) => Alert.alert('Billing validation', JSON.stringify(report), buttons))
+  void report()
+    .then((value) => Alert.alert('Billing validation', JSON.stringify(value), buttons))
     .catch(() => Alert.alert('Billing validation', 'Unavailable', buttons));
 }
 
-async function readValidation(game: Game, probe?: BillingValidationProbe) {
+function refreshButton(
+  session: Session,
+  again: (next: () => Promise<Report>) => () => void,
+): AlertButton[] {
+  const { probe } = session;
+  if (probe === undefined) return [];
+  return [
+    {
+      text: 'Refresh ownership',
+      onPress: again(() => probe.invalidate().then(() => session.run('recover'))),
+    },
+  ];
+}
+
+async function readValidation(driver: Driver, last: LastAction | undefined) {
+  const { game, validation, probe } = driver;
   const products = await game.purchases.products();
-  const ownership = await game.purchases.restore();
+  const { tax } = game.getSnapshot().state;
   return {
     products,
-    ownership: ownership.status,
     operation: game.purchases.getState().status,
-    checkout: 'disabled',
+    checkout: validation?.checkout ?? 'disabled',
+    tax: {
+      status: tax.status,
+      entitlements: tax.status === 'exempt' ? tax.entitlementIds.length : 0,
+    },
+    ...(last === undefined ? {} : { last }),
+    ...(validation === undefined ? {} : { storeKit: await validation.storeKit() }),
     ...(probe === undefined ? {} : { evidence: probe.read() }),
   };
 }
 
-async function registerValidationMenu(read: () => ReturnType<typeof readValidation>) {
+async function registerValidationMenu(session: Session) {
   await registerDevMenuItems([
     {
-      name: 'Read billing validation',
+      name: 'Billing validation',
       shouldCollapse: true,
-      callback: () => {
-        void read()
-          .then((report) => Alert.alert('Billing validation', JSON.stringify(report)))
-          .catch(() => Alert.alert('Billing validation', 'Unavailable'));
-      },
+      callback: () => showReport(session, session.read),
     },
   ]);
 }

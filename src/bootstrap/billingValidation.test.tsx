@@ -32,7 +32,7 @@ it('reports provider observations and explicitly invalidates cache without enabl
     }),
   );
   const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
-  installBillingValidationDriver(session.game, probe);
+  installBillingValidationDriver({ game: session.game, probe });
   await waitFor(() => expect(alert).toHaveBeenCalledTimes(1));
   const refresh = alert.mock.calls[0]?.[2]?.[1];
   expect(refresh?.text).toBe('Refresh ownership');
@@ -47,9 +47,10 @@ it('reports provider observations and explicitly invalidates cache without enabl
           { productId: 'pm_tax_exemption', displayName: 'Exonération', displayPrice: '1,99 €' },
         ],
       },
-      ownership: 'unavailable',
       operation: 'unavailable',
       checkout: 'disabled',
+      tax: { status: 'notStarted', entitlements: 0 },
+      last: { action: 'recover', outcome: 'unavailable' },
       evidence: {
         cache: 'invalidated',
         customerInfo: {
@@ -79,7 +80,7 @@ it('never invalidates the cache of an externally configured SDK', async () => {
     }),
   );
   const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
-  installBillingValidationDriver(session.game, probe);
+  installBillingValidationDriver({ game: session.game, probe });
   await waitFor(() => expect(alert).toHaveBeenCalledTimes(1));
   alert.mock.calls[0]?.[2]?.[1]?.onPress?.();
   await waitFor(() => expect(alert).toHaveBeenCalledTimes(2));
@@ -111,13 +112,12 @@ it('redacts a failed SDK read after cache invalidation and keeps ownership unava
     }),
   );
   const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
-  installBillingValidationDriver(session.game, probe);
+  installBillingValidationDriver({ game: session.game, probe });
   await waitFor(() => expect(alert).toHaveBeenCalledTimes(1));
   alert.mock.calls[0]?.[2]?.[1]?.onPress?.();
   await waitFor(() => expect(alert).toHaveBeenCalledTimes(2));
   const report = alert.mock.calls[1]?.[1];
   expect(report).toContain('"cache":"invalidated","customerInfo":{"status":"unavailable"}');
-  expect(report).toContain('"ownership":"unavailable"');
   expect(report).not.toContain('private-sdk-error');
   expect(report).not.toContain('$RCAnonymousID:test');
   expect(await session.purchaseRecords()).toEqual([]);
@@ -147,7 +147,7 @@ it('bounds cache invalidation and never changes a timeout to success after a lat
   });
   const session = await startObservedTestGame({ ...selected, clock });
   const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
-  installBillingValidationDriver(session.game, probe);
+  installBillingValidationDriver({ game: session.game, probe });
   await waitFor(() => expect(alert).toHaveBeenCalledTimes(1));
   pressValidationButton(alert.mock.calls[0]?.[2], 'Refresh ownership');
   await requested.promise;
@@ -177,7 +177,7 @@ it('shows a repeatable read-only report without a development menu in a standalo
     }),
   );
   const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
-  installBillingValidationDriver(session.game);
+  installBillingValidationDriver({ game: session.game });
   await waitFor(() => expect(alert).toHaveBeenCalledTimes(1));
   expect(alert.mock.calls[0]?.[1]).toContain('"checkout":"disabled"');
   expect(alert.mock.calls[0]?.[1]).toContain('"displayPrice":"1,99 €"');
@@ -200,10 +200,10 @@ it('runs read-only validation through Game and displays only localized metadata 
     }),
   );
   const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
-  installBillingValidationDriver(session.game);
+  installBillingValidationDriver({ game: session.game });
   await waitFor(() => expect(registerDevMenuItems).toHaveBeenCalledTimes(1));
   const menu = jest.mocked(registerDevMenuItems).mock.calls[0]?.[0][0];
-  expect(menu?.name).toBe('Read billing validation');
+  expect(menu?.name).toBe('Billing validation');
   menu?.callback();
   await waitFor(() =>
     expect(alert).toHaveBeenCalledWith(
@@ -215,10 +215,11 @@ it('runs read-only validation through Game and displays only localized metadata 
             { productId: 'pm_tax_exemption', displayName: 'Exonération', displayPrice: '1,99 €' },
           ],
         },
-        ownership: 'unavailable',
         operation: 'unavailable',
         checkout: 'disabled',
+        tax: { status: 'notStarted', entitlements: 0 },
       }),
+      expect.any(Array),
     ),
   );
   expect(await session.purchaseRecords()).toEqual([]);
