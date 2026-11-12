@@ -93,7 +93,7 @@ Owner-operated setup and the tester controls are in [the setup guide](../ios-rev
 | `PAYMENT_PENDING_ERROR` (Ask to Buy) | `pending` | Kept as `pending` |
 | Any other error, a thrown call, or no answer within the five-minute interactive bound | `unavailable` | Kept as `interrupted` |
 
-A resolved purchase grants nothing by itself (ADR decision 5). The adapter then reads StoreKit's `latest(productId)` without syncing. `completed` requires a verified record for `pm_tax_exemption` with the configured bundle, `sandbox` environment, `nonConsumable` type, `purchased` ownership, a non-empty `originalID` and no `revocationDate`; the ownership is `verification.source: 'store'`, `completion.owner: 'provider'`, keyed by `originalID`. Any failed check is `verificationFailed`. No record, or a failed read, is `unavailable`, which keeps the guard until a Restore whose App Store sync succeeds. Delivery then uses the Game's existing atomic path: ownership, delivery receipt and tax exemption commit together, and a repeated or already-owned completion with the same `originalID` changes nothing.
+A resolved purchase grants nothing by itself (ADR decision 5). The adapter then reads StoreKit's `latest(productId)` without syncing. `completed` requires a verified record for `pm_tax_exemption` with the configured bundle, `sandbox` environment, `nonConsumable` type, `purchased` ownership, a non-empty `originalID` and no `revocationDate`; the ownership is `verification.source: 'store'`, `completion.owner: 'provider'`, keyed by `originalID`. Any failed check is `verificationFailed`. No record, or a failed read, is `unavailable`, which keeps the guard until a Restore whose App Store sync succeeds or, since #115, until a background read finds the signed transaction. Delivery then uses the Game's existing atomic path: ownership, delivery receipt and tax exemption commit together, and a repeated or already-owned completion with the same `originalID` changes nothing.
 
 **Validation entry point.** The report no longer calls Restore on its own. Before this change it ran `restore()` on every read, which after #126 would have called `AppStore.sync()` and shown the App Store sign-in prompt on launch. Now only **Restore purchases** syncs. The report adds `checkout` (`sandbox` or `disabled`), `tax` (Game exemption status and the number of granting purchases), `last` (the last control and its normalized outcome) and `storeKit`, the latest StoreKit transaction for the product with redacted fields: the last four characters of `originalID`, bundle, environment, product type, ownership type, signature, revocation and whether it is in current entitlements.
 
@@ -121,6 +121,53 @@ Owner-operated iPhone 15 Pro Max (iOS 26.3) with a Sandbox Apple Account, 2026-1
 **Defect fixed from the device run.** A purchase that was already delivered short-circuits to `delivered` before checkout. That check counted a receipt whose current ownership had since been removed, and a resolved `delivered` guard still blocked a new checkout. Now only receipts that are not removed count as delivered, and only `pending` or `interrupted` guards block checkout. Regression: `starts a new checkout after a refund removed a purchase recovered by Restore` in `src/application/revenueCatCheckout.test.ts`, which failed before the fix. The #100 test that asserted the old answer (`delivered` with access removed) now expects a new checkout.
 
 If the duplicate-charge checks fail, ADR 1's `storePrevents` guard rule is void: remove it and keep checkout blocked. Android purchase and Play license testing stay deferred in #118; the Android non-consumable classification and acknowledgement-without-consumption criteria are not attempted here.
+
+## Pending and interrupted payments (#115)
+
+ADR 1 was amended for this slice ([Decision 2a](../adr/0001-ios-ownership-evidence-from-storekit.md#decision)). Background reads may now grant **signed ownership**; anything that depends on absence still needs Restore.
+
+**Checkout lifetime.** The Game writes the `interrupted` guard before it calls the SDK and keeps it until delivery or proven absence (unchanged from #100). The Game stops waiting after the five-minute interactive bound, but the native sheet stays open as long as the store needs. The adapter keeps one native checkout open per process, shared by any Game rebuilt on the same RevenueCat runtime: a purchase requested while it is unresolved joins it. While it is open, Restore reports the product in `pendingProductIds`, so not even a `storePrevents` guard clears on absence. When the native call settles, early or late, the adapter emits `ownershipChanged`, and the Game reconciles from StoreKit instead of publishing the late result.
+
+**Outcomes and recovery.**
+
+| Situation | Guard | How it resolves without a second charge |
+| --- | --- | --- |
+| `PAYMENT_PENDING_ERROR` (Ask to Buy) | `pending` | Approval appears in `Transaction.updates` or at the next launch or foreground. The signed read delivers it and the guard becomes `delivered`. Decline: Restore's fresh absence clears it (`storePrevents`). |
+| Unknown error, thrown call, no StoreKit record yet, five-minute bound reached | `interrupted` | Same: the signed read delivers once StoreKit lists the transaction; otherwise Restore's fresh absence clears it. |
+| Purchase confirmed but the local commit failed | `interrupted` | The next launch, foreground or update delivers it from the signed read. |
+| App closed during checkout | `interrupted` (written before the SDK call) | The next launch reads the guard and reconciles; no checkout until it resolves. |
+| Retry while the guard is unresolved | Unchanged | The Game reconciles first and returns `unavailable` without contacting RevenueCat. |
+| Retry while the native sheet is still open | Unchanged | The adapter returns the open checkout; no second sheet. |
+
+Guards still clear only through a delivered receipt or fresh, authoritative, complete absence observed after the request. A `signed` read, a cached RevenueCat read and evidence that predates the request clear nothing. A missing pending list still preserves the guard, except where ADR 1's `storePrevents` rule applies after a fresh Restore.
+
+**Automated evidence.**
+
+- `src/application/revenueCatRecovery.test.ts` (real adapter, RevenueCat and StoreKit fakes, SQLite Game):
+  - an approval after restart delivered by a StoreKit update, with no sync;
+  - unknown error, bridge failure and missing StoreKit record each kept as `interrupted` across restart and delivered on the next launch, with one native checkout;
+  - a fresh Restore keeps the guard while the sheet is still open past the interactive bound, and a Game rebuilt in the same process sees that sheet;
+  - a late sheet result reconciled even with every callback dropped;
+  - concurrent purchases sharing one sheet;
+  - nothing written when the sheet resolves after disposal.
+- `src/application/signedOwnership.test.ts` (Game seam): `signed` evidence delivers once, keeps a guard until delivery, never reactivates a removed purchase and grants nothing that the store did not sign.
+- `src/application/storeKitOwnership.test.ts`: background reads grant only in-scope, verified, unrevoked records and never sync.
+- `src/application/revenueCatCheckout.test.ts`: a failed local commit is now recovered on the next launch.
+- The #100 suites (`purchaseGuard`, `purchaseOperations`, `purchaseConcurrency`, `purchaseLifecycle`, `purchaseDisposal`, `revenueCatOffline`) still cover the guard rules, coalescing, event draining during a query, listener ownership, disposal across storage awaits, redacted diagnostics and single Offline settlement.
+
+**Native scenarios.** Run on the physical iPhone in #117 with the validation build, using `checkoutTrace`, `storeKit`, `tax` and the stored guard shown in the report.
+
+| Platform | Scenario | Steps | Expected |
+| --- | --- | --- | --- |
+| iOS | Ask to Buy approved while the app is closed | Child Sandbox account in a sandbox family. Purchase, then close the app; approve from the organizer; relaunch without pressing Restore | `last: purchase / pending`; after relaunch `tax: exempt, 1`, one transaction, no sign-in prompt |
+| iOS | Ask to Buy approved while the app is open | As above, approve while the report is open | Delivered from the `Transaction.updates` callback without Restore |
+| iOS | Ask to Buy declined | Decline; press Purchase | `unavailable`, no new sheet; Restore clears the guard, then Purchase opens one sheet |
+| iOS | Sheet left open past five minutes | Purchase, leave the sheet for more than five minutes, then confirm | Game reports `unavailable`; after confirming, delivered once without Restore |
+| iOS | App killed during checkout | Purchase, force-quit from the app switcher before confirming, relaunch | Guard `interrupted`; Purchase does not open a sheet until StoreKit or Restore resolves it |
+| iOS | Offline after confirming | Confirm a purchase, then switch on Airplane Mode before the result | No grant offline; delivered on the next online launch or foreground |
+| Android | All of the above | Deferred to #118 | Not attempted; Android checkout stays `disabled` |
+
+The unexplained first device purchase in #113 (completed in StoreKit, `unavailable` in the Game) is now recovered on the next launch, foreground or update without Restore. `checkoutTrace` will name the failing step if it happens again.
 
 ## Configuration ownership
 

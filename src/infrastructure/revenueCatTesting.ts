@@ -94,5 +94,8 @@ export function storeKitFake(script: StoreKitScript = {}) {
       state.script = next;
       for (const listener of listeners) listener();
     },
+    changeWithoutUpdate: (next: StoreKitScript) => {
+      state.script = next;
+    },
   };
 }

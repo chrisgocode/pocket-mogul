@@ -147,10 +147,17 @@ function updateGuard(context: Context, evidence: RestoreResult | undefined): voi
   const blocked = context.workflow.blocked;
   if (evidence?.status !== 'current' || blocked === undefined) return;
   const owned = evidence.ownership.some((item) => item.reference.productId === blocked.productId);
-  const notPending =
-    evidence.pendingProductIds?.includes(blocked.productId) === false ||
-    storePreventsDuplicateCharge(context.ports, blocked.productId);
-  if (!owned && notPending) context.workflow.blocked = undefined;
+  if (!owned && paymentAbsent(context.ports, { evidence, productId: blocked.productId }))
+    context.workflow.blocked = undefined;
+}
+
+function paymentAbsent(
+  ports: GamePorts,
+  inventory: { evidence: Extract<RestoreResult, { status: 'current' }>; productId: string },
+): boolean {
+  const listed = inventory.evidence.pendingProductIds?.includes(inventory.productId);
+  if (listed !== undefined) return !listed;
+  return storePreventsDuplicateCharge(ports, inventory.productId);
 }
 
 function storePreventsDuplicateCharge(ports: GamePorts, productId: string): boolean {

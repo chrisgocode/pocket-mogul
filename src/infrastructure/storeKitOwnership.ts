@@ -35,6 +35,21 @@ export async function syncedStoreKitOwnership(source: Source): Promise<Ownership
   }
 }
 
+export async function signedStoreKitOwnership(
+  source: Omit<Source, 'clock'>,
+): Promise<OwnershipResult> {
+  try {
+    const entitlements = await (await source.storeKit()).entitlements();
+    if (entitlements.some((record) => !record.verified)) return { status: 'verificationFailed' };
+    return {
+      status: 'signed',
+      ownership: ownedOwnership(source.config, entitlements),
+    };
+  } catch {
+    return { status: 'unavailable' };
+  }
+}
+
 export async function confirmedStoreKitPurchase(
   source: Omit<Source, 'clock'>,
 ): Promise<PurchaseResult> {
@@ -62,9 +77,6 @@ function inventory(config: RevenueCatConfig, observation: Observation): Ownershi
   const { entitlements, latest, observedAtMs } = observation;
   const records = latest === undefined ? entitlements : [...entitlements, latest];
   if (records.some((record) => !record.verified)) return { status: 'verificationFailed' };
-  const owned = entitlements.filter(
-    (record) => inScope(config, record) && record.revocationDateMs === undefined,
-  );
   const revoked =
     latest !== undefined && inScope(config, latest) && latest.revocationDateMs !== undefined;
   return {
@@ -72,9 +84,18 @@ function inventory(config: RevenueCatConfig, observation: Observation): Ownershi
     authority: 'authoritative',
     coverage: 'complete',
     observedAtMs,
-    ownership: owned.map((record) => verifiedOwnership(config, record)),
+    ownership: ownedOwnership(config, entitlements),
     removals: revoked ? [reference(config, latest)] : [],
   };
+}
+
+function ownedOwnership(
+  config: RevenueCatConfig,
+  entitlements: readonly StoreKitTransaction[],
+): VerifiedOwnership[] {
+  return entitlements
+    .filter((record) => inScope(config, record) && record.revocationDateMs === undefined)
+    .map((record) => verifiedOwnership(config, record));
 }
 
 function inScope(config: RevenueCatConfig, record: StoreKitTransaction): boolean {

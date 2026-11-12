@@ -33,6 +33,7 @@ export type BillingUnavailable = { readonly status: 'disabled' | 'unavailable' }
 export type OwnershipResult =
   | BillingUnavailable
   | { readonly status: 'verificationFailed' }
+  | { readonly status: 'signed'; readonly ownership: readonly VerifiedOwnership[] }
   | {
       readonly status: 'current';
       readonly authority: 'authoritative' | 'cached';

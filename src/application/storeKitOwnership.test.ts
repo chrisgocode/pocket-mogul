@@ -40,9 +40,10 @@ async function pendingCheckout() {
   return session;
 }
 
-it('delivers verified in-scope StoreKit ownership only after an explicit restore syncs', async () => {
-  const storeKit = storeKitFake({ entitlements: [storeKitPurchase] });
+it('delivers verified in-scope StoreKit ownership through an explicit restore sync', async () => {
+  const storeKit = storeKitFake();
   const session = await storeKitGame(storeKit);
+  storeKit.changeWithoutUpdate({ entitlements: [storeKitPurchase] });
   expect(await session.purchaseRecords()).toEqual([]);
   expect(storeKit.syncs()).toBe(0);
   expect(await session.game.purchases.restore()).toMatchObject({
@@ -118,31 +119,45 @@ it('waits for an App Store sign-in prompt during an explicit restore', async () 
 it('gives up on a restore prompt after the interactive limit and ignores its late result', async () => {
   const signedIn = deferred();
   const syncing = deferred();
-  const storeKit = storeKitFake({
+  const storeKit = storeKitFake();
+  const clock = fakeClock(START_MS);
+  const session = await storeKitGame(storeKit, clock);
+  storeKit.changeWithoutUpdate({
     entitlements: [storeKitPurchase],
     sync: () => {
       syncing.resolve();
       return signedIn.promise;
     },
   });
-  const clock = fakeClock(START_MS);
-  const session = await storeKitGame(storeKit, clock);
   const restoring = session.game.purchases.restore();
   await syncing.promise;
   clock.advance(INTERACTIVE_LIMIT_MS);
   expect(await restoring).toEqual({ status: 'unavailable' });
   signedIn.resolve();
-  await session.game.purchases.recover();
   expect(await session.purchaseRecords()).toEqual([]);
   expect(storeKit.syncs()).toBe(1);
 });
 
-it('never prompts or trusts StoreKit during launch, foreground or callback recovery', async () => {
+it('grants signed StoreKit ownership on launch and callbacks without an App Store prompt', async () => {
   const storeKit = storeKitFake({ entitlements: [storeKitPurchase] });
   const session = await storeKitGame(storeKit);
+  await session.game.purchases.recover();
+  expect(await session.purchaseRecords()).toHaveLength(1);
   storeKit.change({ entitlements: [storeKitPurchase] });
   await session.game.purchases.recover();
   expect(storeKit.syncs()).toBe(0);
+  expect(await session.purchaseRecords()).toHaveLength(1);
+});
+
+it.each([
+  { ...storeKitPurchase, appBundleId: 'com.other.app' },
+  { ...storeKitPurchase, environment: 'xcode' },
+  { ...storeKitPurchase, ownershipType: 'familyShared' },
+  { ...storeKitPurchase, revocationDateMs: START_MS },
+  { ...storeKitPurchase, verified: false },
+])('grants nothing from a background StoreKit read of unusable evidence %#', async (record) => {
+  const session = await storeKitGame(storeKitFake({ entitlements: [record] }));
+  await session.game.purchases.recover();
   expect(await session.purchaseRecords()).toEqual([]);
 });
 

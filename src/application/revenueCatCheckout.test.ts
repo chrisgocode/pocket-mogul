@@ -1,46 +1,22 @@
 import { revenueCatBilling } from '@/infrastructure/revenueCatBilling';
-import { revenueCatRuntime, type RevenueCatPurchase } from '@/infrastructure/revenueCatRuntime';
+import { revenueCatRuntime } from '@/infrastructure/revenueCatRuntime';
 import {
   revenueCatFake,
   storeKitFake,
   storeKitPurchase,
   validationConfig,
 } from '@/infrastructure/revenueCatTesting';
-import { deferred, fakeClock, startObservedTestGame, type FakeClock } from './testGame';
-
-const START_MS = 1_800_000_000_000;
-const INTERACTIVE_LIMIT_MS = 300_000;
-const PRODUCT = validationConfig.productId;
-const checkoutConfig = { ...validationConfig, checkout: 'sandbox' } as const;
-
-type Setup = {
-  readonly purchase?: (productId: string) => Promise<RevenueCatPurchase>;
-  readonly storeKit?: ReturnType<typeof storeKitFake>;
-  readonly clock?: FakeClock;
-  readonly config?: unknown;
-};
-
-function checkoutSelection(setup: Setup = {}) {
-  const sdk = revenueCatFake(setup.purchase === undefined ? {} : { purchase: setup.purchase });
-  const storeKit = setup.storeKit ?? storeKitFake({ latest: storeKitPurchase });
-  const clock = setup.clock ?? fakeClock(START_MS);
-  const selected = revenueCatBilling({
-    config: setup.config ?? checkoutConfig,
-    platform: 'ios',
-    runtime: revenueCatRuntime(() => Promise.resolve(sdk)),
-    storeKit: { evidence: () => Promise.resolve(storeKit), clock },
-  });
-  return { selected: { ...selected, clock }, sdk, storeKit };
-}
-
-async function checkoutGame(setup: Setup = {}) {
-  const { selected, sdk, storeKit } = checkoutSelection(setup);
-  return { session: await startObservedTestGame(selected), sdk, storeKit };
-}
-
-function failed(name: Extract<RevenueCatPurchase, { status: 'failed' }>['error']) {
-  return (): Promise<RevenueCatPurchase> => Promise.resolve({ status: 'failed', error: name });
-}
+import {
+  INTERACTIVE_LIMIT_MS,
+  PRODUCT,
+  START_MS,
+  checkoutConfig,
+  checkoutGame,
+  checkoutSelection,
+  failed,
+  relaunchSelection,
+} from './revenueCatCheckoutTesting';
+import { deferred, fakeClock, startObservedTestGame } from './testGame';
 
 it('delivers a RevenueCat purchase once only after StoreKit confirms the scoped transaction', async () => {
   const { session, sdk, storeKit } = await checkoutGame();
@@ -154,8 +130,9 @@ it('keeps the guard when StoreKit has no record yet and delivers at the next res
     status: 'interrupted',
     productId: PRODUCT,
   });
-  storeKit.change({ entitlements: [storeKitPurchase], latest: storeKitPurchase });
+  storeKit.changeWithoutUpdate({ entitlements: [storeKitPurchase], latest: storeKitPurchase });
   await session.game.purchases.restore();
+  expect(storeKit.syncs()).toBe(1);
   expect(await session.purchaseRecords()).toHaveLength(1);
   expect((await session.purchaseIdentity())?.checkout).toEqual({
     status: 'delivered',
@@ -187,7 +164,7 @@ it('gives up on the store sheet after the interactive limit and ignores the late
   });
 });
 
-it('recovers a provider-completed purchase after a failed local commit at the next restore', async () => {
+it('recovers a provider-completed purchase after a failed local commit on the next launch', async () => {
   const { session, sdk } = await checkoutGame();
   const before = session.game.getSnapshot();
   session.faults.failWritesMatching = /INSERT INTO purchase_receipts/;
@@ -195,13 +172,12 @@ it('recovers a provider-completed purchase after a failed local commit at the ne
   expect(session.game.getSnapshot()).toEqual(before);
   expect(await session.purchaseRecords()).toEqual([]);
   session.faults.failWritesMatching = undefined;
-  const { selected, storeKit } = checkoutSelection({
-    storeKit: storeKitFake({ entitlements: [storeKitPurchase], latest: storeKitPurchase }),
-    clock: fakeClock(START_MS + 60_000),
-  });
+  const { selected, storeKit } = relaunchSelection(
+    storeKitFake({ entitlements: [storeKitPurchase], latest: storeKitPurchase }),
+  );
   const reopened = await session.restart(selected);
-  await reopened.game.purchases.restore();
-  expect(storeKit.syncs()).toBe(1);
+  await reopened.game.purchases.recover();
+  expect(storeKit.syncs()).toBe(0);
   expect(reopened.game.getSnapshot().state.tax.status).toBe('exempt');
   expect(await reopened.purchaseRecords()).toHaveLength(1);
   expect(sdk.checkouts).toEqual([PRODUCT]);

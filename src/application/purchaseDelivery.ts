@@ -204,9 +204,26 @@ async function applyOwnership(
     context: DeliveryContext | undefined;
   },
 ): Promise<{ status: 'saveFailed' } | undefined> {
-  if (evidence.status !== 'current' || !operations.active()) return undefined;
-  if (operations.context === undefined) return undefined;
+  if (!operations.active() || operations.context === undefined) return undefined;
+  if (evidence.status === 'signed') return deliverSigned(evidence.ownership, operations.deliver);
+  if (evidence.status !== 'current') return undefined;
   return reconcileOwnership(operations.context, evidence);
+}
+
+async function deliverSigned(
+  ownership: readonly VerifiedOwnership[],
+  deliver: ReturnType<typeof deliveryOperation>,
+): Promise<{ status: 'saveFailed' } | undefined> {
+  const signedByStore = ownership.filter((item) => item.verification.source === 'store');
+  return signedByStore.reduce<Promise<{ status: 'saveFailed' } | undefined>>(
+    async (previous, item) => {
+      const failed = await previous;
+      if (failed !== undefined) return failed;
+      const delivered = await deliver(item);
+      return delivered.status === 'saveFailed' ? delivered : undefined;
+    },
+    Promise.resolve(undefined),
+  );
 }
 
 function validatedInventory(evidence: OwnershipResult, sinceMs: number): OwnershipResult {
