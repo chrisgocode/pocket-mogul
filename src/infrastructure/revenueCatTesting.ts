@@ -1,5 +1,5 @@
 import type { StoreKitEvidence, StoreKitTransaction } from './storeKitEvidence';
-import type { RevenueCatInfo, RevenueCatSdk } from './revenueCatRuntime';
+import type { RevenueCatInfo, RevenueCatPurchase, RevenueCatSdk } from './revenueCatRuntime';
 
 export const validationConfig = {
   profile: 'revenuecat-validation',
@@ -11,9 +11,14 @@ export const validationConfig = {
   entitlementId: 'pm_tax_exemption',
 } as const;
 
-export function revenueCatFake() {
+type RevenueCatScript = {
+  readonly purchase?: (productId: string) => Promise<RevenueCatPurchase>;
+};
+
+export function revenueCatFake(script: RevenueCatScript = {}) {
   const listeners = new Set<(info: RevenueCatInfo) => void>();
   const configurations: string[] = [];
+  const checkouts: string[] = [];
   const info = { requestDate: '2027-01-15T08:00:00Z', entitlements: { verification: 'VERIFIED' } };
   const sdk: RevenueCatSdk = {
     isConfigured: () => Promise.resolve(false),
@@ -25,6 +30,11 @@ export function revenueCatFake() {
       Promise.resolve([
         { identifier: validationConfig.productId, title: 'Exonération', priceString: '1,99 €' },
       ]),
+    purchase: (productId) => {
+      checkouts.push(productId);
+      return script.purchase?.(productId) ?? Promise.resolve({ status: 'purchased', productId });
+    },
+    requestRefund: () => Promise.resolve('requested'),
     getCustomerInfo: () => Promise.resolve(info),
     addCustomerInfoUpdateListener: (listener) => {
       listeners.add(listener);
@@ -36,6 +46,7 @@ export function revenueCatFake() {
   return {
     ...sdk,
     configurations,
+    checkouts,
     listeners,
     emit: () => {
       for (const listener of listeners) listener(info);

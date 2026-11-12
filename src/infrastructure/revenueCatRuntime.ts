@@ -1,9 +1,16 @@
 import type { CustomerInfo } from 'react-native-purchases';
 import type { RevenueCatConfig } from './revenueCatConfig';
+import type { RevenueCatErrorName } from './revenueCatPurchase';
 
 export type RevenueCatInfo = Pick<CustomerInfo, 'requestDate'> & {
   readonly entitlements: { readonly verification: string };
 };
+
+export type RevenueCatPurchase =
+  | { readonly status: 'purchased'; readonly productId: string }
+  | { readonly status: 'failed'; readonly error: RevenueCatErrorName | 'unknown' };
+
+export type RefundRequest = 'requested' | 'cancelled' | 'failed';
 
 export type RevenueCatSdk = {
   readonly isConfigured: () => Promise<boolean>;
@@ -16,6 +23,8 @@ export type RevenueCatSdk = {
       readonly priceString: string;
     }[]
   >;
+  readonly purchase: (productId: string) => Promise<RevenueCatPurchase>;
+  readonly requestRefund: (productId: string) => Promise<RefundRequest>;
   readonly getCustomerInfo: () => Promise<RevenueCatInfo>;
   readonly addCustomerInfoUpdateListener: (listener: (info: RevenueCatInfo) => void) => void;
   readonly removeCustomerInfoUpdateListener: (listener: (info: RevenueCatInfo) => void) => void;

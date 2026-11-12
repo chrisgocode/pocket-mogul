@@ -112,11 +112,17 @@ it('recovers pending managed approval once and keeps its durable guard safe afte
   ]);
   const unavailable = scriptedBilling({ completionOwner: 'provider' });
   const reopened = await back.restart({ billing: unavailable });
-  expect(await reopened.game.purchases.purchase('test-exemption')).toEqual({ status: 'delivered' });
+  expect(await reopened.game.purchases.purchase('test-exemption')).toEqual({
+    status: 'unavailable',
+  });
   expect(reopened.game.getSnapshot().state.tax.status).toBe('active');
-  expect(unavailable.operations.filter((operation) => operation.startsWith('purchase:'))).toEqual(
-    [],
-  );
+  expect(unavailable.operations.filter((operation) => operation.startsWith('purchase:'))).toEqual([
+    'purchase:test-exemption',
+  ]);
+  expect((await reopened.purchaseIdentity())?.checkout).toEqual({
+    status: 'interrupted',
+    productId: 'test-exemption',
+  });
   expect(approved.completions).toEqual([]);
   expect(unavailable.completions).toEqual([]);
 });

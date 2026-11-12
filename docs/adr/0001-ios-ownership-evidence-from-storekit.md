@@ -1,6 +1,6 @@
 # 1. iOS ownership evidence comes from StoreKit 2, checkout stays with RevenueCat
 
-- Status: **Accepted** by the owner on 2026-11-11 (#124), including the custom native module and the three contract changes. Checkout stays disabled until the validation below passes in #113.
+- Status: **Accepted** by the owner on 2026-11-11 (#124), including the custom native module and the three contract changes. Validated in #113 on a physical iPhone on 2026-11-12, except the repeated Ask to Buy check, whose gap the owner accepted the same day; see [the native checks](../validation/revenuecat.md#native-checks).
 - Context issues: #111 (parent), #112 (negative feasibility result), #124 (this decision), #113 (blocked checkout).
 
 ## Context

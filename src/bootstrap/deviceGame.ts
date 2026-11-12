@@ -24,7 +24,7 @@ let deviceGame: Promise<OpenedGame> | undefined;
 
 async function startDeviceGame(): Promise<OpenedGame> {
   const driver = await openExpoSqliteDriver(SAVE_DATABASE_NAME);
-  const billing = deviceBilling();
+  const { validation, ...billing } = deviceBilling();
   const opened = await createGame({
     clock: deviceClock,
     store: await openSqlSaveStore(driver),
@@ -36,7 +36,11 @@ async function startDeviceGame(): Promise<OpenedGame> {
     ...(developmentTelemetry === undefined ? {} : { telemetry: developmentTelemetry }),
   });
   if (opened.status === 'ready' && billing.purchasePolicy !== undefined)
-    installBillingValidationDriver(opened.game, nativeRevenueCatEvidence);
+    installBillingValidationDriver({
+      game: opened.game,
+      probe: nativeRevenueCatEvidence,
+      validation,
+    });
   return opened;
 }
 

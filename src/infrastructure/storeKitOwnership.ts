@@ -1,6 +1,7 @@
 import type {
   OwnershipResult,
   PurchaseReference,
+  PurchaseResult,
   VerifiedOwnership,
 } from '@/application/billingPort';
 import type { Clock } from '@/application/ports';
@@ -32,6 +33,29 @@ export async function syncedStoreKitOwnership(source: Source): Promise<Ownership
   } catch {
     return { status: 'unavailable' };
   }
+}
+
+export async function confirmedStoreKitPurchase(
+  source: Omit<Source, 'clock'>,
+): Promise<PurchaseResult> {
+  try {
+    const latest = await (await source.storeKit()).latest(source.config.productId);
+    if (latest === undefined) return { status: 'unavailable' };
+    return confirmed(source.config, latest);
+  } catch {
+    return { status: 'unavailable' };
+  }
+}
+
+function confirmed(config: RevenueCatConfig, latest: StoreKitTransaction): PurchaseResult {
+  const owned =
+    latest.verified &&
+    latest.productId === config.productId &&
+    inScope(config, latest) &&
+    latest.revocationDateMs === undefined;
+  return owned
+    ? { status: 'completed', ownership: verifiedOwnership(config, latest) }
+    : { status: 'verificationFailed' };
 }
 
 function inventory(config: RevenueCatConfig, observation: Observation): OwnershipResult {

@@ -72,6 +72,7 @@ it.each([
   { ...validationConfig, productId: 'pm_tax_exemption_other' },
   { ...validationConfig, entitlementId: 'pm_tax_exemption_other' },
   { ...validationConfig, productId: 'pm_validation_exemption' },
+  { ...validationConfig, checkout: 'production' },
 ])('keeps invalid validation configuration disabled without loading the SDK %#', async (config) => {
   const sdk = revenueCatFake();
   const loaded: string[] = [];
