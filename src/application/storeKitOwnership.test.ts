@@ -224,6 +224,7 @@ it('removes refunded access prospectively at the next restore and ignores later 
   expect((await session.purchaseRecords())[0]?.currentOwnership).toEqual({
     status: 'removed',
     observedAtMs: START_MS + 60_000,
+    revokedAtMs: START_MS + 30_000,
   });
   storeKit.change({ entitlements: [storeKitPurchase] });
   await session.game.purchases.recover();

@@ -3,9 +3,13 @@ import type { StoreKitEvidence, StoreKitTransaction } from './storeKitEvidence';
 
 const VISIBLE_ID_CHARACTERS = 4;
 
+type Revocation =
+  | { readonly revocation: 'none' }
+  | { readonly revocation: 'revoked'; readonly revokedAtMs: number };
+
 export type StoreKitReport =
   | { readonly status: 'unavailable' | 'none' }
-  | {
+  | (Revocation & {
       readonly status: 'read';
       readonly originalId: string;
       readonly appBundleId: string;
@@ -13,9 +17,8 @@ export type StoreKitReport =
       readonly productType: string;
       readonly ownershipType: string;
       readonly signature: 'verified' | 'unverified';
-      readonly revocation: 'none' | 'revoked';
       readonly entitlement: 'current' | 'absent';
-    };
+    });
 
 type Source = {
   readonly storeKit: () => Promise<StoreKitEvidence>;
@@ -47,7 +50,13 @@ function redacted(record: StoreKitTransaction, entitlement: 'current' | 'absent'
     productType: record.productType,
     ownershipType: record.ownershipType,
     signature: record.verified ? 'verified' : 'unverified',
-    revocation: record.revocationDateMs === undefined ? 'none' : 'revoked',
+    ...revocation(record.revocationDateMs),
     entitlement,
   };
+}
+
+function revocation(revokedAtMs: number | undefined): Revocation {
+  return revokedAtMs === undefined
+    ? { revocation: 'none' }
+    : { revocation: 'revoked', revokedAtMs };
 }

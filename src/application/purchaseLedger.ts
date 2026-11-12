@@ -11,17 +11,20 @@ export type PurchasePolicy = {
   }[];
 };
 
+export type CurrentOwnership =
+  | { readonly status: 'active'; readonly observedAtMs: number }
+  | {
+      readonly status: 'removed';
+      readonly observedAtMs: number;
+      readonly revokedAtMs?: number | undefined;
+    };
+
 export type PurchaseRecord = {
   readonly ownership: VerifiedOwnership;
   readonly benefit: 'taxExemption';
   readonly result: { readonly status: 'delivered' };
   readonly completion: 'pending' | 'completed';
-  readonly currentOwnership?:
-    | undefined
-    | {
-        readonly status: 'active' | 'removed';
-        readonly observedAtMs: number;
-      };
+  readonly currentOwnership?: undefined | CurrentOwnership;
 };
 
 export function purchaseKey(reference: PurchaseScope & { readonly purchaseId: string }): string {

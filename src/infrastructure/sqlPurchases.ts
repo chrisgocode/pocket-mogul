@@ -29,10 +29,14 @@ const purchaseRecord = z.object({
   result: z.object({ status: z.literal('delivered') }),
   completion: z.enum(['pending', 'completed']),
   currentOwnership: z
-    .object({
-      status: z.enum(['active', 'removed']),
-      observedAtMs: z.number(),
-    })
+    .discriminatedUnion('status', [
+      z.object({ status: z.literal('active'), observedAtMs: z.number() }),
+      z.object({
+        status: z.literal('removed'),
+        observedAtMs: z.number(),
+        revokedAtMs: z.number().optional(),
+      }),
+    ])
     .optional(),
 });
 const identity = z.object({

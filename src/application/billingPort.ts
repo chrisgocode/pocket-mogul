@@ -10,6 +10,8 @@ export type PurchaseReference = PurchaseScope & {
   readonly productId: string;
 };
 
+export type PurchaseRemoval = PurchaseReference & { readonly revokedAtMs?: number | undefined };
+
 export type ProductMetadata = {
   readonly productId: string;
   readonly displayName: string;
@@ -40,7 +42,7 @@ export type OwnershipResult =
       readonly coverage: 'complete' | 'incomplete';
       readonly observedAtMs: number;
       readonly ownership: readonly VerifiedOwnership[];
-      readonly removals: readonly PurchaseReference[];
+      readonly removals: readonly PurchaseRemoval[];
       readonly pendingProductIds?: readonly string[];
     };
 
