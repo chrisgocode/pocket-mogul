@@ -1,4 +1,5 @@
 import { deliveryBusiness, deliveryFlagship } from '@/domain/testDelivery';
+import { foodCartDefinition } from '@/domain/testFoodCart';
 import { businessRules, vendingDefinition } from '@/domain/testRules';
 
 import { flagshipUnlockAt, unitsParkedAt } from './flagshipUnlocks';
@@ -8,6 +9,11 @@ const pricing = { definition: deliveryFlagship, rules: businessRules };
 describe('what a stage unlocks for a flagship (BUS15)', () => {
   it('names the mechanic at its unlock stage and the signature upgrade at Global', () => {
     const stages = [2, 3, 5].map((stage) => flagshipUnlockAt(deliveryFlagship.mechanic, stage));
+    expect(stages).toEqual(['mechanic', 'none', 'signature']);
+  });
+
+  it('names the food cart’s spot and menu at Local and its second window at Global', () => {
+    const stages = [2, 4, 5].map((stage) => flagshipUnlockAt(foodCartDefinition.mechanic, stage));
     expect(stages).toEqual(['mechanic', 'none', 'signature']);
   });
 

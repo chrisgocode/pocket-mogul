@@ -1,5 +1,6 @@
 import type { OptionKind, PurchaseOption } from './options';
 import { quoteDetailing } from '@/domain/business/carWashQuotes';
+import { quoteSecondWindow } from '@/domain/business/foodCartQuotes';
 import { quoteSortingHub } from '@/domain/business/deliveryQuotes';
 import { STAFF_ROLES, type BusinessPricing } from '@/domain/business/definition';
 import type { OwnedBusiness } from '@/domain/business/owned';
@@ -81,6 +82,7 @@ function signatureOptions(owned: OwnedBusiness, pricing: BusinessPricing): Impro
     { quote: quoteCardReaders(owned, pricing), type: 'InstallCardReaders' },
     { quote: quoteDetailing(owned, pricing), type: 'InstallDetailing' },
     { quote: quoteSortingHub(owned, pricing), type: 'InstallSortingHub' },
+    { quote: quoteSecondWindow(owned, pricing), type: 'InstallSecondWindow' },
   ] as const;
   return quotes.flatMap(({ quote, type }) =>
     quote?.status === 'available'

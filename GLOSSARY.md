@@ -159,7 +159,7 @@ Cover for one incident category, available from stage 2 (Local). It costs a dail
 _Avoid_: Cover plan, protection
 
 **Flagship mechanic**:
-A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships; the Delivery Company's is Contracts, Reputation and Drivers.
+A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships; the Delivery Company's is Contracts, Reputation and Drivers; the Food Cart's is Spot, Crowd and Menu.
 _Avoid_: Minigame, feature
 
 **Coach mark**:
@@ -209,6 +209,22 @@ _Avoid_: Member limit (that is the member count the cap allows)
 **Detailing**:
 The Car Wash's stage 5 (Global) signature upgrade, paid once from the Treasury: a fourth Wash package at the top price that holds a bay the longest and takes 10 percent of walk-ins from Basic.
 _Avoid_: Premium wash, valet
+
+**Spot**:
+Where a Food Cart is parked for the day: Park, Office row, Campus, Night market or Stadium. The whole business parks at one Spot, and moving is free. A Manager parks at the Spot with the biggest Crowd each morning.
+_Avoid_: Location (that is where Vending Machines stand), pitch
+
+**Crowd**:
+How many people a Spot draws on a business day, drawn from the save's seed: Quiet, Steady or Busy. Each Spot multiplies the Food Cart's demand by its own figure for the day's Crowd. The details show today's and tomorrow's.
+_Avoid_: Traffic (that is a Vending Location's fixed multiplier), footfall
+
+**Menu item**:
+An optional dish a Food Cart can offer: Combo meals, Street snacks or Grab-and-go wraps. Each multiplies customers, order size and serving speed, so a wide menu pays on a Quiet day and a short one when the line is full.
+_Avoid_: Dish, package (that is a Car Wash's)
+
+**Second window**:
+The Food Cart's stage 5 (Global) signature upgrade, paid once from the Treasury: a second serving window that adds 30 percent capacity.
+_Avoid_: Extra hatch
 
 **Driver**:
 An operations hire at a Delivery Company. It adds 20% capacity like any operations hire, and once the Flagship mechanic runs each Driver crews two vans: a van without a Driver delivers nothing.

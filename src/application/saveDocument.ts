@@ -10,6 +10,7 @@ import {
 } from '@/domain/business/owned';
 import { NO_CAR_WASH, type CarWashOperation } from '@/domain/business/carWashState';
 import { NO_DELIVERY, type DeliveryOperation } from '@/domain/business/deliveryState';
+import { NO_FOOD_CART, type FoodCartOperation } from '@/domain/business/foodCartState';
 import { NO_TAKEOVERS, type Takeovers } from '@/domain/business/takeoverState';
 import { NO_VENDING, type VendingOperation } from '@/domain/business/vendingRules';
 import type {
@@ -23,7 +24,15 @@ export type SavedRisks = { readonly insurance: Insurance; readonly incident: Act
 
 type SavedBusiness = Omit<
   OwnedBusiness,
-  'staff' | 'insurance' | 'incident' | 'vending' | 'carWash' | 'delivery' | 'takeovers' | 'listing'
+  | 'staff'
+  | 'insurance'
+  | 'incident'
+  | 'vending'
+  | 'carWash'
+  | 'delivery'
+  | 'foodCart'
+  | 'takeovers'
+  | 'listing'
 >;
 
 type SavedReturnSummary =
@@ -46,6 +55,7 @@ export type SaveDocument = Omit<GameState, 'businesses' | 'returnSummary' | 'act
   readonly vending: Readonly<Record<string, VendingOperation>>;
   readonly carWash: Readonly<Record<string, CarWashOperation>>;
   readonly delivery: Readonly<Record<string, DeliveryOperation>>;
+  readonly foodCart: Readonly<Record<string, FoodCartOperation>>;
   readonly takeovers: Readonly<Record<string, Takeovers>>;
   readonly absenceIncidents: readonly AbsenceIncident[];
   readonly incidentEntries: number;
@@ -79,6 +89,7 @@ export function toSaveDocument(state: GameState): SaveDocument {
         vending: _vending,
         carWash: _carWash,
         delivery: _delivery,
+        foodCart: _foodCart,
         takeovers: _takeovers,
         listing: _listing,
         ...rest
@@ -92,6 +103,7 @@ export function toSaveDocument(state: GameState): SaveDocument {
     vending: byBusiness(businesses, (business) => business.vending),
     carWash: byBusiness(businesses, (business) => business.carWash),
     delivery: byBusiness(businesses, (business) => business.delivery),
+    foodCart: byBusiness(businesses, (business) => business.foodCart),
     takeovers: byBusiness(businesses, (business) => business.takeovers),
     absenceIncidents: returnSummary.status === 'pending' ? returnSummary.summary.incidents : [],
     incidentEntries: activity.lifetime.byKind.incident,
@@ -104,6 +116,7 @@ function loadedMechanics(businessId: string, document: SaveDocument) {
     vending: document.vending[businessId] ?? NO_VENDING,
     carWash: document.carWash[businessId] ?? NO_CAR_WASH,
     delivery: document.delivery[businessId] ?? NO_DELIVERY,
+    foodCart: document.foodCart[businessId] ?? NO_FOOD_CART,
     takeovers: document.takeovers[businessId] ?? NO_TAKEOVERS,
   };
 }
@@ -141,6 +154,7 @@ export function fromSaveDocument(document: SaveDocument): GameState {
     vending: _vending,
     carWash: _carWash,
     delivery: _delivery,
+    foodCart: _foodCart,
     takeovers: _takeovers,
     ...rest
   } = document;

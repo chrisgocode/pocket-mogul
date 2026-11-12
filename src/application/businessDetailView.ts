@@ -39,6 +39,7 @@ import { businessEconomy } from './economy';
 import type { GameSnapshot } from './game';
 import { selectVending, type VendingView } from './vendingView';
 import { selectCarWash, type CarWashView } from './carWashView';
+import { selectFoodCart, type FoodCartView } from './foodCartView';
 import { selectDelivery, type DeliveryView } from './deliveryView';
 import { selectDeals, type DealsView } from './takeoverView';
 import { runningDelivery } from '@/domain/business/deliveryDemand';
@@ -112,6 +113,7 @@ export type OwnedBusinessDetail = {
   readonly vending: VendingView | undefined;
   readonly carWash: CarWashView | undefined;
   readonly delivery: DeliveryView | undefined;
+  readonly foodCart: FoodCartView | undefined;
   readonly deals: DealsView;
   readonly sale: BusinessSale;
 };
@@ -175,6 +177,15 @@ function priceLevelOptions({ owned, pricing }: DetailContext): PriceLevelOption[
   }));
 }
 
+function mechanicViews(context: DetailContext) {
+  return {
+    vending: selectVending(context),
+    carWash: selectCarWash(context),
+    delivery: selectDelivery(context),
+    foodCart: selectFoodCart(context),
+  };
+}
+
 function ownedDetail(business: Business, context: DetailContext): OwnedBusinessDetail {
   const { owned, pricing } = context;
   const { rules } = pricing;
@@ -203,9 +214,7 @@ function ownedDetail(business: Business, context: DetailContext): OwnedBusinessD
     managerHired: owned.staff.manager > 0,
     stageUpgrade: stageOption(context),
     risks: selectBusinessRisks({ ...context, business }),
-    vending: selectVending(context),
-    carWash: selectCarWash(context),
-    delivery: selectDelivery(context),
+    ...mechanicViews(context),
     deals: selectDeals({ ...context, business }),
     sale: {
       proceedsCents: saleProceedsCents(owned, rules),

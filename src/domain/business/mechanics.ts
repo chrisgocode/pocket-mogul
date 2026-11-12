@@ -2,6 +2,7 @@ import { carWashDay, runningCarWash } from './carWashDemand';
 import type { BusinessPricing } from './definition';
 import { deliveryDay, runningDelivery } from './deliveryDemand';
 import type { ContractTerms } from './deliveryState';
+import { foodCartDay, runningFoodCart } from './foodCartDemand';
 import type { OwnedBusiness } from './owned';
 import { vendingCapacityBps, vendingDemandBps } from './vendingDemand';
 
@@ -23,7 +24,9 @@ function flagshipDay(business: OwnedBusiness, pricing: BusinessPricing) {
   const delivery = runningDelivery(business, pricing);
   if (delivery !== undefined) return deliveryDay(business, delivery);
   const carWash = runningCarWash(business, pricing);
-  return carWash === undefined ? {} : carWashDay(carWash, pricing);
+  if (carWash !== undefined) return carWashDay(carWash, pricing);
+  const foodCart = runningFoodCart(business, pricing);
+  return foodCart === undefined ? {} : foodCartDay(foodCart);
 }
 
 export function mechanicDay(business: OwnedBusiness, pricing: BusinessPricing): MechanicDay {

@@ -1,5 +1,6 @@
 import type { BusinessTrack, IncidentCategory, PriceLevel, StaffRole } from './business/definition';
 import type { OptionalPackage } from './business/carWashRules';
+import type { FoodCartCommand } from './business/foodCartOrders';
 import type { RestockTarget } from './business/vendingCommands';
 import type { StockMix, VendingLocation } from './business/vendingRules';
 import type { CoachMark } from './coachMarks';
@@ -253,6 +254,7 @@ export type GameCommand =
   | AcceptContract
   | DeclineContract
   | InstallSortingHub
+  | FoodCartCommand
   | MakeTakeoverOffer
   | DismissCoachMark
   | SetPayout
