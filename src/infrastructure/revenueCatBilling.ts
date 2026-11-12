@@ -1,19 +1,14 @@
-import type { BillingPort, OwnershipResult, PurchaseResult } from '@/application/billingPort';
+import type { BillingEvent, BillingPort, OwnershipResult } from '@/application/billingPort';
 import type { PurchasePolicy } from '@/application/purchaseLedger';
 import { disabledBilling } from './disabledBilling';
 import { readRevenueCatConfig } from './revenueCatConfig';
 import type { RevenueCatConfig } from './revenueCatConfig';
 import type { RefundRequest, RevenueCatInfo, RevenueCatSdk } from './revenueCatRuntime';
 import type { StoreKitEvidence } from './storeKitEvidence';
-import { confirmedStoreKitPurchase, syncedStoreKitOwnership } from './storeKitOwnership';
-import { checkoutFailure, type RevenueCatErrorName } from './revenueCatPurchase';
+import { signedStoreKitOwnership, syncedStoreKitOwnership } from './storeKitOwnership';
+import { sheetCheckout, type CheckoutLog, type CheckoutTrace } from './revenueCatSheet';
 import { storeKitReport, type StoreKitReport } from './storeKitReport';
 import type { Clock } from '@/application/ports';
-
-export type CheckoutTrace = {
-  readonly revenueCat: 'purchased' | 'otherProduct' | RevenueCatErrorName | 'unknown' | 'threw';
-  readonly storeKit: PurchaseResult['status'] | 'notRead';
-};
 
 export type BillingValidation = {
   readonly productId: string;
@@ -22,8 +17,6 @@ export type BillingValidation = {
   readonly lastCheckout: () => CheckoutTrace | undefined;
   readonly requestRefund: () => Promise<RefundRequest | 'disabled'>;
 };
-
-type Trace = { last?: CheckoutTrace };
 
 type Selection = {
   readonly billing: BillingPort;
@@ -46,7 +39,7 @@ type StoreKitSource = {
 export function revenueCatBilling(options: Options): Selection {
   const config = readRevenueCatConfig(options.config, options.platform);
   if (config === undefined) return { billing: disabledBilling() };
-  const trace: Trace = {};
+  const trace: CheckoutLog = {};
   const billing = validationBilling(config, { ...options, trace });
   return {
     billing,
@@ -67,7 +60,7 @@ export function revenueCatBilling(options: Options): Selection {
 
 function billingValidation(
   config: RevenueCatConfig,
-  source: { readonly options: Options; readonly trace: Trace },
+  source: { readonly options: Options; readonly trace: CheckoutLog },
 ): BillingValidation {
   const { storeKit, runtime } = source.options;
   const enabled = checkoutEnabled(config, storeKit);
@@ -102,14 +95,13 @@ type Session =
 
 type BillingSession = Pick<BillingPort, 'initialize' | 'subscribe' | 'dispose'> & {
   readonly sdk: () => Promise<RevenueCatSdk>;
+  readonly requestReconciliation: () => void;
 };
 
 function billingSession(config: RevenueCatConfig, options: Options): BillingSession {
   let session: Session = { status: 'idle' };
-  const listeners = new Set<(event: { type: 'ownershipChanged' }) => void>();
-  const changed = () => {
-    for (const listener of listeners) listener({ type: 'ownershipChanged' });
-  };
+  const listeners = ownershipListeners();
+  const changed = listeners.notify;
   const started = () =>
     session.status === 'starting' ? session.ready : Promise.reject(new Error('Billing not ready'));
   const sdk = () => started().then(({ native }) => native);
@@ -123,6 +115,7 @@ function billingSession(config: RevenueCatConfig, options: Options): BillingSess
   };
   return {
     sdk,
+    requestReconciliation: changed,
     initialize: async (identity) => {
       if (session.status === 'disposed') return { status: 'unavailable' };
       session =
@@ -131,10 +124,7 @@ function billingSession(config: RevenueCatConfig, options: Options): BillingSess
           : session;
       return readyIdentity(sdk);
     },
-    subscribe: (listener) => {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
+    subscribe: listeners.subscribe,
     dispose: () => {
       void started()
         .then((running) => stopListening(running, changed))
@@ -142,6 +132,20 @@ function billingSession(config: RevenueCatConfig, options: Options): BillingSess
       session = { status: 'disposed' };
       listeners.clear();
     },
+  };
+}
+
+function ownershipListeners() {
+  const listeners = new Set<(event: BillingEvent) => void>();
+  return {
+    notify: () => {
+      for (const listener of listeners) listener({ type: 'ownershipChanged' });
+    },
+    subscribe: (listener: (event: BillingEvent) => void) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    clear: () => listeners.clear(),
   };
 }
 
@@ -161,9 +165,9 @@ async function storeKitUpdates(options: Options, changed: () => void): Promise<(
 
 function validationBilling(
   config: RevenueCatConfig,
-  options: Options & { readonly trace: Trace },
+  options: Options & { readonly trace: CheckoutLog },
 ): BillingPort {
-  const { sdk, ...session } = billingSession(config, options);
+  const { sdk, requestReconciliation, ...session } = billingSession(config, options);
   const { storeKit } = options;
   return {
     ...disabledBilling(),
@@ -171,11 +175,22 @@ function validationBilling(
     products: () => localizedProducts(sdk, config.productId),
     ...(storeKit !== undefined && checkoutEnabled(config, storeKit)
       ? {
-          purchase: (productId: string) =>
-            checkout({ sdk, storeKit, config, trace: options.trace }, productId),
+          purchase: sheetCheckout({
+            sdk,
+            storeKit: storeKit.evidence,
+            config,
+            trace: options.trace,
+            settled: requestReconciliation,
+          }),
         }
       : {}),
-    currentOwnership: () => readOwnership(sdk),
+    currentOwnership: () =>
+      storeKit === undefined
+        ? readOwnership(sdk)
+        : sdk().then(
+            () => signedStoreKitOwnership({ storeKit: storeKit.evidence, config }),
+            () => ({ status: 'unavailable' }) as const,
+          ),
     restore: () =>
       storeKit === undefined
         ? readOwnership(sdk)
@@ -183,54 +198,6 @@ function validationBilling(
             syncedStoreKitOwnership({ storeKit: storeKit.evidence, config, clock: storeKit.clock }),
           ),
   };
-}
-
-type Checkout = {
-  readonly sdk: () => Promise<RevenueCatSdk>;
-  readonly storeKit: StoreKitSource;
-  readonly config: RevenueCatConfig;
-  readonly trace: Trace;
-};
-
-async function checkout(source: Checkout, productId: string): Promise<PurchaseResult> {
-  if (productId !== source.config.productId) return { status: 'disabled' };
-  const record = (revenueCat: CheckoutTrace['revenueCat'], result: PurchaseResult) => {
-    source.trace.last = { revenueCat, storeKit: result.status };
-    return result;
-  };
-  const confirm = async (revenueCat: CheckoutTrace['revenueCat']) =>
-    record(
-      revenueCat,
-      await confirmedStoreKitPurchase({
-        storeKit: source.storeKit.evidence,
-        config: source.config,
-      }),
-    );
-  try {
-    const outcome = await (await source.sdk()).purchase(productId);
-    if (outcome.status === 'purchased')
-      return outcome.productId === productId
-        ? await confirm('purchased')
-        : withoutStoreKit(source, 'otherProduct', { status: 'verificationFailed' });
-    const failure = checkoutFailure(outcome.error);
-    if (failure === 'alreadyOwned') return await confirm(outcome.error);
-    return withoutStoreKit(
-      source,
-      outcome.error,
-      failure === 'pending' ? { status: 'pending', productId } : { status: failure },
-    );
-  } catch {
-    return withoutStoreKit(source, 'threw', { status: 'unavailable' });
-  }
-}
-
-function withoutStoreKit(
-  source: Checkout,
-  revenueCat: CheckoutTrace['revenueCat'],
-  result: PurchaseResult,
-): PurchaseResult {
-  source.trace.last = { revenueCat, storeKit: 'notRead' };
-  return result;
 }
 
 async function localizedProducts(

@@ -55,7 +55,7 @@ function labels(alert: AlertSpy): readonly (string | undefined)[] {
   return buttons?.map((button) => button.text) ?? [];
 }
 
-it('reads redacted StoreKit fields at launch without an App Store sign-in prompt', async () => {
+it('reads redacted StoreKit fields and grants signed ownership at launch without an App Store sign-in prompt', async () => {
   const storeKit = storeKitFake({ entitlements: [storeKitPurchase], latest: storeKitPurchase });
   const { session, alert } = await validationGame({ checkout: false, storeKit });
   const report = String(alert.mock.lastCall?.[1]);
@@ -80,7 +80,8 @@ it('reads redacted StoreKit fields at launch without an App Store sign-in prompt
   press(alert, 'Recover');
   await waitFor(() => expect(alert).toHaveBeenCalledTimes(3));
   expect(storeKit.syncs()).toBe(0);
-  expect(await session.purchaseRecords()).toEqual([]);
+  expect(await session.purchaseRecords()).toHaveLength(1);
+  expect(alert.mock.lastCall?.[1]).toContain('"tax":{"status":"exempt","entitlements":1}');
   session.game.purchases.dispose();
 });
 
