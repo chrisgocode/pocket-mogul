@@ -1,5 +1,4 @@
 import type { BillingEvent, BillingPort } from '@/application/billingPort';
-import type { Clock } from '@/application/ports';
 import type { RevenueCatConfig } from './revenueCatConfig';
 import type { RevenueCatSdk } from './revenueCatRuntime';
 import type { StoreKitEvidence } from './storeKitEvidence';
@@ -13,12 +12,7 @@ export type ProviderLog = { -readonly [Field in keyof ProviderTrace]: ProviderTr
 
 type SessionOptions = {
   readonly runtime: (config: RevenueCatConfig) => Promise<RevenueCatSdk>;
-  readonly storeKit?:
-    | {
-        readonly evidence: () => Promise<StoreKitEvidence>;
-        readonly clock: Pick<Clock, 'wallMs'>;
-      }
-    | undefined;
+  readonly storeKit?: { readonly evidence: () => Promise<StoreKitEvidence> } | undefined;
   readonly provider: ProviderLog;
 };
 
@@ -35,6 +29,7 @@ type Session =
 type BillingSession = Pick<BillingPort, 'initialize' | 'subscribe' | 'dispose'> & {
   readonly sdk: () => Promise<RevenueCatSdk>;
   readonly requestReconciliation: () => void;
+  readonly active: () => boolean;
 };
 
 export function billingSession(config: RevenueCatConfig, options: SessionOptions): BillingSession {
@@ -55,6 +50,7 @@ export function billingSession(config: RevenueCatConfig, options: SessionOptions
   return {
     sdk: () => started().then(({ native }) => native),
     requestReconciliation: changed,
+    active: () => session.status !== 'disposed',
     initialize: async (identity) => {
       if (session.status === 'disposed') return { status: 'unavailable' };
       session =

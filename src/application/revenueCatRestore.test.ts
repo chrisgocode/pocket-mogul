@@ -11,6 +11,7 @@ import {
   relaunchSelection,
 } from './revenueCatCheckoutTesting';
 import {
+  deferred,
   fakeClock,
   startObservedTestGame,
   startTestGameFrom,
@@ -18,6 +19,7 @@ import {
   type TestGame,
 } from './testGame';
 
+const TEN_HOURS_MS = 36_000_000;
 const ownedInventory = { entitlements: [storeKitPurchase], latest: storeKitPurchase };
 
 function storeAccount() {
@@ -136,6 +138,25 @@ it('requests no transfer and changes nothing when the App Store sync fails', asy
   expect(await session.purchaseRecords()).toEqual([]);
 });
 
+it('requests no transfer when the App Store sync finishes after the Game closed', async () => {
+  const signedIn = deferred();
+  const prompted = deferred();
+  const storeKit = storeKitFake({
+    sync: () => {
+      prompted.resolve();
+      return signedIn.promise;
+    },
+  });
+  const { session, sdk } = await checkoutGame({ storeKit });
+  const restoring = session.game.purchases.restore();
+  await prompted.promise;
+  session.game.purchases.dispose();
+  signedIn.resolve();
+  await restoring;
+  expect(sdk.transfers).toEqual([]);
+  expect(await session.purchaseRecords()).toEqual([]);
+});
+
 it('rolls back a failed restore delivery, then delivers once across repeated restore and reopen', async () => {
   const { session, sdk } = await freshInstall('$RCAnonymousID:reinstalled');
   const before = session.game.getSnapshot();
@@ -162,7 +183,7 @@ function unreachable() {
   return checkoutSelection({
     process: { sdk: checkoutSelection().sdk, runtime: () => Promise.reject(new Error('offline')) },
     storeKit: storeKitFake({ sync: () => Promise.reject(new Error('offline')) }),
-    clock: fakeClock(START_MS + 36_000_000),
+    clock: fakeClock(START_MS + TEN_HOURS_MS),
   }).selected;
 }
 
@@ -180,8 +201,8 @@ it('keeps committed access offline through one Offline settlement and grants not
   await owner.game.purchases.purchase(PRODUCT);
   await owner.game.purchases.recover();
   const stranger = await startTestGameFrom(state, { content, ...checkoutSelection().selected });
-  const ownerBack = await owner.restart({ awayMs: 36_000_000, ...unreachable() });
-  const strangerBack = await stranger.restart({ awayMs: 36_000_000, ...unreachable() });
+  const ownerBack = await owner.restart({ awayMs: TEN_HOURS_MS, ...unreachable() });
+  const strangerBack = await stranger.restart({ awayMs: TEN_HOURS_MS, ...unreachable() });
   const settled = ownerBack.game.getSnapshot().state;
   expect(settled.tax.status).toBe('exempt');
   expect(settled.cashCents).toBe(dollars('2400'));

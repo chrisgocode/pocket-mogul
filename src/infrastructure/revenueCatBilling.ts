@@ -98,7 +98,7 @@ function checkoutEnabled(config: RevenueCatConfig, storeKit: StoreKitSource | un
 }
 
 function validationBilling(config: RevenueCatConfig, options: Options & Logs): BillingPort {
-  const { sdk, requestReconciliation, ...session } = billingSession(config, options);
+  const { sdk, requestReconciliation, active, ...session } = billingSession(config, options);
   const { storeKit } = options;
   const sheet =
     storeKit !== undefined && checkoutEnabled(config, storeKit)
@@ -127,7 +127,8 @@ function validationBilling(config: RevenueCatConfig, options: Options & Logs): B
       storeKit === undefined
         ? readOwnership(sdk)
         : sdk().then(
-            (native) => syncedRestore({ storeKit, config, sheet, native, log: options.provider }),
+            (native) =>
+              syncedRestore({ storeKit, config, sheet, transfer: { native, active, ...options } }),
             () => ({ status: 'unavailable' }) as const,
           ),
   };
@@ -137,8 +138,7 @@ async function syncedRestore(source: {
   readonly storeKit: StoreKitSource;
   readonly config: RevenueCatConfig;
   readonly sheet: SheetCheckout | undefined;
-  readonly native: RevenueCatSdk;
-  readonly log: ProviderLog;
+  readonly transfer: Transfer;
 }): Promise<OwnershipResult> {
   const openBefore = source.sheet?.pendingProductIds() ?? [];
   const result = await syncedStoreKitOwnership({
@@ -146,20 +146,27 @@ async function syncedRestore(source: {
     config: source.config,
     clock: source.storeKit.clock,
   });
-  if (result.status === 'current') void requestTransfer(source.native, source.log);
+  if (result.status === 'current') void requestTransfer(source.transfer);
   const pending = [...new Set([...openBefore, ...(source.sheet?.pendingProductIds() ?? [])])];
   return result.status === 'current' && pending.length > 0
     ? { ...result, pendingProductIds: pending }
     : result;
 }
 
-async function requestTransfer(native: RevenueCatSdk, log: ProviderLog): Promise<void> {
-  log.transfer = 'requested';
+type Transfer = {
+  readonly native: RevenueCatSdk;
+  readonly active: () => boolean;
+  readonly provider: ProviderLog;
+};
+
+async function requestTransfer({ native, provider, active }: Transfer): Promise<void> {
+  if (!active()) return;
+  provider.transfer = 'requested';
   try {
     await native.restorePurchases();
-    log.transfer = 'completed';
+    provider.transfer = 'completed';
   } catch {
-    log.transfer = 'failed';
+    provider.transfer = 'failed';
   }
 }
 

@@ -33,24 +33,17 @@ export function checkoutProcess(script: RevenueCatScript = {}): Process {
 }
 
 export function checkoutSelection(setup: Setup & { readonly process?: Process } = {}) {
-  const { sdk, runtime } = setup.process ?? checkoutProcess(sdkScript(setup));
-  const storeKit = setup.storeKit ?? storeKitFake({ latest: storeKitPurchase });
-  const clock = setup.clock ?? fakeClock(START_MS);
+  const { process, config, storeKit: account, clock: started, ...script } = setup;
+  const { sdk, runtime } = process ?? checkoutProcess(script);
+  const storeKit = account ?? storeKitFake({ latest: storeKitPurchase });
+  const clock = started ?? fakeClock(START_MS);
   const selected = revenueCatBilling({
-    config: setup.config ?? checkoutConfig,
+    config: config ?? checkoutConfig,
     platform: 'ios',
     runtime,
     storeKit: { evidence: () => Promise.resolve(storeKit), clock },
   });
   return { selected: { ...selected, clock }, sdk, storeKit };
-}
-
-function sdkScript(setup: Setup): RevenueCatScript {
-  return {
-    ...(setup.purchase === undefined ? {} : { purchase: setup.purchase }),
-    ...(setup.appUserId === undefined ? {} : { appUserId: setup.appUserId }),
-    ...(setup.restorePurchases === undefined ? {} : { restorePurchases: setup.restorePurchases }),
-  };
 }
 
 export function relaunchSelection(storeKit: ReturnType<typeof storeKitFake>) {
