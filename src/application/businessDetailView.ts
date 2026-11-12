@@ -39,6 +39,7 @@ import { businessEconomy } from './economy';
 import type { GameSnapshot } from './game';
 import { selectVending, type VendingView } from './vendingView';
 import { selectCarWash, type CarWashView } from './carWashView';
+import { selectCoffeeKiosk, type CoffeeKioskView } from './coffeeKioskView';
 import { selectFoodCart, type FoodCartView } from './foodCartView';
 import { selectDelivery, type DeliveryView } from './deliveryView';
 import { selectDeals, type DealsView } from './takeoverView';
@@ -114,6 +115,7 @@ export type OwnedBusinessDetail = {
   readonly carWash: CarWashView | undefined;
   readonly delivery: DeliveryView | undefined;
   readonly foodCart: FoodCartView | undefined;
+  readonly coffeeKiosk: CoffeeKioskView | undefined;
   readonly deals: DealsView;
   readonly sale: BusinessSale;
 };
@@ -183,6 +185,7 @@ function mechanicViews(context: DetailContext) {
     carWash: selectCarWash(context),
     delivery: selectDelivery(context),
     foodCart: selectFoodCart(context),
+    coffeeKiosk: selectCoffeeKiosk(context),
   };
 }
 

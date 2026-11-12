@@ -5,6 +5,7 @@ import { inexactCoreFigures } from './businessCore';
 import { contentSchema, TIERS, type Content } from './schema';
 import { businessRisksFit } from './validateRisks';
 import { carWashMechanicsFit } from './validateCarWash';
+import { coffeeKioskMechanicsFit } from './validateCoffeeKiosk';
 import { deliveryMechanicsFit } from './validateDelivery';
 import { foodCartMechanicsFit } from './validateFoodCart';
 import { takeoversFit } from './validateTakeovers';
@@ -71,6 +72,7 @@ function crossChecks(content: Content): string[] {
     carWashMechanicsFit,
     deliveryMechanicsFit,
     foodCartMechanicsFit,
+    coffeeKioskMechanicsFit,
     takeoversFit,
     efficiencyKeepsCostsPositive,
     systemsKeepUpkeepPositive,

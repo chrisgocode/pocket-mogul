@@ -19,7 +19,7 @@ import type { TreasuryActions } from './treasuryActions';
 import type { CarWashActions } from './carWashFormat';
 import type { DeliveryActions } from './deliveryFormat';
 import type { FlagshipActions } from './FlagshipSections';
-import type { FoodCartActions } from './foodCartFormat';
+import { coffeeKioskActions, foodCartActions } from './mechanicActions';
 import type { VendingActions } from './vendingFormat';
 import { useBusinessCommand } from './useBusinessCommand';
 
@@ -96,25 +96,6 @@ function deliveryActions(
   };
 }
 
-function foodCartActions(
-  detail: Extract<BusinessDetailView, { status: 'owned' }>,
-  handlers: {
-    run: ReturnType<typeof useBusinessCommand>;
-    review: (action: BusinessAction) => void;
-  },
-): FoodCartActions {
-  const businessId = detail.business.id;
-  const { business } = detail;
-  const { run } = handlers;
-  return {
-    setSpot: (spot) => run({ type: 'SetCartSpot', businessId, spot }),
-    setMenuItem: (change) => run({ type: 'SetMenuItem', businessId, ...change }),
-    dismissCoachMark: () => run({ type: 'DismissCoachMark', coachMark: 'food_cart' }),
-    installSecondWindow: (secondWindow) =>
-      handlers.review({ kind: 'second_window', business, secondWindow }),
-  };
-}
-
 function flagshipActions(
   detail: Extract<BusinessDetailView, { status: 'owned' }>,
   handlers: {
@@ -127,6 +108,7 @@ function flagshipActions(
     carWash: carWashActions(detail, handlers),
     delivery: deliveryActions(detail, handlers),
     foodCart: foodCartActions(detail, handlers),
+    coffeeKiosk: coffeeKioskActions(detail, handlers),
   };
 }
 

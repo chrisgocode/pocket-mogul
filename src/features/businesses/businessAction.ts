@@ -6,6 +6,7 @@ import type {
   ReadyStage,
 } from '@/application/businessDetailView';
 import type { AvailableDetailing } from '@/application/carWashView';
+import type { AvailableOrderAhead } from '@/application/coffeeKioskView';
 import type { AvailableSortingHub, OfferView } from '@/application/deliveryView';
 import type { AvailableSecondWindow } from '@/application/foodCartView';
 import type { AvailableCardReaders } from '@/application/vendingView';
@@ -19,6 +20,7 @@ import { formatCashChange } from '@/features/game/priceFormat';
 import { profitChange, spent, TRACK_NAMES } from './businessFormat';
 import { fireText, hireText, stageText } from './growthActionText';
 import { detailingText } from './carWashActionText';
+import { orderAheadText } from './coffeeKioskActionText';
 import { contractText, sortingHubText } from './deliveryActionText';
 import { secondWindowText } from './foodCartActionText';
 import { takeoverText } from './takeoverActionText';
@@ -59,6 +61,11 @@ export type BusinessAction =
     }
   | { readonly kind: 'contract'; readonly business: Business; readonly offer: OfferView }
   | { readonly kind: 'sorting_hub'; readonly business: Business; readonly hub: AvailableSortingHub }
+  | {
+      readonly kind: 'order_ahead';
+      readonly business: Business;
+      readonly orderAhead: AvailableOrderAhead;
+    }
   | {
       readonly kind: 'second_window';
       readonly business: Business;
@@ -134,6 +141,7 @@ const COMMANDS: ActionHandlers<GameCommand> = {
   }),
   sorting_hub: ({ business }) => ({ type: 'InstallSortingHub', businessId: business.id }),
   second_window: ({ business }) => ({ type: 'InstallSecondWindow', businessId: business.id }),
+  order_ahead: ({ business }) => ({ type: 'InstallOrderAhead', businessId: business.id }),
   takeover: ({ business, choice }) => ({
     type: 'MakeTakeoverOffer',
     businessId: business.id,
@@ -223,6 +231,7 @@ const SHEET_TEXT: ActionHandlers<ActionSheetText> = {
   contract: (action) => contractText(action.offer),
   sorting_hub: (action) => sortingHubText(action.hub),
   second_window: (action) => secondWindowText(action.secondWindow),
+  order_ahead: (action) => orderAheadText(action.orderAhead),
   takeover: (action) => takeoverText(action.choice, action.business),
 };
 

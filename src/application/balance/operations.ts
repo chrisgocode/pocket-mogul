@@ -1,4 +1,5 @@
 import { locationCommand, membershipCapCommand } from './flagshipChoices';
+import { coffeeKioskCommands } from './coffeeKioskChoices';
 import { foodCartCommands } from './foodCartChoices';
 import type { OptionContext } from './options';
 import { businessEconomy } from '@/application/economy';
@@ -115,6 +116,7 @@ export function operationCommands(
       }),
       ...washCommands(owned, pricing),
       ...foodCartCommands(owned, pricing),
+      ...coffeeKioskCommands(owned, pricing),
       ...contractCommands(owned, { pricing, atMs: context.state.clock.simulationMs }),
       ...price,
     ];

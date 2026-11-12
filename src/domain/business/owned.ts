@@ -12,6 +12,7 @@ import {
   type StaffCounts,
 } from './definition';
 import { NO_CAR_WASH, type CarWashOperation } from './carWashState';
+import { NO_COFFEE_KIOSK, type CoffeeKioskOperation } from './coffeeKioskRules';
 import { NO_DELIVERY, type DeliveryOperation } from './deliveryState';
 import { NO_FOOD_CART, type FoodCartOperation } from './foodCartState';
 import { NO_TAKEOVERS, type Takeovers } from './takeoverState';
@@ -56,6 +57,7 @@ export type OwnedBusiness = {
   readonly carWash: CarWashOperation;
   readonly delivery: DeliveryOperation;
   readonly foodCart: FoodCartOperation;
+  readonly coffeeKiosk: CoffeeKioskOperation;
   readonly takeovers: Takeovers;
   readonly listing: Listing;
 };
@@ -86,6 +88,7 @@ export function newBusiness(
     carWash: NO_CAR_WASH,
     delivery: NO_DELIVERY,
     foodCart: NO_FOOD_CART,
+    coffeeKiosk: NO_COFFEE_KIOSK,
     takeovers: NO_TAKEOVERS,
     listing: { status: 'private' },
   };

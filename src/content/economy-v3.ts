@@ -1,4 +1,5 @@
 import { economyV2 } from './economy-v2';
+import { withMechanic } from './mechanicUpgrade';
 import type { ContentInput } from './schema';
 
 const foodCartMechanic = {
@@ -21,17 +22,8 @@ const foodCartMechanic = {
   secondWindow: { stage: 5, priceMultiple: 150, capacityPercent: 30 },
 } as const;
 
-const FOOD_CART_ID = 'food_cart';
-
-type Business = (typeof economyV2.businesses)[number];
-
-const withFoodCartMechanic = (business: Business) =>
-  business.id === FOOD_CART_ID
-    ? Object.assign({}, business, { mechanic: foodCartMechanic })
-    : business;
-
 export const economyV3 = {
   ...economyV2,
   economyVersion: 3,
-  businesses: economyV2.businesses.map(withFoodCartMechanic),
+  businesses: withMechanic(economyV2.businesses, { id: 'food_cart', mechanic: foodCartMechanic }),
 } satisfies ContentInput;

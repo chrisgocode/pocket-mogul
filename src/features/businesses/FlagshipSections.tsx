@@ -2,6 +2,8 @@ import type { OwnedBusinessDetail } from '@/application/businessDetailView';
 
 import type { CarWashActions } from './carWashFormat';
 import { CarWashSection } from './CarWashSection';
+import type { CoffeeKioskActions } from './coffeeKioskFormat';
+import { CoffeeKioskSection } from './CoffeeKioskSection';
 import type { DeliveryActions } from './deliveryFormat';
 import { DeliverySection } from './DeliverySection';
 import type { FoodCartActions } from './foodCartFormat';
@@ -14,6 +16,7 @@ export type FlagshipActions = {
   readonly carWash: CarWashActions;
   readonly delivery: DeliveryActions;
   readonly foodCart: FoodCartActions;
+  readonly coffeeKiosk: CoffeeKioskActions;
 };
 
 export function FlagshipSections({
@@ -29,6 +32,7 @@ export function FlagshipSections({
       <CarWashSection detail={detail} actions={actions.carWash} />
       <DeliverySection detail={detail} actions={actions.delivery} />
       <FoodCartSection detail={detail} actions={actions.foodCart} />
+      <CoffeeKioskSection detail={detail} actions={actions.coffeeKiosk} />
     </>
   );
 }
