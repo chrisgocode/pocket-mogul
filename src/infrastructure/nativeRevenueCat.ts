@@ -28,6 +28,9 @@ export const nativeRevenueCat = revenueCatRuntime(async () => {
     getProducts: (ids) => Purchases.getProducts(ids, PRODUCT_CATEGORY.NON_SUBSCRIPTION),
     purchase: (productId) => purchaseProduct(native, productId),
     requestRefund: (productId) => requestRefund(native, productId),
+    restorePurchases: async () => {
+      await Purchases.restorePurchases();
+    },
     getCustomerInfo: () => Purchases.getCustomerInfo(),
     addCustomerInfoUpdateListener: (listener) => Purchases.addCustomerInfoUpdateListener(listener),
     removeCustomerInfoUpdateListener: (listener) =>

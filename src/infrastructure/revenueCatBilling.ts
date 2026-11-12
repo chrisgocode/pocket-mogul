@@ -1,9 +1,10 @@
-import type { BillingEvent, BillingPort, OwnershipResult } from '@/application/billingPort';
+import type { BillingPort, OwnershipResult } from '@/application/billingPort';
 import type { PurchasePolicy } from '@/application/purchaseLedger';
 import { disabledBilling } from './disabledBilling';
 import { readRevenueCatConfig } from './revenueCatConfig';
 import type { RevenueCatConfig } from './revenueCatConfig';
 import type { RefundRequest, RevenueCatInfo, RevenueCatSdk } from './revenueCatRuntime';
+import { billingSession, type ProviderLog, type ProviderTrace } from './revenueCatSession';
 import type { StoreKitEvidence } from './storeKitEvidence';
 import { signedStoreKitOwnership, syncedStoreKitOwnership } from './storeKitOwnership';
 import {
@@ -20,6 +21,7 @@ export type BillingValidation = {
   readonly checkout: 'sandbox' | 'disabled';
   readonly storeKit: () => Promise<StoreKitReport>;
   readonly lastCheckout: () => CheckoutTrace | undefined;
+  readonly provider: () => ProviderTrace;
   readonly requestRefund: () => Promise<RefundRequest | 'disabled'>;
 };
 
@@ -44,11 +46,11 @@ type StoreKitSource = {
 export function revenueCatBilling(options: Options): Selection {
   const config = readRevenueCatConfig(options.config, options.platform);
   if (config === undefined) return { billing: disabledBilling() };
-  const trace: CheckoutLog = {};
-  const billing = validationBilling(config, { ...options, trace });
+  const logs: Logs = { trace: {}, provider: { identity: 'unknown', transfer: 'notRequested' } };
+  const billing = validationBilling(config, { ...options, ...logs });
   return {
     billing,
-    validation: billingValidation(config, { options, trace }),
+    validation: billingValidation(config, { options, ...logs }),
     purchasePolicy: {
       scopes: [{ store: config.store, appId: config.appId, environment: config.environment }],
       products: [
@@ -63,9 +65,11 @@ export function revenueCatBilling(options: Options): Selection {
   };
 }
 
+type Logs = { readonly trace: CheckoutLog; readonly provider: ProviderLog };
+
 function billingValidation(
   config: RevenueCatConfig,
-  source: { readonly options: Options; readonly trace: CheckoutLog },
+  source: Logs & { readonly options: Options },
 ): BillingValidation {
   const { storeKit, runtime } = source.options;
   const enabled = checkoutEnabled(config, storeKit);
@@ -77,6 +81,7 @@ function billingValidation(
         ? Promise.resolve({ status: 'unavailable' })
         : storeKitReport({ storeKit: storeKit.evidence, config }),
     lastCheckout: () => source.trace.last,
+    provider: () => ({ ...source.provider }),
     requestRefund: async () => {
       if (!enabled) return 'disabled';
       try {
@@ -92,86 +97,7 @@ function checkoutEnabled(config: RevenueCatConfig, storeKit: StoreKitSource | un
   return config.checkout === 'sandbox' && config.store === 'apple' && storeKit !== undefined;
 }
 
-type Started = { readonly native: RevenueCatSdk; readonly stopUpdates: () => void };
-
-type Session =
-  | { readonly status: 'idle' | 'disposed' }
-  | { readonly status: 'starting'; readonly ready: Promise<Started> };
-
-type BillingSession = Pick<BillingPort, 'initialize' | 'subscribe' | 'dispose'> & {
-  readonly sdk: () => Promise<RevenueCatSdk>;
-  readonly requestReconciliation: () => void;
-};
-
-function billingSession(config: RevenueCatConfig, options: Options): BillingSession {
-  let session: Session = { status: 'idle' };
-  const listeners = ownershipListeners();
-  const changed = listeners.notify;
-  const started = () =>
-    session.status === 'starting' ? session.ready : Promise.reject(new Error('Billing not ready'));
-  const sdk = () => started().then(({ native }) => native);
-  const start = async (reference?: string): Promise<Started> => {
-    const native = await options.runtime(config);
-    if (reference !== undefined && reference !== (await native.getAppUserID()))
-      throw new Error('Billing identity mismatch');
-    if (session.status === 'disposed') return { native, stopUpdates: () => undefined };
-    native.addCustomerInfoUpdateListener(changed);
-    return { native, stopUpdates: await storeKitUpdates(options, changed) };
-  };
-  return {
-    sdk,
-    requestReconciliation: changed,
-    initialize: async (identity) => {
-      if (session.status === 'disposed') return { status: 'unavailable' };
-      session =
-        session.status === 'idle'
-          ? { status: 'starting', ready: start(identity?.providerReference) }
-          : session;
-      return readyIdentity(sdk);
-    },
-    subscribe: listeners.subscribe,
-    dispose: () => {
-      void started()
-        .then((running) => stopListening(running, changed))
-        .catch(() => undefined);
-      session = { status: 'disposed' };
-      listeners.clear();
-    },
-  };
-}
-
-function ownershipListeners() {
-  const listeners = new Set<(event: BillingEvent) => void>();
-  return {
-    notify: () => {
-      for (const listener of listeners) listener({ type: 'ownershipChanged' });
-    },
-    subscribe: (listener: (event: BillingEvent) => void) => {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
-    clear: () => listeners.clear(),
-  };
-}
-
-function stopListening(running: Started, changed: () => void): void {
-  running.native.removeCustomerInfoUpdateListener(changed);
-  running.stopUpdates();
-}
-
-async function storeKitUpdates(options: Options, changed: () => void): Promise<() => void> {
-  if (options.storeKit === undefined) return () => undefined;
-  try {
-    return (await options.storeKit.evidence()).addUpdatesListener(changed);
-  } catch {
-    return () => undefined;
-  }
-}
-
-function validationBilling(
-  config: RevenueCatConfig,
-  options: Options & { readonly trace: CheckoutLog },
-): BillingPort {
+function validationBilling(config: RevenueCatConfig, options: Options & Logs): BillingPort {
   const { sdk, requestReconciliation, ...session } = billingSession(config, options);
   const { storeKit } = options;
   const sheet =
@@ -200,7 +126,10 @@ function validationBilling(
     restore: () =>
       storeKit === undefined
         ? readOwnership(sdk)
-        : sdk().then(() => syncedRestore({ storeKit, config, sheet })),
+        : sdk().then(
+            (native) => syncedRestore({ storeKit, config, sheet, native, log: options.provider }),
+            () => ({ status: 'unavailable' }) as const,
+          ),
   };
 }
 
@@ -208,6 +137,8 @@ async function syncedRestore(source: {
   readonly storeKit: StoreKitSource;
   readonly config: RevenueCatConfig;
   readonly sheet: SheetCheckout | undefined;
+  readonly native: RevenueCatSdk;
+  readonly log: ProviderLog;
 }): Promise<OwnershipResult> {
   const openBefore = source.sheet?.pendingProductIds() ?? [];
   const result = await syncedStoreKitOwnership({
@@ -215,10 +146,21 @@ async function syncedRestore(source: {
     config: source.config,
     clock: source.storeKit.clock,
   });
+  if (result.status === 'current') void requestTransfer(source.native, source.log);
   const pending = [...new Set([...openBefore, ...(source.sheet?.pendingProductIds() ?? [])])];
   return result.status === 'current' && pending.length > 0
     ? { ...result, pendingProductIds: pending }
     : result;
+}
+
+async function requestTransfer(native: RevenueCatSdk, log: ProviderLog): Promise<void> {
+  log.transfer = 'requested';
+  try {
+    await native.restorePurchases();
+    log.transfer = 'completed';
+  } catch {
+    log.transfer = 'failed';
+  }
 }
 
 async function localizedProducts(
@@ -262,12 +204,4 @@ function normalizeInfo(info: RevenueCatInfo): OwnershipResult {
     ownership: [],
     removals: [],
   };
-}
-
-async function readyIdentity(sdk: BillingSession['sdk']): ReturnType<BillingPort['initialize']> {
-  try {
-    return { status: 'ready', providerReference: await (await sdk()).getAppUserID() };
-  } catch {
-    return { status: 'unavailable' };
-  }
 }
