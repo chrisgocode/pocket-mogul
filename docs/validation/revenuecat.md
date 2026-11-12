@@ -99,20 +99,24 @@ A resolved purchase grants nothing by itself (ADR decision 5). The adapter then 
 
 **Automated evidence.** `src/application/revenueCatCheckout.test.ts` drives the real adapter, the RevenueCat and StoreKit fakes and the SQLite Game harness: confirmed delivery with the stored ownership record; provider completion; no duplicate benefit across repeated purchase, already-owned and restore; each error mapping and its guard; every StoreKit scope and verification rejection; a mismatched product; a missing StoreKit record kept until Restore; the interactive timeout with a late success ignored; a failed local commit recovered at the next Restore after restart; and no native checkout without the opt-in, on Android or for an unauthorized product. `src/bootstrap/billingCheckoutValidation.test.tsx` proves the launch report never syncs, shows only redacted StoreKit fields, syncs only from Restore and buys once through Game.
 
-### Native checks (open)
+### Native checks
 
-These need the owner's iPhone, a Sandbox Apple Account and a new development-signed validation build with `"checkout": "sandbox"`. Fakes and compilation do not satisfy them. Until each passes, checkout stays limited to that explicitly configured build.
+Owner-operated iPhone 15 Pro Max (iOS 26.3) with a Sandbox Apple Account, 2026-11-11 to 2026-11-12. The app was a development-signed Release build of this branch with `"checkout": "sandbox"`, installed over Wi-Fi with `devicectl` (no cable). Results come from the owner's screenshots of the validation report.
 
-| Check from #124 / ADR 1 | How to run it | Result |
+| Check from #124 / ADR 1 | Observed | Result |
 | --- | --- | --- |
-| Recompile `StoreKitEvidence` including its `OnDestroy` handler | Clean prebuild and device build | Not yet run |
-| StoreKit reads `pm_tax_exemption` with the expected bundle, environment, product type, ownership type and `originalID` | Purchase, then read the `storeKit` block | Not yet run |
-| Sign-in prompt only from Restore | Cold launch, foreground, Recover and Purchase; then Restore | Not yet run |
-| Purchase while owned does not charge again | Purchase twice; check the sandbox account's purchase history | Not yet run |
-| Ask to Buy twice, then approved: one transaction, one charge | Sandbox Ask to Buy; if unavailable, record that and use Xcode StoreKit testing as supplementary evidence | Not yet run |
-| Sandbox refund appears as `revocationDate`, leaves current entitlements, next Restore removes access | Refund in the sandbox account, then Restore | Not yet run |
-| Reading StoreKit never finishes a transaction RevenueCat has not finished | The module has no `finish()`; confirm with an unfinished Ask to Buy transaction still delivered through `Transaction.updates` | Not yet run |
-| First real sandbox purchase and cancellation | Purchase, and cancel the sheet | Not yet run |
+| Recompile `StoreKitEvidence` including its `OnDestroy` handler | Clean prebuild, `pod install` and signed Release device build succeeded; `StoreKitEvidenceModule.o` built | Passed |
+| StoreKit reads `pm_tax_exemption` with the expected fields | `storeKit`: original ID ending 0266, `com.chrisgocode.pocketfortune`, `sandbox`, `nonConsumable`, `purchased`, `verified`, in current entitlements | Passed |
+| Sign-in prompt only from Restore | Owner: the App Store sign-in prompt appeared only on Restore purchases; never at launch, foreground, Recover or Purchase (Purchase shows the ordinary purchase sheet) | Passed |
+| First real sandbox cancellation | `last: purchase / cancelled`, nothing granted, StoreKit had no transaction | Passed |
+| First real sandbox purchase | App Store completed transaction …0266, but the Game received `unavailable` and kept an `interrupted` guard; a second Purchase did not start checkout; Restore then delivered once (`tax: exempt, 1`) | Safe, but not the expected `delivered`. The cause was not recorded; the report now carries a `checkoutTrace` to identify it. Open |
+| Sandbox refund appears as `revocationDate`, leaves current entitlements, next Restore removes access | Request refund (validation control, `beginRefundRequestForProduct`) first showed Apple's "Cannot Connect" on Wi-Fi, then returned `requested` on mobile data. About 15 minutes later Restore showed `revocation: revoked`, `entitlement: absent`, and the Game's tax status returned to `active` with 0 exemption sources | Passed |
+| Purchase after a refund | Purchase returned `delivered` without opening the App Store while access stayed removed: a `delivered` checkout guard left by the Restore recovery counted the refunded record as delivered | Defect found and fixed (below); retest open |
+| Purchase while owned does not charge again | Not yet exercised: the Game answered from its own record without contacting the App Store | Open |
+| Ask to Buy twice, then approved: one transaction, one charge | Not yet run | Open |
+| Reading StoreKit never finishes a transaction RevenueCat has not finished | Not yet run | Open |
+
+**Defect fixed from the device run.** A purchase that was already delivered short-circuits to `delivered` before checkout. That check counted a receipt whose current ownership had since been removed, and a resolved `delivered` guard still blocked a new checkout. Now only receipts that are not removed count as delivered, and only `pending` or `interrupted` guards block checkout. Regression: `starts a new checkout after a refund removed a purchase recovered by Restore` in `src/application/revenueCatCheckout.test.ts`, which failed before the fix. The #100 test that asserted the old answer (`delivered` with access removed) now expects a new checkout.
 
 If the duplicate-charge checks fail, ADR 1's `storePrevents` guard rule is void: remove it and keep checkout blocked. Android purchase and Play license testing stay deferred in #118; the Android non-consumable classification and acknowledgement-without-consumption criteria are not attempted here.
 

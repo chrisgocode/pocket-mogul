@@ -249,3 +249,28 @@ it('traces a RevenueCat failure without reading StoreKit and keeps the StoreKit 
     storeKit: 'unavailable',
   });
 });
+
+it.each([
+  { label: 'a confirmed purchase', firstConfirmation: { latest: storeKitPurchase } },
+  { label: 'a purchase recovered by Restore', firstConfirmation: {} },
+])('starts a new checkout after a refund removed $label', async ({ firstConfirmation }) => {
+  const storeKit = storeKitFake(firstConfirmation);
+  const clock = fakeClock(START_MS);
+  const { session, sdk } = await checkoutGame({ storeKit, clock });
+  await session.game.purchases.purchase(PRODUCT);
+  storeKit.change({ entitlements: [storeKitPurchase], latest: storeKitPurchase });
+  await session.game.purchases.restore();
+  clock.advance(60_000);
+  storeKit.change({
+    entitlements: [],
+    latest: { ...storeKitPurchase, revocationDateMs: START_MS + 30_000 },
+  });
+  await session.game.purchases.restore();
+  expect(session.game.getSnapshot().state.tax.status).not.toBe('exempt');
+  const repurchase = { ...storeKitPurchase, originalId: '2000000999999999' };
+  storeKit.change({ entitlements: [repurchase], latest: repurchase });
+  expect(await session.game.purchases.purchase(PRODUCT)).toEqual({ status: 'delivered' });
+  expect(sdk.checkouts).toEqual([PRODUCT, PRODUCT]);
+  expect(session.game.getSnapshot().state.tax.status).toBe('exempt');
+  expect(await session.purchaseRecords()).toHaveLength(2);
+});

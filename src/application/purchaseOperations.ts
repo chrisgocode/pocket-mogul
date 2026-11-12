@@ -194,7 +194,11 @@ async function deliveredProduct(context: Context, productId: string): Promise<bo
   const records = await context.core.queue.run(() =>
     context.ports.store.transact((tx) => tx.readPurchases()),
   );
-  return records.some((record) => record.ownership.reference.productId === productId);
+  return records.some(
+    (record) =>
+      record.ownership.reference.productId === productId &&
+      record.currentOwnership?.status !== 'removed',
+  );
 }
 
 function billingEnabled(ports: GamePorts): boolean {
@@ -212,8 +216,12 @@ async function beforeRetry(
   if (evidence?.status === 'saveFailed') return evidence;
   if (disposed(context)) return { status: 'unavailable' };
   if (await deliveredProduct(context, productId)) return { status: 'delivered' };
-  if (context.workflow.blocked !== undefined) return { status: 'unavailable' };
+  if (unresolved(context.workflow.blocked)) return { status: 'unavailable' };
   return undefined;
+}
+
+function unresolved(guard: CheckoutGuard | undefined): boolean {
+  return guard !== undefined && guard.status !== 'delivered';
 }
 
 function diagnostic(context: Context, details: { operation: string; outcome: string }): void {
