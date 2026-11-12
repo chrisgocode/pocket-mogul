@@ -219,6 +219,48 @@ Run on a physical iPhone with the sandbox checkout build and one Sandbox Apple A
 
 Open native questions these runs answer: whether `restorePurchases()` shows a second sign-in prompt after `AppStore.sync()`, and whether the transfer appears in the dashboard for a StoreKit 2 non-consumable.
 
+## Refunds (#116)
+
+A confirmed refund removes access from then on. Uncertain or older evidence keeps it, and play that already happened is never rewritten.
+
+**Where refunds come from.** Apple signs a `revocationDate` onto the refunded transaction and drops it from `Transaction.currentEntitlements`. The Game sees it only through a Restore whose `AppStore.sync()` succeeded (ADR 1, Decision 2): the adapter turns a verified, in-scope `latest(productId)` with a `revocationDate` into a named removal. Launch, foreground, Recover, `Transaction.updates` and RevenueCat callbacks never remove access, because their reads are not fresh.
+
+**Server notifications.** App Store Server Notifications (Version 2) go from Apple to RevenueCat's URL ([setup](../ios-revenuecat-setup.md#sandbox-checkout-113)), and Google Real-time developer notifications go to RevenueCat through a Pub/Sub topic RevenueCat provides (Play Console → Monetization setup → Real-time developer notifications; RevenueCat → the Android app → *Connect to Google*). Both update RevenueCat's customer record only. Pocket Mogul runs no server, so nothing receives these notifications on the Game's behalf, and the Game never treats a RevenueCat entitlement change as a refund. Google setup is deferred with Android in #118.
+
+| Evidence | Effect |
+| --- | --- |
+| Restore after a successful sync; latest record verified, in scope (bundle, environment, `nonConsumable`, `purchased`) and revoked | Removal of that `originalID`, if the Game holds a receipt for it |
+| Failed or timed-out sync, `unavailable` | Nothing |
+| Product missing from entitlements with no revoked latest record | Nothing |
+| Unverified record anywhere in the read | `verificationFailed`; nothing |
+| Revoked record for another bundle, environment, product type or a family-shared copy | Nothing |
+| Background (`signed`) read listing the refunded record again; replayed checkout completion; CustomerInfo or StoreKit callbacks | Nothing; a removed receipt is never reactivated |
+| Missing offerings or products, expired RevenueCat cache, inactive RevenueCat entitlement | Nothing |
+
+**Two times.** A removed receipt keeps `observedAtMs`, the injected-clock time read before the App Store sync started, and `revokedAtMs`, Apple's signed `revocationDate`. The difference is how long the refund took to reach the Game. Neither is the time a response arrived. Ordering uses `observedAtMs` only, so a refund dated before an earlier active observation still removes access when it appears, and an older observation cannot undo a newer removal. The validation report shows `storeKit.revokedAtMs` for a revoked record. Receipts saved before #116 have no `revokedAtMs` and load unchanged.
+
+**What changes.** All ownership sources are projected together in one SQLite transaction with the tax state and any Offline settlement (#101): another unrevoked purchase or the legacy entitlement keeps the exemption. A failed write publishes nothing and leaves the receipt active. Removal is prospective: waived returns, earnings settled while exempt and the existing Return summary stay; taxation starts on the next day with a newly valued basis. Removed receipts survive restart and Reset Save, and a new checkout after a refund opens the App Store and records a new `originalID`.
+
+**Automated evidence.** `src/application/revenueCatRefund.test.ts` drives the real adapter with the RevenueCat and StoreKit fakes on the SQLite Game harness:
+
+- the removal keeps Apple's revocation time separately from the observation time, and Recover alone does not remove;
+- a refund seen after an earlier Restore still showed the purchase owned removes access;
+- a failed sync, an empty inventory, and unverified, other-app, production and family-shared refunds keep access;
+- a stale StoreKit read, a CustomerInfo callback and a replayed checkout do not re-grant;
+- a failed save rolls back, then the removal survives Reset Save and restart with a stale StoreKit cache;
+- the legacy entitlement keeps the exemption;
+- an owner away for ten hours gets one exempt Offline settlement, then Restore removes access with the waived return, cash and Return summary unchanged, and later play is taxed.
+
+`src/application/purchasePersistence.test.ts` reopens a removed receipt with `revokedAtMs` from SQLite. `src/bootstrap/billingCheckoutValidation.test.tsx` shows the revocation time in the report. The #101 suites (`purchaseRemoval`, `purchaseRemovalTiming`, `purchaseRemovalRecovery`, `managedPurchaseRemoval`) cover the same rules with scripted evidence.
+
+### Refund scenarios
+
+| Store | Steps | Expected report |
+| --- | --- | --- |
+| iOS | Sandbox checkout build, Sandbox Apple Account. Purchase (`tax: exempt, 1`). Note the time, press **Request refund** (use mobile data if the sheet says *Cannot Connect*). Press **Recover** every few minutes, then **Restore purchases** once `storeKit.revocation` is `revoked` | Before Restore: `tax: exempt, 1` despite `revocation: revoked`, `entitlement: absent`. After Restore: `last: restore / current`, `tax: active, 0`; note `storeKit.revokedAtMs` and the Restore time to record propagation. Cash is unchanged. Relaunch and Reset Save keep `tax` not exempt; **Purchase** opens a new App Store sheet. #113 already ran the refund and repurchase steps on 2026-11-12 (about 15 minutes to reach the device); the propagation times are not yet recorded |
+| iOS | As above, but turn on Airplane Mode before pressing Restore | `last: restore / unavailable`, `tax: exempt, 1` |
+| Android | Play license tester buys the non-consumable; Play Console → Order management → refund with *Revoke entitlement*; RTDN reaches RevenueCat | Deferred to #118. Today Android checkout is `disabled`, so the Game holds nothing to remove and the scenario cannot run |
+
 ## Configuration ownership
 
 Device composition lazily imports the native SDK only for valid configuration when Game initializes billing. One process runtime owns configuration; competing configuration and an SDK already configured elsewhere are rejected. Each Game has a removable listener. Disposal removes its subscription without logout, identity reset or reconfiguration. SDK-generated anonymous identity is persisted by the existing purchase identity transaction outside Reset Save. Since #114 a mismatch adopts the SDK's identity (see [Restoring permanent access](#restoring-permanent-access-114)); it never logs in with a stored anonymous identifier. SDK waits use the Game's existing two-second bounds per operation, not a network prerequisite for free play.
@@ -229,7 +271,7 @@ Current source pins: Expo 58.0.24, React Native 0.88.1, core react-native-purcha
 
 The core autolinks with Expo prebuild. `plugins/withRevenueCatPins.ts` pins the Android hybrid, Purchases and Play Billing dependencies through generated Gradle configuration; Apple hybrid and RevenueCat dependencies are already exact in the upstream podspecs. No hand-edited native project is required. Run `bun install --frozen-lockfile`, `bunx expo prebuild --clean`, then build both native projects. Never use Expo Go. This integration requires a new binary, not an OTA update.
 
-Outstanding native gates: the #114 reinstall, second-device and transfer scenarios ([table](#native-scenarios-not-yet-run)), Google SDK configuration and metadata, provider cache/failure/freshness probes, native offline launch, and actual store transaction acceptance. Clean iOS/Android compilation and resolved dependency evidence passed as recorded below. The owner subsequently supplied the Apple public SDK key and confirmed the product/entitlement mapping; native iOS configuration and product metadata reads passed on 2026-11-10 as recorded in the later probe. Actual store acceptance is unverified. Simulators, compilation and injected fake results do not prove App Store sandbox or Play license-testing acceptance. Store account setup, agreements, signing, product-to-entitlement mappings and permanent non-consumable designation must be confirmed before probes. No real purchase, refund, pending payment, restore or cross-device claim is made by this slice.
+Outstanding native gates: the #114 reinstall, second-device and transfer scenarios ([table](#native-scenarios-not-yet-run)), the #116 refund propagation timing ([table](#refund-scenarios)), Google SDK configuration and metadata, provider cache/failure/freshness probes, native offline launch, and actual store transaction acceptance. Clean iOS/Android compilation and resolved dependency evidence passed as recorded below. The owner subsequently supplied the Apple public SDK key and confirmed the product/entitlement mapping; native iOS configuration and product metadata reads passed on 2026-11-10 as recorded in the later probe. Actual store acceptance is unverified. Simulators, compilation and injected fake results do not prove App Store sandbox or Play license-testing acceptance. Store account setup, agreements, signing, product-to-entitlement mappings and permanent non-consumable designation must be confirmed before probes. No real purchase, refund, pending payment, restore or cross-device claim is made by this slice.
 
 
 ### Compilation evidence (2026-11-09)

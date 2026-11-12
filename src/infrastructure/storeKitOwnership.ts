@@ -1,6 +1,7 @@
 import type {
   OwnershipResult,
   PurchaseReference,
+  PurchaseRemoval,
   PurchaseResult,
   VerifiedOwnership,
 } from '@/application/billingPort';
@@ -77,16 +78,22 @@ function inventory(config: RevenueCatConfig, observation: Observation): Ownershi
   const { entitlements, latest, observedAtMs } = observation;
   const records = latest === undefined ? entitlements : [...entitlements, latest];
   if (records.some((record) => !record.verified)) return { status: 'verificationFailed' };
-  const revoked =
-    latest !== undefined && inScope(config, latest) && latest.revocationDateMs !== undefined;
   return {
     status: 'current',
     authority: 'authoritative',
     coverage: 'complete',
     observedAtMs,
     ownership: ownedOwnership(config, entitlements),
-    removals: revoked ? [reference(config, latest)] : [],
+    removals: removals(config, latest),
   };
+}
+
+function removals(
+  config: RevenueCatConfig,
+  latest: StoreKitTransaction | undefined,
+): PurchaseRemoval[] {
+  if (latest?.revocationDateMs === undefined || !inScope(config, latest)) return [];
+  return [{ ...reference(config, latest), revokedAtMs: latest.revocationDateMs }];
 }
 
 function ownedOwnership(

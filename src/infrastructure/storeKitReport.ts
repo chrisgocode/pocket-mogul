@@ -14,6 +14,7 @@ export type StoreKitReport =
       readonly ownershipType: string;
       readonly signature: 'verified' | 'unverified';
       readonly revocation: 'none' | 'revoked';
+      readonly revokedAtMs?: number;
       readonly entitlement: 'current' | 'absent';
     };
 
@@ -47,7 +48,13 @@ function redacted(record: StoreKitTransaction, entitlement: 'current' | 'absent'
     productType: record.productType,
     ownershipType: record.ownershipType,
     signature: record.verified ? 'verified' : 'unverified',
-    revocation: record.revocationDateMs === undefined ? 'none' : 'revoked',
+    ...revocation(record.revocationDateMs),
     entitlement,
   };
+}
+
+function revocation(revokedAtMs: number | undefined) {
+  return revokedAtMs === undefined
+    ? ({ revocation: 'none' } as const)
+    : ({ revocation: 'revoked', revokedAtMs } as const);
 }

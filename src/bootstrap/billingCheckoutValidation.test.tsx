@@ -85,6 +85,16 @@ it('reads redacted StoreKit fields and grants signed ownership at launch without
   session.game.purchases.dispose();
 });
 
+it('shows when the store revoked a refunded purchase so testers can time its propagation', async () => {
+  const refunded = { ...storeKitPurchase, revocationDateMs: START_MS - 60_000 };
+  const storeKit = storeKitFake({ entitlements: [], latest: refunded });
+  const { session, alert } = await validationGame({ checkout: false, storeKit });
+  expect(alert.mock.lastCall?.[1]).toContain(
+    `"revocation":"revoked","revokedAtMs":${START_MS - 60_000},"entitlement":"absent"`,
+  );
+  session.game.purchases.dispose();
+});
+
 it('syncs with the App Store only when the tester presses Restore', async () => {
   const storeKit = storeKitFake({ entitlements: [storeKitPurchase], latest: storeKitPurchase });
   const { session, alert } = await validationGame({ checkout: false, storeKit });

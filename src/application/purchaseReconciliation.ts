@@ -75,7 +75,11 @@ function removeRecords(
       continue;
     updated.set(key, {
       ...previous,
-      currentOwnership: { status: 'removed', observedAtMs: evidence.observedAtMs },
+      currentOwnership: {
+        status: 'removed',
+        observedAtMs: evidence.observedAtMs,
+        ...(reference.revokedAtMs === undefined ? {} : { revokedAtMs: reference.revokedAtMs }),
+      },
     });
   }
 }

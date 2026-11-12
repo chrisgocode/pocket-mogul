@@ -111,7 +111,7 @@ it('opens legacy purchase documents and retains additive removal evidence throug
     expect(await store.transact((tx) => tx.readPurchases())).toEqual([record]);
     const removed = {
       ...record,
-      currentOwnership: { status: 'removed', observedAtMs: 456 },
+      currentOwnership: { status: 'removed', observedAtMs: 456, revokedAtMs: 123 },
     } as const;
     await store.transact((tx) => tx.writePurchase(removed));
     database.close();
