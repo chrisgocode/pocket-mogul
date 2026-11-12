@@ -14,7 +14,7 @@ On iOS the store itself keeps a signed, per-app record of every transaction on t
 
 ## Decision
 
-Add a small **read-only StoreKit 2 evidence module** for iOS and build `OwnershipResult` from it. RevenueCat keeps checkout, its anonymous identity and transaction completion. The two meet only inside the infrastructure adapter.
+Add a small **read-only StoreKit 2 evidence module** for iOS and build `OwnershipResult` from it. RevenueCat keeps checkout, its anonymous identity and transaction completion. The two meet only inside the infrastructure adapter. Since #114 an explicit Restore also asks RevenueCat to transfer the purchase to the current anonymous identity after the App Store sync; the Game never reads that call's result ([validation record](../validation/revenuecat.md#restoring-permanent-access-114)).
 
 1. **Custom native API (explicitly excluded by #112, needs this approval).** A local Expo module, `modules/storekit-evidence`, written in Swift with the Expo Modules API and autolinked through prebuild. It exposes four calls and nothing else:
    - `entitlements()`: verified records from `Transaction.currentEntitlements`.

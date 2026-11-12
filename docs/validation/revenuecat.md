@@ -54,7 +54,7 @@ Evidence below is source/API inspection of the pinned release, not a successful 
 | Complete permanent inventory | `allPurchasedProductIdentifiers`, `nonSubscriptionTransactions`, active/all entitlements | Purchase history and active flags do not establish a fresh complete inventory of currently valid permanent sources. Emit cached/incomplete with no ownership or removals. |
 | Explicit permanent removal | No explicit permanent-refund/revocation transaction evidence on these records; server notifications affect provider state | Missing entitlements are not removal evidence. Refund mapping remains blocked. |
 | Pending-payment absence | No complete pending inventory on CustomerInfo | Omit pendingProductIds, including an empty list. Never clear an unresolved checkout guard. |
-| Completion | Default RevenueCat-managed completion; no observer/application completion setting | BillingPort completion owner is provider. No finish, acknowledge, consume, purchase or restorePurchases SDK method is exposed by the facade. |
+| Completion | Default RevenueCat-managed completion; no observer/application completion setting | BillingPort completion owner is provider. No finish, acknowledge or consume SDK method is exposed by the facade. `purchase` was added in #113 and `restorePurchases` in #114 (transfer request only, see below). |
 
 The facade deliberately exposes only the fields used for conservative normalization. It stays in infrastructure, including SDK types and the deterministic fake. Game validates cached/incomplete reads as unavailable, retains committed access and unresolved guards, and performs ordinary Offline settlement independently. Adding backend evidence, custom native APIs or weakening the ownership contract is outside the approved scope. Dependent checkout work is blocked on a separately approved resolution of these gaps.
 
@@ -169,9 +169,59 @@ Guards still clear only through a delivered receipt or fresh, authoritative, com
 
 The unexplained first device purchase in #113 (completed in StoreKit, `unavailable` in the Game) is now recovered on the next launch, foreground or update without Restore. `checkoutTrace` will name the failing step if it happens again.
 
+## Restoring permanent access (#114)
+
+A permanent owner gets access back after restart, Reset Save, a failed local delivery, reinstall or on a second device signed in to the same App Store account, without another charge. Restoring access never restores progress, cash or a consumable balance: the Game has no cloud save and no consumable wallet.
+
+**What is stored where.** The purchase identity (Game ID, RevenueCat's anonymous App User ID as `providerReference`, the checkout guard) and the ownership ledger live in their own SQLite tables, outside the save document. Reset Save rewrites the save document and leaves both tables alone; it never calls an SDK logout or reset, and the SDK facade has no such method. No field was added, so the save format and the ledger format are unchanged.
+
+**Identity policy.** RevenueCat's anonymous ID is an association, not a credential. At launch the adapter compares the SDK's current ID with the saved reference:
+
+| Saved reference | SDK ID | Report `provider.identity` | Result |
+| --- | --- | --- | --- |
+| none | any | `created` | Saved. |
+| same | same | `retained` | Unchanged. |
+| different | new | `replaced` | The SDK's ID is saved in place of the old one. Billing stays ready. The Game ID, ledger, committed access and any unresolved checkout guard are kept. |
+
+A replaced ID happens when the SDK's own storage is lost while the Game database survives, for example a device restore or cleared app data. Before #114 this left billing `unavailable` for good. The adapter never calls `logIn` with an old anonymous ID, because RevenueCat does not support logging in to anonymous IDs and that would treat the ID as a credential.
+
+**Transfer policy.** Ownership always comes from StoreKit (ADR 1), so the Game does not depend on RevenueCat's customer record. To keep that record in step, an explicit Restore whose App Store sync succeeded also calls the SDK's `restorePurchases()`. With the project's **Restore behavior** set to *Transfer to new App User ID* ([setup step](../ios-revenuecat-setup.md#sandbox-checkout-113)), RevenueCat moves the purchase to the current anonymous ID. The call runs after the App Store sync, so the tester is already signed in. The Game does not wait for it and ignores its result: a failed or stalled transfer changes nothing in the Game and is retried by the next Restore. The report shows `provider.transfer` as `notRequested`, `requested`, `completed` or `failed`. Launch, foreground, `Transaction.updates` and CustomerInfo callbacks never sync with the App Store and never request a transfer, and neither does a Restore whose sync finishes after the Game closed. An owner who gets access back from StoreKit at launch and never presses Restore stays under the old customer in RevenueCat until the next Restore or purchase; Game access does not depend on it.
+
+**Limits.** There is no game account. Access follows the App Store account, so it is not shared between Apple and Android, and progress is never shared between devices. Two devices on one App Store account each hold their own ledger row for the same `originalID` and their own progress.
+
+**Automated evidence.** `src/application/revenueCatIdentity.test.ts` and `src/application/revenueCatRestore.test.ts` drive the real adapter with the RevenueCat and StoreKit fakes on the SQLite Game harness:
+
+- identity, ledger and access survive Reset Save and restart with cash reset to zero and no transfer request;
+- a `pending` guard survives Reset Save and a replaced identity, and blocks a second checkout;
+- a replaced identity is adopted, billing stays available and access is kept without an App Store sync;
+- reinstall and second-device Restore under a new anonymous ID deliver once, keep the fresh install's cash, start no checkout and request one transfer; the first device is unchanged;
+- launch, pause/resume, CustomerInfo and StoreKit callbacks never sync or transfer;
+- a failed or stalled transfer does not delay or undo restored access; a failed App Store sync requests no transfer;
+- a Restore whose receipt write fails publishes nothing, then delivers once across repeated Restore and reopen;
+- with RevenueCat and the App Store unreachable after ten hours away, an owner keeps access through one Offline settlement and a non-owner is granted nothing.
+
+`src/bootstrap/billingCheckoutValidation.test.tsx` checks that the report shows `provider` without the anonymous ID. Earlier slices cover failed delivery after checkout (`revenueCatCheckout.test.ts`), crash and reopen (`revenueCatRecovery.test.ts`) and the scripted ledger cases (`purchaseRestore.test.ts`, `managedPurchases.test.ts`).
+
+### Native scenarios (not yet run)
+
+Run on a physical iPhone with the sandbox checkout build and one Sandbox Apple Account that already owns `pm_tax_exemption`. Read the report after each step.
+
+| Scenario | Steps | Expected report |
+| --- | --- | --- |
+| Restart | Force-quit and relaunch | `provider.identity: retained`, `tax: exempt, 1`, no sign-in prompt |
+| Reset Save | Earn cash, Settings → Reset Save, relaunch | Cash zero, `tax: exempt, 1`, `provider.identity: retained`, no prompt |
+| Same-store reinstall | Earn cash, delete the app, install the same build, launch, earn a little cash, press **Restore purchases** | At launch `provider.identity: created`; StoreKit may already grant access without Restore. After Restore: `last: restore / current`, `tax: exempt, 1`, `provider.transfer: completed`, cash is only what was earned since reinstall, no purchase sheet |
+| Second device | Second iPhone signed in to the same Sandbox Apple Account, fresh install, press **Restore purchases** | Same as reinstall. The first device keeps its progress and `tax: exempt, 1` |
+| Transfer in RevenueCat | After either Restore, open the sandbox customer list in the RevenueCat dashboard | The purchase is listed under the new anonymous customer |
+| Other store account | Sign in to a different Sandbox Apple Account on a fresh install, press Restore | `last: restore / current`, `tax` not exempt, `provider.transfer: completed`, no access |
+| Offline owner | Airplane Mode, relaunch after some time away | `tax: exempt, 1`, one Return summary, `products: unavailable`; Restore returns `unavailable` and changes nothing |
+| Android | All of the above | Deferred to #118 |
+
+Open native questions these runs answer: whether `restorePurchases()` shows a second sign-in prompt after `AppStore.sync()`, and whether the transfer appears in the dashboard for a StoreKit 2 non-consumable.
+
 ## Configuration ownership
 
-Device composition lazily imports the native SDK only for valid configuration when Game initializes billing. One process runtime owns configuration; competing configuration and an SDK already configured elsewhere are rejected. Each Game has a removable listener. Disposal removes its subscription without logout, identity reset or reconfiguration. SDK-generated anonymous identity is persisted by the existing purchase identity transaction outside Reset Save. A mismatch rejects reads; it never logs in with a stored anonymous identifier. SDK waits use the Game's existing two-second bounds per operation, not a network prerequisite for free play.
+Device composition lazily imports the native SDK only for valid configuration when Game initializes billing. One process runtime owns configuration; competing configuration and an SDK already configured elsewhere are rejected. Each Game has a removable listener. Disposal removes its subscription without logout, identity reset or reconfiguration. SDK-generated anonymous identity is persisted by the existing purchase identity transaction outside Reset Save. Since #114 a mismatch adopts the SDK's identity (see [Restoring permanent access](#restoring-permanent-access-114)); it never logs in with a stored anonymous identifier. SDK waits use the Game's existing two-second bounds per operation, not a network prerequisite for free play.
 
 ## Native acceptance record
 
@@ -179,7 +229,7 @@ Current source pins: Expo 58.0.24, React Native 0.88.1, core react-native-purcha
 
 The core autolinks with Expo prebuild. `plugins/withRevenueCatPins.ts` pins the Android hybrid, Purchases and Play Billing dependencies through generated Gradle configuration; Apple hybrid and RevenueCat dependencies are already exact in the upstream podspecs. No hand-edited native project is required. Run `bun install --frozen-lockfile`, `bunx expo prebuild --clean`, then build both native projects. Never use Expo Go. This integration requires a new binary, not an OTA update.
 
-Outstanding native gates: Google SDK configuration and metadata, provider cache/failure/freshness probes, native offline launch, and actual store transaction acceptance. Clean iOS/Android compilation and resolved dependency evidence passed as recorded below. The owner subsequently supplied the Apple public SDK key and confirmed the product/entitlement mapping; native iOS configuration and product metadata reads passed on 2026-11-10 as recorded in the later probe. Actual store acceptance is unverified. Simulators, compilation and injected fake results do not prove App Store sandbox or Play license-testing acceptance. Store account setup, agreements, signing, product-to-entitlement mappings and permanent non-consumable designation must be confirmed before probes. No real purchase, refund, pending payment, restore or cross-device claim is made by this slice.
+Outstanding native gates: the #114 reinstall, second-device and transfer scenarios ([table](#native-scenarios-not-yet-run)), Google SDK configuration and metadata, provider cache/failure/freshness probes, native offline launch, and actual store transaction acceptance. Clean iOS/Android compilation and resolved dependency evidence passed as recorded below. The owner subsequently supplied the Apple public SDK key and confirmed the product/entitlement mapping; native iOS configuration and product metadata reads passed on 2026-11-10 as recorded in the later probe. Actual store acceptance is unverified. Simulators, compilation and injected fake results do not prove App Store sandbox or Play license-testing acceptance. Store account setup, agreements, signing, product-to-entitlement mappings and permanent non-consumable designation must be confirmed before probes. No real purchase, refund, pending payment, restore or cross-device claim is made by this slice.
 
 
 ### Compilation evidence (2026-11-09)
@@ -188,7 +238,7 @@ Outstanding native gates: Google SDK configuration and metadata, provider cache/
 - Clean Expo prebuild succeeded on both platforms with the pinned JS dependencies. No generated native source was edited.
 - iOS: `pod install --repo-update` succeeded. Podfile.lock resolved RNPurchases 10.16.0 → PurchasesHybridCommon 19.17.0 → RevenueCat 5.99.0. `xcodebuild -workspace ios/PocketMogul.xcworkspace -scheme PocketMogul -configuration Debug -sdk iphonesimulator -destination id=E82EDCD6-2116-484E-AE23-6C89F2CE4B46 -derivedDataPath /tmp/pm112-derived CODE_SIGNING_ALLOWED=NO build` finished with **BUILD SUCCEEDED**. This is an unsigned simulator development binary, not store acceptance.
 - SDK 11.0.1 was rejected during compatibility validation: its required PurchasesHybridCommon 20.4.0 was unavailable from CocoaPods even after updating the index. The committed pin is 10.16.0, with published native dependencies.
-- Automated evidence: Game tests cover invalid/unsupported configuration without loading the SDK, localized metadata, disabled checkout, native configuration ownership, identity mismatch, removable listeners, bounded startup, offline taps, retained access and guards, Reset Save, and unchanged ordinary Offline settlement/Return summary through outages and reconciliation. Independent reviews found no unsafe ownership authority or checkout enablement.
+- Automated evidence: Game tests cover invalid/unsupported configuration without loading the SDK, localized metadata, disabled checkout, native configuration ownership, identity mismatch (rejected then; adopted since #114), removable listeners, bounded startup, offline taps, retained access and guards, Reset Save, and unchanged ordinary Offline settlement/Return summary through outages and reconciliation. Independent reviews found no unsafe ownership authority or checkout enablement.
 
 - Android: clean prebuild plus `./gradlew app:assembleDebug` succeeded in 14m 10s (558 tasks executed), producing `android/app/build/outputs/apk/debug/app-debug.apk` for arm64-v8a, armeabi-v7a, x86 and x86_64. Gradle 9.4.1, compile SDK 37, target SDK 36, NDK 27.1.12297006 and Kotlin 2.2.10 were used. The `:app:dependencies --configuration debugRuntimeClasspath` report resolved hybrid 19.17.0 → Purchases 10.30.0 → Play Billing 8.3.0, matching the config-plugin pins. This is a debug compilation, not Play store acceptance.
 - The iOS app installed and loaded its JavaScript bundle on the iPhone 17 Pro simulator (iOS 26.0) with validation configuration absent. Live RevenueCat initialization and store reads were not attempted without the owner's validation setup.

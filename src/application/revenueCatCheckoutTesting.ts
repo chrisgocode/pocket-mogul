@@ -2,6 +2,7 @@ import { revenueCatBilling } from '@/infrastructure/revenueCatBilling';
 import { revenueCatRuntime, type RevenueCatPurchase } from '@/infrastructure/revenueCatRuntime';
 import {
   revenueCatFake,
+  type RevenueCatScript,
   storeKitFake,
   storeKitPurchase,
   validationConfig,
@@ -15,8 +16,7 @@ const RELAUNCH_AFTER_MS = 60_000;
 export const PRODUCT = validationConfig.productId;
 export const checkoutConfig = { ...validationConfig, checkout: 'sandbox' } as const;
 
-type Setup = {
-  readonly purchase?: (productId: string) => Promise<RevenueCatPurchase>;
+type Setup = RevenueCatScript & {
   readonly storeKit?: ReturnType<typeof storeKitFake>;
   readonly clock?: FakeClock;
   readonly config?: unknown;
@@ -27,19 +27,18 @@ type Process = {
   readonly runtime: ReturnType<typeof revenueCatRuntime>;
 };
 
-export function checkoutProcess(
-  purchase?: (productId: string) => Promise<RevenueCatPurchase>,
-): Process {
-  const sdk = revenueCatFake(purchase === undefined ? {} : { purchase });
+export function checkoutProcess(script: RevenueCatScript = {}): Process {
+  const sdk = revenueCatFake(script);
   return { sdk, runtime: revenueCatRuntime(() => Promise.resolve(sdk)) };
 }
 
 export function checkoutSelection(setup: Setup & { readonly process?: Process } = {}) {
-  const { sdk, runtime } = setup.process ?? checkoutProcess(setup.purchase);
-  const storeKit = setup.storeKit ?? storeKitFake({ latest: storeKitPurchase });
-  const clock = setup.clock ?? fakeClock(START_MS);
+  const { process, config, storeKit: account, clock: started, ...script } = setup;
+  const { sdk, runtime } = process ?? checkoutProcess(script);
+  const storeKit = account ?? storeKitFake({ latest: storeKitPurchase });
+  const clock = started ?? fakeClock(START_MS);
   const selected = revenueCatBilling({
-    config: setup.config ?? checkoutConfig,
+    config: config ?? checkoutConfig,
     platform: 'ios',
     runtime,
     storeKit: { evidence: () => Promise.resolve(storeKit), clock },

@@ -11,25 +11,36 @@ export const validationConfig = {
   entitlementId: 'pm_tax_exemption',
 } as const;
 
-type RevenueCatScript = {
+export type RevenueCatScript = {
   readonly purchase?: (productId: string) => Promise<RevenueCatPurchase>;
+  readonly appUserId?: string;
+  readonly restorePurchases?: () => Promise<void>;
+};
+
+const info = { requestDate: '2027-01-15T08:00:00Z', entitlements: { verification: 'VERIFIED' } };
+const localizedProduct = {
+  identifier: validationConfig.productId,
+  title: 'Exonération',
+  priceString: '1,99 €',
 };
 
 export function revenueCatFake(script: RevenueCatScript = {}) {
   const listeners = new Set<(info: RevenueCatInfo) => void>();
   const configurations: string[] = [];
   const checkouts: string[] = [];
-  const info = { requestDate: '2027-01-15T08:00:00Z', entitlements: { verification: 'VERIFIED' } };
+  const transfers: string[] = [];
+  const appUserId = script.appUserId ?? '$RCAnonymousID:test';
   const sdk: RevenueCatSdk = {
     isConfigured: () => Promise.resolve(false),
     configure: (key) => {
       configurations.push(key);
     },
-    getAppUserID: () => Promise.resolve('$RCAnonymousID:test'),
-    getProducts: () =>
-      Promise.resolve([
-        { identifier: validationConfig.productId, title: 'Exonération', priceString: '1,99 €' },
-      ]),
+    getAppUserID: () => Promise.resolve(appUserId),
+    restorePurchases: () => {
+      transfers.push(appUserId);
+      return script.restorePurchases?.() ?? Promise.resolve();
+    },
+    getProducts: () => Promise.resolve([localizedProduct]),
     purchase: (productId) => {
       checkouts.push(productId);
       return script.purchase?.(productId) ?? Promise.resolve({ status: 'purchased', productId });
@@ -47,10 +58,9 @@ export function revenueCatFake(script: RevenueCatScript = {}) {
     ...sdk,
     configurations,
     checkouts,
+    transfers,
     listeners,
-    emit: () => {
-      for (const listener of listeners) listener(info);
-    },
+    emit: () => listeners.forEach((listener) => listener(info)),
   };
 }
 

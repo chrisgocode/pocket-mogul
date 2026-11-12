@@ -167,26 +167,12 @@ it.each(['web', 'windows', 'android'])(
   },
 );
 
-it('rejects a conflicting process configuration and mismatched persisted provider identity', async () => {
+it('rejects a conflicting process configuration', async () => {
   const sdk = revenueCatFake();
   const runtime = revenueCatRuntime(() => Promise.resolve(sdk));
   const select = () => revenueCatBilling({ config: validationConfig, platform: 'ios', runtime });
   const session = await startObservedTestGame(select());
-  const identity = await session.purchaseIdentity();
-  const mismatched = revenueCatBilling({
-    config: validationConfig,
-    platform: 'ios',
-    runtime: revenueCatRuntime(() =>
-      Promise.resolve({
-        ...revenueCatFake(),
-        getAppUserID: () => Promise.resolve('$RCAnonymousID:other'),
-      }),
-    ),
-  });
-  const reopened = await session.restart(mismatched);
-  expect(await reopened.game.purchases.products()).toEqual({ status: 'unavailable', products: [] });
-  expect(await reopened.purchaseIdentity()).toEqual(identity);
-  const conflict = await reopened.restart(
+  const conflict = await session.restart(
     revenueCatBilling({
       config: { ...validationConfig, apiKey: 'appl_conflict' },
       platform: 'ios',
@@ -194,6 +180,7 @@ it('rejects a conflicting process configuration and mismatched persisted provide
     }),
   );
   expect(await conflict.game.purchases.products()).toEqual({ status: 'unavailable', products: [] });
+  expect(await conflict.purchaseIdentity()).toEqual(await session.purchaseIdentity());
   expect(sdk.configurations).toEqual(['appl_validation']);
 });
 

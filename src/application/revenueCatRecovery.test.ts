@@ -98,7 +98,7 @@ it('keeps the guard through a fresh Restore while the store sheet is still open'
 
 it('sees a store sheet left open by a previous Game in the same process', async () => {
   const sheet = openSheet();
-  const process = checkoutProcess(sheet.purchase);
+  const process = checkoutProcess({ purchase: sheet.purchase });
   const first = checkoutSelection({ process, storeKit: storeKitFake() });
   const session = await startObservedTestGame(first.selected);
   const purchasing = session.game.purchases.purchase(PRODUCT);

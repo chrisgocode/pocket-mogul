@@ -92,6 +92,12 @@ it('syncs with the App Store only when the tester presses Restore', async () => 
   await waitFor(() => expect(alert).toHaveBeenCalledTimes(2));
   expect(storeKit.syncs()).toBe(1);
   expect(alert.mock.lastCall?.[1]).toContain('"last":{"action":"restore","outcome":"current"}');
+  press(alert, 'Read again');
+  await waitFor(() => expect(alert).toHaveBeenCalledTimes(3));
+  expect(alert.mock.lastCall?.[1]).toContain(
+    '"provider":{"identity":"created","transfer":"completed"}',
+  );
+  expect(alert.mock.lastCall?.[1]).not.toContain('RCAnonymousID');
   expect(alert.mock.lastCall?.[1]).toContain('"tax":{"status":"exempt","entitlements":1}');
   expect(await session.purchaseRecords()).toHaveLength(1);
   session.game.purchases.dispose();

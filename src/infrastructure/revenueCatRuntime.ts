@@ -25,6 +25,7 @@ export type RevenueCatSdk = {
   >;
   readonly purchase: (productId: string) => Promise<RevenueCatPurchase>;
   readonly requestRefund: (productId: string) => Promise<RefundRequest>;
+  readonly restorePurchases: () => Promise<void>;
   readonly getCustomerInfo: () => Promise<RevenueCatInfo>;
   readonly addCustomerInfoUpdateListener: (listener: (info: RevenueCatInfo) => void) => void;
   readonly removeCustomerInfoUpdateListener: (listener: (info: RevenueCatInfo) => void) => void;

@@ -122,6 +122,7 @@ async function validationEvidence(validation: BillingValidation) {
   const trace = validation.lastCheckout();
   return {
     ...(trace === undefined ? {} : { checkoutTrace: trace }),
+    provider: validation.provider(),
     storeKit: await validation.storeKit(),
   };
 }
