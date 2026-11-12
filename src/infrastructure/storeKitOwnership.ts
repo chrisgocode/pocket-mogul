@@ -43,9 +43,7 @@ export async function signedStoreKitOwnership(
     if (entitlements.some((record) => !record.verified)) return { status: 'verificationFailed' };
     return {
       status: 'signed',
-      ownership: ownedRecords(source.config, entitlements).map((record) =>
-        verifiedOwnership(source.config, record),
-      ),
+      ownership: ownedOwnership(source.config, entitlements),
     };
   } catch {
     return { status: 'unavailable' };
@@ -86,20 +84,18 @@ function inventory(config: RevenueCatConfig, observation: Observation): Ownershi
     authority: 'authoritative',
     coverage: 'complete',
     observedAtMs,
-    ownership: ownedRecords(config, entitlements).map((record) =>
-      verifiedOwnership(config, record),
-    ),
+    ownership: ownedOwnership(config, entitlements),
     removals: revoked ? [reference(config, latest)] : [],
   };
 }
 
-function ownedRecords(
+function ownedOwnership(
   config: RevenueCatConfig,
   entitlements: readonly StoreKitTransaction[],
-): readonly StoreKitTransaction[] {
-  return entitlements.filter(
-    (record) => inScope(config, record) && record.revocationDateMs === undefined,
-  );
+): VerifiedOwnership[] {
+  return entitlements
+    .filter((record) => inScope(config, record) && record.revocationDateMs === undefined)
+    .map((record) => verifiedOwnership(config, record));
 }
 
 function inScope(config: RevenueCatConfig, record: StoreKitTransaction): boolean {

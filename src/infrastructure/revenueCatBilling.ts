@@ -6,7 +6,12 @@ import type { RevenueCatConfig } from './revenueCatConfig';
 import type { RefundRequest, RevenueCatInfo, RevenueCatSdk } from './revenueCatRuntime';
 import type { StoreKitEvidence } from './storeKitEvidence';
 import { signedStoreKitOwnership, syncedStoreKitOwnership } from './storeKitOwnership';
-import { sheetCheckout, type CheckoutLog, type CheckoutTrace } from './revenueCatSheet';
+import {
+  sheetCheckout,
+  type CheckoutLog,
+  type CheckoutTrace,
+  type SheetCheckout,
+} from './revenueCatSheet';
 import { storeKitReport, type StoreKitReport } from './storeKitReport';
 import type { Clock } from '@/application/ports';
 
@@ -169,21 +174,22 @@ function validationBilling(
 ): BillingPort {
   const { sdk, requestReconciliation, ...session } = billingSession(config, options);
   const { storeKit } = options;
+  const sheet =
+    storeKit !== undefined && checkoutEnabled(config, storeKit)
+      ? sheetCheckout({
+          sdk,
+          storeKit: storeKit.evidence,
+          config,
+          trace: options.trace,
+          settled: requestReconciliation,
+          process: options.runtime,
+        })
+      : undefined;
   return {
     ...disabledBilling(),
     ...session,
     products: () => localizedProducts(sdk, config.productId),
-    ...(storeKit !== undefined && checkoutEnabled(config, storeKit)
-      ? {
-          purchase: sheetCheckout({
-            sdk,
-            storeKit: storeKit.evidence,
-            config,
-            trace: options.trace,
-            settled: requestReconciliation,
-          }),
-        }
-      : {}),
+    ...(sheet === undefined ? {} : { purchase: sheet.purchase }),
     currentOwnership: () =>
       storeKit === undefined
         ? readOwnership(sdk)
@@ -194,10 +200,25 @@ function validationBilling(
     restore: () =>
       storeKit === undefined
         ? readOwnership(sdk)
-        : sdk().then(() =>
-            syncedStoreKitOwnership({ storeKit: storeKit.evidence, config, clock: storeKit.clock }),
-          ),
+        : sdk().then(() => syncedRestore({ storeKit, config, sheet })),
   };
+}
+
+async function syncedRestore(source: {
+  readonly storeKit: StoreKitSource;
+  readonly config: RevenueCatConfig;
+  readonly sheet: SheetCheckout | undefined;
+}): Promise<OwnershipResult> {
+  const openBefore = source.sheet?.pendingProductIds() ?? [];
+  const result = await syncedStoreKitOwnership({
+    storeKit: source.storeKit.evidence,
+    config: source.config,
+    clock: source.storeKit.clock,
+  });
+  const pending = [...new Set([...openBefore, ...(source.sheet?.pendingProductIds() ?? [])])];
+  return result.status === 'current' && pending.length > 0
+    ? { ...result, pendingProductIds: pending }
+    : result;
 }
 
 async function localizedProducts(

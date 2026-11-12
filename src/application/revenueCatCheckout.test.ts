@@ -14,6 +14,7 @@ import {
   checkoutGame,
   checkoutSelection,
   failed,
+  relaunchSelection,
 } from './revenueCatCheckoutTesting';
 import { deferred, fakeClock, startObservedTestGame } from './testGame';
 
@@ -171,10 +172,9 @@ it('recovers a provider-completed purchase after a failed local commit on the ne
   expect(session.game.getSnapshot()).toEqual(before);
   expect(await session.purchaseRecords()).toEqual([]);
   session.faults.failWritesMatching = undefined;
-  const { selected, storeKit } = checkoutSelection({
-    storeKit: storeKitFake({ entitlements: [storeKitPurchase], latest: storeKitPurchase }),
-    clock: fakeClock(START_MS + 60_000),
-  });
+  const { selected, storeKit } = relaunchSelection(
+    storeKitFake({ entitlements: [storeKitPurchase], latest: storeKitPurchase }),
+  );
   const reopened = await session.restart(selected);
   await reopened.game.purchases.recover();
   expect(storeKit.syncs()).toBe(0);

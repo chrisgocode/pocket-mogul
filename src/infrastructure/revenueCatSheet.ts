@@ -21,17 +21,35 @@ type Checkout = {
 
 type OpenSheet = { checkout: Promise<PurchaseResult> | undefined };
 
+const openSheets = new WeakMap<object, OpenSheet>();
+
+export type SheetCheckout = {
+  readonly purchase: (productId: string) => Promise<PurchaseResult>;
+  readonly pendingProductIds: () => readonly string[];
+};
+
 export function sheetCheckout(
-  source: Checkout & { readonly settled: () => void },
-): (productId: string) => Promise<PurchaseResult> {
-  const sheet: OpenSheet = { checkout: undefined };
-  return (productId) => {
-    if (productId !== source.config.productId) return Promise.resolve({ status: 'disabled' });
-    sheet.checkout ??= checkout(source).finally(() => {
-      sheet.checkout = undefined;
-      source.settled();
-    });
-    return sheet.checkout;
+  source: Checkout & { readonly settled: () => void; readonly process: object },
+): SheetCheckout {
+  const sheet = openSheets.get(source.process) ?? { checkout: undefined };
+  openSheets.set(source.process, sheet);
+  const watch = (open: Promise<PurchaseResult>) => {
+    void open.then(source.settled);
+    return open;
+  };
+  return {
+    purchase: (productId) => {
+      if (productId !== source.config.productId) return Promise.resolve({ status: 'disabled' });
+      sheet.checkout ??= checkout(source).finally(() => {
+        sheet.checkout = undefined;
+      });
+      return watch(sheet.checkout);
+    },
+    pendingProductIds: () => {
+      if (sheet.checkout === undefined) return [];
+      void watch(sheet.checkout);
+      return [source.config.productId];
+    },
   };
 }
 

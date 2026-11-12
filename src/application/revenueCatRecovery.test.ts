@@ -4,8 +4,10 @@ import {
   PRODUCT,
   START_MS,
   checkoutGame,
+  checkoutProcess,
   checkoutSelection,
   failed,
+  relaunchSelection,
   untilExempt,
 } from './revenueCatCheckoutTesting';
 import { deferred, fakeClock, startObservedTestGame } from './testGame';
@@ -19,15 +21,13 @@ it('recovers an approved payment after restart through a StoreKit update without
     status: 'pending',
     productId: PRODUCT,
   });
-  const relaunch = checkoutSelection({
-    storeKit: storeKitFake(),
-    clock: fakeClock(START_MS + 60_000),
-  });
+  const relaunch = relaunchSelection(storeKitFake());
   const reopened = await session.restart(relaunch.selected);
   expect(await reopened.game.purchases.purchase(PRODUCT)).toEqual({ status: 'unavailable' });
+  const exempt = untilExempt(reopened.game);
   relaunch.storeKit.change({ entitlements: [storeKitPurchase], latest: storeKitPurchase });
+  await exempt;
   await reopened.game.purchases.recover();
-  expect(reopened.game.getSnapshot().state.tax.status).toBe('exempt');
   expect(await reopened.purchaseRecords()).toHaveLength(1);
   expect((await reopened.purchaseIdentity())?.checkout).toEqual({
     status: 'delivered',
@@ -48,10 +48,9 @@ it.each([
 ])('keeps an interrupted guard after $label and delivers it on the next launch', async (setup) => {
   const { session, sdk } = await checkoutGame({ ...setup, storeKit: storeKitFake() });
   expect(await session.game.purchases.purchase(PRODUCT)).toEqual({ status: 'unavailable' });
-  const relaunch = checkoutSelection({
-    storeKit: storeKitFake({ entitlements: [storeKitPurchase], latest: storeKitPurchase }),
-    clock: fakeClock(START_MS + 60_000),
-  });
+  const relaunch = relaunchSelection(
+    storeKitFake({ entitlements: [storeKitPurchase], latest: storeKitPurchase }),
+  );
   const reopened = await session.restart(relaunch.selected);
   await reopened.game.purchases.recover();
   expect(reopened.game.getSnapshot().state.tax.status).toBe('exempt');
@@ -74,38 +73,54 @@ function openSheet() {
   };
 }
 
-it('joins the store sheet still open after the interactive limit instead of opening another', async () => {
+it('keeps the guard through a fresh Restore while the store sheet is still open', async () => {
   const sheet = openSheet();
   const clock = fakeClock(START_MS);
   const storeKit = storeKitFake();
-  const { selected, sdk } = checkoutSelection({ clock, storeKit, purchase: sheet.purchase });
-  const reached = { request: (): void => undefined };
-  const session = await startObservedTestGame({
-    ...selected,
-    billing: {
-      ...selected.billing,
-      purchase: (productId) => {
-        reached.request();
-        return selected.billing.purchase(productId);
-      },
-    },
-  });
+  const { session, sdk } = await checkoutGame({ clock, storeKit, purchase: sheet.purchase });
   const first = session.game.purchases.purchase(PRODUCT);
   await sheet.requested.promise;
   clock.advance(INTERACTIVE_LIMIT_MS);
   expect(await first).toEqual({ status: 'unavailable' });
   clock.advance(1_000);
   await session.game.purchases.restore();
-  expect((await session.purchaseIdentity())?.checkout).toBeUndefined();
-  const retried = deferred();
-  reached.request = retried.resolve;
-  const second = session.game.purchases.purchase(PRODUCT);
-  await retried.promise;
-  storeKit.change({ entitlements: [storeKitPurchase], latest: storeKitPurchase });
+  expect((await session.purchaseIdentity())?.checkout).toEqual({
+    status: 'interrupted',
+    productId: PRODUCT,
+  });
+  expect(await session.game.purchases.purchase(PRODUCT)).toEqual({ status: 'unavailable' });
+  storeKit.changeWithoutUpdate({ entitlements: [storeKitPurchase], latest: storeKitPurchase });
+  const exempt = untilExempt(session.game);
   sheet.approved.resolve();
-  expect(await second).toEqual({ status: 'delivered' });
+  await exempt;
   expect(sdk.checkouts).toEqual([PRODUCT]);
-  expect(await session.purchaseRecords()).toHaveLength(1);
+});
+
+it('sees a store sheet left open by a previous Game in the same process', async () => {
+  const sheet = openSheet();
+  const process = checkoutProcess(sheet.purchase);
+  const first = checkoutSelection({ process, storeKit: storeKitFake() });
+  const session = await startObservedTestGame(first.selected);
+  const purchasing = session.game.purchases.purchase(PRODUCT);
+  await sheet.requested.promise;
+  const storeKit = storeKitFake();
+  const relaunch = checkoutSelection({
+    process,
+    storeKit,
+    clock: fakeClock(START_MS + 60_000),
+  });
+  const reopened = await session.restart(relaunch.selected);
+  await reopened.game.purchases.restore();
+  expect((await reopened.purchaseIdentity())?.checkout).toEqual({
+    status: 'interrupted',
+    productId: PRODUCT,
+  });
+  storeKit.changeWithoutUpdate({ entitlements: [storeKitPurchase], latest: storeKitPurchase });
+  const exempt = untilExempt(reopened.game);
+  sheet.approved.resolve();
+  await exempt;
+  expect(await purchasing).toEqual({ status: 'unavailable' });
+  expect(process.sdk.checkouts).toEqual([PRODUCT]);
 });
 
 it('reconciles a late store sheet result even when every ownership callback is dropped', async () => {

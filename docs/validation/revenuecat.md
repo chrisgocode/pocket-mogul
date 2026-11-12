@@ -126,7 +126,7 @@ If the duplicate-charge checks fail, ADR 1's `storePrevents` guard rule is void:
 
 ADR 1 was amended for this slice ([Decision 2a](../adr/0001-ios-ownership-evidence-from-storekit.md#decision)). Background reads may now grant **signed ownership**; anything that depends on absence still needs Restore.
 
-**Checkout lifetime.** The Game writes the `interrupted` guard before it calls the SDK and keeps it until delivery or proven absence (unchanged from #100). The Game stops waiting after the five-minute interactive bound, but the native sheet stays open as long as the store needs. The adapter keeps one native checkout open at a time: a purchase requested while it is unresolved joins it, both through Game (coalesced) and after the Game has given up (for example, after Restore cleared the guard). When the native call settles, early or late, the adapter emits `ownershipChanged`, and the Game reconciles from StoreKit instead of publishing the late result.
+**Checkout lifetime.** The Game writes the `interrupted` guard before it calls the SDK and keeps it until delivery or proven absence (unchanged from #100). The Game stops waiting after the five-minute interactive bound, but the native sheet stays open as long as the store needs. The adapter keeps one native checkout open per process, shared by any Game rebuilt on the same RevenueCat runtime: a purchase requested while it is unresolved joins it. While it is open, Restore reports the product in `pendingProductIds`, so not even a `storePrevents` guard clears on absence. When the native call settles, early or late, the adapter emits `ownershipChanged`, and the Game reconciles from StoreKit instead of publishing the late result.
 
 **Outcomes and recovery.**
 
@@ -146,7 +146,7 @@ Guards still clear only through a delivered receipt or fresh, authoritative, com
 - `src/application/revenueCatRecovery.test.ts` (real adapter, RevenueCat and StoreKit fakes, SQLite Game):
   - an approval after restart delivered by a StoreKit update, with no sync;
   - unknown error, bridge failure and missing StoreKit record each kept as `interrupted` across restart and delivered on the next launch, with one native checkout;
-  - a second purchase joins the sheet left open past the interactive bound;
+  - a fresh Restore keeps the guard while the sheet is still open past the interactive bound, and a Game rebuilt in the same process sees that sheet;
   - a late sheet result reconciled even with every callback dropped;
   - concurrent purchases sharing one sheet;
   - nothing written when the sheet resolves after disposal.

@@ -168,3 +168,33 @@ it('keeps a store-protected guard when its absence was observed before the resto
   await reopened.game.purchases.restore();
   expect((await reopened.purchaseIdentity())?.checkout).toBeDefined();
 });
+
+it('keeps a store-protected guard while fresh evidence lists its payment as pending', async () => {
+  const policy = {
+    ...purchasePolicy,
+    products: [{ ...purchasePolicy.products[0], duplicateCharge: 'storePrevents' }],
+  } as const;
+  const pending = {
+    status: 'current',
+    authority: 'authoritative',
+    coverage: 'complete',
+    observedAtMs: 1_800_000_000_000,
+    ownership: [],
+    removals: [],
+    pendingProductIds: ['test-exemption'],
+  } as const;
+  const billing = scriptedBilling({
+    purchases: [{ status: 'pending', productId: 'test-exemption' }],
+  });
+  const session = await startObservedTestGame({ billing, purchasePolicy: policy });
+  await session.game.purchases.purchase('test-exemption');
+  const reopened = await session.restart({
+    billing: scriptedBilling({ ownership: [pending], restores: [pending] }),
+    purchasePolicy: policy,
+  });
+  await reopened.game.purchases.restore();
+  expect((await reopened.purchaseIdentity())?.checkout).toEqual({
+    status: 'pending',
+    productId: 'test-exemption',
+  });
+});
