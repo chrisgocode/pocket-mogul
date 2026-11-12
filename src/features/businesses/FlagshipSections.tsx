@@ -8,6 +8,8 @@ import type { DeliveryActions } from './deliveryFormat';
 import { DeliverySection } from './DeliverySection';
 import type { FoodCartActions } from './foodCartFormat';
 import { FoodCartSection } from './FoodCartSection';
+import type { LaundromatActions } from './laundromatFormat';
+import { LaundromatSection } from './LaundromatSection';
 import type { VendingActions } from './vendingFormat';
 import { VendingSection } from './VendingSection';
 
@@ -17,6 +19,7 @@ export type FlagshipActions = {
   readonly delivery: DeliveryActions;
   readonly foodCart: FoodCartActions;
   readonly coffeeKiosk: CoffeeKioskActions;
+  readonly laundromat: LaundromatActions;
 };
 
 export function FlagshipSections({
@@ -33,6 +36,7 @@ export function FlagshipSections({
       <DeliverySection detail={detail} actions={actions.delivery} />
       <FoodCartSection detail={detail} actions={actions.foodCart} />
       <CoffeeKioskSection detail={detail} actions={actions.coffeeKiosk} />
+      <LaundromatSection detail={detail} actions={actions.laundromat} />
     </>
   );
 }

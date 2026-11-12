@@ -9,6 +9,7 @@ import type { AvailableDetailing } from '@/application/carWashView';
 import type { AvailableOrderAhead } from '@/application/coffeeKioskView';
 import type { AvailableSortingHub, OfferView } from '@/application/deliveryView';
 import type { AvailableSecondWindow } from '@/application/foodCartView';
+import type { AvailablePickup } from '@/application/laundromatView';
 import type { AvailableCardReaders } from '@/application/vendingView';
 import type { Business } from '@/content';
 import type { StaffRole } from '@/domain/business/definition';
@@ -23,6 +24,7 @@ import { detailingText } from './carWashActionText';
 import { orderAheadText } from './coffeeKioskActionText';
 import { contractText, sortingHubText } from './deliveryActionText';
 import { secondWindowText } from './foodCartActionText';
+import { pickupText } from './laundromatActionText';
 import { takeoverText } from './takeoverActionText';
 import type { TakeoverChoice } from './takeoverFormat';
 import { cardReaderText } from './vendingActionText';
@@ -66,6 +68,7 @@ export type BusinessAction =
       readonly business: Business;
       readonly orderAhead: AvailableOrderAhead;
     }
+  | { readonly kind: 'pickup'; readonly business: Business; readonly pickup: AvailablePickup }
   | {
       readonly kind: 'second_window';
       readonly business: Business;
@@ -142,6 +145,7 @@ const COMMANDS: ActionHandlers<GameCommand> = {
   sorting_hub: ({ business }) => ({ type: 'InstallSortingHub', businessId: business.id }),
   second_window: ({ business }) => ({ type: 'InstallSecondWindow', businessId: business.id }),
   order_ahead: ({ business }) => ({ type: 'InstallOrderAhead', businessId: business.id }),
+  pickup: ({ business }) => ({ type: 'InstallPickup', businessId: business.id }),
   takeover: ({ business, choice }) => ({
     type: 'MakeTakeoverOffer',
     businessId: business.id,
@@ -232,6 +236,7 @@ const SHEET_TEXT: ActionHandlers<ActionSheetText> = {
   sorting_hub: (action) => sortingHubText(action.hub),
   second_window: (action) => secondWindowText(action.secondWindow),
   order_ahead: (action) => orderAheadText(action.orderAhead),
+  pickup: (action) => pickupText(action.pickup),
   takeover: (action) => takeoverText(action.choice, action.business),
 };
 

@@ -4,6 +4,7 @@ import { carWashMechanicSchema } from './carWashSchema';
 import { coffeeKioskMechanicSchema } from './coffeeKioskSchema';
 import { deliveryMechanicSchema } from './deliverySchema';
 import { foodCartMechanicSchema } from './foodCartSchema';
+import { laundromatMechanicSchema } from './laundromatSchema';
 import { vendingMechanicSchema } from './vendingSchema';
 
 export const mechanicSchema = z.discriminatedUnion('kind', [
@@ -12,4 +13,5 @@ export const mechanicSchema = z.discriminatedUnion('kind', [
   deliveryMechanicSchema,
   foodCartMechanicSchema,
   coffeeKioskMechanicSchema,
+  laundromatMechanicSchema,
 ]);

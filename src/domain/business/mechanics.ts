@@ -4,6 +4,7 @@ import type { BusinessPricing } from './definition';
 import { deliveryDay, runningDelivery } from './deliveryDemand';
 import type { ContractTerms } from './deliveryState';
 import { foodCartDay, runningFoodCart } from './foodCartDemand';
+import { laundromatDay, runningLaundromat } from './laundromatDemand';
 import type { OwnedBusiness } from './owned';
 import { NO_RUSH, type RushDay } from './rush';
 import { vendingCapacityBps, vendingDemandBps } from './vendingDemand';
@@ -28,7 +29,9 @@ function streetDay(business: OwnedBusiness, pricing: BusinessPricing) {
   const foodCart = runningFoodCart(business, pricing);
   if (foodCart !== undefined) return foodCartDay(foodCart);
   const coffeeKiosk = runningCoffeeKiosk(business, pricing);
-  return coffeeKiosk === undefined ? {} : coffeeKioskDay(coffeeKiosk);
+  if (coffeeKiosk !== undefined) return coffeeKioskDay(coffeeKiosk);
+  const running = runningLaundromat(business, pricing);
+  return running === undefined ? {} : laundromatDay(business, { ...pricing, running });
 }
 
 function flagshipDay(business: OwnedBusiness, pricing: BusinessPricing) {

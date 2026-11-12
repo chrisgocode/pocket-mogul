@@ -169,11 +169,13 @@ export function quoteBusinessDay(
   const quoting = { ...pricing, mechanic: mechanicDay(business, pricing) };
   const demand = demandOf(business, quoting);
   const capacity = walkInCapacityOf(business, quoting);
-  const { served } = serveWithRush({ demand, capacity }, quoting.mechanic.rush);
+  const { served, rushServed } = serveWithRush({ demand, capacity }, quoting.mechanic.rush);
   const priceCents = priceOf(business, quoting);
   const costs = dayCosts(business, { ...quoting, served });
   const income = {
-    revenueCents: served * priceCents,
+    revenueCents:
+      (served - rushServed) * priceCents +
+      (rushServed * priceCents * quoting.mechanic.rush.priceBps) / BASIS_POINTS,
     memberFeesCents: quoting.mechanic.memberFeesCents,
     contracts: serveContracts(quoting.mechanic.contracts, memberWashesOf(business, quoting)),
   };

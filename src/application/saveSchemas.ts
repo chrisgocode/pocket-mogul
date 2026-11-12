@@ -10,6 +10,7 @@ import { savedCarWash } from './carWashSaveSchema';
 import { savedDelivery } from './deliverySaveSchema';
 import { savedCoffeeKiosk } from './coffeeKioskSaveSchema';
 import { savedFoodCart } from './foodCartSaveSchema';
+import { savedLaundromat } from './laundromatSaveSchema';
 import { savedTakeovers } from './takeoverSaveSchema';
 import { savedVending } from './vendingSaveSchema';
 import { PRICE_LEVELS } from '@/domain/business/definition';
@@ -162,6 +163,7 @@ export const saveDocumentSchema = z.looseObject({
   delivery: z.record(z.string().min(1), savedDelivery).default({}),
   foodCart: z.record(z.string().min(1), savedFoodCart).default({}),
   coffeeKiosk: z.record(z.string().min(1), savedCoffeeKiosk).default({}),
+  laundromat: z.record(z.string().min(1), savedLaundromat).default({}),
   takeovers: z.record(z.string().min(1), savedTakeovers).default({}),
   listings: z
     .record(

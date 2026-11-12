@@ -208,6 +208,30 @@ describe('coffee kiosk rush plan and beans (BUS20e)', () => {
   });
 });
 
+describe('laundromat machine mix and service washes (BUS20f)', () => {
+  const laundromat = {
+    status: 'active',
+    jumboPercent: 40,
+    serviceLevel: 2,
+    pickup: 'installed',
+  } as const;
+
+  it('loads a baseline save with the mechanic inactive', () => {
+    expect(currentState(baselineFixture)).toMatchObject({
+      businesses: [{ laundromat: { status: 'inactive' } }],
+    });
+  });
+
+  it('keeps the laundromat in a top-level record and round-trips it', () => {
+    const stored = baselineDocument({ laundromat: { vending: laundromat } });
+    const encoded = encodeSave(currentState(stored));
+    const document = JSON.parse(encoded) as { businesses: readonly object[] };
+    expect(document).toMatchObject({ laundromat: { vending: laundromat } });
+    expect(document.businesses[0]).not.toHaveProperty('laundromat');
+    expect(currentState(encoded)).toMatchObject({ businesses: [{ laundromat }] });
+  });
+});
+
 describe('delivery contracts and reputation (BUS20c)', () => {
   const terms = {
     clientId: 'brightcart',

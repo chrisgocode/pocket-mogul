@@ -15,6 +15,7 @@ import { NO_CAR_WASH, type CarWashOperation } from './carWashState';
 import { NO_COFFEE_KIOSK, type CoffeeKioskOperation } from './coffeeKioskRules';
 import { NO_DELIVERY, type DeliveryOperation } from './deliveryState';
 import { NO_FOOD_CART, type FoodCartOperation } from './foodCartState';
+import { NO_LAUNDROMAT, type LaundromatOperation } from './laundromatRules';
 import { NO_TAKEOVERS, type Takeovers } from './takeoverState';
 import { NO_VENDING, type VendingOperation } from './vendingRules';
 
@@ -58,6 +59,7 @@ export type OwnedBusiness = {
   readonly delivery: DeliveryOperation;
   readonly foodCart: FoodCartOperation;
   readonly coffeeKiosk: CoffeeKioskOperation;
+  readonly laundromat: LaundromatOperation;
   readonly takeovers: Takeovers;
   readonly listing: Listing;
 };
@@ -89,6 +91,7 @@ export function newBusiness(
     delivery: NO_DELIVERY,
     foodCart: NO_FOOD_CART,
     coffeeKiosk: NO_COFFEE_KIOSK,
+    laundromat: NO_LAUNDROMAT,
     takeovers: NO_TAKEOVERS,
     listing: { status: 'private' },
   };

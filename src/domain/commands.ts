@@ -2,6 +2,7 @@ import type { BusinessTrack, IncidentCategory, PriceLevel, StaffRole } from './b
 import type { OptionalPackage } from './business/carWashRules';
 import type { CoffeeKioskCommand } from './business/coffeeKioskOrders';
 import type { FoodCartCommand } from './business/foodCartOrders';
+import type { LaundromatCommand } from './business/laundromatOrders';
 import type { RestockTarget } from './business/vendingCommands';
 import type { StockMix, VendingLocation } from './business/vendingRules';
 import type { CoachMark } from './coachMarks';
@@ -257,6 +258,7 @@ export type GameCommand =
   | InstallSortingHub
   | FoodCartCommand
   | CoffeeKioskCommand
+  | LaundromatCommand
   | MakeTakeoverOffer
   | DismissCoachMark
   | SetPayout

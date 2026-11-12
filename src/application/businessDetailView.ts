@@ -41,6 +41,7 @@ import { selectVending, type VendingView } from './vendingView';
 import { selectCarWash, type CarWashView } from './carWashView';
 import { selectCoffeeKiosk, type CoffeeKioskView } from './coffeeKioskView';
 import { selectFoodCart, type FoodCartView } from './foodCartView';
+import { selectLaundromat, type LaundromatView } from './laundromatView';
 import { selectDelivery, type DeliveryView } from './deliveryView';
 import { selectDeals, type DealsView } from './takeoverView';
 import { runningDelivery } from '@/domain/business/deliveryDemand';
@@ -116,6 +117,7 @@ export type OwnedBusinessDetail = {
   readonly delivery: DeliveryView | undefined;
   readonly foodCart: FoodCartView | undefined;
   readonly coffeeKiosk: CoffeeKioskView | undefined;
+  readonly laundromat: LaundromatView | undefined;
   readonly deals: DealsView;
   readonly sale: BusinessSale;
 };
@@ -186,6 +188,7 @@ function mechanicViews(context: DetailContext) {
     delivery: selectDelivery(context),
     foodCart: selectFoodCart(context),
     coffeeKiosk: selectCoffeeKiosk(context),
+    laundromat: selectLaundromat(context),
   };
 }
 

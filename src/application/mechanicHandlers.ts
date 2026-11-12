@@ -11,12 +11,18 @@ import {
   applySetMenuItem,
 } from '@/domain/business/foodCartCommands';
 import type { FoodCartCommand } from '@/domain/business/foodCartOrders';
+import {
+  applyInstallPickup,
+  applySetJumboShare,
+  applySetServiceLevel,
+} from '@/domain/business/laundromatCommands';
+import type { LaundromatCommand } from '@/domain/business/laundromatOrders';
 import type { CommandResult } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
 
 import { businessEconomy } from './economy';
 
-type MechanicCommand = FoodCartCommand | CoffeeKioskCommand;
+type MechanicCommand = FoodCartCommand | CoffeeKioskCommand | LaundromatCommand;
 
 type MechanicHandlers = {
   readonly [Type in MechanicCommand['type']]: (
@@ -39,6 +45,16 @@ export const MECHANIC_HANDLERS: MechanicHandlers = {
     applySetRushPlan(state, { ...command, economy: businessEconomy(content) }),
   InstallOrderAhead: (state, command, content) =>
     applyInstallOrderAhead(state, { ...command, economy: businessEconomy(content) }),
+  SetJumboShare: (state, command, content) =>
+    applySetJumboShare(state, { ...command, economy: businessEconomy(content) }),
+  SetServiceLevel: (state, command, content) =>
+    applySetServiceLevel(state, { ...command, economy: businessEconomy(content) }),
+  InstallPickup: (state, command, content) =>
+    applyInstallPickup(state, { ...command, economy: businessEconomy(content) }),
 };
 
-export const MECHANIC_INVESTMENTS = ['InstallSecondWindow', 'InstallOrderAhead'] as const;
+export const MECHANIC_INVESTMENTS = [
+  'InstallSecondWindow',
+  'InstallOrderAhead',
+  'InstallPickup',
+] as const;

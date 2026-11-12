@@ -2,11 +2,17 @@ export type RushDay = {
   readonly demandShareBps: bigint;
   readonly windowBps: bigint;
   readonly boostBps: bigint;
+  readonly priceBps: bigint;
 };
 
 const BASIS_POINTS = 10_000n;
 
-export const NO_RUSH: RushDay = { demandShareBps: 0n, windowBps: 0n, boostBps: BASIS_POINTS };
+export const NO_RUSH: RushDay = {
+  demandShareBps: 0n,
+  windowBps: 0n,
+  boostBps: BASIS_POINTS,
+  priceBps: BASIS_POINTS,
+};
 
 export type RushServing = {
   readonly rushCustomers: bigint;
@@ -25,5 +31,6 @@ export function serveWithRush(
   const rushCapacity = (windowCapacity * rush.boostBps) / BASIS_POINTS;
   const rushServed = least(rushCustomers, rushCapacity);
   const calmServed = least(day.demand - rushCustomers, day.capacity - windowCapacity);
-  return { rushCustomers, rushServed, served: least(rushServed + calmServed, day.capacity) };
+  const served = least(rushServed + calmServed, day.capacity);
+  return { rushCustomers, rushServed: least(rushServed, served), served };
 }
