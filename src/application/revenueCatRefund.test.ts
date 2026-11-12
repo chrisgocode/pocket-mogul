@@ -2,7 +2,8 @@ import { getContent } from '@/content';
 import { dollars } from '@/domain/money';
 import { taxLiabilityCents } from '@/domain/tax/assessment';
 import { ownedBusiness } from '@/domain/testRules';
-import { storeKitFake, storeKitPurchase } from '@/infrastructure/revenueCatTesting';
+import { revenueCatRuntime } from '@/infrastructure/revenueCatRuntime';
+import { revenueCatFake, storeKitFake, storeKitPurchase } from '@/infrastructure/revenueCatTesting';
 import {
   PRODUCT,
   START_MS,
@@ -192,4 +193,27 @@ it('applies a refund prospectively after one exempt Offline settlement', async (
   back.clock.advance(SIX_HOURS_MS);
   await back.game.resume();
   expect(taxLiabilityCents(back.game.getSnapshot().state.tax)).toBeGreaterThan(0n);
+});
+
+it('keeps access when RevenueCat lists no products and its customer cache cannot be read', async () => {
+  const fake = revenueCatFake();
+  const sdk = {
+    ...fake,
+    getProducts: () => Promise.resolve([]),
+    getCustomerInfo: () => Promise.reject(new Error('expired')),
+  };
+  const storeKit = storeKitFake(owned);
+  const { selected } = checkoutSelection({
+    storeKit,
+    process: { sdk: fake, runtime: revenueCatRuntime(() => Promise.resolve(sdk)) },
+  });
+  const session = await startObservedTestGame(selected);
+  await session.game.purchases.purchase(PRODUCT);
+  storeKit.change({ entitlements: [], latest: storeKitPurchase });
+  fake.emit();
+  await session.game.purchases.recover();
+  await session.game.purchases.restore();
+  expect(await session.game.purchases.products()).toMatchObject({ products: [] });
+  expect(session.game.getSnapshot().state.tax.status).toBe('exempt');
+  expect((await session.purchaseRecords())[0]?.currentOwnership?.status).not.toBe('removed');
 });

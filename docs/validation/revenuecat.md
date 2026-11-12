@@ -235,11 +235,11 @@ A confirmed refund removes access from then on. Uncertain or older evidence keep
 | Unverified record anywhere in the read | `verificationFailed`; nothing |
 | Revoked record for another bundle, environment, product type or a family-shared copy | Nothing |
 | Background (`signed`) read listing the refunded record again; replayed checkout completion; CustomerInfo or StoreKit callbacks | Nothing; a removed receipt is never reactivated |
-| Missing offerings or products, expired RevenueCat cache, inactive RevenueCat entitlement | Nothing |
+| Missing offerings or products, expired RevenueCat cache, inactive RevenueCat entitlement | Nothing: on iOS the adapter never builds ownership from RevenueCat's `CustomerInfo` or catalogue (ADR 1); tested in `revenueCatRefund.test.ts`, with cached, incomplete and stale scripted evidence in `purchaseRemoval.test.ts` |
 
 **Two times.** A removed receipt keeps `observedAtMs`, the injected-clock time read before the App Store sync started, and `revokedAtMs`, Apple's signed `revocationDate`. The difference is how long the refund took to reach the Game. Neither is the time a response arrived. Ordering uses `observedAtMs` only, so a refund dated before an earlier active observation still removes access when it appears, and an older observation cannot undo a newer removal. The validation report shows `storeKit.revokedAtMs` for a revoked record. Receipts saved before #116 have no `revokedAtMs` and load unchanged.
 
-**What changes.** All ownership sources are projected together in one SQLite transaction with the tax state and any Offline settlement (#101): another unrevoked purchase or the legacy entitlement keeps the exemption. A failed write publishes nothing and leaves the receipt active. Removal is prospective: waived returns, earnings settled while exempt and the existing Return summary stay; taxation starts on the next day with a newly valued basis. Removed receipts survive restart and Reset Save, and a new checkout after a refund opens the App Store and records a new `originalID`.
+**What changes.** All ownership sources are projected together in one SQLite transaction with the tax state and any Offline settlement (#101): another unrevoked purchase or the legacy entitlement keeps the exemption. A failed write publishes nothing and leaves the receipt active. Removal is prospective: waived returns, earnings settled while exempt and the existing Return summary stay; taxation starts on the next day with a newly valued basis. Removed receipts survive restart and Reset Save, and a new checkout after a refund opens the App Store (`revenueCatCheckout.test.ts`); on the device in #113 it created a new transaction, …9017.
 
 **Automated evidence.** `src/application/revenueCatRefund.test.ts` drives the real adapter with the RevenueCat and StoreKit fakes on the SQLite Game harness:
 
@@ -249,6 +249,7 @@ A confirmed refund removes access from then on. Uncertain or older evidence keep
 - a stale StoreKit read, a CustomerInfo callback and a replayed checkout do not re-grant;
 - a failed save rolls back, then the removal survives Reset Save and restart with a stale StoreKit cache;
 - the legacy entitlement keeps the exemption;
+- an empty RevenueCat catalogue, an unreadable customer cache and a CustomerInfo callback keep access;
 - an owner away for ten hours gets one exempt Offline settlement, then Restore removes access with the waived return, cash and Return summary unchanged, and later play is taxed.
 
 `src/application/purchasePersistence.test.ts` reopens a removed receipt with `revokedAtMs` from SQLite. `src/bootstrap/billingCheckoutValidation.test.tsx` shows the revocation time in the report. The #101 suites (`purchaseRemoval`, `purchaseRemovalTiming`, `purchaseRemovalRecovery`, `managedPurchaseRemoval`) cover the same rules with scripted evidence.
