@@ -157,3 +157,40 @@ describe('hotel seasons and rate plan (BUS20i)', () => {
     expect(currentState(encoded)).toMatchObject({ businesses: [{ hotel }] });
   });
 });
+
+describe('factory product and bulk orders (BUS20j)', () => {
+  const stored = {
+    status: 'active',
+    product: 'precision',
+    retoolDaysLeft: 1,
+    orders: [
+      {
+        clientId: 'northfield_rail',
+        parcelsPerDay: 640,
+        rateCents: '600000',
+        penaltyCents: '250000',
+        endsDay: 9,
+      },
+    ],
+    answeredOffer: 2,
+    automation: 'installed',
+  } as const;
+
+  it('loads a baseline save with the mechanic inactive', () => {
+    expect(currentState(baselineFixture)).toMatchObject({
+      businesses: [{ factory: { status: 'inactive' } }],
+    });
+  });
+
+  it('keeps the factory in a top-level record and round-trips money as cents', () => {
+    const encoded = encodeSave(currentState(baselineDocument({ factory: { vending: stored } })));
+    const document = JSON.parse(encoded) as { businesses: readonly object[] };
+    expect(document).toMatchObject({ factory: { vending: stored } });
+    expect(document.businesses[0]).not.toHaveProperty('factory');
+    expect(currentState(encoded)).toMatchObject({
+      businesses: [
+        { factory: { product: 'precision', orders: [{ rateCents: 600_000n, endsDay: 9 }] } },
+      ],
+    });
+  });
+});

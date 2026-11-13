@@ -43,6 +43,7 @@ const MECHANICS: {
   bakery: ({ kind, ...bakery }) => ({ kind, bakery }),
   gym: ({ kind, ...gym }) => ({ kind, gym }),
   hotel: ({ kind, ...hotel }) => ({ kind, hotel }),
+  factory: ({ kind, ...factory }) => ({ kind, factory }),
 };
 
 function domainMechanic<Each extends Kind>(mechanic: MechanicOf<Each>): BusinessMechanic {

@@ -22,6 +22,7 @@ import type { FlagshipActions } from './FlagshipSections';
 import {
   bakeryActions,
   coffeeKioskActions,
+  factoryActions,
   foodCartActions,
   gymActions,
   hotelActions,
@@ -120,6 +121,7 @@ function flagshipActions(
     bakery: bakeryActions(detail, handlers),
     gym: gymActions(detail, handlers),
     hotel: hotelActions(detail, handlers),
+    factory: factoryActions(detail, handlers),
   };
 }
 

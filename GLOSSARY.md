@@ -159,7 +159,7 @@ Cover for one incident category, available from stage 2 (Local). It costs a dail
 _Avoid_: Cover plan, protection
 
 **Flagship mechanic**:
-A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships; the Delivery Company's is Contracts, Reputation and Drivers; the Food Cart's is Spot, Crowd and Menu; the Coffee Kiosk's is Morning rush, Rush plan and Bean grade; the Laundromat's is Jumbo machines and Service washes; the Bakery's is Bake level and Wholesale orders; the Gym Chain's is Gym members, Tier on sale and Classes; the Hotel Group's is Season, Rate plan and Stars.
+A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships; the Delivery Company's is Contracts, Reputation and Drivers; the Food Cart's is Spot, Crowd and Menu; the Coffee Kiosk's is Morning rush, Rush plan and Bean grade; the Laundromat's is Jumbo machines and Service washes; the Bakery's is Bake level and Wholesale orders; the Gym Chain's is Gym members, Tier on sale and Classes; the Hotel Group's is Season, Rate plan and Stars; the Manufacturing Company's is Product, Retooling and Bulk orders.
 _Avoid_: Minigame, feature
 
 **Coach mark**:
@@ -301,6 +301,22 @@ _Avoid_: Cleaner, maid
 **Conference centre**:
 The Hotel Group's stage 5 (Global) signature upgrade, paid once from the Treasury: it adds 50 percent demand in Event season.
 _Avoid_: Convention hall
+
+**Product**:
+What a Manufacturing Company's lines make: Standard, Precision or Custom. A finer Product sells for more to fewer buyers at a higher cost per batch.
+_Avoid_: Line (that is the unit), grade
+
+**Retooling**:
+The time after a Manufacturing Company switches Product: capacity is halved for the rest of that business day and all of the next.
+_Avoid_: Changeover, downtime
+
+**Bulk order**:
+A Manufacturing Company's standing order from a fictional industrial client: a fixed number of batches a day above the standard price, made before open-market sales, with a penalty for every batch missed. One offer is open at a time and at most two orders run at once.
+_Avoid_: Contract (that is a Delivery Company's), Wholesale order (that is a Bakery's and has no penalty)
+
+**Automation**:
+The Manufacturing Company's stage 5 (Global) signature upgrade, paid once from the Treasury: it cuts the cost per batch by 20 percent.
+_Avoid_: Robotics
 
 **Second window**:
 The Food Cart's stage 5 (Global) signature upgrade, paid once from the Treasury: a second serving window that adds 30 percent capacity.

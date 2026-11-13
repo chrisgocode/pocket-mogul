@@ -8,6 +8,8 @@ import type { CoffeeKioskActions } from './coffeeKioskFormat';
 import { CoffeeKioskSection } from './CoffeeKioskSection';
 import type { DeliveryActions } from './deliveryFormat';
 import { DeliverySection } from './DeliverySection';
+import type { FactoryActions } from './factoryFormat';
+import { FactorySection } from './FactorySection';
 import type { FoodCartActions } from './foodCartFormat';
 import { FoodCartSection } from './FoodCartSection';
 import type { GymActions } from './gymFormat';
@@ -29,6 +31,7 @@ export type FlagshipActions = {
   readonly bakery: BakeryActions;
   readonly gym: GymActions;
   readonly hotel: HotelActions;
+  readonly factory: FactoryActions;
 };
 
 export function FlagshipSections({
@@ -49,6 +52,7 @@ export function FlagshipSections({
       <BakerySection detail={detail} actions={actions.bakery} />
       <GymSection detail={detail} actions={actions.gym} />
       <HotelSection detail={detail} actions={actions.hotel} />
+      <FactorySection detail={detail} actions={actions.factory} />
     </>
   );
 }

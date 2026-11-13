@@ -1,5 +1,6 @@
 import { NO_BAKERY, type BakeryOperation } from '@/domain/business/bakeryRules';
 import { NO_COFFEE_KIOSK, type CoffeeKioskOperation } from '@/domain/business/coffeeKioskRules';
+import { NO_FACTORY, type FactoryOperation } from '@/domain/business/factoryRules';
 import { NO_FOOD_CART, type FoodCartOperation } from '@/domain/business/foodCartState';
 import { NO_GYM, type GymOperation } from '@/domain/business/gymRules';
 import { NO_HOTEL, type HotelOperation } from '@/domain/business/hotelRules';
@@ -15,6 +16,7 @@ export type SavedMechanics = {
   readonly bakery: ByBusiness<BakeryOperation>;
   readonly gym: ByBusiness<GymOperation>;
   readonly hotel: ByBusiness<HotelOperation>;
+  readonly factory: ByBusiness<FactoryOperation>;
 };
 
 export type MechanicField = keyof SavedMechanics;
@@ -32,6 +34,7 @@ export function savedMechanics(businesses: readonly OwnedBusiness[]): SavedMecha
     bakery: byBusiness(businesses, (business) => business.bakery),
     gym: byBusiness(businesses, (business) => business.gym),
     hotel: byBusiness(businesses, (business) => business.hotel),
+    factory: byBusiness(businesses, (business) => business.factory),
   };
 }
 
@@ -48,6 +51,7 @@ export function loadedMechanicFields(
     bakery: saved(document.bakery, NO_BAKERY),
     gym: saved(document.gym, NO_GYM),
     hotel: saved(document.hotel, NO_HOTEL),
+    factory: saved(document.factory, NO_FACTORY),
   };
 }
 
@@ -61,6 +65,7 @@ export function withoutMechanicFields<Holder extends Record<MechanicField, unkno
     bakery: _bakery,
     gym: _gym,
     hotel: _hotel,
+    factory: _factory,
     ...rest
   } = holder;
   return rest;

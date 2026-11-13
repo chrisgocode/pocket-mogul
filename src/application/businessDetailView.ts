@@ -41,6 +41,7 @@ import { selectVending, type VendingView } from './vendingView';
 import { selectBakery, type BakeryView } from './bakeryView';
 import { selectCarWash, type CarWashView } from './carWashView';
 import { selectCoffeeKiosk, type CoffeeKioskView } from './coffeeKioskView';
+import { selectFactory, type FactoryView } from './factoryView';
 import { selectFoodCart, type FoodCartView } from './foodCartView';
 import { selectGym, type GymView } from './gymView';
 import { selectHotel, type HotelView } from './hotelView';
@@ -124,6 +125,7 @@ export type OwnedBusinessDetail = {
   readonly bakery: BakeryView | undefined;
   readonly gym: GymView | undefined;
   readonly hotel: HotelView | undefined;
+  readonly factory: FactoryView | undefined;
   readonly deals: DealsView;
   readonly sale: BusinessSale;
 };
@@ -198,6 +200,7 @@ function mechanicViews(context: DetailContext) {
     bakery: selectBakery(context),
     gym: selectGym(context),
     hotel: selectHotel(context),
+    factory: selectFactory(context),
   };
 }
 

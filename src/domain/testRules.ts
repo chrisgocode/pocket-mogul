@@ -159,6 +159,7 @@ export function ownedBusiness(
     bakery: { status: 'inactive' },
     gym: { status: 'inactive' },
     hotel: { status: 'inactive' },
+    factory: { status: 'inactive' },
     takeovers: { offer: { status: 'none' }, locks: [], merged: [] },
     listing: { status: 'private' },
     ...change,

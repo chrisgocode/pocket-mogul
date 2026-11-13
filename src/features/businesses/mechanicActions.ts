@@ -7,6 +7,8 @@ import type { BakeryActions } from './bakeryFormat';
 import type { BusinessAction } from './businessAction';
 import { orderAheadText } from './coffeeKioskActionText';
 import type { CoffeeKioskActions } from './coffeeKioskFormat';
+import { automationText } from './factoryActionText';
+import type { FactoryActions } from './factoryFormat';
 import { secondWindowText } from './foodCartActionText';
 import type { FoodCartActions } from './foodCartFormat';
 import { allHoursText } from './gymActionText';
@@ -116,6 +118,20 @@ export function hotelActions(detail: OwnedBusinessDetail, handlers: Handlers): H
       reviewSignature({
         command: { type: 'InstallConference', businessId },
         text: conferenceText(conference),
+      }),
+  };
+}
+
+export function factoryActions(detail: OwnedBusinessDetail, handlers: Handlers): FactoryActions {
+  const { businessId, run, reviewSignature } = mechanicHandlers(detail, handlers);
+  return {
+    setProduct: (product) => run({ type: 'SetProduct', businessId, product }),
+    answerBulkOffer: (answer) => run({ type: 'AnswerBulkOffer', businessId, ...answer }),
+    dismissCoachMark: () => run({ type: 'DismissCoachMark', coachMark: 'factory' }),
+    installAutomation: (automation) =>
+      reviewSignature({
+        command: { type: 'InstallAutomation', businessId },
+        text: automationText(automation),
       }),
   };
 }

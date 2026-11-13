@@ -31,6 +31,7 @@ const UNLOCK_STAGES: {
   bakery: ({ bakery }) => stagesOf(bakery, bakery.centralKitchen),
   gym: ({ gym }) => stagesOf(gym, gym.allHours),
   hotel: ({ hotel }) => stagesOf(hotel, hotel.conference),
+  factory: ({ factory }) => stagesOf(factory, factory.automation),
 };
 
 function unlockStages<Each extends Kind>(mechanic: MechanicOf<Each>): UnlockStages | undefined {
