@@ -7,6 +7,7 @@ import { activityLog, goalProgress } from './activitySchemas';
 import { adSchedule, settings, tutorialProgress } from './preferenceSchemas';
 import { fromSaveDocument } from './saveDocument';
 import { savedAirline } from './airlineSaveSchema';
+import { savedSpace } from './spaceSaveSchema';
 import { savedBakery } from './bakerySaveSchema';
 import { savedCarWash } from './carWashSaveSchema';
 import { savedDelivery } from './deliverySaveSchema';
@@ -174,6 +175,7 @@ export const saveDocumentSchema = z.looseObject({
   hotel: z.record(z.string().min(1), savedHotel).default({}),
   factory: z.record(z.string().min(1), savedFactory).default({}),
   airline: z.record(z.string().min(1), savedAirline).default({}),
+  space: z.record(z.string().min(1), savedSpace).default({}),
   takeovers: z.record(z.string().min(1), savedTakeovers).default({}),
   listings: z
     .record(

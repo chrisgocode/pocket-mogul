@@ -8,6 +8,7 @@ import { factoryCommands } from './factoryChoices';
 import { foodCartCommands } from './foodCartChoices';
 import { gymCommands } from './gymChoices';
 import { laundromatCommands } from './laundromatChoices';
+import { spaceCommands } from './spaceChoices';
 
 export function mechanicCommands(
   owned: OwnedBusiness,
@@ -21,5 +22,6 @@ export function mechanicCommands(
     ...gymCommands(owned, pricing),
     ...bakeryCommands(owned, context),
     ...factoryCommands(owned, context),
+    ...spaceCommands(owned, context),
   ];
 }

@@ -21,6 +21,7 @@ import { NO_GYM, type GymOperation } from './gymRules';
 import { NO_HOTEL, type HotelOperation } from './hotelRules';
 import { NO_LAUNDROMAT, type LaundromatOperation } from './laundromatRules';
 import { NO_AIRLINE, type AirlineOperation } from './airlineRules';
+import { NO_SPACE, type SpaceOperation } from './spaceRules';
 import { NO_TAKEOVERS, type Takeovers } from './takeoverState';
 import { NO_VENDING, type VendingOperation } from './vendingRules';
 
@@ -70,6 +71,7 @@ export type OwnedBusiness = {
   readonly hotel: HotelOperation;
   readonly factory: FactoryOperation;
   readonly airline: AirlineOperation;
+  readonly space: SpaceOperation;
   readonly takeovers: Takeovers;
   readonly listing: Listing;
 };
@@ -107,6 +109,7 @@ export function newBusiness(
     hotel: NO_HOTEL,
     factory: NO_FACTORY,
     airline: NO_AIRLINE,
+    space: NO_SPACE,
     takeovers: NO_TAKEOVERS,
     listing: { status: 'private' },
   };

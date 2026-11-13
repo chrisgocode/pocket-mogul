@@ -39,6 +39,12 @@ import {
   applySetServiceLevel,
 } from '@/domain/business/laundromatCommands';
 import type { LaundromatCommand } from '@/domain/business/laundromatOrders';
+import {
+  applyAnswerPayloadOffer,
+  applyInstallBoosters,
+  applySetCadence,
+} from '@/domain/business/spaceCommands';
+import type { SpaceCommand } from '@/domain/business/spaceOrders';
 import type { CommandResult } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
 
@@ -52,7 +58,8 @@ type MechanicCommand =
   | GymCommand
   | HotelCommand
   | FactoryCommand
-  | AirlineCommand;
+  | AirlineCommand
+  | SpaceCommand;
 
 type MechanicHandlers = {
   readonly [Type in MechanicCommand['type']]: (
@@ -107,6 +114,12 @@ export const MECHANIC_HANDLERS: MechanicHandlers = {
     applySetNetwork(state, { ...command, economy: businessEconomy(content) }),
   InstallHub: (state, command, content) =>
     applyInstallHub(state, { ...command, economy: businessEconomy(content) }),
+  SetCadence: (state, command, content) =>
+    applySetCadence(state, { ...command, economy: businessEconomy(content) }),
+  AnswerPayloadOffer: (state, command, content) =>
+    applyAnswerPayloadOffer(state, { ...command, economy: businessEconomy(content) }),
+  InstallBoosters: (state, command, content) =>
+    applyInstallBoosters(state, { ...command, economy: businessEconomy(content) }),
 };
 
 export const MECHANIC_INVESTMENTS = [
@@ -118,4 +131,5 @@ export const MECHANIC_INVESTMENTS = [
   'InstallConference',
   'InstallAutomation',
   'InstallHub',
+  'InstallBoosters',
 ] as const;
