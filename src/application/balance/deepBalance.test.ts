@@ -59,6 +59,7 @@ describe('deep balance policies through the engine', () => {
       {
         ...setup,
         management: 'handsOn',
+        goalRewards: 'unclaimed',
         start: {
           ...start,
           businesses: [

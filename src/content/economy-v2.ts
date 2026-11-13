@@ -11,6 +11,7 @@ import { factoryMechanic } from './economy-manufacturer';
 import { airlineMechanic } from './economy-airline';
 import { spaceMechanic } from './economy-space-launch';
 import { collection } from './economy-collection';
+import { goals, ranks } from './economy-goals';
 import { businessSynergies } from './economy-synergies';
 import { withMechanics } from './mechanicUpgrade';
 import type { ContentInput } from './schema';
@@ -31,37 +32,8 @@ export const economyV2 = {
   }),
   synergies: businessSynergies,
   collection,
-  goals: [
-    ...economyV1.goals,
-    {
-      id: 'collection_first_piece',
-      kind: 'collection',
-      measure: 'pieces',
-      count: 1,
-      title: 'First piece',
-    },
-    {
-      id: 'collection_every_category',
-      kind: 'collection',
-      measure: 'categories',
-      count: 6,
-      title: 'A piece of everything',
-    },
-    {
-      id: 'collection_first_set',
-      kind: 'collection',
-      measure: 'sets',
-      count: 1,
-      title: 'First set',
-    },
-    {
-      id: 'collection_every_set',
-      kind: 'collection',
-      measure: 'sets',
-      count: 12,
-      title: 'Every set',
-    },
-  ],
+  goals,
+  ranks,
   economy: {
     ...economyV1.economy,
     taxes: {

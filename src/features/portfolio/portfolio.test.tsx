@@ -47,6 +47,15 @@ describe('Portfolio', () => {
     expect(screen.getByText(/Selling pays 60% of that/)).toBeOnTheScreen();
   });
 
+  it('shows the rank for peak net worth and the next rank', async () => {
+    await buyVending();
+    await renderRouter('src/app', { initialUrl: '/portfolio' });
+    expect(screen.getByLabelText('Rank, Hustler')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Next rank, Operator at $10.00K peak net worth'),
+    ).toBeOnTheScreen();
+  });
+
   it('shows income by source with net rates', async () => {
     await buyVending();
     await renderRouter('src/app', { initialUrl: '/portfolio' });

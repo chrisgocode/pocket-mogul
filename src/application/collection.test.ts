@@ -213,7 +213,7 @@ describe('collection goals (COL09)', () => {
       goal.id.startsWith('collection_'),
     );
     expect(goals).toMatchObject([
-      { status: 'reached', title: 'First piece' },
+      { status: 'claimable', title: 'First piece', rewardCents: dollars('100') },
       { status: 'open', progressLabel: 'Categories collected 1 of 6' },
       { status: 'open', progressLabel: 'Sets finished 0 of 1' },
       { status: 'open', progressLabel: 'Sets finished 0 of 12' },

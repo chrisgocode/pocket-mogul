@@ -32,16 +32,16 @@ const buyVending = () =>
   });
 
 describe('Goals', () => {
-  it('lists all 17 goals and earns a badge when one is reached', async () => {
+  it('lists all 60 goals and earns a badge when one is reached', async () => {
     await renderRouter('src/app', { initialUrl: '/goals' });
-    expect(screen.getByText('0 of 17 badges')).toBeOnTheScreen();
-    expect(screen.getAllByText('Pin to Earn')).toHaveLength(17);
+    expect(screen.getByText('0 of 60 badges')).toBeOnTheScreen();
+    expect(screen.getAllByText('Pin to Earn')).toHaveLength(60);
     expect(screen.queryByText(/Home/)).toBeNull();
     expect(
       screen.getByLabelText('First business, not reached, Buy any business'),
     ).toBeOnTheScreen();
     await buyVending();
-    expect(screen.getByText('1 of 17 badges')).toBeOnTheScreen();
+    expect(screen.getByText('1 of 60 badges')).toBeOnTheScreen();
     expect(
       screen.getByLabelText('First business, badge earned, Reached Day 1, 00:00'),
     ).toBeOnTheScreen();
@@ -59,7 +59,44 @@ describe('Goals', () => {
     ).toBeOnTheScreen();
   });
 
-  it('celebrates a reached goal without paying cash', async () => {
+  it('shows what a goal pays and where a business goal stands', async () => {
+    await renderRouter('src/app', { initialUrl: '/goals' });
+    expect(
+      screen.getByLabelText(
+        'Pick your locations, not reached, Grow the Vending Machine to Local · not owned yet',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Three businesses, not reached, Businesses owned 0 of 3'),
+    ).toBeOnTheScreen();
+    expect(screen.getAllByText('Reward')).toHaveLength(60);
+  });
+
+  it('claims a reward once and adds it to cash', async () => {
+    await renderRouter('src/app', { initialUrl: '/goals' });
+    await buyVending();
+    expect(screen.getByRole('button', { name: 'Claim 1 reward · $50.00' })).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Claim $50.00 for First business' }));
+    expect(await screen.findByText('Claimed')).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: /^Claim/ })).toBeNull();
+    expect(session.game.getSnapshot().state).toMatchObject({
+      cashCents: dollars('50'),
+      claimedGoals: ['first_business'],
+    });
+  });
+
+  it('claims every waiting reward at once and points to them from Earn', async () => {
+    await buyVending();
+    await renderRouter('src/app', { initialUrl: '/home' });
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Claim 1 reward · $50.00, open Goals' }),
+    );
+    await fireEvent.press(await screen.findByRole('button', { name: 'Claim 1 reward · $50.00' }));
+    expect(await screen.findByText('Claimed')).toBeOnTheScreen();
+    expect(session.game.getSnapshot().state.claimedGoals).toEqual(['first_business']);
+  });
+
+  it('celebrates a reached goal and pays nothing until it is claimed', async () => {
     await renderRouter('src/app', { initialUrl: '/home' });
     await buyVending();
     expect(

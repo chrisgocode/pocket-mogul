@@ -1,5 +1,6 @@
 import { payoutReport, sweepPayouts } from './payoutSweep';
 import { actionReport, deepReport } from './deepReport';
+import { goalReport } from './goalReport';
 import type { Content } from '@/content';
 import { formatMoneyCompact, formatMoneyExact, moneyCents } from '@/domain/money';
 
@@ -239,6 +240,8 @@ export function renderBalanceReport(report: BalanceReport): string {
     ...actionReport(report.runs),
     ...payoutReport(report.payoutRuns),
     ...spending(report),
+    '',
+    ...goalReport(report.runs),
     '',
     ...profitLoops(report),
     '',
