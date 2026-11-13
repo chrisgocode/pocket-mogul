@@ -1,3 +1,4 @@
+import { CollectibleArtwork } from './CollectibleArtwork';
 import type { AuctionLot } from '@/application/collectionView';
 import { formatMoneyExact } from '@/domain/money';
 import { Button } from '@/ui/Button';
@@ -16,6 +17,7 @@ export function AuctionLotCard({
   const label = lotActionLabel(lot);
   return (
     <Card>
+      <CollectibleArtwork pieceId={lot.piece.id} categoryName={lot.categoryName} />
       <ListRow
         title={lot.piece.name}
         subtitle={`${pieceKind(lot)} · ${lot.piece.note}`}

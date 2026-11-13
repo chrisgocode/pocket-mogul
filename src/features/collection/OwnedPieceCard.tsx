@@ -1,3 +1,4 @@
+import { CollectibleArtwork } from './CollectibleArtwork';
 import type { OwnedPiece } from '@/application/collectionView';
 import { formatMoneyExact } from '@/domain/money';
 import { formatCashChange } from '@/features/game/priceFormat';
@@ -18,6 +19,13 @@ export function OwnedPieceCard({
   return (
     <Card>
       <ListRow
+        leading={
+          <CollectibleArtwork
+            pieceId={owned.piece.id}
+            categoryName={owned.categoryName}
+            size="thumbnail"
+          />
+        }
         title={owned.piece.name}
         subtitle={`${pieceKind(owned)} · ${owned.piece.note}`}
         value={formatMoneyExact(owned.valueCents)}
