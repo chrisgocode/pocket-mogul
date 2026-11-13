@@ -8,15 +8,17 @@ import {
   type Insurance,
   type OwnedBusiness,
 } from '@/domain/business/owned';
-import { NO_BAKERY, type BakeryOperation } from '@/domain/business/bakeryRules';
 import { NO_CAR_WASH, type CarWashOperation } from '@/domain/business/carWashState';
 import { NO_DELIVERY, type DeliveryOperation } from '@/domain/business/deliveryState';
-import { NO_COFFEE_KIOSK, type CoffeeKioskOperation } from '@/domain/business/coffeeKioskRules';
-import { NO_FOOD_CART, type FoodCartOperation } from '@/domain/business/foodCartState';
-import { NO_GYM, type GymOperation } from '@/domain/business/gymRules';
-import { NO_LAUNDROMAT, type LaundromatOperation } from '@/domain/business/laundromatRules';
 import { NO_TAKEOVERS, type Takeovers } from '@/domain/business/takeoverState';
 import { NO_VENDING, type VendingOperation } from '@/domain/business/vendingRules';
+import {
+  loadedMechanicFields,
+  savedMechanics,
+  withoutMechanicFields,
+  type MechanicField,
+  type SavedMechanics,
+} from './mechanicSaves';
 import type {
   AbsenceIncident,
   GameState,
@@ -28,17 +30,13 @@ export type SavedRisks = { readonly insurance: Insurance; readonly incident: Act
 
 type SavedBusiness = Omit<
   OwnedBusiness,
+  | MechanicField
   | 'staff'
   | 'insurance'
   | 'incident'
   | 'vending'
   | 'carWash'
   | 'delivery'
-  | 'foodCart'
-  | 'coffeeKiosk'
-  | 'laundromat'
-  | 'bakery'
-  | 'gym'
   | 'takeovers'
   | 'listing'
 >;
@@ -53,25 +51,21 @@ type SavedActivity = Omit<ActivityLog, 'lifetime'> & {
   };
 };
 
-export type SaveDocument = Omit<GameState, 'businesses' | 'returnSummary' | 'activity'> & {
-  readonly businesses: readonly SavedBusiness[];
-  readonly returnSummary: SavedReturnSummary;
-  readonly activity: SavedActivity;
-  readonly listings: Readonly<Record<string, Listing>>;
-  readonly staffing: Readonly<Record<string, StaffCounts>>;
-  readonly risks: Readonly<Record<string, SavedRisks>>;
-  readonly vending: Readonly<Record<string, VendingOperation>>;
-  readonly carWash: Readonly<Record<string, CarWashOperation>>;
-  readonly delivery: Readonly<Record<string, DeliveryOperation>>;
-  readonly foodCart: Readonly<Record<string, FoodCartOperation>>;
-  readonly coffeeKiosk: Readonly<Record<string, CoffeeKioskOperation>>;
-  readonly laundromat: Readonly<Record<string, LaundromatOperation>>;
-  readonly bakery: Readonly<Record<string, BakeryOperation>>;
-  readonly gym: Readonly<Record<string, GymOperation>>;
-  readonly takeovers: Readonly<Record<string, Takeovers>>;
-  readonly absenceIncidents: readonly AbsenceIncident[];
-  readonly incidentEntries: number;
-};
+export type SaveDocument = Omit<GameState, 'businesses' | 'returnSummary' | 'activity'> &
+  SavedMechanics & {
+    readonly businesses: readonly SavedBusiness[];
+    readonly returnSummary: SavedReturnSummary;
+    readonly activity: SavedActivity;
+    readonly listings: Readonly<Record<string, Listing>>;
+    readonly staffing: Readonly<Record<string, StaffCounts>>;
+    readonly risks: Readonly<Record<string, SavedRisks>>;
+    readonly vending: Readonly<Record<string, VendingOperation>>;
+    readonly carWash: Readonly<Record<string, CarWashOperation>>;
+    readonly delivery: Readonly<Record<string, DeliveryOperation>>;
+    readonly takeovers: Readonly<Record<string, Takeovers>>;
+    readonly absenceIncidents: readonly AbsenceIncident[];
+    readonly incidentEntries: number;
+  };
 
 function savedReturnSummary(pending: PendingReturnSummary): SavedReturnSummary {
   if (pending.status === 'none') return pending;
@@ -101,15 +95,10 @@ export function toSaveDocument(state: GameState): SaveDocument {
         vending: _vending,
         carWash: _carWash,
         delivery: _delivery,
-        foodCart: _foodCart,
-        coffeeKiosk: _coffeeKiosk,
-        laundromat: _laundromat,
-        bakery: _bakery,
-        gym: _gym,
         takeovers: _takeovers,
         listing: _listing,
         ...rest
-      }) => rest,
+      }) => withoutMechanicFields(rest),
     ),
     returnSummary: savedReturnSummary(returnSummary),
     activity: savedActivity(activity),
@@ -119,11 +108,7 @@ export function toSaveDocument(state: GameState): SaveDocument {
     vending: byBusiness(businesses, (business) => business.vending),
     carWash: byBusiness(businesses, (business) => business.carWash),
     delivery: byBusiness(businesses, (business) => business.delivery),
-    foodCart: byBusiness(businesses, (business) => business.foodCart),
-    coffeeKiosk: byBusiness(businesses, (business) => business.coffeeKiosk),
-    laundromat: byBusiness(businesses, (business) => business.laundromat),
-    bakery: byBusiness(businesses, (business) => business.bakery),
-    gym: byBusiness(businesses, (business) => business.gym),
+    ...savedMechanics(businesses),
     takeovers: byBusiness(businesses, (business) => business.takeovers),
     absenceIncidents: returnSummary.status === 'pending' ? returnSummary.summary.incidents : [],
     incidentEntries: activity.lifetime.byKind.incident,
@@ -140,12 +125,8 @@ function loadedMechanics(businessId: string, document: SaveDocument) {
     vending: saved(document.vending, NO_VENDING),
     carWash: saved(document.carWash, NO_CAR_WASH),
     delivery: saved(document.delivery, NO_DELIVERY),
-    foodCart: saved(document.foodCart, NO_FOOD_CART),
-    coffeeKiosk: saved(document.coffeeKiosk, NO_COFFEE_KIOSK),
-    laundromat: saved(document.laundromat, NO_LAUNDROMAT),
-    bakery: saved(document.bakery, NO_BAKERY),
-    gym: saved(document.gym, NO_GYM),
     takeovers: saved(document.takeovers, NO_TAKEOVERS),
+    ...loadedMechanicFields(businessId, document),
   };
 }
 
@@ -182,16 +163,11 @@ export function fromSaveDocument(document: SaveDocument): GameState {
     vending: _vending,
     carWash: _carWash,
     delivery: _delivery,
-    foodCart: _foodCart,
-    coffeeKiosk: _coffeeKiosk,
-    laundromat: _laundromat,
-    bakery: _bakery,
-    gym: _gym,
     takeovers: _takeovers,
     ...rest
   } = document;
   return {
-    ...rest,
+    ...withoutMechanicFields(rest),
     businesses: document.businesses.map((saved) => loadedBusiness(saved, document)),
     returnSummary: loadedReturnSummary(document),
     activity: loadedActivity(document),

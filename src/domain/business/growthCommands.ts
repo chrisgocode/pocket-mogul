@@ -8,6 +8,7 @@ import { withCoffeeKioskUnlocked } from './coffeeKiosk';
 import { withDeliveryUnlocked } from './delivery';
 import { withFoodCartUnlocked } from './foodCart';
 import { withGymUnlocked } from './gym';
+import { withHotelUnlocked } from './hotel';
 import { withLaundromatUnlocked } from './laundromat';
 import { businessDayOf, type StaffRole } from './definition';
 import { quoteStaff, withStaff } from './staff';
@@ -63,8 +64,11 @@ export function applyUpgradeStage(
   return spendTreasury(state, {
     owned,
     priceCents: quote.priceCents,
-    improved: withFoodCartUnlocked(
-      withDeliveryUnlocked(withCarWashUnlocked(upgraded, start), start),
+    improved: withHotelUnlocked(
+      withFoodCartUnlocked(
+        withDeliveryUnlocked(withCarWashUnlocked(upgraded, start), start),
+        start,
+      ),
       start,
     ),
     expense: 'capital',

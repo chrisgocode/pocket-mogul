@@ -11,6 +11,8 @@ import { secondWindowText } from './foodCartActionText';
 import type { FoodCartActions } from './foodCartFormat';
 import { allHoursText } from './gymActionText';
 import type { GymActions } from './gymFormat';
+import { conferenceText } from './hotelActionText';
+import type { HotelActions } from './hotelFormat';
 import { pickupText } from './laundromatActionText';
 import type { LaundromatActions } from './laundromatFormat';
 import type { useBusinessCommand } from './useBusinessCommand';
@@ -101,6 +103,19 @@ export function gymActions(detail: OwnedBusinessDetail, handlers: Handlers): Gym
       reviewSignature({
         command: { type: 'InstallAllHours', businessId },
         text: allHoursText(allHours),
+      }),
+  };
+}
+
+export function hotelActions(detail: OwnedBusinessDetail, handlers: Handlers): HotelActions {
+  const { businessId, run, reviewSignature } = mechanicHandlers(detail, handlers);
+  return {
+    setSeasonRate: (change) => run({ type: 'SetSeasonRate', businessId, ...change }),
+    dismissCoachMark: () => run({ type: 'DismissCoachMark', coachMark: 'hotel' }),
+    installConference: (conference) =>
+      reviewSignature({
+        command: { type: 'InstallConference', businessId },
+        text: conferenceText(conference),
       }),
   };
 }

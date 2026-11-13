@@ -10,6 +10,7 @@ import { profitPerDayCents, quoteBusinessDay } from './core';
 import { endedDeliveryDay, startDeliveryDay } from './delivery';
 import { startFoodCartDay } from './foodCart';
 import { startGymDay } from './gym';
+import { startHotelDay } from './hotel';
 import { withLaundromatUnlocked } from './laundromat';
 import { findBusiness, type BusinessEconomy, type BusinessPricing } from './definition';
 import type { OwnedBusiness } from './owned';
@@ -153,7 +154,8 @@ function dayStarted(segment: Settled, boundary: { settlement: Settlement; endMs:
   const restocked = restockedByStaff(started.business, pricing);
   const washing = startCarWashDay(restocked, { pricing, seed, day });
   const baking = startGymDay(startBakeryDay(washing, { pricing, day }), pricing);
-  const parked = startFoodCartDay(baking, { pricing, seed, day });
+  const hosting = startHotelDay(baking, { pricing, seed, day });
+  const parked = startFoodCartDay(hosting, { pricing, seed, day });
   const managed = managerDecisions(parked, pricing);
   const offered = startDeliveryDay(managed, { pricing, seed, day });
   return { ...started, business: answerTakeover(offered, { pricing, seed, day }) };

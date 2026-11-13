@@ -159,7 +159,7 @@ Cover for one incident category, available from stage 2 (Local). It costs a dail
 _Avoid_: Cover plan, protection
 
 **Flagship mechanic**:
-A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships; the Delivery Company's is Contracts, Reputation and Drivers; the Food Cart's is Spot, Crowd and Menu; the Coffee Kiosk's is Morning rush, Rush plan and Bean grade; the Laundromat's is Jumbo machines and Service washes; the Bakery's is Bake level and Wholesale orders; the Gym Chain's is Gym members, Tier on sale and Classes.
+A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships; the Delivery Company's is Contracts, Reputation and Drivers; the Food Cart's is Spot, Crowd and Menu; the Coffee Kiosk's is Morning rush, Rush plan and Bean grade; the Laundromat's is Jumbo machines and Service washes; the Bakery's is Bake level and Wholesale orders; the Gym Chain's is Gym members, Tier on sale and Classes; the Hotel Group's is Season, Rate plan and Stars.
 _Avoid_: Minigame, feature
 
 **Coach mark**:
@@ -281,6 +281,26 @@ _Avoid_: Sessions, programs
 **24-hour access**:
 The Gym Chain's stage 5 (Global) signature upgrade, paid once from the Treasury: it adds 20 percent capacity.
 _Avoid_: All-night, always open
+
+**Season**:
+A Hotel Group's stretch of 3 business days drawn from the save's seed: Low, Shoulder, High or Event. It multiplies demand by 65, 100, 135 or 180 percent.
+_Avoid_: Period, quarter
+
+**Rate plan**:
+The Price level a Hotel Group's player has planned for each Season. The hotel switches to it when the Season starts.
+_Avoid_: Tariff, schedule
+
+**Stars**:
+A Hotel Group's rating from 1 to 5: one to start, one per 5 Quality levels and one for enough Housekeepers. Each star above the first raises the price per night by 4 percent.
+_Avoid_: Rating, grade
+
+**Housekeeper**:
+An operations hire at a Hotel Group. It adds 20% capacity like any operations hire, and one Housekeeper per 4 room blocks earns a star.
+_Avoid_: Cleaner, maid
+
+**Conference centre**:
+The Hotel Group's stage 5 (Global) signature upgrade, paid once from the Treasury: it adds 50 percent demand in Event season.
+_Avoid_: Convention hall
 
 **Second window**:
 The Food Cart's stage 5 (Global) signature upgrade, paid once from the Treasury: a second serving window that adds 30 percent capacity.

@@ -6,6 +6,7 @@ import { deliveryDay, runningDelivery } from './deliveryDemand';
 import type { ContractTerms } from './deliveryState';
 import { foodCartDay, runningFoodCart } from './foodCartDemand';
 import { gymDay, runningGym } from './gymDemand';
+import { hotelDay, runningHotel } from './hotelDemand';
 import { laundromatDay, runningLaundromat } from './laundromatDemand';
 import type { OwnedBusiness } from './owned';
 import { NO_RUSH, type RushDay } from './rush';
@@ -32,7 +33,9 @@ function shopDay(business: OwnedBusiness, pricing: BusinessPricing) {
   const bakery = runningBakery(business, pricing);
   if (bakery !== undefined) return bakeryDay(bakery, pricing);
   const gym = runningGym(business, pricing);
-  return gym === undefined ? {} : gymDay(gym);
+  if (gym !== undefined) return gymDay(gym);
+  const hotel = runningHotel(business, pricing);
+  return hotel === undefined ? {} : hotelDay(business, hotel);
 }
 
 function streetDay(business: OwnedBusiness, pricing: BusinessPricing) {

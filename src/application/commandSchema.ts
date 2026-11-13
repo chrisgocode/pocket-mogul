@@ -10,6 +10,7 @@ import { OPTIONAL_PACKAGES } from '@/domain/business/carWashRules';
 import { BEAN_GRADES, RUSH_PLANS } from '@/domain/business/coffeeKioskRules';
 import { CART_SPOTS, MENU_ITEMS } from '@/domain/business/foodCartRules';
 import { GYM_TIERS } from '@/domain/business/gymRules';
+import { SEASONS } from '@/domain/business/hotelRules';
 import { STOCK_MIXES, VENDING_LOCATIONS } from '@/domain/business/vendingRules';
 import { COACH_MARKS } from '@/domain/coachMarks';
 import type { GameCommand } from '@/domain/commands';
@@ -120,6 +121,13 @@ const gameCommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('SetGymTier'), businessId, tier: z.enum(GYM_TIERS) }),
   z.object({ type: z.literal('SetClassLevel'), businessId, level: z.number().int() }),
   z.object({ type: z.literal('InstallAllHours'), businessId }),
+  z.object({
+    type: z.literal('SetSeasonRate'),
+    businessId,
+    season: z.enum(SEASONS),
+    priceLevel: z.enum(PRICE_LEVELS),
+  }),
+  z.object({ type: z.literal('InstallConference'), businessId }),
   z.object({
     type: z.literal('MakeTakeoverOffer'),
     businessId,

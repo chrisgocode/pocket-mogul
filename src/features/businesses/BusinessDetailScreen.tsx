@@ -24,6 +24,7 @@ import {
   coffeeKioskActions,
   foodCartActions,
   gymActions,
+  hotelActions,
   laundromatActions,
 } from './mechanicActions';
 import type { VendingActions } from './vendingFormat';
@@ -118,6 +119,7 @@ function flagshipActions(
     laundromat: laundromatActions(detail, handlers),
     bakery: bakeryActions(detail, handlers),
     gym: gymActions(detail, handlers),
+    hotel: hotelActions(detail, handlers),
   };
 }
 
