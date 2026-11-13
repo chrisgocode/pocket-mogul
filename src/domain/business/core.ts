@@ -12,6 +12,7 @@ import {
 import type { OwnedBusiness } from './owned';
 import { serveContracts, type ContractsServed } from './deliveryDemand';
 import { mechanicDay, type MechanicDay } from './mechanics';
+import { serveWithRush } from './rush';
 import { activePolicies, premiumCents, wagesOf } from './runningCosts';
 
 export type BusinessDayQuote = {
@@ -121,8 +122,9 @@ function costPerServedOf(business: OwnedBusiness, quoting: Quoting): bigint {
   const numerator =
     quoting.definition.costPerCustomerCents *
     (PERCENT - BigInt(saving)) *
-    incidentBps(business, 'costBps');
-  return numerator / (PERCENT * BASIS_POINTS);
+    incidentBps(business, 'costBps') *
+    quoting.mechanic.costBps;
+  return numerator / (PERCENT * BASIS_POINTS * BASIS_POINTS);
 }
 
 function dayCosts(business: OwnedBusiness, quoting: Quoting & { readonly served: bigint }) {
@@ -167,7 +169,7 @@ export function quoteBusinessDay(
   const quoting = { ...pricing, mechanic: mechanicDay(business, pricing) };
   const demand = demandOf(business, quoting);
   const capacity = walkInCapacityOf(business, quoting);
-  const served = demand < capacity ? demand : capacity;
+  const { served } = serveWithRush({ demand, capacity }, quoting.mechanic.rush);
   const priceCents = priceOf(business, quoting);
   const costs = dayCosts(business, { ...quoting, served });
   const income = {

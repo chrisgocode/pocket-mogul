@@ -27,11 +27,6 @@ import {
   applyInstallSortingHub,
 } from '@/domain/business/deliveryCommands';
 import {
-  applyInstallSecondWindow,
-  applySetCartSpot,
-  applySetMenuItem,
-} from '@/domain/business/foodCartCommands';
-import {
   applyFireStaff,
   applyHireStaff,
   applyUpgradeStage,
@@ -62,6 +57,7 @@ import { applySkipTutorial } from '@/domain/tutorial';
 import { applyWalletUpgrade } from '@/domain/wallet';
 
 import { businessEconomy, goalRules, propertyEconomy, tradeEconomy } from './economy';
+import { MECHANIC_HANDLERS, MECHANIC_INVESTMENTS } from './mechanicHandlers';
 
 type CommandsByType = { [Type in GameCommand['type']]: Extract<GameCommand, { type: Type }> };
 
@@ -125,12 +121,7 @@ const COMMAND_HANDLERS: CommandHandlers = {
     applySetMemberCap(state, { ...command, economy: businessEconomy(content) }),
   InstallDetailing: (state, command, content) =>
     applyInstallDetailing(state, { ...command, economy: businessEconomy(content) }),
-  SetCartSpot: (state, command, content) =>
-    applySetCartSpot(state, { ...command, economy: businessEconomy(content) }),
-  SetMenuItem: (state, command, content) =>
-    applySetMenuItem(state, { ...command, economy: businessEconomy(content) }),
-  InstallSecondWindow: (state, command, content) =>
-    applyInstallSecondWindow(state, { ...command, economy: businessEconomy(content) }),
+  ...MECHANIC_HANDLERS,
   AcceptContract: (state, command, content) =>
     applyAcceptContract(state, { ...command, economy: businessEconomy(content) }),
   DeclineContract: (state, command, content) =>
@@ -230,7 +221,7 @@ const INVESTMENTS = new Set<GameCommand['type']>([
   'InstallCardReaders',
   'InstallDetailing',
   'InstallSortingHub',
-  'InstallSecondWindow',
+  ...MECHANIC_INVESTMENTS,
 ]);
 
 function restrictedInvestment(command: GameCommand): boolean {

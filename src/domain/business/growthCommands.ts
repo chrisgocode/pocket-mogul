@@ -3,6 +3,7 @@ import type { GameState } from '@/domain/gameState';
 
 import { changed, lookUpOwned, spendTreasury, type BusinessOrder } from './commands';
 import { withCarWashUnlocked } from './carWash';
+import { withCoffeeKioskUnlocked } from './coffeeKiosk';
 import { withDeliveryUnlocked } from './delivery';
 import { withFoodCartUnlocked } from './foodCart';
 import { businessDayOf, type StaffRole } from './definition';
@@ -53,7 +54,8 @@ export function applyUpgradeStage(
     seed: state.market.seed,
     day: businessDayOf(state.clock.simulationMs, pricing.rules),
   };
-  const upgraded = withVendingUnlocked({ ...owned, stage: quote.stage + 1 }, pricing);
+  const staged = withVendingUnlocked({ ...owned, stage: quote.stage + 1 }, pricing);
+  const upgraded = withCoffeeKioskUnlocked(staged, pricing);
   return spendTreasury(state, {
     owned,
     priceCents: quote.priceCents,

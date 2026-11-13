@@ -19,10 +19,13 @@ export function getContent(): Content {
   return cached;
 }
 
+let cachedPast: readonly Content[] | undefined;
+
 export function getPastContent(): readonly Content[] {
-  return Object.values(bundledContentByEconomyVersion)
+  cachedPast ??= Object.values(bundledContentByEconomyVersion)
     .filter((content) => content.economyVersion !== CURRENT_ECONOMY_VERSION)
     .map(validateContent);
+  return cachedPast;
 }
 
 export const FICTIONAL_NOTICE = 'All companies and coins are fictional.';

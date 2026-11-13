@@ -2,7 +2,13 @@ import type { CommandResult } from './commands';
 import type { GameState } from './gameState';
 import { moneyCents } from './money';
 
-export const COACH_MARKS = ['vending', 'car_wash', 'delivery', 'food_cart'] as const;
+export const COACH_MARKS = [
+  'vending',
+  'car_wash',
+  'delivery',
+  'food_cart',
+  'coffee_kiosk',
+] as const;
 export type CoachMark = (typeof COACH_MARKS)[number];
 
 export function applyDismissCoachMark(state: GameState, coachMark: CoachMark): CommandResult {

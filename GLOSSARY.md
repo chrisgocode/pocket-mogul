@@ -159,7 +159,7 @@ Cover for one incident category, available from stage 2 (Local). It costs a dail
 _Avoid_: Cover plan, protection
 
 **Flagship mechanic**:
-A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships; the Delivery Company's is Contracts, Reputation and Drivers; the Food Cart's is Spot, Crowd and Menu.
+A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships; the Delivery Company's is Contracts, Reputation and Drivers; the Food Cart's is Spot, Crowd and Menu; the Coffee Kiosk's is Morning rush, Rush plan and Bean grade.
 _Avoid_: Minigame, feature
 
 **Coach mark**:
@@ -221,6 +221,22 @@ _Avoid_: Traffic (that is a Vending Location's fixed multiplier), footfall
 **Menu item**:
 An optional dish a Food Cart can offer: Combo meals, Street snacks or Grab-and-go wraps. Each multiplies customers, order size and serving speed, so a wide menu pays on a Quiet day and a short one when the line is full.
 _Avoid_: Dish, package (that is a Car Wash's)
+
+**Morning rush**:
+The part of a Coffee Kiosk's business day when 45 percent of its customers arrive in 35 percent of the day. Rush customers the kiosk cannot serve in that time walk away.
+_Avoid_: Peak, happy hour
+
+**Rush plan**:
+How a Coffee Kiosk serves the Morning rush: Standard, Pre-batch (faster, a few customers fewer) or Express menu (fastest, at a lower price). A Manager picks the most profitable one each day.
+_Avoid_: Shift, mode
+
+**Bean grade**:
+The coffee a Coffee Kiosk brews: House, Single origin or Reserve. A better grade sells for more, costs more a cup and draws fewer customers.
+_Avoid_: Roast, blend, quality (that is the upgrade track)
+
+**Order-ahead**:
+The Coffee Kiosk's stage 5 (Global) signature upgrade, paid once from the Treasury: it adds 50 percent to rush capacity.
+_Avoid_: Mobile app, pre-order
 
 **Second window**:
 The Food Cart's stage 5 (Global) signature upgrade, paid once from the Treasury: a second serving window that adds 30 percent capacity.

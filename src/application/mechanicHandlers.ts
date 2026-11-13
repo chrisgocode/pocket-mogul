@@ -1,0 +1,44 @@
+import type { Content } from '@/content';
+import {
+  applyInstallOrderAhead,
+  applySetBeanGrade,
+  applySetRushPlan,
+} from '@/domain/business/coffeeKioskCommands';
+import type { CoffeeKioskCommand } from '@/domain/business/coffeeKioskOrders';
+import {
+  applyInstallSecondWindow,
+  applySetCartSpot,
+  applySetMenuItem,
+} from '@/domain/business/foodCartCommands';
+import type { FoodCartCommand } from '@/domain/business/foodCartOrders';
+import type { CommandResult } from '@/domain/commands';
+import type { GameState } from '@/domain/gameState';
+
+import { businessEconomy } from './economy';
+
+type MechanicCommand = FoodCartCommand | CoffeeKioskCommand;
+
+type MechanicHandlers = {
+  readonly [Type in MechanicCommand['type']]: (
+    state: GameState,
+    command: Extract<MechanicCommand, { type: Type }>,
+    content: Content,
+  ) => CommandResult;
+};
+
+export const MECHANIC_HANDLERS: MechanicHandlers = {
+  SetCartSpot: (state, command, content) =>
+    applySetCartSpot(state, { ...command, economy: businessEconomy(content) }),
+  SetMenuItem: (state, command, content) =>
+    applySetMenuItem(state, { ...command, economy: businessEconomy(content) }),
+  InstallSecondWindow: (state, command, content) =>
+    applyInstallSecondWindow(state, { ...command, economy: businessEconomy(content) }),
+  SetBeanGrade: (state, command, content) =>
+    applySetBeanGrade(state, { ...command, economy: businessEconomy(content) }),
+  SetRushPlan: (state, command, content) =>
+    applySetRushPlan(state, { ...command, economy: businessEconomy(content) }),
+  InstallOrderAhead: (state, command, content) =>
+    applyInstallOrderAhead(state, { ...command, economy: businessEconomy(content) }),
+};
+
+export const MECHANIC_INVESTMENTS = ['InstallSecondWindow', 'InstallOrderAhead'] as const;

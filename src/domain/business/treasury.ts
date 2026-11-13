@@ -4,6 +4,7 @@ import type { ShareholderPayout } from './listingState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 
 import { startCarWashDay } from './carWash';
+import { withCoffeeKioskUnlocked } from './coffeeKiosk';
 import { profitPerDayCents, quoteBusinessDay } from './core';
 import { endedDeliveryDay, startDeliveryDay } from './delivery';
 import { startFoodCartDay } from './foodCart';
@@ -143,7 +144,7 @@ function dayStarted(segment: Settled, boundary: { settlement: Settlement; endMs:
   const { pricing, seed } = boundary.settlement;
   const day = boundary.endMs / pricing.rules.dayMs;
   const ended = endedDeliveryDay(soldVendingDay(segment.business, pricing), { pricing, day });
-  const opened = withVendingUnlocked(ended, pricing);
+  const opened = withCoffeeKioskUnlocked(withVendingUnlocked(ended, pricing), pricing);
   const started = startBusinessDay(opened, { pricing, seed, day });
   const restocked = restockedByStaff(started.business, pricing);
   const washing = startCarWashDay(restocked, { pricing, seed, day });

@@ -2,6 +2,7 @@ import { dollars } from '@/domain/money';
 
 import { economyV1 } from './economy-v1';
 import { foodCartMechanic } from './economy-food-cart';
+import { coffeeKioskMechanic } from './economy-coffee-kiosk';
 import { withMechanics } from './mechanicUpgrade';
 import type { ContentInput } from './schema';
 
@@ -10,6 +11,7 @@ export const economyV2 = {
   economyVersion: 2,
   businesses: withMechanics(economyV1.businesses, {
     food_cart: foodCartMechanic,
+    coffee_kiosk: coffeeKioskMechanic,
   }),
   economy: {
     ...economyV1.economy,

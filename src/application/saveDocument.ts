@@ -10,6 +10,7 @@ import {
 } from '@/domain/business/owned';
 import { NO_CAR_WASH, type CarWashOperation } from '@/domain/business/carWashState';
 import { NO_DELIVERY, type DeliveryOperation } from '@/domain/business/deliveryState';
+import { NO_COFFEE_KIOSK, type CoffeeKioskOperation } from '@/domain/business/coffeeKioskRules';
 import { NO_FOOD_CART, type FoodCartOperation } from '@/domain/business/foodCartState';
 import { NO_TAKEOVERS, type Takeovers } from '@/domain/business/takeoverState';
 import { NO_VENDING, type VendingOperation } from '@/domain/business/vendingRules';
@@ -31,6 +32,7 @@ type SavedBusiness = Omit<
   | 'carWash'
   | 'delivery'
   | 'foodCart'
+  | 'coffeeKiosk'
   | 'takeovers'
   | 'listing'
 >;
@@ -56,6 +58,7 @@ export type SaveDocument = Omit<GameState, 'businesses' | 'returnSummary' | 'act
   readonly carWash: Readonly<Record<string, CarWashOperation>>;
   readonly delivery: Readonly<Record<string, DeliveryOperation>>;
   readonly foodCart: Readonly<Record<string, FoodCartOperation>>;
+  readonly coffeeKiosk: Readonly<Record<string, CoffeeKioskOperation>>;
   readonly takeovers: Readonly<Record<string, Takeovers>>;
   readonly absenceIncidents: readonly AbsenceIncident[];
   readonly incidentEntries: number;
@@ -90,6 +93,7 @@ export function toSaveDocument(state: GameState): SaveDocument {
         carWash: _carWash,
         delivery: _delivery,
         foodCart: _foodCart,
+        coffeeKiosk: _coffeeKiosk,
         takeovers: _takeovers,
         listing: _listing,
         ...rest
@@ -104,6 +108,7 @@ export function toSaveDocument(state: GameState): SaveDocument {
     carWash: byBusiness(businesses, (business) => business.carWash),
     delivery: byBusiness(businesses, (business) => business.delivery),
     foodCart: byBusiness(businesses, (business) => business.foodCart),
+    coffeeKiosk: byBusiness(businesses, (business) => business.coffeeKiosk),
     takeovers: byBusiness(businesses, (business) => business.takeovers),
     absenceIncidents: returnSummary.status === 'pending' ? returnSummary.summary.incidents : [],
     incidentEntries: activity.lifetime.byKind.incident,
@@ -117,6 +122,7 @@ function loadedMechanics(businessId: string, document: SaveDocument) {
     carWash: document.carWash[businessId] ?? NO_CAR_WASH,
     delivery: document.delivery[businessId] ?? NO_DELIVERY,
     foodCart: document.foodCart[businessId] ?? NO_FOOD_CART,
+    coffeeKiosk: document.coffeeKiosk[businessId] ?? NO_COFFEE_KIOSK,
     takeovers: document.takeovers[businessId] ?? NO_TAKEOVERS,
   };
 }
@@ -155,6 +161,7 @@ export function fromSaveDocument(document: SaveDocument): GameState {
     carWash: _carWash,
     delivery: _delivery,
     foodCart: _foodCart,
+    coffeeKiosk: _coffeeKiosk,
     takeovers: _takeovers,
     ...rest
   } = document;

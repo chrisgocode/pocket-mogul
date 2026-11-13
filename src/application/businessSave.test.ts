@@ -184,6 +184,30 @@ describe('food cart spot and menu (BUS20d)', () => {
   });
 });
 
+describe('coffee kiosk rush plan and beans (BUS20e)', () => {
+  const coffeeKiosk = {
+    status: 'active',
+    grade: 'single_origin',
+    plan: 'prebatch',
+    orderAhead: 'installed',
+  } as const;
+
+  it('loads a baseline save with the mechanic inactive', () => {
+    expect(currentState(baselineFixture)).toMatchObject({
+      businesses: [{ coffeeKiosk: { status: 'inactive' } }],
+    });
+  });
+
+  it('keeps the coffee kiosk in a top-level record and round-trips it', () => {
+    const stored = baselineDocument({ coffeeKiosk: { vending: coffeeKiosk } });
+    const encoded = encodeSave(currentState(stored));
+    const document = JSON.parse(encoded) as { businesses: readonly object[] };
+    expect(document).toMatchObject({ coffeeKiosk: { vending: coffeeKiosk } });
+    expect(document.businesses[0]).not.toHaveProperty('coffeeKiosk');
+    expect(currentState(encoded)).toMatchObject({ businesses: [{ coffeeKiosk }] });
+  });
+});
+
 describe('delivery contracts and reputation (BUS20c)', () => {
   const terms = {
     clientId: 'brightcart',

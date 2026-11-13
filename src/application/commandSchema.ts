@@ -7,6 +7,7 @@ import {
   STAFF_ROLES,
 } from '@/domain/business/definition';
 import { OPTIONAL_PACKAGES } from '@/domain/business/carWashRules';
+import { BEAN_GRADES, RUSH_PLANS } from '@/domain/business/coffeeKioskRules';
 import { CART_SPOTS, MENU_ITEMS } from '@/domain/business/foodCartRules';
 import { STOCK_MIXES, VENDING_LOCATIONS } from '@/domain/business/vendingRules';
 import { COACH_MARKS } from '@/domain/coachMarks';
@@ -101,6 +102,9 @@ const gameCommandSchema = z.discriminatedUnion('type', [
     offered: z.boolean(),
   }),
   z.object({ type: z.literal('InstallSecondWindow'), businessId }),
+  z.object({ type: z.literal('SetBeanGrade'), businessId, grade: z.enum(BEAN_GRADES) }),
+  z.object({ type: z.literal('SetRushPlan'), businessId, plan: z.enum(RUSH_PLANS) }),
+  z.object({ type: z.literal('InstallOrderAhead'), businessId }),
   z.object({
     type: z.literal('MakeTakeoverOffer'),
     businessId,

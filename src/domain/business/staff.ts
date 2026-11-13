@@ -1,5 +1,6 @@
 import { moneyCents, type MoneyCents } from '@/domain/money';
 
+import { withBestRushPlan } from './coffeeKiosk';
 import { bestPriceLevel, profitPerDayCents } from './core';
 import { wageCents } from './runningCosts';
 import { stageRule, type BusinessPricing, type StaffRole } from './definition';
@@ -66,7 +67,7 @@ const MANAGER_RENEWS: readonly PolicyStatus[] = ['active', 'lapsed'];
 
 export function managerDecisions(business: OwnedBusiness, pricing: BusinessPricing): OwnedBusiness {
   if (business.staff.manager === 0 || business.status === 'closed') return business;
-  const mixed = withBestMixes(business, pricing);
+  const mixed = withBestRushPlan(withBestMixes(business, pricing), pricing);
   const priced = { ...mixed, priceLevel: bestPriceLevel(mixed, pricing) };
   return renewedInsurance(priced, { pricing, renewing: MANAGER_RENEWS });
 }
