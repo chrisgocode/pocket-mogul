@@ -84,8 +84,8 @@ export const collection = {
   pieces: [
     {
       id: 'corner_cafe_sketch',
-      name: 'Corner Café Sketch',
-      note: 'Pencil on paper',
+      name: 'Office Building Sketch',
+      note: 'Watercolour on paper',
       category: 'art',
       tier: 1,
       rarity: 'common',

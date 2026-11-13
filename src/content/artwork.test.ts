@@ -6,12 +6,17 @@ import { getContent } from './index';
 const ids = getContent().collection.pieces.map((piece) => piece.id);
 
 describe('collectible artwork', () => {
-  it('has approved mobile variants for every car and permits pending categories', () => {
-    const cars = getContent().collection.pieces.filter((piece) => piece.category === 'cars');
-    expect(cars.map((piece) => collectibleArtwork(piece.id)?.map((v) => v.width))).toEqual(
-      Array.from({ length: 10 }, () => [256, 512, 1024]),
+  it('has three mobile variants for every collectible across all six categories', () => {
+    const pieces = getContent().collection.pieces;
+    expect(new Set(Object.keys(manifest))).toEqual(new Set(ids));
+    expect(new Set(pieces.map((piece) => piece.category)).size).toBe(6);
+    expect(pieces.map((piece) => collectibleArtwork(piece.id)?.map((v) => v.width))).toEqual(
+      Array.from({ length: 60 }, () => [256, 512, 1024]),
     );
-    expect(collectibleArtwork('puffin_dinghy')).toBeUndefined();
+  });
+
+  it('keeps the fallback available for unregistered artwork', () => {
+    expect(parseArtwork({}, ids)).toEqual({});
     expect(collectibleArtwork('unknown')).toBeUndefined();
   });
 
