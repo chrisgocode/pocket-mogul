@@ -1,8 +1,4 @@
-import { economyV2 } from './economy-v2';
-import { withMechanic } from './mechanicUpgrade';
-import type { ContentInput } from './schema';
-
-const foodCartMechanic = {
+export const foodCartMechanic = {
   kind: 'food_cart',
   unlockStage: 2,
   crowdChanceBps: { quiet: 3000, steady: 4000, busy: 3000 },
@@ -21,9 +17,3 @@ const foodCartMechanic = {
   },
   secondWindow: { stage: 5, priceMultiple: 150, capacityPercent: 30 },
 } as const;
-
-export const economyV3 = {
-  ...economyV2,
-  economyVersion: 3,
-  businesses: withMechanic(economyV2.businesses, { id: 'food_cart', mechanic: foodCartMechanic }),
-} satisfies ContentInput;
