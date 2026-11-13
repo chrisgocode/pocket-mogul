@@ -1,8 +1,9 @@
-export function withMechanic<Business extends { readonly id: string }, Mechanic>(
+export function withMechanics<Business extends { readonly id: string }, Mechanic>(
   businesses: readonly Business[],
-  added: { readonly id: string; readonly mechanic: Mechanic },
+  mechanics: Readonly<Partial<Record<string, Mechanic>>>,
 ): (Business | (Business & { readonly mechanic: Mechanic }))[] {
-  const upgraded = (business: Business) =>
-    business.id === added.id ? Object.assign({}, business, { mechanic: added.mechanic }) : business;
-  return businesses.map(upgraded);
+  return businesses.map((business) => {
+    const mechanic = mechanics[business.id];
+    return mechanic === undefined ? business : Object.assign({}, business, { mechanic });
+  });
 }
