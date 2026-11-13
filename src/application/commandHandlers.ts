@@ -27,6 +27,11 @@ import {
   applyInstallSortingHub,
 } from '@/domain/business/deliveryCommands';
 import {
+  applyInstallSecondWindow,
+  applySetCartSpot,
+  applySetMenuItem,
+} from '@/domain/business/foodCartCommands';
+import {
   applyFireStaff,
   applyHireStaff,
   applyUpgradeStage,
@@ -120,6 +125,12 @@ const COMMAND_HANDLERS: CommandHandlers = {
     applySetMemberCap(state, { ...command, economy: businessEconomy(content) }),
   InstallDetailing: (state, command, content) =>
     applyInstallDetailing(state, { ...command, economy: businessEconomy(content) }),
+  SetCartSpot: (state, command, content) =>
+    applySetCartSpot(state, { ...command, economy: businessEconomy(content) }),
+  SetMenuItem: (state, command, content) =>
+    applySetMenuItem(state, { ...command, economy: businessEconomy(content) }),
+  InstallSecondWindow: (state, command, content) =>
+    applyInstallSecondWindow(state, { ...command, economy: businessEconomy(content) }),
   AcceptContract: (state, command, content) =>
     applyAcceptContract(state, { ...command, economy: businessEconomy(content) }),
   DeclineContract: (state, command, content) =>
@@ -219,6 +230,7 @@ const INVESTMENTS = new Set<GameCommand['type']>([
   'InstallCardReaders',
   'InstallDetailing',
   'InstallSortingHub',
+  'InstallSecondWindow',
 ]);
 
 function restrictedInvestment(command: GameCommand): boolean {

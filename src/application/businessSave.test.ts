@@ -159,6 +159,31 @@ describe('car wash packages and memberships (BUS20b)', () => {
   });
 });
 
+describe('food cart spot and menu (BUS20d)', () => {
+  const foodCart = {
+    status: 'active',
+    spot: 'market',
+    crowds: { park: 'quiet', offices: 'steady', campus: 'busy', market: 'busy', stadium: 'quiet' },
+    menu: { combo: 'offered', snacks: 'withdrawn', express: 'offered' },
+    secondWindow: 'installed',
+  } as const;
+
+  it('loads a baseline save with the mechanic inactive', () => {
+    expect(currentState(baselineFixture)).toMatchObject({
+      businesses: [{ foodCart: { status: 'inactive' } }],
+    });
+  });
+
+  it('keeps the food cart in a top-level record and round-trips it', () => {
+    const stored = baselineDocument({ foodCart: { vending: foodCart } });
+    const encoded = encodeSave(currentState(stored));
+    const document = JSON.parse(encoded) as { businesses: readonly object[] };
+    expect(document).toMatchObject({ foodCart: { vending: foodCart } });
+    expect(document.businesses[0]).not.toHaveProperty('foodCart');
+    expect(currentState(encoded)).toMatchObject({ businesses: [{ foodCart }] });
+  });
+});
+
 describe('delivery contracts and reputation (BUS20c)', () => {
   const terms = {
     clientId: 'brightcart',

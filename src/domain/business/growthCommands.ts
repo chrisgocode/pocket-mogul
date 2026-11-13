@@ -4,6 +4,7 @@ import type { GameState } from '@/domain/gameState';
 import { changed, lookUpOwned, spendTreasury, type BusinessOrder } from './commands';
 import { withCarWashUnlocked } from './carWash';
 import { withDeliveryUnlocked } from './delivery';
+import { withFoodCartUnlocked } from './foodCart';
 import { businessDayOf, type StaffRole } from './definition';
 import { quoteStaff, withStaff } from './staff';
 import { quoteStage } from './stages';
@@ -56,7 +57,10 @@ export function applyUpgradeStage(
   return spendTreasury(state, {
     owned,
     priceCents: quote.priceCents,
-    improved: withDeliveryUnlocked(withCarWashUnlocked(upgraded, start), start),
+    improved: withFoodCartUnlocked(
+      withDeliveryUnlocked(withCarWashUnlocked(upgraded, start), start),
+      start,
+    ),
     expense: 'capital',
   });
 }

@@ -31,7 +31,7 @@ Use these defaults unless the owner changes them. Keep balance values in version
 
 Include the complete tap, business, stock, crypto, property, offline, save, tutorial, goal, optional rewarded-ad, and automatic-ad loops. All gameplay uses fictional money. Core play works without a network connection; ads depend on availability.
 
-Defer accounts, cloud synchronization, a backend, shared markets, multiplayer, leaderboards, loans, short selling, leverage, limit orders, prestige resets, subscriptions, paid currency, push notifications, daily streaks, and detailed tenant negotiations. Each business is owned once; growth comes from its units, stages and takeovers rather than duplicate purchases. Three flagship businesses ship with their own mechanic in the first version; the other nine run on the shared business core until theirs ship in later updates.
+Defer accounts, cloud synchronization, a backend, shared markets, multiplayer, leaderboards, loans, short selling, leverage, limit orders, prestige resets, subscriptions, paid currency, push notifications, daily streaks, and detailed tenant negotiations. Each business is owned once; growth comes from its units, stages and takeovers rather than duplicate purchases. Three flagship businesses ship with their own mechanic in the first version; the others run on the shared business core until theirs ship, one at a time (5.10). The Food Cart is the first to follow.
 
 Saves are local and on-device in version one. Cloud saves through the platform game services (Apple Game Center saved games on iOS and Google Play Games Services Saved Games on Android) are a planned later feature. Section 14 lists the save-model choices that keep that path open.
 
@@ -93,7 +93,7 @@ Example: level 2 pays $2 per tap; while boosted it pays $10. The boost affects t
 
 ## 5 Businesses
 
-Requirement IDs BUS01 through BUS20. Each business is a small management game that runs on one shared core: units serve customers at a price the player sets, staff and upgrades move demand, capacity and costs, and profit lands in the business's own treasury. Three flagship businesses add a mechanic of their own (5.9); the other nine run on the shared core until theirs ship (5.10). Properties keep the simpler model in Section 8.
+Requirement IDs BUS01 through BUS20. Each business is a small management game that runs on one shared core: units serve customers at a price the player sets, staff and upgrades move demand, capacity and costs, and profit lands in the business's own treasury. Three flagship businesses and the Food Cart add a mechanic of their own (5.9); the other eight run on the shared core until theirs ship (5.10). Properties keep the simpler model in Section 8.
 
 ### 5.1 Catalog and tiers
 
@@ -201,9 +201,18 @@ A flagship's mechanic unlocks at stage 2 with a coach mark; at stage 1 the busin
 - Incidents: van crash (equipment, capacity), lost-parcel claim (liability, treasury), fuel spike (supply, cost per customer up for some days).
 - Signature upgrade at stage 5: a sorting hub, which adds 30 percent capacity.
 
-### 5.10 The other nine
+**Food Cart: spot and menu** (BUS20d)
 
-Until their own mechanic ships, these businesses run on the shared core with staff, stages, insurance, takeovers and going public. Planned mechanics: Coffee Kiosk, morning rush and bean grades; Food Cart, a daily spot and a short menu; Laundromat, machine mix and service washes; Bakery, an oven schedule and wholesale orders; Gym Chain, membership tiers and classes; Hotel Group, room rates by season and star rating; Manufacturing Company, production lines and bulk orders; Airline, routes and fleet; Space Launch Company, launch slots and payload contracts. Each follows the flagship pattern: content figures, a mechanic at stage 2, manager decisions, three incidents and a stage 5 signature upgrade.
+- The cart parks at one of five spots: Park, Office row, Campus, Night market and Stadium. Below stage 2, and when the mechanic unlocks, it stands in the Park.
+- Each business day every spot draws a crowd from the seeded stream `crowd`: Quiet, Steady or Busy (30, 40 and 30 percent). A spot multiplies demand by its figure for the day's crowd, from a steady Office row (90, 105 and 115 percent) to a boom-or-bust Stadium (30, 90 and 220 percent). Details show each spot's crowd today and tomorrow. Moving is free and takes effect at once.
+- The menu has three optional items, each multiplying customers, order size and serving speed: Combo meals (order size 120 percent, serving speed 80 percent), Street snacks (customers 130 percent, order size 92 percent) and Grab-and-go wraps (customers 90 percent, serving speed 120 percent). A new cart offers none. Combo meals and Street snacks pay on a quiet day; wraps pay when the line is full. Details show what switching each item would change in today's profit.
+- The manager parks at the spot with the biggest crowd at each day boundary. The manager does not change the menu.
+- Incidents: flat tire (equipment, capacity), spill claim (liability, treasury), produce shortage (supply, cost per customer up for some days).
+- Signature upgrade at stage 5: a second serving window, which adds 30 percent capacity.
+
+### 5.10 The other eight
+
+Until their own mechanic ships, these businesses run on the shared core with staff, stages, insurance, takeovers and going public. Planned mechanics (#131): Coffee Kiosk, morning rush and bean grades; Laundromat, machine mix and service washes; Bakery, an oven schedule and wholesale orders; Gym Chain, membership tiers and classes; Hotel Group, room rates by season and star rating; Manufacturing Company, production lines and bulk orders; Airline, routes and fleet; Space Launch Company, launch slots and payload contracts. Each follows the flagship pattern: content figures, a mechanic at stage 2, manager decisions, three incidents and a stage 5 signature upgrade.
 
 Business value: before listing, a business's carrying value is its purchase price plus spending on units, upgrades and stage upgrades, plus its treasury. Wages, premiums, restocking and signing fees are operating expenses and excluded. Selling an unlisted business pays 60 percent of that spending plus the whole treasury, after settling income. A repurchase starts fresh at stage 1.
 
@@ -493,14 +502,14 @@ Use one application, with clear module boundaries rather than an initial monorep
 |---|---|
 | src/app | Expo Router routes and screen composition |
 | src/features | Earn (the home tab), businesses, markets, properties, wealth (portfolio), goals, settings |
-| src/domain | Pure commands, quotes, money, progression, settlement, market simulation; the shared business core in `src/domain/business`, and each flagship mechanic in its own module under it (`vending`, `carWash`, `delivery`) behind one mechanic interface |
+| src/domain | Pure commands, quotes, money, progression, settlement, market simulation; the shared business core in `src/domain/business`, and each flagship mechanic in its own module under it (`vending`, `carWash`, `delivery`, `foodCart`) behind one mechanic interface |
 | src/content | Versioned business, property, stock, coin, event, and balance definitions |
 | src/application | Serialized command service, clock coordination, selectors, subscriptions |
 | src/infrastructure | SQLite repository, migrations, ad and telemetry adapters |
 | src/ui | Shared controls, typography, tokens, charts, original SVG assets |
 | tests and scripts | Fixtures, integration journeys, balance simulations, content validation |
 
-Core commands are TapBatch, UpgradeWallet, BuyBusiness, BuyUnit, UpgradeBusiness (Quality, Efficiency or a flagship upgrade), SetPriceLevel, HireStaff, FireStaff, UpgradeStage, SetPayout, DepositToTreasury, WithdrawFromTreasury, SetInsurance, MakeTakeoverOffer, GoPublic, SetBusinessMechanic (a flagship's own settings: vending placement, mix and restock; car wash packages and memberships; delivery contract answers), SellBusiness, BuyProperty, UpgradeProperty, SetRentalStatus, SellProperty, ExecuteTrade, SetWatchlist, PinGoal, RecordAdReward, ActivateBoost, AdvanceTime, SettleOffline (the capped wall-clock catch-up on launch and resume), AcknowledgeReturnSummary, and UpdateSettings. ResetSave is a separate destructive settings action requiring an explicit in-app confirmation.
+Core commands are TapBatch, UpgradeWallet, BuyBusiness, BuyUnit, UpgradeBusiness (Quality, Efficiency or a flagship upgrade), SetPriceLevel, HireStaff, FireStaff, UpgradeStage, SetPayout, DepositToTreasury, WithdrawFromTreasury, SetInsurance, MakeTakeoverOffer, GoPublic, SetBusinessMechanic (a flagship's own settings: vending placement, mix and restock; car wash packages and memberships; delivery contract answers; food cart spot and menu), SellBusiness, BuyProperty, UpgradeProperty, SetRentalStatus, SellProperty, ExecuteTrade, SetWatchlist, PinGoal, RecordAdReward, ActivateBoost, AdvanceTime, SettleOffline (the capped wall-clock catch-up on launch and resume), AcknowledgeReturnSummary, and UpdateSettings. ResetSave is a separate destructive settings action requiring an explicit in-app confirmation.
 
 Each command envelope has a unique ID, expected state revision, accepted clock input, and validated payload. Quotes include their configuration version and relevant state revision; market quotes also include tick index. The domain returns a new state, ledger entries, and typed results or errors. External effects occur through adapters after transaction boundaries.
 
@@ -830,3 +839,5 @@ Owner decisions that changed this specification. Each entry links the planning t
 
 - 2026-11-08, #93, owner-approved manual taxes: TAX01–TAX12 supersede the ticket’s earlier withholding proposal. Economy 2 adds blended net-worth-based income rates, daily actual-profit accounting, six-hour manual returns, binary reporting and one-shot audits, personal installment debt, complete ownership/disposal basis, proportional listed withdrawals and single-counted listed exits. Tax state is additive under schema 2 and activation raises minimum reader capability to 4. Old intervals settle under economy 1; tax basis starts prospectively from activation exit value. Store checkout remains future; the permanent exemption entitlement contract and boundary are implemented now.
 - 2026-11-11, [RevenueCat: resolve iOS ownership evidence before checkout](https://github.com/chrisgocode/pocket-mogul/issues/124): iOS ownership evidence comes from a read-only StoreKit 2 module in `modules/storekit-evidence`, while RevenueCat keeps checkout, identity and transaction completion ([ADR 1](adr/0001-ios-ownership-evidence-from-storekit.md)). Owner-approved contract changes: evidence is authoritative only from an explicit restore whose `AppStore.sync()` succeeded, timestamped just before the sync; checkout and restore wait up to five minutes for the App Store sheet; Apple non-consumables may clear a checkout guard on fresh absence without a pending list; provider-completed ownership may be store-verified. Checkout stays disabled until #113 passes the ADR's native checks. (Section 13.)
+- 2026-11-12, [Business mechanics 1: Food Cart spot and menu](https://github.com/chrisgocode/pocket-mogul/issues/132), implementation choices: the first of the nine remaining mechanics from #131. Economy 2 gains a `mechanic` (kind `food_cart`) on the Food Cart row. A Food Cart already at stage 2 or above starts the mechanic at the next day boundary. The save gains a top-level `foodCart` record by business ID (inactive by default, no schema bump) and the `food_cart` coach mark. Commands are SetCartSpot, SetMenuItem and InstallSecondWindow. The balance simulation's hands-on play parks at the busiest spot with the most profitable menu. (Sections 1, 5, 13.)
+- 2026-11-13, owner decision (#131): the economy version stays at 2 until the first public release. New business mechanics change economy 2 in place, each in its own `src/content/economy-<business>.ts`, instead of adding a version per business: no player holds a save that needs the old figures yet. After release, the version is bumped only when an update changes money players earn, so the outstanding interval is still settled at the old figures (Section 14). (Sections 5, 14.)

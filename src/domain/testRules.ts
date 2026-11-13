@@ -153,6 +153,7 @@ export function ownedBusiness(
     vending: { status: 'inactive' },
     carWash: { status: 'inactive' },
     delivery: { status: 'inactive' },
+    foodCart: { status: 'inactive' },
     takeovers: { offer: { status: 'none' }, locks: [], merged: [] },
     listing: { status: 'private' },
     ...change,

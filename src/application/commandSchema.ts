@@ -7,6 +7,7 @@ import {
   STAFF_ROLES,
 } from '@/domain/business/definition';
 import { OPTIONAL_PACKAGES } from '@/domain/business/carWashRules';
+import { CART_SPOTS, MENU_ITEMS } from '@/domain/business/foodCartRules';
 import { STOCK_MIXES, VENDING_LOCATIONS } from '@/domain/business/vendingRules';
 import { COACH_MARKS } from '@/domain/coachMarks';
 import type { GameCommand } from '@/domain/commands';
@@ -92,6 +93,14 @@ const gameCommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('AcceptContract'), businessId, offerId: z.string().min(1) }),
   z.object({ type: z.literal('DeclineContract'), businessId, offerId: z.string().min(1) }),
   z.object({ type: z.literal('InstallSortingHub'), businessId }),
+  z.object({ type: z.literal('SetCartSpot'), businessId, spot: z.enum(CART_SPOTS) }),
+  z.object({
+    type: z.literal('SetMenuItem'),
+    businessId,
+    item: z.enum(MENU_ITEMS),
+    offered: z.boolean(),
+  }),
+  z.object({ type: z.literal('InstallSecondWindow'), businessId }),
   z.object({
     type: z.literal('MakeTakeoverOffer'),
     businessId,

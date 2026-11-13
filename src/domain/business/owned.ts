@@ -13,6 +13,7 @@ import {
 } from './definition';
 import { NO_CAR_WASH, type CarWashOperation } from './carWashState';
 import { NO_DELIVERY, type DeliveryOperation } from './deliveryState';
+import { NO_FOOD_CART, type FoodCartOperation } from './foodCartState';
 import { NO_TAKEOVERS, type Takeovers } from './takeoverState';
 import { NO_VENDING, type VendingOperation } from './vendingRules';
 
@@ -54,6 +55,7 @@ export type OwnedBusiness = {
   readonly vending: VendingOperation;
   readonly carWash: CarWashOperation;
   readonly delivery: DeliveryOperation;
+  readonly foodCart: FoodCartOperation;
   readonly takeovers: Takeovers;
   readonly listing: Listing;
 };
@@ -83,6 +85,7 @@ export function newBusiness(
     vending: NO_VENDING,
     carWash: NO_CAR_WASH,
     delivery: NO_DELIVERY,
+    foodCart: NO_FOOD_CART,
     takeovers: NO_TAKEOVERS,
     listing: { status: 'private' },
   };

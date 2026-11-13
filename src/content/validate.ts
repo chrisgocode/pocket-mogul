@@ -6,6 +6,7 @@ import { contentSchema, TIERS, type Content } from './schema';
 import { businessRisksFit } from './validateRisks';
 import { carWashMechanicsFit } from './validateCarWash';
 import { deliveryMechanicsFit } from './validateDelivery';
+import { foodCartMechanicsFit } from './validateFoodCart';
 import { takeoversFit } from './validateTakeovers';
 import { vendingMechanicsFit } from './validateVending';
 
@@ -69,6 +70,7 @@ function crossChecks(content: Content): string[] {
     vendingMechanicsFit,
     carWashMechanicsFit,
     deliveryMechanicsFit,
+    foodCartMechanicsFit,
     takeoversFit,
     efficiencyKeepsCostsPositive,
     systemsKeepUpkeepPositive,
