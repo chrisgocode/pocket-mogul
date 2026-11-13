@@ -18,8 +18,9 @@ export function CollectionShelf() {
     <ListRow
       leading={<ShelfArtwork showpiece={shelf.showpiece} />}
       title="Collection shelf"
-      subtitle={counts}
-      detail={shown}
+      subtitle={shown}
+      value={`${shelf.heldCount} of ${shelf.pieceCount}`}
+      detail={`${shelf.completedSets} of ${shelf.setCount} sets`}
       accessibilityLabel={`Collection shelf, ${counts}, ${shown}`}
       onPress={() => router.push('/collection')}
     />
