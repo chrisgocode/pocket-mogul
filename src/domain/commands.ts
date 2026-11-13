@@ -3,6 +3,7 @@ import type { BakeryCommand } from './business/bakeryOrders';
 import type { OptionalPackage } from './business/carWashRules';
 import type { CoffeeKioskCommand } from './business/coffeeKioskOrders';
 import type { FoodCartCommand } from './business/foodCartOrders';
+import type { GymCommand } from './business/gymOrders';
 import type { LaundromatCommand } from './business/laundromatOrders';
 import type { RestockTarget } from './business/vendingCommands';
 import type { StockMix, VendingLocation } from './business/vendingRules';
@@ -261,6 +262,7 @@ export type GameCommand =
   | CoffeeKioskCommand
   | LaundromatCommand
   | BakeryCommand
+  | GymCommand
   | MakeTakeoverOffer
   | DismissCoachMark
   | SetPayout

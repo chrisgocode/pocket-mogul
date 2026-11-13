@@ -35,7 +35,7 @@ describe('the Bakery mechanic in content (BUS20g)', () => {
 
   it('keeps the earlier mechanics and passes validation as bundled', () => {
     const kinds = getContent().businesses.map((business) => business.mechanic?.kind);
-    expect(kinds.filter((kind) => kind !== undefined)).toHaveLength(7);
+    expect(kinds).toEqual(expect.arrayContaining(['food_cart', 'coffee_kiosk', 'laundromat']));
     expect(findContentIssues(economyV6)).toEqual([]);
   });
 

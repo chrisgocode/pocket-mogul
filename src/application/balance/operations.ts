@@ -1,8 +1,5 @@
 import { locationCommand, membershipCapCommand } from './flagshipChoices';
-import { bakeryCommands } from './bakeryChoices';
-import { coffeeKioskCommands } from './coffeeKioskChoices';
-import { foodCartCommands } from './foodCartChoices';
-import { laundromatCommands } from './laundromatChoices';
+import { mechanicCommands } from './mechanicChoices';
 import type { OptionContext } from './options';
 import { businessEconomy } from '@/application/economy';
 import { bestPriceLevel, profitPerDayCents } from '@/domain/business/core';
@@ -117,10 +114,7 @@ export function operationCommands(
         atMs: context.state.clock.simulationMs,
       }),
       ...washCommands(owned, pricing),
-      ...foodCartCommands(owned, pricing),
-      ...coffeeKioskCommands(owned, pricing),
-      ...laundromatCommands(owned, pricing),
-      ...bakeryCommands(owned, {
+      ...mechanicCommands(owned, {
         pricing,
         seed: context.state.market.seed,
         atMs: context.state.clock.simulationMs,

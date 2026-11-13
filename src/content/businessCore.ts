@@ -27,35 +27,30 @@ function coreFigures(business: Business, rules: BusinessContentRules): CoreFigur
   };
 }
 
+type ContentMechanic = NonNullable<Business['mechanic']>;
+type Kind = ContentMechanic['kind'];
+type MechanicOf<Each extends Kind> = Extract<ContentMechanic, { kind: Each }>;
+
+const MECHANICS: {
+  readonly [Each in Kind]: (mechanic: MechanicOf<Each>) => BusinessMechanic;
+} = {
+  vending: ({ kind, ...vending }) => ({ kind, vending }),
+  car_wash: ({ kind, ...carWash }) => ({ kind, carWash }),
+  delivery: ({ kind, ...delivery }) => ({ kind, delivery }),
+  food_cart: ({ kind, ...foodCart }) => ({ kind, foodCart }),
+  coffee_kiosk: ({ kind, ...coffeeKiosk }) => ({ kind, coffeeKiosk }),
+  laundromat: ({ kind, ...laundromat }) => ({ kind, laundromat }),
+  bakery: ({ kind, ...bakery }) => ({ kind, bakery }),
+  gym: ({ kind, ...gym }) => ({ kind, gym }),
+};
+
+function domainMechanic<Each extends Kind>(mechanic: MechanicOf<Each>): BusinessMechanic {
+  const convert: (mechanic: MechanicOf<Each>) => BusinessMechanic = MECHANICS[mechanic.kind];
+  return convert(mechanic);
+}
+
 function mechanicOf(business: Business): BusinessMechanic {
-  const { mechanic } = business;
-  if (mechanic === undefined) return SHARED_CORE;
-  if (mechanic.kind === 'delivery') {
-    const { kind: _kind, ...delivery } = mechanic;
-    return { kind: 'delivery', delivery };
-  }
-  if (mechanic.kind === 'bakery') {
-    const { kind: _kind, ...bakery } = mechanic;
-    return { kind: 'bakery', bakery };
-  }
-  if (mechanic.kind === 'laundromat') {
-    const { kind: _kind, ...laundromat } = mechanic;
-    return { kind: 'laundromat', laundromat };
-  }
-  if (mechanic.kind === 'coffee_kiosk') {
-    const { kind: _kind, ...coffeeKiosk } = mechanic;
-    return { kind: 'coffee_kiosk', coffeeKiosk };
-  }
-  if (mechanic.kind === 'food_cart') {
-    const { kind: _kind, ...foodCart } = mechanic;
-    return { kind: 'food_cart', foodCart };
-  }
-  if (mechanic.kind === 'car_wash') {
-    const { kind: _kind, ...carWash } = mechanic;
-    return { kind: 'car_wash', carWash };
-  }
-  const { kind: _kind, ...vending } = mechanic;
-  return { kind: 'vending', vending };
+  return business.mechanic === undefined ? SHARED_CORE : domainMechanic(business.mechanic);
 }
 
 export function businessDefinition(

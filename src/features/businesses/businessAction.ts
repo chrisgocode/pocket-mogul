@@ -5,12 +5,8 @@ import type {
   BusinessSale,
   ReadyStage,
 } from '@/application/businessDetailView';
-import type { AvailableCentralKitchen } from '@/application/bakeryView';
 import type { AvailableDetailing } from '@/application/carWashView';
-import type { AvailableOrderAhead } from '@/application/coffeeKioskView';
 import type { AvailableSortingHub, OfferView } from '@/application/deliveryView';
-import type { AvailableSecondWindow } from '@/application/foodCartView';
-import type { AvailablePickup } from '@/application/laundromatView';
 import type { AvailableCardReaders } from '@/application/vendingView';
 import type { Business } from '@/content';
 import type { StaffRole } from '@/domain/business/definition';
@@ -21,12 +17,8 @@ import { formatCashChange } from '@/features/game/priceFormat';
 
 import { profitChange, spent, TRACK_NAMES } from './businessFormat';
 import { fireText, hireText, stageText } from './growthActionText';
-import { centralKitchenText } from './bakeryActionText';
 import { detailingText } from './carWashActionText';
-import { orderAheadText } from './coffeeKioskActionText';
 import { contractText, sortingHubText } from './deliveryActionText';
-import { secondWindowText } from './foodCartActionText';
-import { pickupText } from './laundromatActionText';
 import { takeoverText } from './takeoverActionText';
 import type { TakeoverChoice } from './takeoverFormat';
 import { cardReaderText } from './vendingActionText';
@@ -66,20 +58,10 @@ export type BusinessAction =
   | { readonly kind: 'contract'; readonly business: Business; readonly offer: OfferView }
   | { readonly kind: 'sorting_hub'; readonly business: Business; readonly hub: AvailableSortingHub }
   | {
-      readonly kind: 'order_ahead';
+      readonly kind: 'signature';
       readonly business: Business;
-      readonly orderAhead: AvailableOrderAhead;
-    }
-  | {
-      readonly kind: 'central_kitchen';
-      readonly business: Business;
-      readonly centralKitchen: AvailableCentralKitchen;
-    }
-  | { readonly kind: 'pickup'; readonly business: Business; readonly pickup: AvailablePickup }
-  | {
-      readonly kind: 'second_window';
-      readonly business: Business;
-      readonly secondWindow: AvailableSecondWindow;
+      readonly command: GameCommand;
+      readonly text: ActionSheetText;
     }
   | { readonly kind: 'takeover'; readonly business: Business; readonly choice: TakeoverChoice }
   | { readonly kind: 'withdraw'; readonly business: Business; readonly amountCents: MoneyCents }
@@ -150,13 +132,7 @@ const COMMANDS: ActionHandlers<GameCommand> = {
     offerId: offer.id,
   }),
   sorting_hub: ({ business }) => ({ type: 'InstallSortingHub', businessId: business.id }),
-  second_window: ({ business }) => ({ type: 'InstallSecondWindow', businessId: business.id }),
-  order_ahead: ({ business }) => ({ type: 'InstallOrderAhead', businessId: business.id }),
-  pickup: ({ business }) => ({ type: 'InstallPickup', businessId: business.id }),
-  central_kitchen: ({ business }) => ({
-    type: 'InstallCentralKitchen',
-    businessId: business.id,
-  }),
+  signature: ({ command }) => command,
   takeover: ({ business, choice }) => ({
     type: 'MakeTakeoverOffer',
     businessId: business.id,
@@ -245,10 +221,7 @@ const SHEET_TEXT: ActionHandlers<ActionSheetText> = {
   detailing: (action) => detailingText(action.detailing),
   contract: (action) => contractText(action.offer),
   sorting_hub: (action) => sortingHubText(action.hub),
-  second_window: (action) => secondWindowText(action.secondWindow),
-  order_ahead: (action) => orderAheadText(action.orderAhead),
-  pickup: (action) => pickupText(action.pickup),
-  central_kitchen: (action) => centralKitchenText(action.centralKitchen),
+  signature: ({ text }) => text,
   takeover: (action) => takeoverText(action.choice, action.business),
 };
 

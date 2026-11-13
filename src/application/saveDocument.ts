@@ -13,6 +13,7 @@ import { NO_CAR_WASH, type CarWashOperation } from '@/domain/business/carWashSta
 import { NO_DELIVERY, type DeliveryOperation } from '@/domain/business/deliveryState';
 import { NO_COFFEE_KIOSK, type CoffeeKioskOperation } from '@/domain/business/coffeeKioskRules';
 import { NO_FOOD_CART, type FoodCartOperation } from '@/domain/business/foodCartState';
+import { NO_GYM, type GymOperation } from '@/domain/business/gymRules';
 import { NO_LAUNDROMAT, type LaundromatOperation } from '@/domain/business/laundromatRules';
 import { NO_TAKEOVERS, type Takeovers } from '@/domain/business/takeoverState';
 import { NO_VENDING, type VendingOperation } from '@/domain/business/vendingRules';
@@ -37,6 +38,7 @@ type SavedBusiness = Omit<
   | 'coffeeKiosk'
   | 'laundromat'
   | 'bakery'
+  | 'gym'
   | 'takeovers'
   | 'listing'
 >;
@@ -65,6 +67,7 @@ export type SaveDocument = Omit<GameState, 'businesses' | 'returnSummary' | 'act
   readonly coffeeKiosk: Readonly<Record<string, CoffeeKioskOperation>>;
   readonly laundromat: Readonly<Record<string, LaundromatOperation>>;
   readonly bakery: Readonly<Record<string, BakeryOperation>>;
+  readonly gym: Readonly<Record<string, GymOperation>>;
   readonly takeovers: Readonly<Record<string, Takeovers>>;
   readonly absenceIncidents: readonly AbsenceIncident[];
   readonly incidentEntries: number;
@@ -102,6 +105,7 @@ export function toSaveDocument(state: GameState): SaveDocument {
         coffeeKiosk: _coffeeKiosk,
         laundromat: _laundromat,
         bakery: _bakery,
+        gym: _gym,
         takeovers: _takeovers,
         listing: _listing,
         ...rest
@@ -119,6 +123,7 @@ export function toSaveDocument(state: GameState): SaveDocument {
     coffeeKiosk: byBusiness(businesses, (business) => business.coffeeKiosk),
     laundromat: byBusiness(businesses, (business) => business.laundromat),
     bakery: byBusiness(businesses, (business) => business.bakery),
+    gym: byBusiness(businesses, (business) => business.gym),
     takeovers: byBusiness(businesses, (business) => business.takeovers),
     absenceIncidents: returnSummary.status === 'pending' ? returnSummary.summary.incidents : [],
     incidentEntries: activity.lifetime.byKind.incident,
@@ -139,6 +144,7 @@ function loadedMechanics(businessId: string, document: SaveDocument) {
     coffeeKiosk: saved(document.coffeeKiosk, NO_COFFEE_KIOSK),
     laundromat: saved(document.laundromat, NO_LAUNDROMAT),
     bakery: saved(document.bakery, NO_BAKERY),
+    gym: saved(document.gym, NO_GYM),
     takeovers: saved(document.takeovers, NO_TAKEOVERS),
   };
 }
@@ -180,6 +186,7 @@ export function fromSaveDocument(document: SaveDocument): GameState {
     coffeeKiosk: _coffeeKiosk,
     laundromat: _laundromat,
     bakery: _bakery,
+    gym: _gym,
     takeovers: _takeovers,
     ...rest
   } = document;

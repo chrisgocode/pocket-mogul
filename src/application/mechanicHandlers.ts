@@ -18,6 +18,12 @@ import {
 } from '@/domain/business/foodCartCommands';
 import type { FoodCartCommand } from '@/domain/business/foodCartOrders';
 import {
+  applyInstallAllHours,
+  applySetClassLevel,
+  applySetGymTier,
+} from '@/domain/business/gymCommands';
+import type { GymCommand } from '@/domain/business/gymOrders';
+import {
   applyInstallPickup,
   applySetJumboShare,
   applySetServiceLevel,
@@ -28,7 +34,12 @@ import type { GameState } from '@/domain/gameState';
 
 import { businessEconomy } from './economy';
 
-type MechanicCommand = FoodCartCommand | CoffeeKioskCommand | LaundromatCommand | BakeryCommand;
+type MechanicCommand =
+  | FoodCartCommand
+  | CoffeeKioskCommand
+  | LaundromatCommand
+  | BakeryCommand
+  | GymCommand;
 
 type MechanicHandlers = {
   readonly [Type in MechanicCommand['type']]: (
@@ -63,6 +74,12 @@ export const MECHANIC_HANDLERS: MechanicHandlers = {
     applyAnswerWholesaleOffer(state, { ...command, economy: businessEconomy(content) }),
   InstallCentralKitchen: (state, command, content) =>
     applyInstallCentralKitchen(state, { ...command, economy: businessEconomy(content) }),
+  SetGymTier: (state, command, content) =>
+    applySetGymTier(state, { ...command, economy: businessEconomy(content) }),
+  SetClassLevel: (state, command, content) =>
+    applySetClassLevel(state, { ...command, economy: businessEconomy(content) }),
+  InstallAllHours: (state, command, content) =>
+    applyInstallAllHours(state, { ...command, economy: businessEconomy(content) }),
 };
 
 export const MECHANIC_INVESTMENTS = [
@@ -70,4 +87,5 @@ export const MECHANIC_INVESTMENTS = [
   'InstallOrderAhead',
   'InstallPickup',
   'InstallCentralKitchen',
+  'InstallAllHours',
 ] as const;

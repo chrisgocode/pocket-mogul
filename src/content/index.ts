@@ -3,6 +3,7 @@ import { economyV3 } from './economy-v3';
 import { economyV4 } from './economy-v4';
 import { economyV5 } from './economy-v5';
 import { economyV6 } from './economy-v6';
+import { economyV7 } from './economy-v7';
 import { economyV1 } from './economy-v1';
 import type { Content } from './schema';
 import { findContentIssues, validateContent } from './validate';
@@ -20,8 +21,9 @@ const bundledContentByEconomyVersion = {
   4: economyV4,
   5: economyV5,
   6: economyV6,
+  7: economyV7,
 } as const;
-export const CURRENT_ECONOMY_VERSION = 6;
+export const CURRENT_ECONOMY_VERSION = 7;
 
 let cached: Content | undefined;
 
