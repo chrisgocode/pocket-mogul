@@ -4,25 +4,23 @@ import { ActionSheet } from '@/features/game/ActionSheet';
 import { useGameSnapshot } from '@/features/game/GameContext';
 import { useGameAction } from '@/features/game/useGameAction';
 import { useMoneyFormat } from '@/features/game/useMoneyFormat';
-import { Card } from '@/ui/Card';
 import { Screen } from '@/ui/Screen';
 import { Section } from '@/ui/Section';
 import { StatPair } from '@/ui/StatPair';
-import { AppText } from '@/ui/Typography';
 
 import { AuctionLotCard } from './AuctionLotCard';
 import { collectionActionCommand, collectionActionSheetText } from './collectionAction';
-import { auctionNote, piecesNote } from './collectionFormat';
-import { OwnedPieceCard } from './OwnedPieceCard';
-
-const EMPTY_NOTE =
-  'Nothing yet. Buy a lot from the auction house: art, cars, watches, yachts, wine and curiosities all count in your net worth.';
+import { auctionNote } from './collectionFormat';
+import { PiecesSection } from './PiecesSection';
+import { SetsSection } from './SetsSection';
+import { useShowpiece } from './useShowpiece';
 
 export function CollectionScreen() {
   const view = selectCollection(useGameSnapshot(), getContent());
   const format = useMoneyFormat();
   const { confirmation, review, close, confirm } = useGameAction(collectionActionCommand);
   const { saleReturnPercent } = view;
+  const show = useShowpiece();
   return (
     <Screen tone="profile">
       <StatPair
@@ -34,20 +32,12 @@ export function CollectionScreen() {
           <AuctionLotCard key={lot.piece.id} lot={lot} onBuy={() => review({ kind: 'buy', lot })} />
         ))}
       </Section>
-      <Section title="Your pieces" note={piecesNote(view)}>
-        {view.pieces.length === 0 ? (
-          <Card>
-            <AppText muted>{EMPTY_NOTE}</AppText>
-          </Card>
-        ) : null}
-        {view.pieces.map((owned) => (
-          <OwnedPieceCard
-            key={owned.piece.id}
-            owned={owned}
-            onSell={() => review({ kind: 'sell', owned, saleReturnPercent })}
-          />
-        ))}
-      </Section>
+      <PiecesSection
+        view={view}
+        onSell={(owned) => review({ kind: 'sell', owned, saleReturnPercent })}
+        onShow={show}
+      />
+      <SetsSection sets={view.sets} />
       <ActionSheet
         confirmation={confirmation}
         taxCommand={collectionActionCommand}

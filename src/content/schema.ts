@@ -7,6 +7,7 @@ import type { MoneyCents, PriceMicros } from '@/domain/money';
 import { eventTemplateSchema, marketParamsSchema } from './marketSchema';
 import { incidentSchema, riskRulesSchema } from './riskSchema';
 import { collectionSchema, NO_COLLECTION_CONTENT } from './collectionSchema';
+import { goalSchema } from './goalSchema';
 import { mechanicSchema } from './mechanicSchema';
 import { NO_SYNERGY_CONTENT, synergiesSchema } from './synergySchema';
 import { rivalSchema, takeoverRulesSchema } from './takeoverSchema';
@@ -142,28 +143,6 @@ const propertySchema = z.object({
   expansionAllowed: z.boolean(),
   logo: logoSchema,
 });
-
-const goalSchema = z.discriminatedUnion('kind', [
-  z.object({
-    id,
-    kind: z.literal('first_action'),
-    action: z.enum([
-      'wallet_upgrade',
-      'business_purchase',
-      'rental_started',
-      'stock_purchase',
-      'crypto_purchase',
-      'dividend_received',
-    ]),
-    title: z.string().min(1),
-  }),
-  z.object({
-    id,
-    kind: z.literal('peak_net_worth'),
-    threshold: positiveCents,
-    title: z.string().min(1),
-  }),
-]);
 
 const economySchema = z.object({
   tap: z.object({

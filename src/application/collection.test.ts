@@ -4,9 +4,13 @@ import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars } from '@/domain/money';
 
 import { engineStep } from './balance/engineStep';
+import { selectCashCents } from './cashView';
+import { selectShelf } from './collectionSetsView';
 import { selectCollection } from './collectionView';
 import type { GameSnapshot } from './game';
+import { selectGoals } from './goalsView';
 import { encodeSave } from './saveFormat';
+import { selectTapCard } from './tapCardView';
 import { quoteTaxCommand } from './taxQuotes';
 import { currentState, withoutIncidents } from './testGame';
 
@@ -41,6 +45,18 @@ const buyDinghy: GameCommand = {
   pieceId: 'puffin_dinghy',
   priceCents: dollars('941.67'),
 };
+
+const showDinghy: GameCommand = { type: 'SetShowpiece', pieceId: 'puffin_dinghy' };
+
+const HARBOUR_FLEET = [
+  'puffin_dinghy',
+  'sandpiper_daysailer',
+  'osprey_bay_cruiser',
+  'larkspur_32_sloop',
+  'corsair_sport_fisher',
+];
+
+const ownedAt = (pieceId: string) => ({ pieceId, acquiredDay: 0, paidCents: dollars('500') });
 
 describe('the Collection (COL01)', () => {
   it('offers three first-tier lots to a new player and says which they can afford', () => {
@@ -122,5 +138,85 @@ describe('the saved collection (COL05)', () => {
   it('round-trips owned pieces with the day and price paid', () => {
     const bought = run(collector(), buyDinghy);
     expect(currentState(encodeSave(bought)).collectibles).toEqual(bought.collectibles);
+  });
+
+  it('round-trips the showpiece', () => {
+    const shown = run(run(collector(), buyDinghy), showDinghy);
+    expect(currentState(encodeSave(shown)).showpiece).toBe('puffin_dinghy');
+  });
+});
+
+describe('sets, perks and the showpiece (COL07, COL08)', () => {
+  const fleet = collector({ collectibles: HARBOUR_FLEET.map(ownedAt) });
+
+  it('lists each set with what is held and what is missing', () => {
+    const { sets } = selectCollection(snapshotOf(run(collector(), buyDinghy)), content);
+    expect(sets).toMatchObject({ completedCount: 0, tapBonusPercent: 0, resaleBonusPercent: 0 });
+    expect(sets.sets).toHaveLength(12);
+    expect(sets.sets.find((set) => set.id === 'harbour_fleet')).toMatchObject({
+      name: 'The Harbour Fleet',
+      categoryName: 'Yachts',
+      perk: { kind: 'tap', percent: 2 },
+      status: 'open',
+      heldCount: 1,
+      pieceCount: 5,
+      missing: [
+        'Sandpiper Daysailer',
+        'Osprey Bay Cruiser',
+        'Larkspur 32 Sloop',
+        'Corsair Sport Fisher',
+      ],
+    });
+  });
+
+  it('pays the tap perk of a finished set on taps, saved and pending', () => {
+    expect(selectCollection(snapshotOf(fleet), content).sets).toMatchObject({
+      completedCount: 1,
+      tapBonusPercent: 2,
+    });
+    expect(selectTapCard(snapshotOf(fleet), content).perTapCents).toBe(dollars('1.02'));
+    expect(run(fleet, { type: 'TapBatch', taps: 10 }).cashCents).toBe(dollars('3,010.20'));
+    const pending = { ...snapshotOf(fleet), pendingTaps: 10, pendingBoostedTaps: 4 };
+    expect(selectCashCents(pending, content)).toBe(dollars('3,026.52'));
+  });
+
+  it('ends the perk when a piece of the set is sold', () => {
+    const sold = run(fleet, { type: 'SellCollectible', pieceId: 'puffin_dinghy' });
+    expect(selectTapCard(snapshotOf(sold), content).perTapCents).toBe(dollars('1'));
+  });
+
+  it('puts a piece on show for Earn and the Profile shelf', () => {
+    const shown = run(run(collector(), buyDinghy), showDinghy);
+    expect(selectCollection(snapshotOf(shown), content).pieces).toMatchObject([
+      { display: 'on_show' },
+    ]);
+    expect(selectShelf(shown, content)).toEqual({
+      heldCount: 1,
+      pieceCount: 60,
+      completedSets: 0,
+      setCount: 12,
+      showpiece: {
+        id: 'puffin_dinghy',
+        name: 'Puffin Dinghy',
+        note: 'Three-metre sailing dinghy',
+        categoryName: 'Yachts',
+      },
+    });
+    expect(selectShelf(collector(), content).showpiece).toBeUndefined();
+  });
+});
+
+describe('collection goals (COL09)', () => {
+  it('reaches First piece on the first purchase and shows progress on the rest', () => {
+    const bought = run(collector(), buyDinghy);
+    const goals = selectGoals(bought, content).goals.filter((goal) =>
+      goal.id.startsWith('collection_'),
+    );
+    expect(goals).toMatchObject([
+      { status: 'reached', title: 'First piece' },
+      { status: 'open', progressLabel: 'Categories collected 1 of 6' },
+      { status: 'open', progressLabel: 'Sets finished 0 of 1' },
+      { status: 'open', progressLabel: 'Sets finished 0 of 12' },
+    ]);
   });
 });

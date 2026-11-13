@@ -56,7 +56,7 @@ function collectibleBasis(state: GameState, content: Content) {
     (owned) =>
       [
         collectibleTaxBasis(owned.pieceId),
-        collectibleSaleCents(owned, { ...today, economy }),
+        collectibleSaleCents(owned, { ...today, economy, held: state.collectibles }),
       ] as const,
   );
 }

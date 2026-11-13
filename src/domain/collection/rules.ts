@@ -34,6 +34,18 @@ export type CollectibleDefinition = {
   readonly price: MoneyCents;
 };
 
+export const PERK_KINDS = ['tap', 'resale'] as const;
+export type PerkKind = (typeof PERK_KINDS)[number];
+
+export type CollectionSet = {
+  readonly id: string;
+  readonly pieceIds: readonly string[];
+  readonly perk: { readonly kind: PerkKind; readonly percent: number };
+};
+
+export const COLLECTION_MEASURES = ['pieces', 'sets', 'categories'] as const;
+export type CollectionMeasure = (typeof COLLECTION_MEASURES)[number];
+
 export type CollectionRules = {
   readonly dayMs: number;
   readonly lotCount: number;
@@ -45,6 +57,7 @@ export type CollectionRules = {
 
 export type CollectionEconomy = {
   readonly pieces: readonly CollectibleDefinition[];
+  readonly sets: readonly CollectionSet[];
   readonly rules: CollectionRules;
 };
 

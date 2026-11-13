@@ -25,8 +25,8 @@ export function propertyEconomy(content: Content): PropertyEconomy {
 }
 
 export function collectionEconomy(content: Content): CollectionEconomy {
-  const { pieces, ...rules } = content.collection;
-  return { pieces, rules: { ...rules, dayMs: content.economy.businessRules.dayMs } };
+  const { pieces, sets, ...rules } = content.collection;
+  return { pieces, sets, rules: { ...rules, dayMs: content.economy.businessRules.dayMs } };
 }
 
 function dividendRates(content: Content): DividendRates {
@@ -53,7 +53,11 @@ export function progressRules(content: Content): ProgressRules {
 }
 
 export function goalRules(content: Content): GoalRules {
-  return { goals: content.goals, instruments: instruments(content) };
+  return {
+    goals: content.goals,
+    instruments: instruments(content),
+    collection: collectionEconomy(content),
+  };
 }
 
 export type EconomyVersions = {

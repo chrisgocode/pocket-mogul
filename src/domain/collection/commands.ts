@@ -33,7 +33,11 @@ export function applySellCollectible(state: GameState, order: CollectibleOrder):
   const owned = state.collectibles.find((each) => each.pieceId === order.pieceId);
   if (owned === undefined) return { ok: false, error: 'NOT_OWNED' };
   const today = collectionDayOf(state, order.economy.rules);
-  const proceedsCents = collectibleSaleCents(owned, { ...today, economy: order.economy });
+  const proceedsCents = collectibleSaleCents(owned, {
+    ...today,
+    economy: order.economy,
+    held: state.collectibles,
+  });
   return {
     ok: true,
     cashChangeCents: proceedsCents,
@@ -41,6 +45,17 @@ export function applySellCollectible(state: GameState, order: CollectibleOrder):
       ...state,
       cashCents: moneyCents(state.cashCents + proceedsCents),
       collectibles: state.collectibles.filter((each) => each !== owned),
+      showpiece: state.showpiece === owned.pieceId ? null : state.showpiece,
     },
   };
+}
+
+export function applySetShowpiece(
+  state: GameState,
+  order: { readonly pieceId: string | null },
+): CommandResult {
+  const { pieceId } = order;
+  if (pieceId !== null && !state.collectibles.some((owned) => owned.pieceId === pieceId))
+    return { ok: false, error: 'NOT_OWNED' };
+  return { ok: true, cashChangeCents: moneyCents(0), state: { ...state, showpiece: pieceId } };
 }

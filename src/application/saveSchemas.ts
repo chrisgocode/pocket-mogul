@@ -153,6 +153,7 @@ export const saveDocumentSchema = z.looseObject({
   businesses: z.array(business),
   properties: z.array(property),
   collectibles: z.array(collectible).default([]),
+  showpiece: z.string().min(1).nullable().default(null),
   income,
   unlockedTiers: z.array(z.number().int().positive()),
   returnSummary,

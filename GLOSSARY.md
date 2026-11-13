@@ -443,8 +443,20 @@ A piece on offer at the Auction house, at its Appraised value that day.
 _Avoid_: Listing (that is a property or a business that went public), offer (that is a takeover's)
 
 **Appraised value**:
-What a piece is worth today: its list price, changed by how long it has been owned and by a seeded swing, both set by its category. Selling pays 90 percent of it.
+What a piece is worth today: its list price, changed by how long it has been owned and by a seeded swing, both set by its category. Selling pays 90 percent of it, or more with a resale Perk.
 _Avoid_: Estimated value (that is a property's), market price
+
+**Set**:
+Five pieces of one category that belong together. Holding all five finishes the set and gives its Perk.
+_Avoid_: Series, bundle (that is a purchase)
+
+**Perk**:
+What a finished Set gives while all five pieces are held: more tap income, or a better return on Collection sales.
+_Avoid_: Bonus, boost (that is the Tap Boost), synergy (that is between businesses)
+
+**Showpiece**:
+The one held piece the player has put on show. It appears on Earn and on the Collection shelf on Profile.
+_Avoid_: Featured piece, favourite
 
 ## Markets
 

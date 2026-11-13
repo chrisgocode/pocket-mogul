@@ -3,8 +3,9 @@ import type { Content } from '@/content';
 import type { GameState } from '@/domain/gameState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 import { businessIncomePerMinuteCents, rentIncomePerMinuteCents } from '@/domain/passiveIncome';
-import { tapPayoutCents } from '@/domain/tapping';
+import { boostedTapCents, tapPayoutCents } from '@/domain/tapping';
 
+import { tapBonusPercent } from './collectionSetsView';
 import { passiveEconomy } from './economy';
 import type { GameSnapshot } from './game';
 
@@ -20,10 +21,15 @@ export function stateWithUnsavedIncome(snapshot: GameSnapshot, content: Content)
 export function selectCashCents(snapshot: GameSnapshot, content: Content): MoneyCents {
   const settled = stateWithUnsavedIncome(snapshot, content);
   const perTap = tapPayoutCents(settled.tap.walletLevel, content.economy.tap);
-  const boostExtra = BigInt(content.economy.boost.tapMultiplier - 1);
+  const bonusPercent = tapBonusPercent(settled, content);
+  const plain = boostedTapCents(perTap, { multiplier: 1, bonusPercent });
+  const boosted = boostedTapCents(perTap, {
+    multiplier: content.economy.boost.tapMultiplier,
+    bonusPercent,
+  });
   const pendingCents =
-    perTap * BigInt(snapshot.pendingTaps) +
-    perTap * boostExtra * BigInt(snapshot.pendingBoostedTaps);
+    plain * BigInt(snapshot.pendingTaps - snapshot.pendingBoostedTaps) +
+    boosted * BigInt(snapshot.pendingBoostedTaps);
   return moneyCents(settled.cashCents + pendingCents);
 }
 

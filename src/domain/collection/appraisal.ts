@@ -9,6 +9,7 @@ import type {
   CollectionEconomy,
   OwnedCollectible,
 } from './rules';
+import { saleReturnPercent } from './sets';
 
 const NO_EFFECT_BPS = 10_000;
 const BASIS_POINTS = 10_000n;
@@ -78,10 +79,13 @@ export function ownedValueCents(
 
 export function collectibleSaleCents(
   owned: OwnedCollectible,
-  valuing: CollectionDay & { readonly economy: CollectionEconomy },
+  selling: CollectionDay & {
+    readonly economy: CollectionEconomy;
+    readonly held: readonly OwnedCollectible[];
+  },
 ): MoneyCents {
-  const value = ownedValueCents(owned, valuing);
-  return moneyCents((value * BigInt(valuing.economy.rules.saleReturnPercent)) / PERCENT);
+  const value = ownedValueCents(owned, selling);
+  return moneyCents((value * BigInt(saleReturnPercent(selling.held, selling.economy))) / PERCENT);
 }
 
 export function collectionValueCents(

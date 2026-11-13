@@ -12,4 +12,6 @@ type SellCollectible = {
   readonly quotedRevision?: number;
 };
 
-export type CollectionCommand = BuyCollectible | SellCollectible;
+type SetShowpiece = { readonly type: 'SetShowpiece'; readonly pieceId: string | null };
+
+export type CollectionCommand = BuyCollectible | SellCollectible | SetShowpiece;

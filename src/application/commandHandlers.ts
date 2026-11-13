@@ -39,7 +39,11 @@ import {
   applyRestockVending,
   applySetVendingMix,
 } from '@/domain/business/vendingCommands';
-import { applyBuyCollectible, applySellCollectible } from '@/domain/collection/commands';
+import {
+  applyBuyCollectible,
+  applySellCollectible,
+  applySetShowpiece,
+} from '@/domain/collection/commands';
 import { applyDismissCoachMark } from '@/domain/coachMarks';
 import type { CommandResult, GameCommand } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
@@ -52,6 +56,8 @@ import {
   applyUpgradeProperty,
 } from '@/domain/properties';
 import { applyTapBatch } from '@/domain/tapping';
+
+import { tapBonusPercent } from './collectionSetsView';
 import { applyUpdateSettings } from '@/domain/settings';
 import { applyExecuteTrade, applySetWatchlist } from '@/domain/trades';
 import { applySkipTutorial } from '@/domain/tutorial';
@@ -91,6 +97,7 @@ const COMMAND_HANDLERS: CommandHandlers = {
       taps: command.taps,
       rules: content.economy.tap,
       multiplier,
+      bonusPercent: tapBonusPercent(state, content),
     });
     return { ok: true, state: paid.state, cashChangeCents: paid.earnedCents };
   },
@@ -170,6 +177,7 @@ const COMMAND_HANDLERS: CommandHandlers = {
     applyBuyCollectible(state, { ...command, economy: collectionEconomy(content) }),
   SellCollectible: (state, command, content) =>
     applySellCollectible(state, { ...command, economy: collectionEconomy(content) }),
+  SetShowpiece: (state, command) => applySetShowpiece(state, command),
   ExecuteTrade: (state, command, content) =>
     applyExecuteTrade(state, { ...command, economy: tradeEconomy(content, state) }),
   SetWatchlist: (state, command, content) =>
