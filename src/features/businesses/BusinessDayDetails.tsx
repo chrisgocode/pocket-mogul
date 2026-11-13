@@ -21,7 +21,10 @@ export function BusinessDayDetails({ detail }: { detail: OwnedBusinessDetail }) 
       />
       <DetailLine label="Revenue" value={formatPerDay(day.revenueCents)} />
       {day.memberFeesCents > 0n ? (
-        <DetailLine label="Memberships" value={formatPerDay(day.memberFeesCents)} />
+        <DetailLine
+          label={detail.laundromat === undefined ? 'Memberships' : 'Service washes'}
+          value={formatPerDay(day.memberFeesCents)}
+        />
       ) : null}
       <ContractDayLines day={day} />
       <DetailLine label="Upkeep" value={formatPerDay(moneyCents(0n - day.upkeepCents))} />

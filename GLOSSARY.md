@@ -159,7 +159,7 @@ Cover for one incident category, available from stage 2 (Local). It costs a dail
 _Avoid_: Cover plan, protection
 
 **Flagship mechanic**:
-A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships; the Delivery Company's is Contracts, Reputation and Drivers; the Food Cart's is Spot, Crowd and Menu; the Coffee Kiosk's is Morning rush, Rush plan and Bean grade.
+A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships; the Delivery Company's is Contracts, Reputation and Drivers; the Food Cart's is Spot, Crowd and Menu; the Coffee Kiosk's is Morning rush, Rush plan and Bean grade; the Laundromat's is Jumbo machines and Service washes.
 _Avoid_: Minigame, feature
 
 **Coach mark**:
@@ -237,6 +237,22 @@ _Avoid_: Roast, blend, quality (that is the upgrade track)
 **Order-ahead**:
 The Coffee Kiosk's stage 5 (Global) signature upgrade, paid once from the Treasury: it adds 50 percent to rush capacity.
 _Avoid_: Mobile app, pre-order
+
+**Jumbo machine**:
+A Laundromat machine for big loads, at 160 percent of the price and 70 percent of the speed. The player sets the share of machines that are jumbo (0, 20, 40 or 60 percent); a Manager sets the most profitable share.
+_Avoid_: Large washer, premium machine
+
+**Service wash**:
+A drop-off load a Laundromat washes for the customer at a premium. Service washes come in levels 0 to 3; each level reserves machine time before walk-ins, needs one Attendant and sells for less than the level before.
+_Avoid_: Wash and fold, drop-off (as a noun)
+
+**Attendant**:
+An operations hire at a Laundromat. It adds 20% capacity like any operations hire and allows one Service wash level.
+_Avoid_: Washer (that is the unit)
+
+**Pickup and delivery**:
+The Laundromat's stage 5 (Global) signature upgrade, paid once from the Treasury: it adds 25 percent demand.
+_Avoid_: Courier, van service
 
 **Second window**:
 The Food Cart's stage 5 (Global) signature upgrade, paid once from the Treasury: a second serving window that adds 30 percent capacity.

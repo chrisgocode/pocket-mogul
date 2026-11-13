@@ -29,6 +29,10 @@ function unlockStages(mechanic: BusinessMechanic): UnlockStages | undefined {
     const { unlockStage, orderAhead } = mechanic.coffeeKiosk;
     return { mechanic: unlockStage, signature: orderAhead.stage };
   }
+  if (mechanic.kind === 'laundromat') {
+    const { unlockStage, pickup } = mechanic.laundromat;
+    return { mechanic: unlockStage, signature: pickup.stage };
+  }
   return undefined;
 }
 

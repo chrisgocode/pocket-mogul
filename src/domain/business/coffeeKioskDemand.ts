@@ -41,6 +41,7 @@ function rushOf(running: RunningCoffeeKiosk): RushDay {
     demandShareBps: BigInt(rules.rushDemandBps),
     windowBps: BigInt(rules.rushWindowBps),
     boostBps: (BigInt(rules.plans[operation.plan].rushCapacityBps) * orderAhead) / PERCENT,
+    priceBps: BASIS_POINTS,
   };
 }
 

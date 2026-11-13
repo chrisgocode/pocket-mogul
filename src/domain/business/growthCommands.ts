@@ -6,6 +6,7 @@ import { withCarWashUnlocked } from './carWash';
 import { withCoffeeKioskUnlocked } from './coffeeKiosk';
 import { withDeliveryUnlocked } from './delivery';
 import { withFoodCartUnlocked } from './foodCart';
+import { withLaundromatUnlocked } from './laundromat';
 import { businessDayOf, type StaffRole } from './definition';
 import { quoteStaff, withStaff } from './staff';
 import { quoteStage } from './stages';
@@ -55,7 +56,7 @@ export function applyUpgradeStage(
     day: businessDayOf(state.clock.simulationMs, pricing.rules),
   };
   const staged = withVendingUnlocked({ ...owned, stage: quote.stage + 1 }, pricing);
-  const upgraded = withCoffeeKioskUnlocked(staged, pricing);
+  const upgraded = withLaundromatUnlocked(withCoffeeKioskUnlocked(staged, pricing), pricing);
   return spendTreasury(state, {
     owned,
     priceCents: quote.priceCents,

@@ -58,6 +58,7 @@ const BASELINE_STATE = {
       delivery: { status: 'inactive' },
       foodCart: { status: 'inactive' },
       coffeeKiosk: { status: 'inactive' },
+      laundromat: { status: 'inactive' },
       takeovers: { offer: { status: 'none' }, locks: [], merged: [] },
       listing: { status: 'private' },
     },

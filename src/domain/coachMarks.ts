@@ -8,6 +8,7 @@ export const COACH_MARKS = [
   'delivery',
   'food_cart',
   'coffee_kiosk',
+  'laundromat',
 ] as const;
 export type CoachMark = (typeof COACH_MARKS)[number];
 
