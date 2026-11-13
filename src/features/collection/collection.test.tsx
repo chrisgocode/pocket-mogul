@@ -72,6 +72,7 @@ describe('the Collection screen (COL01)', () => {
     );
     expect(screen.getByRole('header', { name: 'Sell Puffin Dinghy' })).toBeOnTheScreen();
     expect(screen.getByText('90% of appraised value')).toBeOnTheScreen();
+    expect(screen.getByText('Tax basis consumed')).toBeOnTheScreen();
     await confirm();
     expect(await screen.findByText(/^Nothing yet\./)).toBeOnTheScreen();
     expect(session.game.getSnapshot().state.collectibles).toEqual([]);

@@ -50,6 +50,7 @@ export function CollectionScreen() {
       </Section>
       <ActionSheet
         confirmation={confirmation}
+        taxCommand={collectionActionCommand}
         describe={collectionActionSheetText}
         onConfirm={() => void confirm()}
         onCancel={close}
