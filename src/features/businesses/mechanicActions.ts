@@ -2,6 +2,8 @@ import type { OwnedBusinessDetail } from '@/application/businessDetailView';
 import type { GameCommand } from '@/domain/commands';
 import type { ActionSheetText } from '@/features/game/ActionSheet';
 
+import { hubText } from './airlineActionText';
+import type { AirlineActions } from './airlineFormat';
 import { centralKitchenText } from './bakeryActionText';
 import type { BakeryActions } from './bakeryFormat';
 import type { BusinessAction } from './businessAction';
@@ -133,5 +135,15 @@ export function factoryActions(detail: OwnedBusinessDetail, handlers: Handlers):
         command: { type: 'InstallAutomation', businessId },
         text: automationText(automation),
       }),
+  };
+}
+
+export function airlineActions(detail: OwnedBusinessDetail, handlers: Handlers): AirlineActions {
+  const { businessId, run, reviewSignature } = mechanicHandlers(detail, handlers);
+  return {
+    setNetwork: (network) => run({ type: 'SetNetwork', businessId, network }),
+    dismissCoachMark: () => run({ type: 'DismissCoachMark', coachMark: 'airline' }),
+    installHub: (hub) =>
+      reviewSignature({ command: { type: 'InstallHub', businessId }, text: hubText(hub) }),
   };
 }

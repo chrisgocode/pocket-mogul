@@ -1,5 +1,7 @@
 import type { OwnedBusinessDetail } from '@/application/businessDetailView';
 
+import type { AirlineActions } from './airlineFormat';
+import { AirlineSection } from './AirlineSection';
 import type { BakeryActions } from './bakeryFormat';
 import { BakerySection } from './BakerySection';
 import type { CarWashActions } from './carWashFormat';
@@ -32,6 +34,7 @@ export type FlagshipActions = {
   readonly gym: GymActions;
   readonly hotel: HotelActions;
   readonly factory: FactoryActions;
+  readonly airline: AirlineActions;
 };
 
 export function FlagshipSections({
@@ -53,6 +56,7 @@ export function FlagshipSections({
       <GymSection detail={detail} actions={actions.gym} />
       <HotelSection detail={detail} actions={actions.hotel} />
       <FactorySection detail={detail} actions={actions.factory} />
+      <AirlineSection detail={detail} actions={actions.airline} />
     </>
   );
 }

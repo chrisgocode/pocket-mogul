@@ -1,4 +1,6 @@
 import type { Content } from '@/content';
+import { applyInstallHub, applySetNetwork } from '@/domain/business/airlineCommands';
+import type { AirlineCommand } from '@/domain/business/airlineOrders';
 import {
   applyAnswerWholesaleOffer,
   applyInstallCentralKitchen,
@@ -49,7 +51,8 @@ type MechanicCommand =
   | BakeryCommand
   | GymCommand
   | HotelCommand
-  | FactoryCommand;
+  | FactoryCommand
+  | AirlineCommand;
 
 type MechanicHandlers = {
   readonly [Type in MechanicCommand['type']]: (
@@ -100,6 +103,10 @@ export const MECHANIC_HANDLERS: MechanicHandlers = {
     applyAnswerBulkOffer(state, { ...command, economy: businessEconomy(content) }),
   InstallAutomation: (state, command, content) =>
     applyInstallAutomation(state, { ...command, economy: businessEconomy(content) }),
+  SetNetwork: (state, command, content) =>
+    applySetNetwork(state, { ...command, economy: businessEconomy(content) }),
+  InstallHub: (state, command, content) =>
+    applyInstallHub(state, { ...command, economy: businessEconomy(content) }),
 };
 
 export const MECHANIC_INVESTMENTS = [
@@ -110,4 +117,5 @@ export const MECHANIC_INVESTMENTS = [
   'InstallAllHours',
   'InstallConference',
   'InstallAutomation',
+  'InstallHub',
 ] as const;

@@ -2,6 +2,7 @@ import type { CommandResult } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
 
 import { changed, lookUpOwned, spendTreasury, type BusinessOrder } from './commands';
+import { withAirlineUnlocked } from './airline';
 import { withBakeryUnlocked } from './bakery';
 import { withCarWashUnlocked } from './carWash';
 import { withCoffeeKioskUnlocked } from './coffeeKiosk';
@@ -63,16 +64,14 @@ export function applyUpgradeStage(
   const washing = withLaundromatUnlocked(withCoffeeKioskUnlocked(staged, pricing), pricing);
   const training = withGymUnlocked(withBakeryUnlocked(washing, pricing), pricing);
   const upgraded = withFactoryUnlocked(training, pricing);
+  const lodging = withHotelUnlocked(
+    withFoodCartUnlocked(withDeliveryUnlocked(withCarWashUnlocked(upgraded, start), start), start),
+    start,
+  );
   return spendTreasury(state, {
     owned,
     priceCents: quote.priceCents,
-    improved: withHotelUnlocked(
-      withFoodCartUnlocked(
-        withDeliveryUnlocked(withCarWashUnlocked(upgraded, start), start),
-        start,
-      ),
-      start,
-    ),
+    improved: withAirlineUnlocked(lodging, start),
     expense: 'capital',
   });
 }

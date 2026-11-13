@@ -3,6 +3,7 @@ import { splitListedPayout } from './listingPayout';
 import type { ShareholderPayout } from './listingState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 
+import { startAirlineDay } from './airline';
 import { startBakeryDay } from './bakery';
 import { startCarWashDay } from './carWash';
 import { withCoffeeKioskUnlocked } from './coffeeKiosk';
@@ -155,7 +156,8 @@ function dayStarted(segment: Settled, boundary: { settlement: Settlement; endMs:
   const restocked = restockedByStaff(started.business, pricing);
   const washing = startCarWashDay(restocked, { pricing, seed, day });
   const baking = startGymDay(startBakeryDay(washing, { pricing, day }), pricing);
-  const making = startFactoryDay(baking, { pricing, day });
+  const flying = startAirlineDay(baking, { pricing, seed, day });
+  const making = startFactoryDay(flying, { pricing, day });
   const hosting = startHotelDay(making, { pricing, seed, day });
   const parked = startFoodCartDay(hosting, { pricing, seed, day });
   const managed = managerDecisions(parked, pricing);
