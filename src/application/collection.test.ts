@@ -195,7 +195,12 @@ describe('sets, perks and the showpiece (COL07, COL08)', () => {
       pieceCount: 60,
       completedSets: 0,
       setCount: 12,
-      showpiece: { name: 'Puffin Dinghy', note: 'Three-metre sailing dinghy' },
+      showpiece: {
+        id: 'puffin_dinghy',
+        name: 'Puffin Dinghy',
+        note: 'Three-metre sailing dinghy',
+        categoryName: 'Yachts',
+      },
     });
     expect(selectShelf(collector(), content).showpiece).toBeUndefined();
   });

@@ -3,9 +3,9 @@ import { useRouter } from 'expo-router';
 import { selectShelf } from '@/application/collectionSetsView';
 import { getContent } from '@/content';
 import { useGameSnapshot } from '@/features/game/GameContext';
-import { Icon } from '@/ui/Icons';
 import { ListRow } from '@/ui/ListRow';
-import { colors } from '@/ui/tokens';
+
+import { ShelfArtwork } from './ShelfArtwork';
 
 export function CollectionShelf() {
   const router = useRouter();
@@ -16,7 +16,7 @@ export function CollectionShelf() {
     shelf.showpiece === undefined ? 'Nothing on show' : `On show: ${shelf.showpiece.name}`;
   return (
     <ListRow
-      leading={<Icon name="collection" color={colors.text} />}
+      leading={<ShelfArtwork showpiece={shelf.showpiece} />}
       title="Collection shelf"
       subtitle={counts}
       detail={shown}

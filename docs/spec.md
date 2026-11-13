@@ -424,9 +424,9 @@ A Collection opened from Profile holds fictional pieces bought for cash: art, ca
 - COL05: The collection counts in net worth at appraised value, as its own line. The price paid is the piece's tax basis and a sale is a capital disposal (TAX01). A piece owned when taxes start takes what selling would pay as its basis.
 - COL06: The best possible resale of any piece is under twice its price (content test), over days of play in which a business returns far more, so the collection is a goal and a store of wealth, not the best investment. The balance simulation does not buy pieces.
 - COL07: Twelve sets of five pieces, two per category: the five cheaper pieces and the five dearer ones. Every piece belongs to exactly one set. Holding all five gives the set's perk: more tap income (cars, watches, yachts, curiosities) or a better return on any Collection sale (art, wine and spirits). Perks add up. All twelve together give +30% tap income and raise a sale from 90 to 96 percent of appraised value; content validation holds both caps and keeps COL06 true at 96 percent. The tap perk applies to every tap, on top of a Tap Boost. Perks are read from the pieces held, so selling a piece ends its set's perk at once; that sale itself still pays the better return.
-- COL08: The player may put one held piece on show. The showpiece appears on Earn and on a Collection shelf on Profile, which also counts pieces held and sets finished and opens the Collection. Selling the showpiece takes it down. The shelf is hidden until the player holds a piece.
+- COL08: The player may put one held piece on show. The showpiece appears with its artwork thumbnail on Earn and on a Collection shelf on Profile, which also counts pieces held and sets finished and opens the Collection. Selling the showpiece takes it down. The shelf is hidden until the player holds a piece.
 - COL09: Four goals join the list in economy 2: the first piece, a piece in every category, the first finished set and every set. They award badges like other goals (UX03) and stay reached if the pieces are later sold.
-- Per-piece art is #157; until then a piece shows its name, category, rarity and a one-line note.
+- Per-piece art is described in `docs/collectible-artwork.md` (#168). Sets list their pieces by name only.
 
 ## 9 Wealth goals and player feedback
 

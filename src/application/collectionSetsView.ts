@@ -61,17 +61,36 @@ export function selectCollectionSets(state: GameState, content: Content): Collec
   };
 }
 
+export type Showpiece = {
+  readonly id: string;
+  readonly name: string;
+  readonly note: string;
+  readonly categoryName: string;
+};
+
+function showpieceOf(state: GameState, content: Content): Showpiece | undefined {
+  const { pieces, categories } = content.collection;
+  const shown = pieces.find((piece) => piece.id === state.showpiece);
+  if (shown === undefined) return undefined;
+  const category = categories.find((each) => each.id === shown.category);
+  return {
+    id: shown.id,
+    name: shown.name,
+    note: shown.note,
+    categoryName: category?.name ?? shown.category,
+  };
+}
+
 export type ShelfView = {
   readonly heldCount: number;
   readonly pieceCount: number;
   readonly completedSets: number;
   readonly setCount: number;
-  readonly showpiece: { readonly name: string; readonly note: string } | undefined;
+  readonly showpiece: Showpiece | undefined;
 };
 
 export function selectShelf(state: GameState, content: Content): ShelfView {
   const { pieces, sets } = content.collection;
-  const shown = pieces.find((piece) => piece.id === state.showpiece);
   return {
     heldCount: pieces.filter((piece) =>
       state.collectibles.some((owned) => owned.pieceId === piece.id),
@@ -79,6 +98,6 @@ export function selectShelf(state: GameState, content: Content): ShelfView {
     pieceCount: pieces.length,
     completedSets: selectCollectionSets(state, content).completedCount,
     setCount: sets.length,
-    showpiece: shown === undefined ? undefined : { name: shown.name, note: shown.note },
+    showpiece: showpieceOf(state, content),
   };
 }

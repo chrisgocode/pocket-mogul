@@ -70,9 +70,7 @@ describe('the Collection screen (COL01)', () => {
       await screen.findByRole('button', { name: 'Puffin Dinghy, In your collection' }),
     ).toBeDisabled();
     expect(screen.getByText('1 of 60')).toBeOnTheScreen();
-    expect(
-      screen.getByText('Three-metre sailing dinghy · Bought today · $0.00 since you bought it'),
-    ).toBeOnTheScreen();
+    expect(screen.getByText('Bought today · $0.00 since you bought it')).toBeOnTheScreen();
     expect(session.game.getSnapshot().state.collectibles).toEqual([DINGHY]);
   });
 
