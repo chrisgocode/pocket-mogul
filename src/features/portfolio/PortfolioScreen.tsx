@@ -10,6 +10,7 @@ import { Section } from '@/ui/Section';
 import { SegmentedControl } from '@/ui/SegmentedControl';
 import { useSegment } from '@/ui/state/useSegment';
 import { AllocationCard } from './AllocationCard';
+import { CollectionShelf } from './CollectionShelf';
 import { ProfileIncome } from './ProfileIncome';
 import { ProfileLinks } from './ProfileLinks';
 import { HoldingsCard } from './HoldingsCard';
@@ -26,6 +27,7 @@ export function PortfolioScreen() {
       <ProfileLinks />
       <WorthCard worth={view.worth} />
       <ProfileIncome />
+      <CollectionShelf />
       <SegmentedControl
         options={VIEWS.map((label) => ({ value: label, label }))}
         selected={segment.selected}

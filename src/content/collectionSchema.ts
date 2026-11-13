@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
-import { COLLECTIBLE_CATEGORIES, RARITIES, SWING_SHAPES } from '@/domain/collection/rules';
+import {
+  COLLECTIBLE_CATEGORIES,
+  PERK_KINDS,
+  RARITIES,
+  SWING_SHAPES,
+} from '@/domain/collection/rules';
 import { moneyCents } from '@/domain/money';
 
 const MOST_SWING_BPS = 9999;
@@ -30,12 +35,22 @@ const pieceSchema = z.object({
   price: z.bigint().positive().transform(moneyCents),
 });
 
+const setSchema = z.object({
+  id,
+  name: z.string().min(1),
+  category: z.enum(COLLECTIBLE_CATEGORIES),
+  pieceIds: z.array(id).min(1),
+  perk: z.object({ kind: z.enum(PERK_KINDS), percent: positiveInt }),
+});
+
 export const collectionSchema = z.object({
   lotCount: nonNegativeInt,
   lotDays: positiveInt,
   saleReturnPercent: wholePercent,
   rarityWeights: z.object({ common: positiveInt, uncommon: positiveInt, rare: positiveInt }),
   categories: z.array(categorySchema),
+  perkCaps: z.object({ tap: wholePercent, resale: wholePercent }),
+  sets: z.array(setSchema),
   pieces: z.array(pieceSchema),
 });
 
@@ -45,8 +60,11 @@ export const NO_COLLECTION_CONTENT = {
   saleReturnPercent: 0,
   rarityWeights: { common: 1, uncommon: 1, rare: 1 },
   categories: [],
+  perkCaps: { tap: 0, resale: 0 },
+  sets: [],
   pieces: [],
 };
 
 export type CollectionCategory = z.output<typeof categorySchema>;
+export type CollectionSetContent = z.output<typeof setSchema>;
 export type CollectionPiece = z.output<typeof pieceSchema>;

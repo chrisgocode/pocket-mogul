@@ -6,6 +6,7 @@ import { HomeOverview } from './HomeOverview';
 import { HomeDecisions } from './HomeDecisions';
 import { HomeAssets } from './HomeAssets';
 import { PinnedGoalCard } from './PinnedGoalCard';
+import { ShowpieceCard } from './ShowpieceCard';
 import { TapEarnings } from './TapEarnings';
 
 export function HomeScreen() {
@@ -16,6 +17,7 @@ export function HomeScreen() {
       <HomeDecisions />
       <TutorialHint steps={TUTORIAL_STEPS} />
       <TapEarnings />
+      <ShowpieceCard />
       <HomeAssets />
     </Screen>
   );

@@ -82,6 +82,7 @@ export type GameState = {
   readonly businesses: readonly OwnedBusiness[];
   readonly properties: readonly OwnedProperty[];
   readonly collectibles: readonly OwnedCollectible[];
+  readonly showpiece: string | null;
   readonly income: IncomeState;
   readonly unlockedTiers: readonly number[];
   readonly returnSummary: PendingReturnSummary;
@@ -122,6 +123,7 @@ export function freshGameState(start: {
     businesses: [],
     properties: [],
     collectibles: [],
+    showpiece: null,
     income: freshIncome(),
     unlockedTiers: [1],
     returnSummary: { status: 'none' },

@@ -120,6 +120,7 @@ function catalogsOf(content: Content): Catalog[] {
     },
     { kind: 'synergy', ids: content.synergies.links.map((link) => link.id), retirable: true },
     { kind: 'collectible', ids: content.collection.pieces.map((p) => p.id), retirable: true },
+    { kind: 'collection set', ids: content.collection.sets.map((s) => s.id), retirable: true },
     { kind: 'property', ids: content.properties.map((p) => p.id), retirable: true },
     {
       kind: 'instrument',

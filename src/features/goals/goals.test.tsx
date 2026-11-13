@@ -32,16 +32,16 @@ const buyVending = () =>
   });
 
 describe('Goals', () => {
-  it('lists all 13 goals and earns a badge when one is reached', async () => {
+  it('lists all 17 goals and earns a badge when one is reached', async () => {
     await renderRouter('src/app', { initialUrl: '/goals' });
-    expect(screen.getByText('0 of 13 badges')).toBeOnTheScreen();
-    expect(screen.getAllByText('Pin to Earn')).toHaveLength(13);
+    expect(screen.getByText('0 of 17 badges')).toBeOnTheScreen();
+    expect(screen.getAllByText('Pin to Earn')).toHaveLength(17);
     expect(screen.queryByText(/Home/)).toBeNull();
     expect(
       screen.getByLabelText('First business, not reached, Buy any business'),
     ).toBeOnTheScreen();
     await buyVending();
-    expect(screen.getByText('1 of 13 badges')).toBeOnTheScreen();
+    expect(screen.getByText('1 of 17 badges')).toBeOnTheScreen();
     expect(
       screen.getByLabelText('First business, badge earned, Reached Day 1, 00:00'),
     ).toBeOnTheScreen();

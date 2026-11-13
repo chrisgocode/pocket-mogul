@@ -1,3 +1,4 @@
+import type { CollectionSetsView, CollectionSetView } from '@/application/collectionSetsView';
 import type { AuctionLot, CollectionView, OwnedPiece } from '@/application/collectionView';
 import type { Rarity } from '@/domain/collection/rules';
 import { formatMoneyExact } from '@/domain/money';
@@ -32,4 +33,21 @@ export function heldNote(owned: OwnedPiece): string {
 
 export function piecesNote(view: CollectionView): string {
   return `${view.pieces.length} of ${view.pieceCount} pieces · selling pays ${view.saleReturnPercent}% of appraised value`;
+}
+
+export function perkLabel(perk: CollectionSetView['perk']): string {
+  return perk.kind === 'tap' ? `+${perk.percent}% tap income` : `Sales pay +${perk.percent}%`;
+}
+
+export function setDetail(set: CollectionSetView): string {
+  return set.status === 'complete' ? 'Perk active' : `Missing ${set.missing.join(', ')}`;
+}
+
+export function setsNote(sets: CollectionSetsView): string {
+  const finished = `${sets.completedCount} of ${sets.sets.length} finished`;
+  const perks = [
+    sets.tapBonusPercent > 0 && `+${sets.tapBonusPercent}% tap income`,
+    sets.resaleBonusPercent > 0 && `sales pay +${sets.resaleBonusPercent}%`,
+  ].filter((perk) => perk !== false);
+  return [finished, ...perks, 'selling a piece ends its set perk'].join(' · ');
 }

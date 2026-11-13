@@ -18,14 +18,23 @@ const DINGHY: OwnedCollectible = {
 
 async function open(
   cash: string,
-  { collectibles = [] as OwnedCollectible[], initialUrl = '/collection' } = {},
+  {
+    collectibles = [] as OwnedCollectible[],
+    initialUrl = '/collection',
+    showpiece = null as string | null,
+  } = {},
 ): Promise<TestGame> {
   const fresh = freshGameState({
     saveId: 'collector',
     economyVersion: CURRENT_ECONOMY_VERSION,
     wallMs: 0,
   });
-  const session = await startTestGameFrom({ ...fresh, cashCents: dollars(cash), collectibles });
+  const session = await startTestGameFrom({
+    ...fresh,
+    cashCents: dollars(cash),
+    collectibles,
+    showpiece,
+  });
   await session.game.checkpoint();
   mockGame = Promise.resolve({ status: 'ready', game: session.game });
   await renderRouter('src/app', { initialUrl });
@@ -76,5 +85,48 @@ describe('the Collection screen (COL01)', () => {
     await confirm();
     expect(await screen.findByText(/^Nothing yet\./)).toBeOnTheScreen();
     expect(session.game.getSnapshot().state.collectibles).toEqual([]);
+  });
+});
+
+const SHOWN = { collectibles: [DINGHY], showpiece: 'puffin_dinghy' };
+
+describe('sets and the showpiece (COL07, COL08)', () => {
+  it('lists every set with its perk and what is still missing', async () => {
+    await open('100', { collectibles: [DINGHY] });
+    expect(screen.getByText('Sets')).toBeOnTheScreen();
+    expect(
+      screen.getByText('0 of 12 finished · selling a piece ends its set perk'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Yachts · +2% tap income')).toBeOnTheScreen();
+    expect(screen.getByText('1 of 5')).toBeOnTheScreen();
+    expect(screen.getByText('Art · Sales pay +1%')).toBeOnTheScreen();
+  });
+
+  it('puts a piece on show and takes it down', async () => {
+    const session = await open('100', { collectibles: [DINGHY] });
+    await fireEvent.press(screen.getByRole('button', { name: 'Put Puffin Dinghy on show' }));
+    const takeDown = await screen.findByRole('button', { name: 'Take Puffin Dinghy off show' });
+    expect(session.game.getSnapshot().state.showpiece).toBe('puffin_dinghy');
+    await fireEvent.press(takeDown);
+    expect(
+      await screen.findByRole('button', { name: 'Put Puffin Dinghy on show' }),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the piece on Earn', async () => {
+    await open('100', { ...SHOWN, initialUrl: '/' });
+    expect(
+      screen.getByRole('button', { name: 'On show, Puffin Dinghy, open the Collection' }),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the shelf on Profile, which opens the Collection', async () => {
+    await open('100', { ...SHOWN, initialUrl: '/portfolio' });
+    await fireEvent.press(
+      screen.getByRole('button', {
+        name: 'Collection shelf, 1 of 60 pieces · 0 of 12 sets, On show: Puffin Dinghy',
+      }),
+    );
+    expect(await screen.findByText('Auction house')).toBeOnTheScreen();
   });
 });

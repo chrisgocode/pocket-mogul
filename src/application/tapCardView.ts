@@ -1,9 +1,10 @@
 import type { Content } from '@/content';
-import { moneyCents, type MoneyCents } from '@/domain/money';
-import { tapPayoutCents } from '@/domain/tapping';
+import type { MoneyCents } from '@/domain/money';
+import { boostedTapCents, tapPayoutCents } from '@/domain/tapping';
 import { walletArtworkStage } from '@/domain/wallet';
 
 import { selectCashCents } from './cashView';
+import { tapBonusPercent } from './collectionSetsView';
 import type { GameSnapshot } from './game';
 import { isTapBoosted } from './tapBoostView';
 
@@ -22,7 +23,10 @@ export function selectTapCard(snapshot: GameSnapshot, content: Content): TapCard
   const multiplier = boosted ? content.economy.boost.tapMultiplier : 1;
   return {
     cashCents: selectCashCents(snapshot, content),
-    perTapCents: moneyCents(tapPayoutCents(walletLevel, rules) * BigInt(multiplier)),
+    perTapCents: boostedTapCents(tapPayoutCents(walletLevel, rules), {
+      multiplier,
+      bonusPercent: tapBonusPercent(snapshot.state, content),
+    }),
     boosted,
     walletLevel,
     artworkStage: walletArtworkStage(walletLevel, rules.artworkLevels),

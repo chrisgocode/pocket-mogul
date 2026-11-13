@@ -36,6 +36,10 @@ export const testCollection: CollectionEconomy = {
       { id: 'curiosities', swingBps: 3000, swingDays: 12, swing: 'step', ageCurve: [] },
     ],
   },
+  sets: [
+    { id: 'garage', pieceIds: ['table_red', 'roadster'], perk: { kind: 'resale', percent: 4 } },
+    { id: 'gallery', pieceIds: ['sketch', 'meteorite'], perk: { kind: 'tap', percent: 5 } },
+  ],
   pieces: [
     { id: 'table_red', category: 'wine', tier: 1, rarity: 'common', price: dollars('500') },
     { id: 'roadster', category: 'cars', tier: 1, rarity: 'common', price: dollars('1,000') },

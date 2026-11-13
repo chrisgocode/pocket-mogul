@@ -5,6 +5,7 @@ import {
   ownedValueCents,
 } from '@/domain/collection/appraisal';
 import { auctionLots, daysUntilNewLots } from '@/domain/collection/auction';
+import { saleReturnPercent } from '@/domain/collection/sets';
 import {
   collectionDayOf,
   type CollectionDay,
@@ -16,6 +17,7 @@ import { moneyCents, type MoneyCents } from '@/domain/money';
 
 import { affordability, type Affordability } from './affordability';
 import { selectCashCents, stateWithUnsavedIncome } from './cashView';
+import { selectCollectionSets, type CollectionSetsView } from './collectionSetsView';
 import { collectionEconomy } from './economy';
 import type { GameSnapshot } from './game';
 
@@ -39,6 +41,7 @@ export type OwnedPiece = Described & {
   readonly gainCents: MoneyCents;
   readonly saleCents: MoneyCents;
   readonly daysHeld: number;
+  readonly display: 'on_show' | 'stored';
 };
 
 export type CollectionView = {
@@ -49,6 +52,7 @@ export type CollectionView = {
   readonly daysUntilNewLots: number;
   readonly lots: readonly AuctionLot[];
   readonly pieces: readonly OwnedPiece[];
+  readonly sets: CollectionSetsView;
 };
 
 type Context = {
@@ -82,14 +86,16 @@ function ownedOf(owned: OwnedCollectible, context: Context): OwnedPiece[] {
   const piece = context.content.collection.pieces.find((each) => each.id === owned.pieceId);
   if (piece === undefined) return [];
   const valueCents = ownedValueCents(owned, context.valuing);
+  const selling = { ...context.valuing, held: context.state.collectibles };
   return [
     {
       ...described(piece, context.content),
       valueCents,
       paidCents: owned.paidCents,
       gainCents: moneyCents(valueCents - owned.paidCents),
-      saleCents: collectibleSaleCents(owned, context.valuing),
+      saleCents: collectibleSaleCents(owned, selling),
       daysHeld: context.valuing.day - owned.acquiredDay,
+      display: context.state.showpiece === owned.pieceId ? 'on_show' : 'stored',
     },
   ];
 }
@@ -104,7 +110,7 @@ export function selectCollection(snapshot: GameSnapshot, content: Content): Coll
   return {
     valueCents: moneyCents(pieces.reduce<bigint>((total, each) => total + each.valueCents, 0n)),
     pieceCount: content.collection.pieces.length,
-    saleReturnPercent: economy.rules.saleReturnPercent,
+    saleReturnPercent: saleReturnPercent(state.collectibles, economy),
     lotDays: economy.rules.lotDays,
     daysUntilNewLots: daysUntilNewLots(valuing.day, economy),
     lots: lots.flatMap((lot) => {
@@ -112,5 +118,6 @@ export function selectCollection(snapshot: GameSnapshot, content: Content): Coll
       return piece === undefined ? [] : [lotOf(piece, context)];
     }),
     pieces,
+    sets: selectCollectionSets(state, content),
   };
 }

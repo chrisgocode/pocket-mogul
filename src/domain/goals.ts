@@ -1,3 +1,5 @@
+import type { CollectionEconomy, CollectionMeasure } from './collection/rules';
+import { collectionProgress } from './collection/sets';
 import type { CommandResult } from './commands';
 import type { GameState } from './gameState';
 import type { MarketInstrument } from './marketRules';
@@ -13,7 +15,13 @@ export type FirstAction =
 
 export type GoalDefinition =
   | { readonly id: string; readonly kind: 'first_action'; readonly action: FirstAction }
-  | { readonly id: string; readonly kind: 'peak_net_worth'; readonly threshold: MoneyCents };
+  | { readonly id: string; readonly kind: 'peak_net_worth'; readonly threshold: MoneyCents }
+  | {
+      readonly id: string;
+      readonly kind: 'collection';
+      readonly measure: CollectionMeasure;
+      readonly count: number;
+    };
 
 export type CompletedGoal = { readonly goalId: string; readonly simulationMs: number };
 
@@ -25,6 +33,7 @@ export type GoalProgress = {
 export type GoalRules = {
   readonly goals: readonly GoalDefinition[];
   readonly instruments: readonly MarketInstrument[];
+  readonly collection: CollectionEconomy;
 };
 
 export const NO_GOAL_PROGRESS: GoalProgress = { completed: [], pinnedGoalId: null };
@@ -52,9 +61,10 @@ const FIRST_ACTION_CHECKS: Readonly<Record<FirstAction, ActionCheck>> = {
 };
 
 function isReached(goal: GoalDefinition, state: GameState, rules: GoalRules): boolean {
-  return goal.kind === 'peak_net_worth'
-    ? state.peakNetWorthCents >= goal.threshold
-    : FIRST_ACTION_CHECKS[goal.action](state, rules);
+  if (goal.kind === 'peak_net_worth') return state.peakNetWorthCents >= goal.threshold;
+  if (goal.kind === 'first_action') return FIRST_ACTION_CHECKS[goal.action](state, rules);
+  const { collection: economy } = rules;
+  return collectionProgress(state.collectibles, { economy, measure: goal.measure }) >= goal.count;
 }
 
 function isGoalCompleted(progress: GoalProgress, goalId: string): boolean {

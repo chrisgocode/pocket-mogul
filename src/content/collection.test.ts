@@ -40,9 +40,10 @@ describe('the collection in content (COL01)', () => {
       const aged = category.ageCurve.reduce((high, point) => Math.max(high, point.bps), 0);
       const high = BigInt(aged) * (BPS + BigInt(category.swingBps));
       const low = BPS * (BPS - BigInt(category.swingBps));
-      return Number((high * BigInt(collection.saleReturnPercent)) / low);
+      const pays = collection.saleReturnPercent + collection.perkCaps.resale;
+      return Number((high * BigInt(pays)) / low);
     });
-    expect(best).toEqual([180, 137, 109, 99, 149, 167]);
+    expect(best).toEqual([192, 146, 117, 106, 159, 178]);
     expect(Math.max(...best)).toBeLessThan(2 * Number(PERCENT));
   });
 
@@ -65,6 +66,59 @@ describe('the collection in content (COL01)', () => {
       issuesFor((draft) => {
         draft.pieces[1]!.id = draft.pieces[0]!.id;
       }),
-    ).toEqual(['Duplicate collectible ID: corner_cafe_sketch']);
+    ).toEqual([
+      'Duplicate collectible ID: corner_cafe_sketch',
+      'Collection set sketchbook holds a piece outside its category',
+    ]);
+  });
+});
+
+describe('collection sets in content (COL07)', () => {
+  const { collection } = getContent();
+
+  it('holds twelve sets of five, two in each category, covering every piece once', () => {
+    const counts = COLLECTIBLE_CATEGORIES.map(
+      (category) => collection.sets.filter((set) => set.category === category).length,
+    );
+    const covered = collection.sets.flatMap((set) => set.pieceIds);
+    expect(counts).toEqual([2, 2, 2, 2, 2, 2]);
+    expect(collection.sets.map((set) => set.pieceIds.length)).toEqual(Array(12).fill(5));
+    expect(new Set(covered).size).toBe(collection.pieces.length);
+  });
+
+  it('caps every finished set together at +30% tap income and 96% on a sale', () => {
+    const total = (kind: 'tap' | 'resale') =>
+      collection.sets
+        .filter((set) => set.perk.kind === kind)
+        .reduce((sum, set) => sum + set.perk.percent, 0);
+    expect(collection.perkCaps).toEqual({ tap: 30, resale: 6 });
+    expect([total('tap'), total('resale')]).toEqual([30, 6]);
+  });
+
+  it('adds four collection goals to the thirteen of economy 1', () => {
+    const goals = getContent().goals.filter((goal) => goal.kind === 'collection');
+    expect(goals.map((goal) => [goal.id, goal.measure, goal.count])).toEqual([
+      ['collection_first_piece', 'pieces', 1],
+      ['collection_every_category', 'categories', 6],
+      ['collection_first_set', 'sets', 1],
+      ['collection_every_set', 'sets', 12],
+    ]);
+  });
+
+  it('rejects sets and perks that do not fit', () => {
+    expect(
+      issuesFor((draft) => {
+        draft.sets[0]!.pieceIds[1] = draft.sets[0]!.pieceIds[0]!;
+        draft.sets[2]!.pieceIds[0] = 'puffin_dinghy';
+        draft.sets[3]!.perk.percent = 7;
+        draft.perkCaps.resale = 11;
+      }),
+    ).toEqual([
+      'Collection set sketchbook repeats a piece',
+      'Collection set sunday_drivers holds a piece outside its category',
+      'Collection tap perks pass their cap',
+      'A sale must not pay more than appraised value',
+      'A piece may belong to one collection set only',
+    ]);
   });
 });

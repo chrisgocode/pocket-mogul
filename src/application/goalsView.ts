@@ -1,8 +1,11 @@
 import type { Content, Goal } from '@/content';
 import type { GameState } from '@/domain/gameState';
-import { formatMoneyCompact, type MoneyCents } from '@/domain/money';
+import type { CollectionMeasure } from '@/domain/collection/rules';
+import { collectionProgress } from '@/domain/collection/sets';
+import { formatMoneyCompact } from '@/domain/money';
 
 import { gameClockText } from './clockText';
+import { collectionEconomy } from './economy';
 
 export type GoalView =
   | {
@@ -33,12 +36,24 @@ const FIRST_ACTION_HINTS: Readonly<Record<string, string>> = {
   dividend_received: 'Hold a dividend stock through a market hour',
 };
 
-function progressLabel(goal: Goal, peakCents: MoneyCents): string {
+const MEASURE_NAMES: Readonly<Record<CollectionMeasure, string>> = {
+  pieces: 'Pieces collected',
+  sets: 'Sets finished',
+  categories: 'Categories collected',
+};
+
+function progressLabel(goal: Goal, state: GameState, content: Content): string {
   if (goal.kind === 'first_action') return FIRST_ACTION_HINTS[goal.action] ?? goal.title;
-  return `Peak net worth ${formatMoneyCompact(peakCents)} of ${formatMoneyCompact(goal.threshold)}`;
+  if (goal.kind === 'collection') {
+    const progress = { economy: collectionEconomy(content), measure: goal.measure };
+    const reached = collectionProgress(state.collectibles, progress);
+    return `${MEASURE_NAMES[goal.measure]} ${reached} of ${goal.count}`;
+  }
+  const peak = formatMoneyCompact(state.peakNetWorthCents);
+  return `Peak net worth ${peak} of ${formatMoneyCompact(goal.threshold)}`;
 }
 
-function goalView(goal: Goal, state: GameState): GoalView {
+function goalView(goal: Goal, state: GameState, content: Content): GoalView {
   const reached = state.goals.completed.find((completed) => completed.goalId === goal.id);
   if (reached !== undefined) {
     return {
@@ -52,13 +67,13 @@ function goalView(goal: Goal, state: GameState): GoalView {
     status: 'open',
     id: goal.id,
     title: goal.title,
-    progressLabel: progressLabel(goal, state.peakNetWorthCents),
+    progressLabel: progressLabel(goal, state, content),
     pinned: state.goals.pinnedGoalId === goal.id,
   };
 }
 
 export function selectGoals(state: GameState, content: Content): GoalsView {
-  const goals = content.goals.map((goal) => goalView(goal, state));
+  const goals = content.goals.map((goal) => goalView(goal, state, content));
   return { goals, reachedCount: goals.filter((goal) => goal.status === 'reached').length };
 }
 
@@ -68,7 +83,7 @@ export function selectPinnedGoal(
 ): Extract<GoalView, { status: 'open' }> | undefined {
   const goal = content.goals.find((listed) => listed.id === state.goals.pinnedGoalId);
   if (goal === undefined) return undefined;
-  const view = goalView(goal, state);
+  const view = goalView(goal, state, content);
   return view.status === 'open' ? view : undefined;
 }
 

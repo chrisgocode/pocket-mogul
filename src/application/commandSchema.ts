@@ -198,6 +198,7 @@ const gameCommandSchema = z.discriminatedUnion('type', [
     pieceId: assetId,
     quotedRevision: fromLevel.exactOptional(),
   }),
+  z.object({ type: z.literal('SetShowpiece'), pieceId: assetId.nullable() }),
   z.object({
     type: z.literal('ExecuteTrade'),
     assetId,
