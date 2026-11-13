@@ -1,3 +1,4 @@
+import { OwnedPieceHeading } from './OwnedPieceHeading';
 import type { OwnedPiece } from '@/application/collectionView';
 import { formatMoneyExact } from '@/domain/money';
 import { formatCashChange } from '@/features/game/priceFormat';
@@ -5,7 +6,7 @@ import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { ListRow } from '@/ui/ListRow';
 
-import { heldNote, pieceKind } from './collectionFormat';
+import { heldNote } from './collectionFormat';
 
 export function OwnedPieceCard({
   owned,
@@ -17,9 +18,9 @@ export function OwnedPieceCard({
   const label = `Sell · ${formatCashChange(owned.saleCents)}`;
   return (
     <Card>
+      <OwnedPieceHeading owned={owned} />
       <ListRow
-        title={owned.piece.name}
-        subtitle={`${pieceKind(owned)} · ${owned.piece.note}`}
+        title="Appraised value"
         value={formatMoneyExact(owned.valueCents)}
         detail={heldNote(owned)}
       />

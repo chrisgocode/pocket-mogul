@@ -34,7 +34,8 @@
           "userTrackingUsageDescription": "Pocket Fortune uses this to show ads that are more relevant to you. The game works the same either way."
         }
       ],
-      "./plugins/withRevenueCatPins"
+      "./plugins/withRevenueCatPins",
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true
