@@ -1,4 +1,4 @@
-import { economyV5 } from './economy-v5';
+import { economyV2 } from './economy-v2';
 import { findContentIssues, getContent } from './index';
 import type { ContentInput } from './schema';
 
@@ -14,7 +14,7 @@ function laundromatOf(content: ContentInput): LaundromatInput {
 }
 
 const issuesFor = (mutate: (laundromat: LaundromatInput) => void) => {
-  const content: ContentInput = structuredClone(economyV5);
+  const content: ContentInput = structuredClone(economyV2);
   mutate(laundromatOf(content));
   return findContentIssues(content);
 };
@@ -25,7 +25,7 @@ describe('the Laundromat mechanic in content (BUS20f)', () => {
       (business) => business.mechanic?.kind === 'laundromat',
     );
     expect(laundromats.map((business) => business.id)).toEqual(['laundromat']);
-    expect(laundromatOf(economyV5)).toMatchObject({
+    expect(laundromatOf(economyV2)).toMatchObject({
       unlockStage: 2,
       jumbo: { sharePercents: [0, 20, 40, 60] },
       pickup: { stage: 5, demandPercent: 25 },
@@ -35,7 +35,7 @@ describe('the Laundromat mechanic in content (BUS20f)', () => {
   it('keeps the earlier mechanics and passes validation as bundled', () => {
     const kinds = getContent().businesses.map((business) => business.mechanic?.kind);
     expect(kinds.slice(0, 4)).toEqual(['vending', 'food_cart', 'coffee_kiosk', 'laundromat']);
-    expect(findContentIssues(economyV5)).toEqual([]);
+    expect(findContentIssues(economyV2)).toEqual([]);
   });
 
   it('rejects jumbo shares and service prices in the wrong order', () => {

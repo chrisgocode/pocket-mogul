@@ -1,4 +1,4 @@
-import { economyV4 } from './economy-v4';
+import { economyV2 } from './economy-v2';
 import { findContentIssues, getContent } from './index';
 import type { ContentInput } from './schema';
 
@@ -14,7 +14,7 @@ function coffeeKioskOf(content: ContentInput): CoffeeKioskInput {
 }
 
 const issuesFor = (mutate: (coffeeKiosk: CoffeeKioskInput) => void) => {
-  const content: ContentInput = structuredClone(economyV4);
+  const content: ContentInput = structuredClone(economyV2);
   mutate(coffeeKioskOf(content));
   return findContentIssues(content);
 };
@@ -25,7 +25,7 @@ describe('the Coffee Kiosk mechanic in content (BUS20e)', () => {
       (business) => business.mechanic?.kind === 'coffee_kiosk',
     );
     expect(kiosks.map((business) => business.id)).toEqual(['coffee_kiosk']);
-    expect(coffeeKioskOf(economyV4)).toMatchObject({
+    expect(coffeeKioskOf(economyV2)).toMatchObject({
       unlockStage: 2,
       rushDemandBps: 4500,
       rushWindowBps: 3500,
@@ -44,7 +44,7 @@ describe('the Coffee Kiosk mechanic in content (BUS20e)', () => {
   });
 
   it('passes validation as bundled', () => {
-    expect(findContentIssues(economyV4)).toEqual([]);
+    expect(findContentIssues(economyV2)).toEqual([]);
   });
 
   it('rejects grades that do not rise and a rush no busier than the rest of the day', () => {

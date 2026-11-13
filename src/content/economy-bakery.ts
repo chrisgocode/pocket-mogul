@@ -1,8 +1,4 @@
-import { economyV5 } from './economy-v5';
-import { withMechanic } from './mechanicUpgrade';
-import type { ContentInput } from './schema';
-
-const bakeryMechanic = {
+export const bakeryMechanic = {
   kind: 'bakery',
   unlockStage: 2,
   bakePercents: [60, 70, 80, 90, 100],
@@ -24,9 +20,3 @@ const bakeryMechanic = {
   },
   centralKitchen: { stage: 5, priceMultiple: 150, capacityPercent: 30 },
 };
-
-export const economyV6 = {
-  ...economyV5,
-  economyVersion: 6,
-  businesses: withMechanic(economyV5.businesses, { id: 'bakery', mechanic: bakeryMechanic }),
-} satisfies ContentInput;
