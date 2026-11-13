@@ -5,6 +5,7 @@ import { AppText } from '@/ui/Typography';
 import { colors, minimumTouchTarget, radius, spacing } from '@/ui/tokens';
 const LINKS: { label: string; icon: IconName; href: Href }[] = [
   { label: 'Goals', icon: 'goals', href: '/goals' },
+  { label: 'Collection', icon: 'collection', href: '/collection' },
   { label: 'Taxes', icon: 'taxes', href: '/taxes' },
   { label: 'Settings', icon: 'settings', href: '/settings' },
 ];

@@ -65,6 +65,12 @@ const property = definitionId.extend({
   upgradeSpendCents: moneyText,
 });
 
+const collectible = z.object({
+  pieceId: z.string().min(1),
+  acquiredDay: count,
+  paidCents: nonNegativeMoneyText,
+});
+
 const income = z.object({
   businessEarningsCents: moneyText,
   rentRemainders: remainders,
@@ -146,6 +152,7 @@ export const saveDocumentSchema = z.looseObject({
   tap: z.object({ walletLevel: count, totalAcceptedTaps: count }),
   businesses: z.array(business),
   properties: z.array(property),
+  collectibles: z.array(collectible).default([]),
   income,
   unlockedTiers: z.array(z.number().int().positive()),
   returnSummary,

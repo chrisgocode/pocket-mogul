@@ -5,6 +5,7 @@ export function reviewedFinancialCommand(command: GameCommand, revision: number)
   if (
     command.type === 'SellBusiness' ||
     command.type === 'SellProperty' ||
+    command.type === 'SellCollectible' ||
     command.type === 'WithdrawFromTreasury' ||
     command.type === 'ExecuteTrade'
   )

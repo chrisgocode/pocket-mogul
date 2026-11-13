@@ -1,0 +1,33 @@
+import type { AuctionLot } from '@/application/collectionView';
+import { formatMoneyExact } from '@/domain/money';
+import { Button } from '@/ui/Button';
+import { Card } from '@/ui/Card';
+import { ListRow } from '@/ui/ListRow';
+
+import { lotActionLabel, pieceKind } from './collectionFormat';
+
+export function AuctionLotCard({
+  lot,
+  onBuy,
+}: {
+  lot: AuctionLot;
+  onBuy: (lot: AuctionLot) => void;
+}) {
+  const label = lotActionLabel(lot);
+  return (
+    <Card>
+      <ListRow
+        title={lot.piece.name}
+        subtitle={`${pieceKind(lot)} · ${lot.piece.note}`}
+        value={formatMoneyExact(lot.priceCents)}
+        detail={lot.valueNote}
+      />
+      <Button
+        label={label}
+        accessibilityLabel={`${lot.piece.name}, ${label}`}
+        disabled={lot.status === 'owned' || !lot.affordable}
+        onPress={() => onBuy(lot)}
+      />
+    </Card>
+  );
+}

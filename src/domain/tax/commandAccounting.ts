@@ -1,6 +1,11 @@
 import { requireTaxBasis } from './basis';
 
-import { businessTaxSource, instrumentTaxBasis, propertyTaxBasis } from '@/domain/tax/sources';
+import {
+  businessTaxSource,
+  collectibleTaxBasis,
+  instrumentTaxBasis,
+  propertyTaxBasis,
+} from '@/domain/tax/sources';
 import { checkTrade, positionOf } from '@/domain/trades';
 import type { TradeEconomy } from '@/domain/trades';
 import type { TaxRules } from './types';
@@ -133,6 +138,27 @@ function propertyCommand(
   });
 }
 
+function collectibleCommand(
+  state: GameState,
+  step: { before: GameState; command: GameCommand },
+): GameState {
+  const { command, before } = step;
+  if (state.tax.status !== 'active') return state;
+  if (command.type === 'BuyCollectible')
+    return setBasis(state, {
+      source: collectibleTaxBasis(command.pieceId),
+      amount: before.cashCents - state.cashCents,
+    });
+  if (command.type !== 'SellCollectible') return state;
+  const source = collectibleTaxBasis(command.pieceId);
+  const proceeds = state.cashCents - before.cashCents;
+  return capitalReceipt(setBasis(state, { source, amount: 0n }), {
+    gross: proceeds,
+    net: proceeds,
+    basis: basisBalance(state, source),
+  });
+}
+
 function tradeCommand(
   state: GameState,
   step: {
@@ -170,7 +196,7 @@ function classified(
       command: step.command,
       economy: step.economy,
     });
-  return propertyCommand(businessCommand(state, step), step);
+  return collectibleCommand(propertyCommand(businessCommand(state, step), step), step);
 }
 
 export function withCommandTax(

@@ -15,6 +15,7 @@ import { foodCartMechanicsFit } from './validateFoodCart';
 import { gymMechanicsFit } from './validateGym';
 import { hotelMechanicsFit } from './validateHotel';
 import { laundromatMechanicsFit } from './validateLaundromat';
+import { collectionFits } from './validateCollection';
 import { synergiesFit } from './validateSynergies';
 import { takeoversFit } from './validateTakeovers';
 import { vendingMechanicsFit } from './validateVending';
@@ -90,6 +91,7 @@ function crossChecks(content: Content): string[] {
     spaceMechanicsFit,
     takeoversFit,
     synergiesFit,
+    collectionFits,
     efficiencyKeepsCostsPositive,
     systemsKeepUpkeepPositive,
     stockClassesFollowTheirRules,
@@ -117,6 +119,7 @@ function catalogsOf(content: Content): Catalog[] {
       retirable: true,
     },
     { kind: 'synergy', ids: content.synergies.links.map((link) => link.id), retirable: true },
+    { kind: 'collectible', ids: content.collection.pieces.map((p) => p.id), retirable: true },
     { kind: 'property', ids: content.properties.map((p) => p.id), retirable: true },
     {
       kind: 'instrument',

@@ -60,6 +60,7 @@ const BASELINE_STATE = {
       upgradeSpendCents: dollars('400'),
     },
   ],
+  collectibles: [],
   income: {
     businessEarningsCents: dollars('9123.45'),
     rentRemainders: { studio: 12 },

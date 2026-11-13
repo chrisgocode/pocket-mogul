@@ -426,6 +426,26 @@ _Avoid_: Market value, appraisal
 A purchase that permanently raises the cash earned per tap.
 _Avoid_: Card upgrade, tap upgrade
 
+**Collection**:
+The player's fictional art, cars, watches, yachts, wine and spirits, and curiosities, opened from Profile. It counts in net worth at Appraised value.
+_Avoid_: Gallery, inventory, vault
+
+**Piece**:
+One item in the Collection. It has a category, a tier, a rarity and a list price. A player owns at most one of each.
+_Avoid_: Collectible (in player-facing text), item, asset
+
+**Auction house**:
+Where pieces are bought: three Lots at a time, redrawn from the save's seed every 6 business days from the tiers the player has unlocked.
+_Avoid_: Shop, store, market (that is stocks and coins)
+
+**Lot**:
+A piece on offer at the Auction house, at its Appraised value that day.
+_Avoid_: Listing (that is a property or a business that went public), offer (that is a takeover's)
+
+**Appraised value**:
+What a piece is worth today: its list price, changed by how long it has been owned and by a seeded swing, both set by its category. Selling pays 90 percent of it.
+_Avoid_: Estimated value (that is a property's), market price
+
 ## Markets
 
 **Blue chip**:

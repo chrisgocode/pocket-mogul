@@ -121,6 +121,18 @@ const DESCRIBERS: Describers = {
     assetId: command.propertyId,
     cashChangeCents,
   }),
+  BuyCollectible: (command, { cashChangeCents }) => ({
+    kind: 'purchase',
+    asset: 'collectible',
+    assetId: command.pieceId,
+    cashChangeCents,
+  }),
+  SellCollectible: (command, { cashChangeCents }) => ({
+    kind: 'sale',
+    asset: 'collectible',
+    assetId: command.pieceId,
+    cashChangeCents,
+  }),
   ExecuteTrade: (command, { before, after, cashChangeCents }) => ({
     kind: 'trade',
     side: command.side,

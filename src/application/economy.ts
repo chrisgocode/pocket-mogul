@@ -2,6 +2,7 @@ import type { GameState } from '@/domain/gameState';
 import { listingInstruments } from '@/domain/business/listings';
 import { getPastContent, businessDefinition, type Content, type Stock } from '@/content';
 import type { BusinessEconomy } from '@/domain/business/definition';
+import type { CollectionEconomy } from '@/domain/collection/rules';
 import type { DividendRates } from '@/domain/dividends';
 import type { MarketEconomy, MarketInstrument } from '@/domain/market';
 import type { PassiveEconomy } from '@/domain/passiveIncome';
@@ -23,6 +24,11 @@ export function propertyEconomy(content: Content): PropertyEconomy {
   return { catalog: content.properties, rules: content.economy.propertyRules };
 }
 
+export function collectionEconomy(content: Content): CollectionEconomy {
+  const { pieces, ...rules } = content.collection;
+  return { pieces, rules: { ...rules, dayMs: content.economy.businessRules.dayMs } };
+}
+
 function dividendRates(content: Content): DividendRates {
   return Object.fromEntries(
     content.stocks.map((stock) => [stock.id, stock.dividendCentsPerSharePerHour]),
@@ -41,6 +47,7 @@ export function progressRules(content: Content): ProgressRules {
   return {
     tierUnlocks: content.economy.tierUnlocks,
     properties: propertyEconomy(content),
+    collection: collectionEconomy(content),
     instruments: instruments(content),
   };
 }

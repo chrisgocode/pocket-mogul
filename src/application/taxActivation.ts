@@ -1,4 +1,11 @@
-import { businessTaxSource, instrumentTaxBasis, propertyTaxBasis } from '@/domain/tax/sources';
+import {
+  businessTaxSource,
+  collectibleTaxBasis,
+  instrumentTaxBasis,
+  propertyTaxBasis,
+} from '@/domain/tax/sources';
+import { collectibleSaleCents } from '@/domain/collection/appraisal';
+import { collectionDayOf } from '@/domain/collection/rules';
 import type { Content } from '@/content';
 import { findBusiness } from '@/domain/business/definition';
 import { saleProceedsCents } from '@/domain/business/core';
@@ -11,7 +18,7 @@ import { quoteTrade } from '@/domain/tradeQuotes';
 import { startTaxLedger } from '@/domain/tax/ledger';
 import { TAX_READER_VERSION } from '@/domain/tax/types';
 
-import { businessEconomy, progressRules } from './economy';
+import { businessEconomy, collectionEconomy, progressRules } from './economy';
 
 function businessBasis(state: GameState, content: Content) {
   const economy = businessEconomy(content);
@@ -42,6 +49,18 @@ function propertyBasis(state: GameState, content: Content) {
   });
 }
 
+function collectibleBasis(state: GameState, content: Content) {
+  const economy = collectionEconomy(content);
+  const today = collectionDayOf(state, economy.rules);
+  return state.collectibles.map(
+    (owned) =>
+      [
+        collectibleTaxBasis(owned.pieceId),
+        collectibleSaleCents(owned, { ...today, economy }),
+      ] as const,
+  );
+}
+
 function positionBasis(state: GameState, content: Content) {
   return state.positions
     .filter((position) => !position.instrumentId.startsWith('listing:'))
@@ -68,6 +87,7 @@ export function activationBasis(state: GameState, content: Content) {
   return Object.fromEntries([
     ...businessBasis(state, content),
     ...propertyBasis(state, content),
+    ...collectibleBasis(state, content),
     ...positionBasis(state, content),
   ]);
 }

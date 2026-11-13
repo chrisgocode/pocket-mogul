@@ -10,6 +10,7 @@ export type IconName =
   | 'properties'
   | 'portfolio'
   | 'goals'
+  | 'collection'
   | 'settings'
   | 'profile'
   | 'taxes';
@@ -22,6 +23,7 @@ const PATHS: Record<IconName, string> = {
   portfolio: 'M12 4 A8 8 0 1 0 20 12 H12 Z M15 3.5 A8 8 0 0 1 20.5 9 H15 Z',
   goals:
     'M8 4 H16 V9 A4 4 0 0 1 8 9 Z M8 6 H5 A3 3 0 0 0 8 10 M16 6 H19 A3 3 0 0 1 16 10 M12 13 V17 M8 20 H16 M9 17 H15 V20 H9 Z',
+  collection: 'M4 5 H20 V19 H4 Z M7 8 H17 V16 H7 Z M9 14 L11.5 11 L13.5 13 L15 11.5 V14 Z',
   settings: '',
   profile: 'M8 8 A4 4 0 1 0 16 8 A4 4 0 1 0 8 8 M4 22 V19 A8 8 0 0 1 20 19 V22',
   taxes: 'M6 3 H18 V22 L15 20 L12 22 L9 20 L6 22 Z M9 8 H15 M9 12 H15 M9 16 H13',
