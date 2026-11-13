@@ -12,6 +12,7 @@ export const COACH_MARKS = [
   'bakery',
   'gym',
   'hotel',
+  'factory',
 ] as const;
 export type CoachMark = (typeof COACH_MARKS)[number];
 

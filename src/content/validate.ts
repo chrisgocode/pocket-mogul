@@ -8,6 +8,7 @@ import { bakeryMechanicsFit } from './validateBakery';
 import { carWashMechanicsFit } from './validateCarWash';
 import { coffeeKioskMechanicsFit } from './validateCoffeeKiosk';
 import { deliveryMechanicsFit } from './validateDelivery';
+import { factoryMechanicsFit } from './validateFactory';
 import { foodCartMechanicsFit } from './validateFoodCart';
 import { gymMechanicsFit } from './validateGym';
 import { hotelMechanicsFit } from './validateHotel';
@@ -81,6 +82,7 @@ function crossChecks(content: Content): string[] {
     bakeryMechanicsFit,
     gymMechanicsFit,
     hotelMechanicsFit,
+    factoryMechanicsFit,
     takeoversFit,
     efficiencyKeepsCostsPositive,
     systemsKeepUpkeepPositive,

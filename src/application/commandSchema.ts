@@ -8,6 +8,7 @@ import {
 } from '@/domain/business/definition';
 import { OPTIONAL_PACKAGES } from '@/domain/business/carWashRules';
 import { BEAN_GRADES, RUSH_PLANS } from '@/domain/business/coffeeKioskRules';
+import { PRODUCTS } from '@/domain/business/factoryRules';
 import { CART_SPOTS, MENU_ITEMS } from '@/domain/business/foodCartRules';
 import { GYM_TIERS } from '@/domain/business/gymRules';
 import { SEASONS } from '@/domain/business/hotelRules';
@@ -128,6 +129,14 @@ const gameCommandSchema = z.discriminatedUnion('type', [
     priceLevel: z.enum(PRICE_LEVELS),
   }),
   z.object({ type: z.literal('InstallConference'), businessId }),
+  z.object({ type: z.literal('SetProduct'), businessId, product: z.enum(PRODUCTS) }),
+  z.object({
+    type: z.literal('AnswerBulkOffer'),
+    businessId,
+    offerId: z.number().int(),
+    answer: z.enum(['accept', 'decline']),
+  }),
+  z.object({ type: z.literal('InstallAutomation'), businessId }),
   z.object({
     type: z.literal('MakeTakeoverOffer'),
     businessId,

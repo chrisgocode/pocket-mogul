@@ -6,6 +6,7 @@ import { withBakeryUnlocked } from './bakery';
 import { withCarWashUnlocked } from './carWash';
 import { withCoffeeKioskUnlocked } from './coffeeKiosk';
 import { withDeliveryUnlocked } from './delivery';
+import { withFactoryUnlocked } from './factory';
 import { withFoodCartUnlocked } from './foodCart';
 import { withGymUnlocked } from './gym';
 import { withHotelUnlocked } from './hotel';
@@ -60,7 +61,8 @@ export function applyUpgradeStage(
   };
   const staged = withVendingUnlocked({ ...owned, stage: quote.stage + 1 }, pricing);
   const washing = withLaundromatUnlocked(withCoffeeKioskUnlocked(staged, pricing), pricing);
-  const upgraded = withGymUnlocked(withBakeryUnlocked(washing, pricing), pricing);
+  const training = withGymUnlocked(withBakeryUnlocked(washing, pricing), pricing);
+  const upgraded = withFactoryUnlocked(training, pricing);
   return spendTreasury(state, {
     owned,
     priceCents: quote.priceCents,

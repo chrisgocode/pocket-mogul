@@ -8,6 +8,7 @@ import { startCarWashDay } from './carWash';
 import { withCoffeeKioskUnlocked } from './coffeeKiosk';
 import { profitPerDayCents, quoteBusinessDay } from './core';
 import { endedDeliveryDay, startDeliveryDay } from './delivery';
+import { startFactoryDay } from './factory';
 import { startFoodCartDay } from './foodCart';
 import { startGymDay } from './gym';
 import { startHotelDay } from './hotel';
@@ -154,7 +155,8 @@ function dayStarted(segment: Settled, boundary: { settlement: Settlement; endMs:
   const restocked = restockedByStaff(started.business, pricing);
   const washing = startCarWashDay(restocked, { pricing, seed, day });
   const baking = startGymDay(startBakeryDay(washing, { pricing, day }), pricing);
-  const hosting = startHotelDay(baking, { pricing, seed, day });
+  const making = startFactoryDay(baking, { pricing, day });
+  const hosting = startHotelDay(making, { pricing, seed, day });
   const parked = startFoodCartDay(hosting, { pricing, seed, day });
   const managed = managerDecisions(parked, pricing);
   const offered = startDeliveryDay(managed, { pricing, seed, day });

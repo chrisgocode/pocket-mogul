@@ -1,3 +1,4 @@
+import { ownedBusiness } from '@/domain/testRules';
 import { getPastContent } from '@/content';
 import { readFileSync } from 'node:fs';
 
@@ -37,8 +38,7 @@ const BASELINE_STATE = {
   clock: { simulationMs: 86_400_000, lastWallCheckpointMs: fixtureWallMs },
   tap: { walletLevel: 7, totalAcceptedTaps: 48_211 },
   businesses: [
-    {
-      definitionId: 'vending',
+    ownedBusiness('vending', {
       stage: 1,
       units: 2,
       priceLevel: 'premium',
@@ -50,21 +50,7 @@ const BASELINE_STATE = {
       status: 'open',
       purchasedDay: 6,
       capitalizedSpendCents: dollars('412.50'),
-      staff: { operations: 0, sales: 0, manager: 0 },
-      insurance: { equipment: 'none', liability: 'none', supply: 'none' },
-      incident: { status: 'none' },
-      vending: { status: 'inactive' },
-      carWash: { status: 'inactive' },
-      delivery: { status: 'inactive' },
-      foodCart: { status: 'inactive' },
-      coffeeKiosk: { status: 'inactive' },
-      laundromat: { status: 'inactive' },
-      bakery: { status: 'inactive' },
-      gym: { status: 'inactive' },
-      hotel: { status: 'inactive' },
-      takeovers: { offer: { status: 'none' }, locks: [], merged: [] },
-      listing: { status: 'private' },
-    },
+    }),
   ],
   properties: [
     {

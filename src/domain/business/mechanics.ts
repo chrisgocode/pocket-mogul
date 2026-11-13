@@ -4,6 +4,7 @@ import { coffeeKioskDay, runningCoffeeKiosk } from './coffeeKioskDemand';
 import type { BusinessPricing } from './definition';
 import { deliveryDay, runningDelivery } from './deliveryDemand';
 import type { ContractTerms } from './deliveryState';
+import { factoryDay, runningFactory } from './factoryDemand';
 import { foodCartDay, runningFoodCart } from './foodCartDemand';
 import { gymDay, runningGym } from './gymDemand';
 import { hotelDay, runningHotel } from './hotelDemand';
@@ -29,13 +30,19 @@ export type MechanicDay = {
 
 const NO_EFFECT_BPS = 10_000n;
 
+function industryDay(business: OwnedBusiness, pricing: BusinessPricing) {
+  const factory = runningFactory(business, pricing);
+  return factory === undefined ? {} : factoryDay(factory);
+}
+
 function shopDay(business: OwnedBusiness, pricing: BusinessPricing) {
   const bakery = runningBakery(business, pricing);
   if (bakery !== undefined) return bakeryDay(bakery, pricing);
   const gym = runningGym(business, pricing);
   if (gym !== undefined) return gymDay(gym);
   const hotel = runningHotel(business, pricing);
-  return hotel === undefined ? {} : hotelDay(business, hotel);
+  if (hotel !== undefined) return hotelDay(business, hotel);
+  return industryDay(business, pricing);
 }
 
 function streetDay(business: OwnedBusiness, pricing: BusinessPricing) {
