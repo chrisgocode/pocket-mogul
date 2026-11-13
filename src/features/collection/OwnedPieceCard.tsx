@@ -4,6 +4,7 @@ import { formatCashChange } from '@/features/game/priceFormat';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { ListRow } from '@/ui/ListRow';
+import { AppText } from '@/ui/Typography';
 
 import { heldNote, pieceKind } from './collectionFormat';
 
@@ -22,10 +23,12 @@ export function OwnedPieceCard({
     <Card>
       <ListRow
         title={owned.piece.name}
-        subtitle={`${pieceKind(owned)} · ${owned.piece.note}`}
+        subtitle={pieceKind(owned)}
         value={formatMoneyExact(owned.valueCents)}
-        detail={heldNote(owned)}
       />
+      <AppText variant="caption" muted>
+        {`${owned.piece.note} · ${heldNote(owned)}`}
+      </AppText>
       <Button
         label={shown ? 'On show · take down' : 'Put on show'}
         accessibilityLabel={

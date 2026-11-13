@@ -3,6 +3,7 @@ import { formatMoneyExact } from '@/domain/money';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { ListRow } from '@/ui/ListRow';
+import { AppText } from '@/ui/Typography';
 
 import { lotActionLabel, pieceKind } from './collectionFormat';
 
@@ -18,10 +19,12 @@ export function AuctionLotCard({
     <Card>
       <ListRow
         title={lot.piece.name}
-        subtitle={`${pieceKind(lot)} · ${lot.piece.note}`}
+        subtitle={pieceKind(lot)}
         value={formatMoneyExact(lot.priceCents)}
-        detail={lot.valueNote}
       />
+      <AppText variant="caption" muted>
+        {`${lot.piece.note} · ${lot.valueNote}`}
+      </AppText>
       <Button
         label={label}
         accessibilityLabel={`${lot.piece.name}, ${label}`}

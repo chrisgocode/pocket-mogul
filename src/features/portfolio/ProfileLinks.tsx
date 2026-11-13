@@ -22,7 +22,9 @@ export function ProfileLinks() {
             style={styles.link}
           >
             <Icon name={link.icon} color={colors.text} />
-            <AppText variant="caption">{link.label}</AppText>
+            <AppText variant="caption" numberOfLines={1} adjustsFontSizeToFit>
+              {link.label}
+            </AppText>
           </Pressable>
         </View>
       ))}
@@ -33,11 +35,11 @@ const styles = StyleSheet.create({
   links: { flexDirection: 'row', gap: spacing.sm },
   wrapper: { flex: 1 },
   link: {
-    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
-    padding: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xs,
     minHeight: minimumTouchTarget,
     backgroundColor: colors.surface,
     borderRadius: radius.md,

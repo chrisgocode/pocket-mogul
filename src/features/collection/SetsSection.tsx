@@ -2,24 +2,25 @@ import type { CollectionSetsView } from '@/application/collectionSetsView';
 import { Card } from '@/ui/Card';
 import { ListRow } from '@/ui/ListRow';
 import { Section } from '@/ui/Section';
+import { AppText } from '@/ui/Typography';
 
-import { perkLabel, setDetail, setsNote } from './collectionFormat';
+import { perkLabel, setNote, setsNote } from './collectionFormat';
 
 export function SetsSection({ sets }: { sets: CollectionSetsView }) {
   return (
     <Section title="Sets" note={setsNote(sets)}>
-      <Card>
-        {sets.sets.map((set) => (
+      {sets.sets.map((set) => (
+        <Card key={set.id}>
           <ListRow
-            key={set.id}
             title={set.name}
             subtitle={`${set.categoryName} · ${perkLabel(set.perk)}`}
             value={`${set.heldCount} of ${set.pieceCount}`}
-            detail={setDetail(set)}
-            dimmed={set.status === 'open'}
           />
-        ))}
-      </Card>
+          <AppText variant="caption" muted>
+            {setNote(set)}
+          </AppText>
+        </Card>
+      ))}
     </Section>
   );
 }

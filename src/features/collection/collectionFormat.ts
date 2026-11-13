@@ -39,8 +39,10 @@ export function perkLabel(perk: CollectionSetView['perk']): string {
   return perk.kind === 'tap' ? `+${perk.percent}% tap income` : `Sales pay +${perk.percent}%`;
 }
 
-export function setDetail(set: CollectionSetView): string {
-  return set.status === 'complete' ? 'Perk active' : `Missing ${set.missing.join(', ')}`;
+export function setNote(set: CollectionSetView): string {
+  return set.status === 'complete'
+    ? 'Perk active while you hold all five'
+    : `Missing: ${set.missing.join(', ')}`;
 }
 
 export function setsNote(sets: CollectionSetsView): string {

@@ -70,7 +70,9 @@ describe('the Collection screen (COL01)', () => {
       await screen.findByRole('button', { name: 'Puffin Dinghy, In your collection' }),
     ).toBeDisabled();
     expect(screen.getByText('1 of 60')).toBeOnTheScreen();
-    expect(screen.getByText('Bought today · $0.00 since you bought it')).toBeOnTheScreen();
+    expect(
+      screen.getByText('Three-metre sailing dinghy · Bought today · $0.00 since you bought it'),
+    ).toBeOnTheScreen();
     expect(session.game.getSnapshot().state.collectibles).toEqual([DINGHY]);
   });
 
@@ -100,6 +102,11 @@ describe('sets and the showpiece (COL07, COL08)', () => {
     expect(screen.getByText('Yachts · +2% tap income')).toBeOnTheScreen();
     expect(screen.getByText('1 of 5')).toBeOnTheScreen();
     expect(screen.getByText('Art · Sales pay +1%')).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        'Missing: Sandpiper Daysailer, Osprey Bay Cruiser, Larkspur 32 Sloop, Corsair Sport Fisher',
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('puts a piece on show and takes it down', async () => {
