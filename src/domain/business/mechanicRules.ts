@@ -1,3 +1,4 @@
+import type { BakeryRules } from './bakeryRules';
 import type { CarWashRules } from './carWashRules';
 import type { CoffeeKioskRules } from './coffeeKioskRules';
 import type { DeliveryRules } from './deliveryRules';
@@ -12,6 +13,7 @@ export type BusinessMechanic =
   | { readonly kind: 'delivery'; readonly delivery: DeliveryRules }
   | { readonly kind: 'food_cart'; readonly foodCart: FoodCartRules }
   | { readonly kind: 'coffee_kiosk'; readonly coffeeKiosk: CoffeeKioskRules }
-  | { readonly kind: 'laundromat'; readonly laundromat: LaundromatRules };
+  | { readonly kind: 'laundromat'; readonly laundromat: LaundromatRules }
+  | { readonly kind: 'bakery'; readonly bakery: BakeryRules };
 
 export const SHARED_CORE: BusinessMechanic = { kind: 'shared_core' };

@@ -33,6 +33,10 @@ function unlockStages(mechanic: BusinessMechanic): UnlockStages | undefined {
     const { unlockStage, pickup } = mechanic.laundromat;
     return { mechanic: unlockStage, signature: pickup.stage };
   }
+  if (mechanic.kind === 'bakery') {
+    const { unlockStage, centralKitchen } = mechanic.bakery;
+    return { mechanic: unlockStage, signature: centralKitchen.stage };
+  }
   return undefined;
 }
 

@@ -232,6 +232,31 @@ describe('laundromat machine mix and service washes (BUS20f)', () => {
   });
 });
 
+describe('bakery oven schedule and wholesale orders (BUS20g)', () => {
+  const bakery = {
+    status: 'active',
+    bakePercent: 80,
+    orders: [{ clientId: 'corner_cafe', ordersPerDay: 450, priceBps: 7500, endsDay: 9 }],
+    answeredOffer: 3,
+    centralKitchen: 'installed',
+  } as const;
+
+  it('loads a baseline save with the mechanic inactive', () => {
+    expect(currentState(baselineFixture)).toMatchObject({
+      businesses: [{ bakery: { status: 'inactive' } }],
+    });
+  });
+
+  it('keeps the bakery in a top-level record and round-trips it', () => {
+    const stored = baselineDocument({ bakery: { vending: bakery } });
+    const encoded = encodeSave(currentState(stored));
+    const document = JSON.parse(encoded) as { businesses: readonly object[] };
+    expect(document).toMatchObject({ bakery: { vending: bakery } });
+    expect(document.businesses[0]).not.toHaveProperty('bakery');
+    expect(currentState(encoded)).toMatchObject({ businesses: [{ bakery }] });
+  });
+});
+
 describe('delivery contracts and reputation (BUS20c)', () => {
   const terms = {
     clientId: 'brightcart',

@@ -127,9 +127,12 @@ function costPerServedOf(business: OwnedBusiness, quoting: Quoting): bigint {
   return numerator / (PERCENT * BASIS_POINTS * BASIS_POINTS);
 }
 
-function dayCosts(business: OwnedBusiness, quoting: Quoting & { readonly served: bigint }) {
+type Serving = Quoting & { readonly served: bigint; readonly unsold: bigint };
+
+function dayCosts(business: OwnedBusiness, quoting: Serving) {
   const costPerServedCents = costPerServedOf(business, quoting);
-  const washes = quoting.served + memberWashesOf(business, quoting);
+  const wasted = (quoting.unsold * quoting.mechanic.unsoldCostBps) / BASIS_POINTS;
+  const washes = quoting.served + memberWashesOf(business, quoting) + wasted;
   return {
     costPerServedCents,
     upkeepCents: quoting.definition.upkeepPerUnitCents * BigInt(business.units),
@@ -171,7 +174,7 @@ export function quoteBusinessDay(
   const capacity = walkInCapacityOf(business, quoting);
   const { served, rushServed } = serveWithRush({ demand, capacity }, quoting.mechanic.rush);
   const priceCents = priceOf(business, quoting);
-  const costs = dayCosts(business, { ...quoting, served });
+  const costs = dayCosts(business, { ...quoting, served, unsold: capacity - served });
   const income = {
     revenueCents:
       (served - rushServed) * priceCents +

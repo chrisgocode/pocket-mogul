@@ -1,5 +1,6 @@
 import type { OwnedBusinessDetail } from '@/application/businessDetailView';
 
+import type { BakeryActions } from './bakeryFormat';
 import type { BusinessAction } from './businessAction';
 import type { CoffeeKioskActions } from './coffeeKioskFormat';
 import type { FoodCartActions } from './foodCartFormat';
@@ -51,5 +52,18 @@ export function laundromatActions(
     setServiceLevel: (level) => run({ type: 'SetServiceLevel', businessId, level }),
     dismissCoachMark: () => run({ type: 'DismissCoachMark', coachMark: 'laundromat' }),
     installPickup: (pickup) => review({ kind: 'pickup', business, pickup }),
+  };
+}
+
+export function bakeryActions(detail: OwnedBusinessDetail, handlers: Handlers): BakeryActions {
+  const { business } = detail;
+  const businessId = business.id;
+  const { run, review } = handlers;
+  return {
+    setBakeLevel: (percent) => run({ type: 'SetBakeLevel', businessId, percent }),
+    answerOffer: (answer) => run({ type: 'AnswerWholesaleOffer', businessId, ...answer }),
+    dismissCoachMark: () => run({ type: 'DismissCoachMark', coachMark: 'bakery' }),
+    installCentralKitchen: (centralKitchen) =>
+      review({ kind: 'central_kitchen', business, centralKitchen }),
   };
 }

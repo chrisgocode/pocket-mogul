@@ -1,3 +1,4 @@
+import { bakeryDay, runningBakery } from './bakeryDemand';
 import { carWashDay, runningCarWash } from './carWashDemand';
 import { coffeeKioskDay, runningCoffeeKiosk } from './coffeeKioskDemand';
 import type { BusinessPricing } from './definition';
@@ -14,6 +15,7 @@ export type MechanicDay = {
   readonly capacityBps: bigint;
   readonly priceBps: bigint;
   readonly costBps: bigint;
+  readonly unsoldCostBps: bigint;
   readonly rush: RushDay;
   readonly bayBps: bigint;
   readonly memberBay: bigint;
@@ -25,13 +27,19 @@ export type MechanicDay = {
 
 const NO_EFFECT_BPS = 10_000n;
 
+function shopDay(business: OwnedBusiness, pricing: BusinessPricing) {
+  const bakery = runningBakery(business, pricing);
+  return bakery === undefined ? {} : bakeryDay(bakery, pricing);
+}
+
 function streetDay(business: OwnedBusiness, pricing: BusinessPricing) {
   const foodCart = runningFoodCart(business, pricing);
   if (foodCart !== undefined) return foodCartDay(foodCart);
   const coffeeKiosk = runningCoffeeKiosk(business, pricing);
   if (coffeeKiosk !== undefined) return coffeeKioskDay(coffeeKiosk);
   const running = runningLaundromat(business, pricing);
-  return running === undefined ? {} : laundromatDay(business, { ...pricing, running });
+  if (running !== undefined) return laundromatDay(business, { ...pricing, running });
+  return shopDay(business, pricing);
 }
 
 function flagshipDay(business: OwnedBusiness, pricing: BusinessPricing) {
@@ -48,6 +56,7 @@ export function mechanicDay(business: OwnedBusiness, pricing: BusinessPricing): 
     capacityBps: vendingCapacityBps(business, pricing),
     priceBps: NO_EFFECT_BPS,
     costBps: NO_EFFECT_BPS,
+    unsoldCostBps: 0n,
     rush: NO_RUSH,
     bayBps: NO_EFFECT_BPS,
     memberBay: 0n,

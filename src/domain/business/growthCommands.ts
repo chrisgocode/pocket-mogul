@@ -2,6 +2,7 @@ import type { CommandResult } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
 
 import { changed, lookUpOwned, spendTreasury, type BusinessOrder } from './commands';
+import { withBakeryUnlocked } from './bakery';
 import { withCarWashUnlocked } from './carWash';
 import { withCoffeeKioskUnlocked } from './coffeeKiosk';
 import { withDeliveryUnlocked } from './delivery';
@@ -56,7 +57,8 @@ export function applyUpgradeStage(
     day: businessDayOf(state.clock.simulationMs, pricing.rules),
   };
   const staged = withVendingUnlocked({ ...owned, stage: quote.stage + 1 }, pricing);
-  const upgraded = withLaundromatUnlocked(withCoffeeKioskUnlocked(staged, pricing), pricing);
+  const washing = withLaundromatUnlocked(withCoffeeKioskUnlocked(staged, pricing), pricing);
+  const upgraded = withBakeryUnlocked(washing, pricing);
   return spendTreasury(state, {
     owned,
     priceCents: quote.priceCents,

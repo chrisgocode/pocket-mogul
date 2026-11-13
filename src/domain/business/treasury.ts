@@ -3,6 +3,7 @@ import { splitListedPayout } from './listingPayout';
 import type { ShareholderPayout } from './listingState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 
+import { startBakeryDay } from './bakery';
 import { startCarWashDay } from './carWash';
 import { withCoffeeKioskUnlocked } from './coffeeKiosk';
 import { profitPerDayCents, quoteBusinessDay } from './core';
@@ -150,7 +151,8 @@ function dayStarted(segment: Settled, boundary: { settlement: Settlement; endMs:
   const started = startBusinessDay(opened, { pricing, seed, day });
   const restocked = restockedByStaff(started.business, pricing);
   const washing = startCarWashDay(restocked, { pricing, seed, day });
-  const parked = startFoodCartDay(washing, { pricing, seed, day });
+  const baking = startBakeryDay(washing, { pricing, day });
+  const parked = startFoodCartDay(baking, { pricing, seed, day });
   const managed = managerDecisions(parked, pricing);
   const offered = startDeliveryDay(managed, { pricing, seed, day });
   return { ...started, business: answerTakeover(offered, { pricing, seed, day }) };

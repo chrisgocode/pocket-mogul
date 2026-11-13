@@ -8,6 +8,7 @@ import {
   type Insurance,
   type OwnedBusiness,
 } from '@/domain/business/owned';
+import { NO_BAKERY, type BakeryOperation } from '@/domain/business/bakeryRules';
 import { NO_CAR_WASH, type CarWashOperation } from '@/domain/business/carWashState';
 import { NO_DELIVERY, type DeliveryOperation } from '@/domain/business/deliveryState';
 import { NO_COFFEE_KIOSK, type CoffeeKioskOperation } from '@/domain/business/coffeeKioskRules';
@@ -35,6 +36,7 @@ type SavedBusiness = Omit<
   | 'foodCart'
   | 'coffeeKiosk'
   | 'laundromat'
+  | 'bakery'
   | 'takeovers'
   | 'listing'
 >;
@@ -62,6 +64,7 @@ export type SaveDocument = Omit<GameState, 'businesses' | 'returnSummary' | 'act
   readonly foodCart: Readonly<Record<string, FoodCartOperation>>;
   readonly coffeeKiosk: Readonly<Record<string, CoffeeKioskOperation>>;
   readonly laundromat: Readonly<Record<string, LaundromatOperation>>;
+  readonly bakery: Readonly<Record<string, BakeryOperation>>;
   readonly takeovers: Readonly<Record<string, Takeovers>>;
   readonly absenceIncidents: readonly AbsenceIncident[];
   readonly incidentEntries: number;
@@ -98,6 +101,7 @@ export function toSaveDocument(state: GameState): SaveDocument {
         foodCart: _foodCart,
         coffeeKiosk: _coffeeKiosk,
         laundromat: _laundromat,
+        bakery: _bakery,
         takeovers: _takeovers,
         listing: _listing,
         ...rest
@@ -114,6 +118,7 @@ export function toSaveDocument(state: GameState): SaveDocument {
     foodCart: byBusiness(businesses, (business) => business.foodCart),
     coffeeKiosk: byBusiness(businesses, (business) => business.coffeeKiosk),
     laundromat: byBusiness(businesses, (business) => business.laundromat),
+    bakery: byBusiness(businesses, (business) => business.bakery),
     takeovers: byBusiness(businesses, (business) => business.takeovers),
     absenceIncidents: returnSummary.status === 'pending' ? returnSummary.summary.incidents : [],
     incidentEntries: activity.lifetime.byKind.incident,
@@ -133,6 +138,7 @@ function loadedMechanics(businessId: string, document: SaveDocument) {
     foodCart: saved(document.foodCart, NO_FOOD_CART),
     coffeeKiosk: saved(document.coffeeKiosk, NO_COFFEE_KIOSK),
     laundromat: saved(document.laundromat, NO_LAUNDROMAT),
+    bakery: saved(document.bakery, NO_BAKERY),
     takeovers: saved(document.takeovers, NO_TAKEOVERS),
   };
 }
@@ -173,6 +179,7 @@ export function fromSaveDocument(document: SaveDocument): GameState {
     foodCart: _foodCart,
     coffeeKiosk: _coffeeKiosk,
     laundromat: _laundromat,
+    bakery: _bakery,
     takeovers: _takeovers,
     ...rest
   } = document;

@@ -5,6 +5,11 @@ import { Disclosure } from '@/ui/Disclosure';
 import { formatPerDay, stageName } from './businessFormat';
 import { ContractDayLines } from './ContractDayLines';
 import { OptionalDayLines } from './OptionalDayLines';
+function feesLabel(detail: OwnedBusinessDetail): string {
+  if (detail.laundromat !== undefined) return 'Service washes';
+  return detail.bakery === undefined ? 'Memberships' : 'Wholesale orders';
+}
+
 export function BusinessDayDetails({ detail }: { detail: OwnedBusinessDetail }) {
   const { day, business } = detail;
   const status = detail.operation === 'open' ? 'Open' : 'Closed';
@@ -21,10 +26,7 @@ export function BusinessDayDetails({ detail }: { detail: OwnedBusinessDetail }) 
       />
       <DetailLine label="Revenue" value={formatPerDay(day.revenueCents)} />
       {day.memberFeesCents > 0n ? (
-        <DetailLine
-          label={detail.laundromat === undefined ? 'Memberships' : 'Service washes'}
-          value={formatPerDay(day.memberFeesCents)}
-        />
+        <DetailLine label={feesLabel(detail)} value={formatPerDay(day.memberFeesCents)} />
       ) : null}
       <ContractDayLines day={day} />
       <DetailLine label="Upkeep" value={formatPerDay(moneyCents(0n - day.upkeepCents))} />

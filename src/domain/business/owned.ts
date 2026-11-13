@@ -11,6 +11,7 @@ import {
   type PriceLevel,
   type StaffCounts,
 } from './definition';
+import { NO_BAKERY, type BakeryOperation } from './bakeryRules';
 import { NO_CAR_WASH, type CarWashOperation } from './carWashState';
 import { NO_COFFEE_KIOSK, type CoffeeKioskOperation } from './coffeeKioskRules';
 import { NO_DELIVERY, type DeliveryOperation } from './deliveryState';
@@ -60,6 +61,7 @@ export type OwnedBusiness = {
   readonly foodCart: FoodCartOperation;
   readonly coffeeKiosk: CoffeeKioskOperation;
   readonly laundromat: LaundromatOperation;
+  readonly bakery: BakeryOperation;
   readonly takeovers: Takeovers;
   readonly listing: Listing;
 };
@@ -92,6 +94,7 @@ export function newBusiness(
     foodCart: NO_FOOD_CART,
     coffeeKiosk: NO_COFFEE_KIOSK,
     laundromat: NO_LAUNDROMAT,
+    bakery: NO_BAKERY,
     takeovers: NO_TAKEOVERS,
     listing: { status: 'private' },
   };
