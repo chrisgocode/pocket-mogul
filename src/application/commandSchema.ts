@@ -6,6 +6,7 @@ import {
   PRICE_LEVELS,
   STAFF_ROLES,
 } from '@/domain/business/definition';
+import { NETWORKS } from '@/domain/business/airlineRules';
 import { OPTIONAL_PACKAGES } from '@/domain/business/carWashRules';
 import { BEAN_GRADES, RUSH_PLANS } from '@/domain/business/coffeeKioskRules';
 import { PRODUCTS } from '@/domain/business/factoryRules';
@@ -137,6 +138,8 @@ const gameCommandSchema = z.discriminatedUnion('type', [
     answer: z.enum(['accept', 'decline']),
   }),
   z.object({ type: z.literal('InstallAutomation'), businessId }),
+  z.object({ type: z.literal('SetNetwork'), businessId, network: z.enum(NETWORKS) }),
+  z.object({ type: z.literal('InstallHub'), businessId }),
   z.object({
     type: z.literal('MakeTakeoverOffer'),
     businessId,

@@ -20,6 +20,7 @@ import { NO_FOOD_CART, type FoodCartOperation } from './foodCartState';
 import { NO_GYM, type GymOperation } from './gymRules';
 import { NO_HOTEL, type HotelOperation } from './hotelRules';
 import { NO_LAUNDROMAT, type LaundromatOperation } from './laundromatRules';
+import { NO_AIRLINE, type AirlineOperation } from './airlineRules';
 import { NO_TAKEOVERS, type Takeovers } from './takeoverState';
 import { NO_VENDING, type VendingOperation } from './vendingRules';
 
@@ -68,6 +69,7 @@ export type OwnedBusiness = {
   readonly gym: GymOperation;
   readonly hotel: HotelOperation;
   readonly factory: FactoryOperation;
+  readonly airline: AirlineOperation;
   readonly takeovers: Takeovers;
   readonly listing: Listing;
 };
@@ -104,6 +106,7 @@ export function newBusiness(
     gym: NO_GYM,
     hotel: NO_HOTEL,
     factory: NO_FACTORY,
+    airline: NO_AIRLINE,
     takeovers: NO_TAKEOVERS,
     listing: { status: 'private' },
   };

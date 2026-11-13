@@ -1,6 +1,7 @@
 import { bakeryDay, runningBakery } from './bakeryDemand';
 import { carWashDay, runningCarWash } from './carWashDemand';
 import { coffeeKioskDay, runningCoffeeKiosk } from './coffeeKioskDemand';
+import { airlineDay, runningAirline } from './airlineDemand';
 import type { BusinessPricing } from './definition';
 import { deliveryDay, runningDelivery } from './deliveryDemand';
 import type { ContractTerms } from './deliveryState';
@@ -30,9 +31,15 @@ export type MechanicDay = {
 
 const NO_EFFECT_BPS = 10_000n;
 
+function travelDay(business: OwnedBusiness, pricing: BusinessPricing) {
+  const running = runningAirline(business, pricing);
+  return running === undefined ? {} : airlineDay(running);
+}
+
 function industryDay(business: OwnedBusiness, pricing: BusinessPricing) {
   const factory = runningFactory(business, pricing);
-  return factory === undefined ? {} : factoryDay(factory);
+  if (factory !== undefined) return factoryDay(factory);
+  return travelDay(business, pricing);
 }
 
 function shopDay(business: OwnedBusiness, pricing: BusinessPricing) {

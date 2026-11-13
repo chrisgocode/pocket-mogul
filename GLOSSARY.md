@@ -159,7 +159,7 @@ Cover for one incident category, available from stage 2 (Local). It costs a dail
 _Avoid_: Cover plan, protection
 
 **Flagship mechanic**:
-A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships; the Delivery Company's is Contracts, Reputation and Drivers; the Food Cart's is Spot, Crowd and Menu; the Coffee Kiosk's is Morning rush, Rush plan and Bean grade; the Laundromat's is Jumbo machines and Service washes; the Bakery's is Bake level and Wholesale orders; the Gym Chain's is Gym members, Tier on sale and Classes; the Hotel Group's is Season, Rate plan and Stars; the Manufacturing Company's is Product, Retooling and Bulk orders.
+A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships; the Delivery Company's is Contracts, Reputation and Drivers; the Food Cart's is Spot, Crowd and Menu; the Coffee Kiosk's is Morning rush, Rush plan and Bean grade; the Laundromat's is Jumbo machines and Service washes; the Bakery's is Bake level and Wholesale orders; the Gym Chain's is Gym members, Tier on sale and Classes; the Hotel Group's is Season, Rate plan and Stars; the Manufacturing Company's is Product, Retooling and Bulk orders; the Airline's is Network and Fuel price.
 _Avoid_: Minigame, feature
 
 **Coach mark**:
@@ -317,6 +317,18 @@ _Avoid_: Contract (that is a Delivery Company's), Wholesale order (that is a Bak
 **Automation**:
 The Manufacturing Company's stage 5 (Global) signature upgrade, paid once from the Treasury: it cuts the cost per batch by 20 percent.
 _Avoid_: Robotics
+
+**Network**:
+How an Airline's fleet is split across short, medium and long-haul routes: Regional, Mixed or Intercontinental. Longer routes earn more a seat, fly fewer seats and burn more fuel. Changing Network mid-day repositions the fleet at 70 percent capacity for the rest of the day; a Manager repositions overnight at no cost.
+_Avoid_: Route map, schedule
+
+**Fuel price**:
+An Airline's daily condition drawn from the save's seed: Cheap, Normal or Expensive. It multiplies the cost per seat by 50, 100 or 180 percent, times the Network's fuel burn. The details show the next two days.
+_Avoid_: Jet fuel spike (that is the Airline's supply incident)
+
+**International hub**:
+The Airline's stage 5 (Global) signature upgrade, paid once from the Treasury: it adds 15 percent capacity.
+_Avoid_: Base, terminal
 
 **Second window**:
 The Food Cart's stage 5 (Global) signature upgrade, paid once from the Treasury: a second serving window that adds 30 percent capacity.

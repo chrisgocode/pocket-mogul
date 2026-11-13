@@ -38,6 +38,7 @@ import { selectCashCents, stateWithUnsavedIncome } from './cashView';
 import { businessEconomy } from './economy';
 import type { GameSnapshot } from './game';
 import { selectVending, type VendingView } from './vendingView';
+import { selectAirline, type AirlineView } from './airlineView';
 import { selectBakery, type BakeryView } from './bakeryView';
 import { selectCarWash, type CarWashView } from './carWashView';
 import { selectCoffeeKiosk, type CoffeeKioskView } from './coffeeKioskView';
@@ -126,6 +127,7 @@ export type OwnedBusinessDetail = {
   readonly gym: GymView | undefined;
   readonly hotel: HotelView | undefined;
   readonly factory: FactoryView | undefined;
+  readonly airline: AirlineView | undefined;
   readonly deals: DealsView;
   readonly sale: BusinessSale;
 };
@@ -201,6 +203,7 @@ function mechanicViews(context: DetailContext) {
     gym: selectGym(context),
     hotel: selectHotel(context),
     factory: selectFactory(context),
+    airline: selectAirline(context),
   };
 }
 

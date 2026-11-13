@@ -194,3 +194,28 @@ describe('factory product and bulk orders (BUS20j)', () => {
     });
   });
 });
+
+describe('airline network and fuel (BUS20k)', () => {
+  const airline = {
+    status: 'active',
+    network: 'intercontinental',
+    fuel: 'cheap',
+    fleet: 'repositioning',
+    hub: 'installed',
+  } as const;
+
+  it('loads a baseline save with the mechanic inactive', () => {
+    expect(currentState(baselineFixture)).toMatchObject({
+      businesses: [{ airline: { status: 'inactive' } }],
+    });
+  });
+
+  it('keeps the airline in a top-level record and round-trips it', () => {
+    const stored = baselineDocument({ airline: { vending: airline } });
+    const encoded = encodeSave(currentState(stored));
+    const document = JSON.parse(encoded) as { businesses: readonly object[] };
+    expect(document).toMatchObject({ airline: { vending: airline } });
+    expect(document.businesses[0]).not.toHaveProperty('airline');
+    expect(currentState(encoded)).toMatchObject({ businesses: [{ airline }] });
+  });
+});

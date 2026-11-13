@@ -20,6 +20,7 @@ import type { CarWashActions } from './carWashFormat';
 import type { DeliveryActions } from './deliveryFormat';
 import type { FlagshipActions } from './FlagshipSections';
 import {
+  airlineActions,
   bakeryActions,
   coffeeKioskActions,
   factoryActions,
@@ -122,6 +123,7 @@ function flagshipActions(
     gym: gymActions(detail, handlers),
     hotel: hotelActions(detail, handlers),
     factory: factoryActions(detail, handlers),
+    airline: airlineActions(detail, handlers),
   };
 }
 

@@ -1,4 +1,5 @@
 import type { OptionKind, PurchaseOption } from './options';
+import { quoteHub } from '@/domain/business/airlineQuotes';
 import { quoteCentralKitchen } from '@/domain/business/bakeryQuotes';
 import { quoteDetailing } from '@/domain/business/carWashQuotes';
 import { quoteOrderAhead } from '@/domain/business/coffeeKioskQuotes';
@@ -95,6 +96,7 @@ function signatureOptions(owned: OwnedBusiness, pricing: BusinessPricing): Impro
     { quote: quoteAllHours(owned, pricing), type: 'InstallAllHours' },
     { quote: quoteConference(owned, pricing), type: 'InstallConference' },
     { quote: quoteAutomation(owned, pricing), type: 'InstallAutomation' },
+    { quote: quoteHub(owned, pricing), type: 'InstallHub' },
   ] as const;
   return quotes.flatMap(({ quote, type }) =>
     quote?.status === 'available'
