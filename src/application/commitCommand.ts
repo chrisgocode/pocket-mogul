@@ -4,6 +4,7 @@ import { advanceTaxTime } from './taxTime';
 import { activateTaxes } from './taxActivation';
 import { listingValuesAt } from './listingMarket';
 import type { Content } from '@/content';
+import { withBriefing } from '@/domain/briefing';
 import { consumeBoostTime, isBoostActive, rewardChange, type RewardChange } from '@/domain/boost';
 import type {
   CommandEnvelope,
@@ -21,6 +22,7 @@ import { withProgress } from '@/domain/progression';
 import { newTutorialSteps, withTutorialProgress, type TutorialStep } from '@/domain/tutorial';
 
 import {
+  briefingRules,
   contentAt,
   goalRules,
   marketEconomy,
@@ -50,6 +52,7 @@ export type CommandTime = {
   readonly elapsedMs: number;
   readonly boostElapsedMs: number;
   readonly wallMs: number;
+  readonly dayKey: string;
 };
 
 type TimeStep = {
@@ -126,6 +129,7 @@ function boostedOnlyIfActive(command: GameCommand, before: GameState): GameComma
 type Applied = {
   readonly command: GameCommand;
   readonly content: Content;
+  readonly dayKey: string;
   readonly advanced: TimeStep;
   readonly progressed: GameState;
   readonly result: Extract<CommandResult, { ok: true }>;
@@ -145,8 +149,14 @@ function finish(previous: GameState, applied: Applied) {
     after: tutored,
     commandCashCents: result.cashChangeCents,
   });
+  const briefed = withBriefing(logged.state, {
+    before: previous,
+    dayKey: applied.dayKey,
+    rules: briefingRules(content),
+    play: applied.command.type === 'SettleOffline' ? 'ignored' : 'counted',
+  });
   return {
-    state: { ...logged.state, revision: previous.revision + 1 },
+    state: { ...briefed, revision: previous.revision + 1 },
     activity: logged.entries,
     completedGoalIds: goals.completedGoalIds,
     completedTutorialSteps: newTutorialSteps(previous.tutorial, tutored.tutorial),
@@ -178,7 +188,14 @@ export function applyEnvelope(
   const result = applyCommand(progressed, { type: command.type, payload: command }, content);
   if (!result.ok) return { outcome: result };
   const cashChangeCents = moneyCents(advanced.earnedCents + result.cashChangeCents);
-  const next = finish(state, { command, content, advanced, progressed, result });
+  const next = finish(state, {
+    command,
+    content,
+    dayKey: change.time.dayKey,
+    advanced,
+    progressed,
+    result,
+  });
   const outcome = { ok: true, revision: next.state.revision, cashChangeCents } as const;
   return { ...next, outcome, wallClock: advanced.wallClock, history: advanced.history };
 }
@@ -250,6 +267,7 @@ function applyReviewedCommand(
   const next = finish(state, {
     command,
     content,
+    dayKey: time.dayKey,
     advanced,
     progressed: state,
     result: { ...result, state: advanced.state },

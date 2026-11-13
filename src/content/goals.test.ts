@@ -83,4 +83,18 @@ describe('goals in content (UX03)', () => {
       'Rank thresholds must ascend',
     ]);
   });
+
+  it('offers briefing tasks that fit every player, with small rewards (UX03c)', () => {
+    const { briefing } = getContent();
+    expect(briefing.tasksPerDay).toBe(3);
+    expect(new Set(briefing.templates.map((template) => template.measure)).size).toBe(6);
+    expect(briefing.templates.every((template) => template.rewardBps <= 25)).toBe(true);
+    expect(
+      issuesFor((content) => {
+        content.briefing!.templates = content.briefing!.templates.filter(
+          (template) => template.needs !== 'nothing',
+        );
+      }),
+    ).toEqual(['The daily briefing needs a task that every player can do']);
+  });
 });

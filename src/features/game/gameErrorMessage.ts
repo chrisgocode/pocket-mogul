@@ -25,6 +25,7 @@ const MESSAGES: Record<GameErrorCode, string> = {
   BOOST_ACTIVE: 'A Tap Boost is already running.',
   UNKNOWN_GOAL: "That goal isn't available.",
   GOAL_NOT_CLAIMABLE: 'That reward is not ready to claim, or you already claimed it.',
+  BRIEFING_NOT_CLAIMABLE: 'No briefing reward is ready to claim.',
   GOAL_COMPLETED: 'You already reached this goal. Pin one you are still working toward.',
   SAVE_FAILED: "Your game couldn't be saved, so nothing changed. Try again.",
 };

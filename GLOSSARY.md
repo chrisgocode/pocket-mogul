@@ -514,6 +514,10 @@ _Avoid_: Prize, bonus, payout (that is a business's)
 The player's title on Profile, set by peak net worth, from Hustler to Mogul. It never falls.
 _Avoid_: Level, tier (that is a business tier), status
 
+**Daily briefing**:
+Three small tasks drawn each calendar day on Earn, fitted to what the player owns. Each pays a cash reward when claimed, with a bonus for finishing all three. Unfinished tasks clear when the day changes; nothing is lost for a missed day.
+_Avoid_: Daily quests, missions, streak, login bonus
+
 **Activity history**:
 The player-visible record of purchases, sales, upgrades, rentals, trades, dividend payouts and offline settlements, kept to the newest 2,000 entries. Lifetime totals on the save keep counting past that bound.
 _Avoid_: Ledger (for the screen), log, transactions

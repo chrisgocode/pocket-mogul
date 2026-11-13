@@ -6,6 +6,7 @@ import type { CollectionEconomy } from '@/domain/collection/rules';
 import type { DividendRates } from '@/domain/dividends';
 import type { MarketEconomy, MarketInstrument } from '@/domain/market';
 import type { PassiveEconomy } from '@/domain/passiveIncome';
+import type { BriefingRules } from '@/domain/briefing';
 import type { GoalRules } from '@/domain/goals';
 import type { ProgressRules } from '@/domain/progression';
 import type { PropertyEconomy } from '@/domain/properties';
@@ -50,6 +51,10 @@ export function progressRules(content: Content): ProgressRules {
     collection: collectionEconomy(content),
     instruments: instruments(content),
   };
+}
+
+export function briefingRules(content: Content): BriefingRules {
+  return { ...content.briefing, walletMaxLevel: content.economy.tap.maxLevel };
 }
 
 export function goalRules(content: Content): GoalRules {

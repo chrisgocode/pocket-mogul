@@ -16,13 +16,13 @@ export function goalReport(runs: readonly BalanceRun[]): string[] {
   return [
     '## Goal rewards',
     '',
-    'Every run claims a goal reward as soon as the goal is reached. Goal cash is a bonus: it is shown against the business income earned over the same run.',
+    'Every run claims a goal reward as soon as the goal is reached, and each daily briefing reward as soon as its task is done. Goal cash is a bonus: it is shown against the business income earned over the same run.',
     '',
-    '| Run | Rewards claimed | Goal cash | Business income | Goal cash against business income |',
-    '| --- | --- | --- | --- | --- |',
+    '| Run | Rewards claimed | Goal cash | Daily briefing cash | Business income | Goal cash against business income |',
+    '| --- | --- | --- | --- | --- | --- |',
     ...runs.map(
       (run) =>
-        `| ${run.scenario.name}, ${run.scenario.policy} | ${run.rewards.goalsClaimed} | ${formatMoneyCompact(run.rewards.goalCashCents)} | ${formatMoneyCompact(run.rewards.businessIncomeCents)} | ${share(run)} |`,
+        `| ${run.scenario.name}, ${run.scenario.policy} | ${run.rewards.goalsClaimed} | ${formatMoneyCompact(run.rewards.goalCashCents)} | ${formatMoneyCompact(run.rewards.briefingCashCents)} | ${formatMoneyCompact(run.rewards.businessIncomeCents)} | ${share(run)} |`,
     ),
   ];
 }

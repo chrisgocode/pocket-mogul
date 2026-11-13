@@ -19,6 +19,7 @@ import { savedHotel } from './hotelSaveSchema';
 import { savedLaundromat } from './laundromatSaveSchema';
 import { savedTakeovers } from './takeoverSaveSchema';
 import { savedVending } from './vendingSaveSchema';
+import { BRIEFING_MEASURES } from '@/domain/briefing';
 import { PRICE_LEVELS } from '@/domain/business/definition';
 import { parseMoneyCents, parsePriceMicros, parseQuantityMicrounits } from '@/domain/money';
 
@@ -138,6 +139,27 @@ const absenceIncident = z.object({
   insured: z.boolean(),
 });
 
+const claim = z.enum(['unclaimed', 'claimed']);
+const savedBriefing = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('none') }),
+  z.object({
+    status: z.literal('active'),
+    dayKey: z.string().min(1),
+    tasks: z.array(
+      z.object({
+        templateId: z.string().min(1),
+        measure: z.enum(BRIEFING_MEASURES),
+        target: count,
+        progress: count,
+        rewardCents: nonNegativeMoneyText,
+        claim,
+      }),
+    ),
+    bonusCents: nonNegativeMoneyText,
+    bonus: claim,
+  }),
+]);
+
 export const saveDocumentSchema = z.looseObject({
   tax: savedTax.default({ status: 'notStarted' }),
   saveId: z.string().min(1),
@@ -165,6 +187,7 @@ export const saveDocumentSchema = z.looseObject({
   reward: z.object({ boost, processedRewardIds: z.array(grantId) }),
   goals: goalProgress,
   claimedGoals: z.array(z.string().min(1)).default([]),
+  briefing: savedBriefing.default({ status: 'none' }),
   activity: activityLog,
   tutorial: tutorialProgress,
   settings,
