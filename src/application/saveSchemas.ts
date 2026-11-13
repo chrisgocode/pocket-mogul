@@ -12,6 +12,7 @@ import { savedDelivery } from './deliverySaveSchema';
 import { savedCoffeeKiosk } from './coffeeKioskSaveSchema';
 import { savedFoodCart } from './foodCartSaveSchema';
 import { savedGym } from './gymSaveSchema';
+import { savedHotel } from './hotelSaveSchema';
 import { savedLaundromat } from './laundromatSaveSchema';
 import { savedTakeovers } from './takeoverSaveSchema';
 import { savedVending } from './vendingSaveSchema';
@@ -168,6 +169,7 @@ export const saveDocumentSchema = z.looseObject({
   laundromat: z.record(z.string().min(1), savedLaundromat).default({}),
   bakery: z.record(z.string().min(1), savedBakery).default({}),
   gym: z.record(z.string().min(1), savedGym).default({}),
+  hotel: z.record(z.string().min(1), savedHotel).default({}),
   takeovers: z.record(z.string().min(1), savedTakeovers).default({}),
   listings: z
     .record(

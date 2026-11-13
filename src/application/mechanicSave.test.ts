@@ -133,3 +133,27 @@ describe('gym memberships and classes (BUS20h)', () => {
     expect(currentState(encoded)).toMatchObject({ businesses: [{ gym }] });
   });
 });
+
+describe('hotel seasons and rate plan (BUS20i)', () => {
+  const hotel = {
+    status: 'active',
+    season: 'event',
+    rates: { low: 'value', shoulder: 'standard', high: 'premium', event: 'luxury' },
+    conference: 'installed',
+  } as const;
+
+  it('loads a baseline save with the mechanic inactive', () => {
+    expect(currentState(baselineFixture)).toMatchObject({
+      businesses: [{ hotel: { status: 'inactive' } }],
+    });
+  });
+
+  it('keeps the hotel in a top-level record and round-trips it', () => {
+    const stored = baselineDocument({ hotel: { vending: hotel } });
+    const encoded = encodeSave(currentState(stored));
+    const document = JSON.parse(encoded) as { businesses: readonly object[] };
+    expect(document).toMatchObject({ hotel: { vending: hotel } });
+    expect(document.businesses[0]).not.toHaveProperty('hotel');
+    expect(currentState(encoded)).toMatchObject({ businesses: [{ hotel }] });
+  });
+});

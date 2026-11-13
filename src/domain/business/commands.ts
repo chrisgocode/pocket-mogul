@@ -1,3 +1,4 @@
+import { withTodaysRatePlanned } from './hotelPlan';
 import { listedSaleCents } from './listings';
 import { accumulatedPayouts } from './listingPayout';
 import { listingId, TOTAL_SHARES } from './listingState';
@@ -136,7 +137,8 @@ export function applySetPriceLevel(
 ): CommandResult {
   const found = lookUpOwned(state, order);
   if (!found.ok) return found;
-  return changed(state, { ...found.owned, priceLevel: order.priceLevel });
+  const priced = { ...found.owned, priceLevel: order.priceLevel };
+  return changed(state, withTodaysRatePlanned(priced));
 }
 
 export function applySetPayout(

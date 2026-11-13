@@ -6,6 +6,7 @@ import { coffeeKioskMechanic } from './economy-coffee-kiosk';
 import { laundromatMechanic } from './economy-laundromat';
 import { bakeryMechanic } from './economy-bakery';
 import { gymMechanic } from './economy-gym-chain';
+import { hotelMechanic } from './economy-hotel-group';
 import { withMechanics } from './mechanicUpgrade';
 import type { ContentInput } from './schema';
 
@@ -18,6 +19,7 @@ export const economyV2 = {
     laundromat: laundromatMechanic,
     bakery: bakeryMechanic,
     gym_chain: gymMechanic,
+    hotel_group: hotelMechanic,
   }),
   economy: {
     ...economyV1.economy,

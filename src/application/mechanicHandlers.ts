@@ -23,6 +23,8 @@ import {
   applySetGymTier,
 } from '@/domain/business/gymCommands';
 import type { GymCommand } from '@/domain/business/gymOrders';
+import { applyInstallConference, applySetSeasonRate } from '@/domain/business/hotelCommands';
+import type { HotelCommand } from '@/domain/business/hotelOrders';
 import {
   applyInstallPickup,
   applySetJumboShare,
@@ -39,7 +41,8 @@ type MechanicCommand =
   | CoffeeKioskCommand
   | LaundromatCommand
   | BakeryCommand
-  | GymCommand;
+  | GymCommand
+  | HotelCommand;
 
 type MechanicHandlers = {
   readonly [Type in MechanicCommand['type']]: (
@@ -80,6 +83,10 @@ export const MECHANIC_HANDLERS: MechanicHandlers = {
     applySetClassLevel(state, { ...command, economy: businessEconomy(content) }),
   InstallAllHours: (state, command, content) =>
     applyInstallAllHours(state, { ...command, economy: businessEconomy(content) }),
+  SetSeasonRate: (state, command, content) =>
+    applySetSeasonRate(state, { ...command, economy: businessEconomy(content) }),
+  InstallConference: (state, command, content) =>
+    applyInstallConference(state, { ...command, economy: businessEconomy(content) }),
 };
 
 export const MECHANIC_INVESTMENTS = [
@@ -88,4 +95,5 @@ export const MECHANIC_INVESTMENTS = [
   'InstallPickup',
   'InstallCentralKitchen',
   'InstallAllHours',
+  'InstallConference',
 ] as const;

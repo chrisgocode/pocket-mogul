@@ -61,6 +61,7 @@ const BASELINE_STATE = {
       laundromat: { status: 'inactive' },
       bakery: { status: 'inactive' },
       gym: { status: 'inactive' },
+      hotel: { status: 'inactive' },
       takeovers: { offer: { status: 'none' }, locks: [], merged: [] },
       listing: { status: 'private' },
     },
