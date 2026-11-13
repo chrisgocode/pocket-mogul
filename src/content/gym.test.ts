@@ -1,4 +1,4 @@
-import { economyV7 } from './economy-v7';
+import { economyV2 } from './economy-v2';
 import { findContentIssues, getContent } from './index';
 import type { ContentInput } from './schema';
 
@@ -14,7 +14,7 @@ function gymOf(content: ContentInput): GymInput {
 }
 
 const issuesFor = (mutate: (gym: GymInput) => void) => {
-  const content: ContentInput = structuredClone(economyV7);
+  const content: ContentInput = structuredClone(economyV2);
   mutate(gymOf(content));
   return findContentIssues(content);
 };
@@ -23,7 +23,7 @@ describe('the Gym Chain mechanic in content (BUS20h)', () => {
   it('gives only the Gym Chain memberships and classes, unlocked at Local', () => {
     const gyms = getContent().businesses.filter((business) => business.mechanic?.kind === 'gym');
     expect(gyms.map((business) => business.id)).toEqual(['gym_chain']);
-    expect(gymOf(economyV7)).toMatchObject({
+    expect(gymOf(economyV2)).toMatchObject({
       unlockStage: 2,
       joinsPerUnit: 300,
       classes: { maxLevel: 3 },
@@ -34,7 +34,7 @@ describe('the Gym Chain mechanic in content (BUS20h)', () => {
   it('keeps the earlier mechanics and passes validation as bundled', () => {
     const kinds = getContent().businesses.map((business) => business.mechanic?.kind);
     expect(kinds).toEqual(expect.arrayContaining(['laundromat', 'bakery']));
-    expect(findContentIssues(economyV7)).toEqual([]);
+    expect(findContentIssues(economyV2)).toEqual([]);
   });
 
   it('rejects tiers out of order and classes that keep or take everything', () => {

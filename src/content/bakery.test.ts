@@ -1,4 +1,4 @@
-import { economyV6 } from './economy-v6';
+import { economyV2 } from './economy-v2';
 import { findContentIssues, getContent } from './index';
 import type { ContentInput } from './schema';
 
@@ -14,7 +14,7 @@ function bakeryOf(content: ContentInput): BakeryInput {
 }
 
 const issuesFor = (mutate: (bakery: BakeryInput) => void) => {
-  const content: ContentInput = structuredClone(economyV6);
+  const content: ContentInput = structuredClone(economyV2);
   mutate(bakeryOf(content));
   return findContentIssues(content);
 };
@@ -25,7 +25,7 @@ describe('the Bakery mechanic in content (BUS20g)', () => {
       (business) => business.mechanic?.kind === 'bakery',
     );
     expect(bakeries.map((business) => business.id)).toEqual(['bakery']);
-    expect(bakeryOf(economyV6)).toMatchObject({
+    expect(bakeryOf(economyV2)).toMatchObject({
       unlockStage: 2,
       bakePercents: [60, 70, 80, 90, 100],
       wholesale: { offerDays: 2, maxOrders: 2 },
@@ -36,7 +36,7 @@ describe('the Bakery mechanic in content (BUS20g)', () => {
   it('keeps the earlier mechanics and passes validation as bundled', () => {
     const kinds = getContent().businesses.map((business) => business.mechanic?.kind);
     expect(kinds).toEqual(expect.arrayContaining(['food_cart', 'coffee_kiosk', 'laundromat']));
-    expect(findContentIssues(economyV6)).toEqual([]);
+    expect(findContentIssues(economyV2)).toEqual([]);
   });
 
   it('rejects bake levels and wholesale terms that do not fit', () => {

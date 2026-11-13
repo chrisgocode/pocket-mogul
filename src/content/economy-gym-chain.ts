@@ -1,10 +1,6 @@
 import { dollars } from '@/domain/money';
 
-import { economyV6 } from './economy-v6';
-import { withMechanic } from './mechanicUpgrade';
-import type { ContentInput } from './schema';
-
-const gymMechanic = {
+export const gymMechanic = {
   kind: 'gym',
   unlockStage: 2,
   defaultTier: 'basic',
@@ -18,9 +14,3 @@ const gymMechanic = {
   classes: { maxLevel: 3, churnCutBps: 50, studioPercent: 3 },
   allHours: { stage: 5, priceMultiple: 150, capacityPercent: 20 },
 } as const;
-
-export const economyV7 = {
-  ...economyV6,
-  economyVersion: 7,
-  businesses: withMechanic(economyV6.businesses, { id: 'gym_chain', mechanic: gymMechanic }),
-} satisfies ContentInput;
