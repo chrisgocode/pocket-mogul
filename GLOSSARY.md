@@ -346,6 +346,10 @@ _Avoid_: Contract (that is a Delivery Company's), Bulk order (that is a Manufact
 The Space Launch Company's stage 5 (Global) signature upgrade, paid once from the Treasury: it adds 50 percent capacity.
 _Avoid_: Recovery, relaunch
 
+**Synergy**:
+A small bonus one business gets while the player also owns a named partner business: more customers, more capacity or a lower cost per customer. It starts and ends at the day boundary after the partner is bought or sold. Each pair has a Synergy in both directions.
+_Avoid_: Combo, bonus, link, perk (that is a collection set's)
+
 **Second window**:
 The Food Cart's stage 5 (Global) signature upgrade, paid once from the Treasury: a second serving window that adds 30 percent capacity.
 _Avoid_: Extra hatch

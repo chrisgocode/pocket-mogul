@@ -2,7 +2,7 @@ import type { BusinessDefinition } from '@/domain/business/definition';
 import { SHARED_CORE, type BusinessMechanic } from '@/domain/business/mechanicRules';
 import { moneyCents } from '@/domain/money';
 
-import type { Business, BusinessContentRules } from './schema';
+import type { Business, BusinessContentRules, Content } from './schema';
 
 const PERCENT = 100n;
 
@@ -57,10 +57,16 @@ function mechanicOf(business: Business): BusinessMechanic {
   return business.mechanic === undefined ? SHARED_CORE : domainMechanic(business.mechanic);
 }
 
+type DefinitionContent = {
+  readonly economy: { readonly businessRules: BusinessContentRules };
+  readonly synergies: Content['synergies'];
+};
+
 export function businessDefinition(
   business: Business,
-  rules: BusinessContentRules,
+  content: DefinitionContent,
 ): BusinessDefinition {
+  const rules = content.economy.businessRules;
   const figures = coreFigures(business, rules);
   return {
     id: business.id,
@@ -76,6 +82,9 @@ export function businessDefinition(
     incidents: business.incidents,
     mechanic: mechanicOf(business),
     rivals: business.rivals.map(({ id, units, quality }) => ({ id, units, quality })),
+    synergies: content.synergies.links
+      .filter((link) => link.businessId === business.id)
+      .map(({ id, partnerId, effect, percent }) => ({ id, partnerId, effect, percent })),
   };
 }
 

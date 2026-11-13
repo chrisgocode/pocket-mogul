@@ -1,6 +1,7 @@
 import type { MoneyCents } from '@/domain/money';
 
 import type { BusinessMechanic } from './mechanicRules';
+import type { Synergy } from './synergyRules';
 import type { Rival, TakeoverRules } from './takeoverState';
 
 export const PRICE_LEVELS = ['budget', 'value', 'standard', 'premium', 'luxury'] as const;
@@ -71,6 +72,7 @@ export type BusinessDefinition = {
   readonly incidents: readonly IncidentType[];
   readonly mechanic: BusinessMechanic;
   readonly rivals: readonly Rival[];
+  readonly synergies: readonly Synergy[];
 };
 
 export type BusinessCatalog = readonly BusinessDefinition[];

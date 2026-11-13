@@ -10,6 +10,7 @@ import { hotelMechanic } from './economy-hotel-group';
 import { factoryMechanic } from './economy-manufacturer';
 import { airlineMechanic } from './economy-airline';
 import { spaceMechanic } from './economy-space-launch';
+import { businessSynergies } from './economy-synergies';
 import { withMechanics } from './mechanicUpgrade';
 import type { ContentInput } from './schema';
 
@@ -27,6 +28,7 @@ export const economyV2 = {
     airline: airlineMechanic,
     space_launch: spaceMechanic,
   }),
+  synergies: businessSynergies,
   economy: {
     ...economyV1.economy,
     taxes: {

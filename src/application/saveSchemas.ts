@@ -176,6 +176,7 @@ export const saveDocumentSchema = z.looseObject({
   factory: z.record(z.string().min(1), savedFactory).default({}),
   airline: z.record(z.string().min(1), savedAirline).default({}),
   space: z.record(z.string().min(1), savedSpace).default({}),
+  synergies: z.record(z.string().min(1), z.array(z.string().min(1))).default({}),
   takeovers: z.record(z.string().min(1), savedTakeovers).default({}),
   listings: z
     .record(

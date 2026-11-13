@@ -14,7 +14,7 @@ export function businessEconomy(content: Content): BusinessEconomy {
   const rules = content.economy.businessRules;
   return {
     listedSaleFeeBps: content.economy.market.stocks.feeBps,
-    catalog: content.businesses.map((business) => businessDefinition(business, rules)),
+    catalog: content.businesses.map((business) => businessDefinition(business, content)),
     rules,
   };
 }

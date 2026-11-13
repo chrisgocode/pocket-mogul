@@ -128,6 +128,7 @@ export const vendingDefinition: BusinessDefinition = {
     { id: 'coinbright', units: 12, quality: 6 },
     { id: 'hallway_treats', units: 25, quality: 10 },
   ],
+  synergies: [],
 };
 
 export function ownedBusiness(
@@ -162,6 +163,7 @@ export function ownedBusiness(
     factory: { status: 'inactive' },
     airline: { status: 'inactive' },
     space: { status: 'inactive' },
+    synergies: [],
     takeovers: { offer: { status: 'none' }, locks: [], merged: [] },
     listing: { status: 'private' },
     ...change,

@@ -49,6 +49,7 @@ import { selectHotel, type HotelView } from './hotelView';
 import { selectLaundromat, type LaundromatView } from './laundromatView';
 import { selectSpace, type SpaceView } from './spaceView';
 import { selectDelivery, type DeliveryView } from './deliveryView';
+import { selectSynergies, type SynergyView } from './synergyView';
 import { selectDeals, type DealsView } from './takeoverView';
 import { runningDelivery } from '@/domain/business/deliveryDemand';
 import {
@@ -131,6 +132,7 @@ export type OwnedBusinessDetail = {
   readonly airline: AirlineView | undefined;
   readonly space: SpaceView | undefined;
   readonly deals: DealsView;
+  readonly synergies: readonly SynergyView[];
   readonly sale: BusinessSale;
 };
 
@@ -210,7 +212,9 @@ function mechanicViews(context: DetailContext) {
   };
 }
 
-function ownedDetail(business: Business, context: DetailContext): OwnedBusinessDetail {
+type DetailCore = Omit<OwnedBusinessDetail, 'synergies'>;
+
+function ownedDetail(business: Business, context: DetailContext): DetailCore {
   const { owned, pricing } = context;
   const { rules } = pricing;
   return {
@@ -269,8 +273,10 @@ export function selectBusinessDetail(
     seenCoachMarks: state.seenCoachMarks,
     seed: state.market.seed,
   });
+  const ownedIds = state.businesses.map((each) => each.definitionId);
   return {
     ...detail,
+    synergies: selectSynergies(owned, { content, ownedIds }),
     sale: {
       ...detail.sale,
       listed: owned.listing.status === 'listed',

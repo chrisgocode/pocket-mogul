@@ -4,6 +4,7 @@ import { Section } from '@/ui/Section';
 import { DealsSection } from './DealsSection';
 import { LockedDealsCard } from './LockedDealsCard';
 import { RisksSection } from './RisksSection';
+import { SynergiesSection } from './SynergiesSection';
 import type { InsuranceChange } from './InsuranceButton';
 import type { BusinessAction } from './businessAction';
 const REGIONAL_STAGE = 3;
@@ -18,6 +19,7 @@ export function BusinessAdvanced({
 }) {
   return (
     <>
+      <SynergiesSection detail={detail} />
       {detail.stage > 1 || detail.risks.active !== undefined ? (
         <RisksSection detail={detail} onInsurance={onInsurance} />
       ) : null}
