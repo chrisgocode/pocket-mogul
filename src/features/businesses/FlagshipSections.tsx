@@ -20,6 +20,8 @@ import type { HotelActions } from './hotelFormat';
 import { HotelSection } from './HotelSection';
 import type { LaundromatActions } from './laundromatFormat';
 import { LaundromatSection } from './LaundromatSection';
+import type { SpaceActions } from './spaceFormat';
+import { SpaceSection } from './SpaceSection';
 import type { VendingActions } from './vendingFormat';
 import { VendingSection } from './VendingSection';
 
@@ -35,6 +37,7 @@ export type FlagshipActions = {
   readonly hotel: HotelActions;
   readonly factory: FactoryActions;
   readonly airline: AirlineActions;
+  readonly space: SpaceActions;
 };
 
 export function FlagshipSections({
@@ -57,6 +60,7 @@ export function FlagshipSections({
       <HotelSection detail={detail} actions={actions.hotel} />
       <FactorySection detail={detail} actions={actions.factory} />
       <AirlineSection detail={detail} actions={actions.airline} />
+      <SpaceSection detail={detail} actions={actions.space} />
     </>
   );
 }

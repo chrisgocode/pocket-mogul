@@ -161,6 +161,7 @@ export function ownedBusiness(
     hotel: { status: 'inactive' },
     factory: { status: 'inactive' },
     airline: { status: 'inactive' },
+    space: { status: 'inactive' },
     takeovers: { offer: { status: 'none' }, locks: [], merged: [] },
     listing: { status: 'private' },
     ...change,

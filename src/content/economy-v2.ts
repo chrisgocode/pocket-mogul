@@ -9,6 +9,7 @@ import { gymMechanic } from './economy-gym-chain';
 import { hotelMechanic } from './economy-hotel-group';
 import { factoryMechanic } from './economy-manufacturer';
 import { airlineMechanic } from './economy-airline';
+import { spaceMechanic } from './economy-space-launch';
 import { withMechanics } from './mechanicUpgrade';
 import type { ContentInput } from './schema';
 
@@ -24,6 +25,7 @@ export const economyV2 = {
     hotel_group: hotelMechanic,
     manufacturer: factoryMechanic,
     airline: airlineMechanic,
+    space_launch: spaceMechanic,
   }),
   economy: {
     ...economyV1.economy,

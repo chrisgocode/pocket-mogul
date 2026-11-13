@@ -219,3 +219,40 @@ describe('airline network and fuel (BUS20k)', () => {
     expect(currentState(encoded)).toMatchObject({ businesses: [{ airline }] });
   });
 });
+
+describe('space launch cadence and payload contracts (BUS20l)', () => {
+  const stored = {
+    status: 'active',
+    cadence: 'careful',
+    weather: 'storm',
+    contracts: [
+      {
+        clientId: 'polar_relay',
+        parcelsPerDay: 20,
+        rateCents: '260000000',
+        penaltyCents: '200000000',
+        endsDay: 9,
+      },
+    ],
+    answeredOffer: 1,
+    boosters: 'installed',
+  } as const;
+
+  it('loads a baseline save with the mechanic inactive', () => {
+    expect(currentState(baselineFixture)).toMatchObject({
+      businesses: [{ space: { status: 'inactive' } }],
+    });
+  });
+
+  it('keeps the launch company in a top-level record and round-trips money as cents', () => {
+    const encoded = encodeSave(currentState(baselineDocument({ space: { vending: stored } })));
+    const document = JSON.parse(encoded) as { businesses: readonly object[] };
+    expect(document).toMatchObject({ space: { vending: stored } });
+    expect(document.businesses[0]).not.toHaveProperty('space');
+    expect(currentState(encoded)).toMatchObject({
+      businesses: [
+        { space: { cadence: 'careful', contracts: [{ rateCents: 260_000_000n, endsDay: 9 }] } },
+      ],
+    });
+  });
+});

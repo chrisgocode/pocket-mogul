@@ -19,6 +19,8 @@ import { conferenceText } from './hotelActionText';
 import type { HotelActions } from './hotelFormat';
 import { pickupText } from './laundromatActionText';
 import type { LaundromatActions } from './laundromatFormat';
+import { boostersText } from './spaceActionText';
+import type { SpaceActions } from './spaceFormat';
 import type { useBusinessCommand } from './useBusinessCommand';
 
 type Handlers = {
@@ -145,5 +147,19 @@ export function airlineActions(detail: OwnedBusinessDetail, handlers: Handlers):
     dismissCoachMark: () => run({ type: 'DismissCoachMark', coachMark: 'airline' }),
     installHub: (hub) =>
       reviewSignature({ command: { type: 'InstallHub', businessId }, text: hubText(hub) }),
+  };
+}
+
+export function spaceActions(detail: OwnedBusinessDetail, handlers: Handlers): SpaceActions {
+  const { businessId, run, reviewSignature } = mechanicHandlers(detail, handlers);
+  return {
+    setCadence: (cadence) => run({ type: 'SetCadence', businessId, cadence }),
+    answerPayloadOffer: (answer) => run({ type: 'AnswerPayloadOffer', businessId, ...answer }),
+    dismissCoachMark: () => run({ type: 'DismissCoachMark', coachMark: 'space' }),
+    installBoosters: (boosters) =>
+      reviewSignature({
+        command: { type: 'InstallBoosters', businessId },
+        text: boostersText(boosters),
+      }),
   };
 }

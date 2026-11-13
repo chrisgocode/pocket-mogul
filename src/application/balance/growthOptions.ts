@@ -8,6 +8,7 @@ import { quoteSecondWindow } from '@/domain/business/foodCartQuotes';
 import { quoteAllHours } from '@/domain/business/gymQuotes';
 import { quoteConference } from '@/domain/business/hotelQuotes';
 import { quotePickup } from '@/domain/business/laundromatQuotes';
+import { quoteBoosters } from '@/domain/business/spaceQuotes';
 import { quoteSortingHub } from '@/domain/business/deliveryQuotes';
 import { STAFF_ROLES, type BusinessPricing } from '@/domain/business/definition';
 import type { OwnedBusiness } from '@/domain/business/owned';
@@ -97,6 +98,7 @@ function signatureOptions(owned: OwnedBusiness, pricing: BusinessPricing): Impro
     { quote: quoteConference(owned, pricing), type: 'InstallConference' },
     { quote: quoteAutomation(owned, pricing), type: 'InstallAutomation' },
     { quote: quoteHub(owned, pricing), type: 'InstallHub' },
+    { quote: quoteBoosters(owned, pricing), type: 'InstallBoosters' },
   ] as const;
   return quotes.flatMap(({ quote, type }) =>
     quote?.status === 'available'

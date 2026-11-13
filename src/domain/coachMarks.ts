@@ -14,6 +14,7 @@ export const COACH_MARKS = [
   'hotel',
   'factory',
   'airline',
+  'space',
 ] as const;
 export type CoachMark = (typeof COACH_MARKS)[number];
 

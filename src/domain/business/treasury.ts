@@ -13,6 +13,7 @@ import { startFactoryDay } from './factory';
 import { startFoodCartDay } from './foodCart';
 import { startGymDay } from './gym';
 import { startHotelDay } from './hotel';
+import { startSpaceDay } from './space';
 import { withLaundromatUnlocked } from './laundromat';
 import { findBusiness, type BusinessEconomy, type BusinessPricing } from './definition';
 import type { OwnedBusiness } from './owned';
@@ -156,7 +157,8 @@ function dayStarted(segment: Settled, boundary: { settlement: Settlement; endMs:
   const restocked = restockedByStaff(started.business, pricing);
   const washing = startCarWashDay(restocked, { pricing, seed, day });
   const baking = startGymDay(startBakeryDay(washing, { pricing, day }), pricing);
-  const flying = startAirlineDay(baking, { pricing, seed, day });
+  const launching = startSpaceDay(baking, { pricing, seed, day });
+  const flying = startAirlineDay(launching, { pricing, seed, day });
   const making = startFactoryDay(flying, { pricing, day });
   const hosting = startHotelDay(making, { pricing, seed, day });
   const parked = startFoodCartDay(hosting, { pricing, seed, day });

@@ -15,6 +15,7 @@ import { withLaundromatUnlocked } from './laundromat';
 import { businessDayOf, type StaffRole } from './definition';
 import { quoteStaff, withStaff } from './staff';
 import { quoteStage } from './stages';
+import { withSpaceUnlocked } from './space';
 import { withVendingUnlocked } from './vending';
 
 type StaffOrder = BusinessOrder & { readonly role: StaffRole; readonly fromCount: number };
@@ -71,7 +72,7 @@ export function applyUpgradeStage(
   return spendTreasury(state, {
     owned,
     priceCents: quote.priceCents,
-    improved: withAirlineUnlocked(lodging, start),
+    improved: withSpaceUnlocked(withAirlineUnlocked(lodging, start), start),
     expense: 'capital',
   });
 }

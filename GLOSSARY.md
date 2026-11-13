@@ -159,7 +159,7 @@ Cover for one incident category, available from stage 2 (Local). It costs a dail
 _Avoid_: Cover plan, protection
 
 **Flagship mechanic**:
-A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships; the Delivery Company's is Contracts, Reputation and Drivers; the Food Cart's is Spot, Crowd and Menu; the Coffee Kiosk's is Morning rush, Rush plan and Bean grade; the Laundromat's is Jumbo machines and Service washes; the Bakery's is Bake level and Wholesale orders; the Gym Chain's is Gym members, Tier on sale and Classes; the Hotel Group's is Season, Rate plan and Stars; the Manufacturing Company's is Product, Retooling and Bulk orders; the Airline's is Network and Fuel price.
+A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships; the Delivery Company's is Contracts, Reputation and Drivers; the Food Cart's is Spot, Crowd and Menu; the Coffee Kiosk's is Morning rush, Rush plan and Bean grade; the Laundromat's is Jumbo machines and Service washes; the Bakery's is Bake level and Wholesale orders; the Gym Chain's is Gym members, Tier on sale and Classes; the Hotel Group's is Season, Rate plan and Stars; the Manufacturing Company's is Product, Retooling and Bulk orders; the Airline's is Network and Fuel price; the Space Launch Company's is Launch cadence, Launch weather and Payload contracts.
 _Avoid_: Minigame, feature
 
 **Coach mark**:
@@ -329,6 +329,22 @@ _Avoid_: Jet fuel spike (that is the Airline's supply incident)
 **International hub**:
 The Airline's stage 5 (Global) signature upgrade, paid once from the Treasury: it adds 15 percent capacity.
 _Avoid_: Base, terminal
+
+**Launch cadence**:
+How fast a Space Launch Company launches: Careful, Standard or Rapid. A faster cadence launches more on a Clear day and loses more launches to wind and storms. A Manager sets the most profitable one for the day's Launch weather.
+_Avoid_: Tempo, launch slots
+
+**Launch weather**:
+A Space Launch Company's daily condition drawn from the save's seed: Clear, Windy or Storm. It scrubs a share of the day's launches that depends on the Launch cadence. The details show the next two days.
+_Avoid_: Weather (that is a Car Wash's)
+
+**Payload contract**:
+A Space Launch Company's standing contract from a fictional client: a fixed number of payloads a day well above the standard price, launched first, with a penalty of the full standard price for every payload not launched. One offer is open at a time and at most two contracts run at once.
+_Avoid_: Contract (that is a Delivery Company's), Bulk order (that is a Manufacturing Company's)
+
+**Reusable boosters**:
+The Space Launch Company's stage 5 (Global) signature upgrade, paid once from the Treasury: it adds 50 percent capacity.
+_Avoid_: Recovery, relaunch
 
 **Second window**:
 The Food Cart's stage 5 (Global) signature upgrade, paid once from the Treasury: a second serving window that adds 30 percent capacity.

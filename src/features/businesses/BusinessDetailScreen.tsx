@@ -28,6 +28,7 @@ import {
   gymActions,
   hotelActions,
   laundromatActions,
+  spaceActions,
 } from './mechanicActions';
 import type { VendingActions } from './vendingFormat';
 import { useBusinessCommand } from './useBusinessCommand';
@@ -124,6 +125,7 @@ function flagshipActions(
     hotel: hotelActions(detail, handlers),
     factory: factoryActions(detail, handlers),
     airline: airlineActions(detail, handlers),
+    space: spaceActions(detail, handlers),
   };
 }
 

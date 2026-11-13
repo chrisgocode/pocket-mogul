@@ -1,5 +1,6 @@
 import type { BusinessTrack, IncidentCategory, PriceLevel, StaffRole } from './business/definition';
 import type { AirlineCommand } from './business/airlineOrders';
+import type { SpaceCommand } from './business/spaceOrders';
 import type { BakeryCommand } from './business/bakeryOrders';
 import type { OptionalPackage } from './business/carWashRules';
 import type { CoffeeKioskCommand } from './business/coffeeKioskOrders';
@@ -269,6 +270,7 @@ export type GameCommand =
   | HotelCommand
   | FactoryCommand
   | AirlineCommand
+  | SpaceCommand
   | MakeTakeoverOffer
   | DismissCoachMark
   | SetPayout
