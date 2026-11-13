@@ -6,6 +6,7 @@ import type { MoneyCents, PriceMicros } from '@/domain/money';
 
 import { eventTemplateSchema, marketParamsSchema } from './marketSchema';
 import { incidentSchema, riskRulesSchema } from './riskSchema';
+import { collectionSchema, NO_COLLECTION_CONTENT } from './collectionSchema';
 import { mechanicSchema } from './mechanicSchema';
 import { NO_SYNERGY_CONTENT, synergiesSchema } from './synergySchema';
 import { rivalSchema, takeoverRulesSchema } from './takeoverSchema';
@@ -293,6 +294,7 @@ export const contentSchema = z.object({
   economy: economySchema,
   businesses: z.array(businessSchema).min(1),
   synergies: synergiesSchema.default(NO_SYNERGY_CONTENT),
+  collection: collectionSchema.default(NO_COLLECTION_CONTENT),
   stocks: z.array(stockSchema).min(1),
   coins: z.array(coinSchema).min(1),
   properties: z.array(propertySchema).min(1),

@@ -11,7 +11,10 @@ export function taxActionDetails(
   context: { state: GameState; content: Content; command: GameCommand },
 ): ActionSheetText {
   const { command } = context;
-  const sale = command.type === 'SellBusiness' || command.type === 'SellProperty';
+  const sale =
+    command.type === 'SellBusiness' ||
+    command.type === 'SellProperty' ||
+    command.type === 'SellCollectible';
   if (!sale && command.type !== 'WithdrawFromTreasury') return text;
   const quote = quoteTaxCommand(context.state, context);
   if (quote === undefined) return text;

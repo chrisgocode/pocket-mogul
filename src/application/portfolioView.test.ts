@@ -54,6 +54,7 @@ describe('portfolio', () => {
       cashCents: dollars('100'),
       businessesCents: dollars('300'),
       propertiesCents: dollars('20,000'),
+      collectionCents: dollars('0'),
       positionsCents: dollars('300'),
       pendingDividendsCents: dollars('0.10'),
       taxLiabilityCents: dollars('0'),

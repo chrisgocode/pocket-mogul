@@ -11,6 +11,7 @@ export function AllocationCard({ worth }: { worth: Worth }) {
     { label: 'Cash', value: worth.cashCents, color: colors.textMuted },
     { label: 'Businesses', value: worth.businessesCents, color: sectionColors.businesses },
     { label: 'Properties', value: worth.propertiesCents, color: sectionColors.properties },
+    { label: 'Collection', value: worth.collectionCents, color: sectionColors.earn },
     { label: 'Markets', value: worth.positionsCents, color: sectionColors.markets },
     {
       label: 'Pending dividends',

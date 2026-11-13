@@ -7,7 +7,7 @@ const EARNINGS_GROUP_MS = 600_000;
 
 export const ACTIVITY_ENTRIES_KEPT = 2000;
 
-export type OwnedAssetKind = 'business' | 'property';
+export type OwnedAssetKind = 'business' | 'property' | 'collectible';
 
 export type UpgradeTarget = 'wallet' | 'property';
 

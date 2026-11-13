@@ -1,4 +1,9 @@
-import { businessTaxSource, instrumentTaxBasis, propertyTaxBasis } from '@/domain/tax/sources';
+import {
+  businessTaxSource,
+  collectibleTaxBasis,
+  instrumentTaxBasis,
+  propertyTaxBasis,
+} from '@/domain/tax/sources';
 import type { Content } from '@/content';
 import type { GameCommand } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
@@ -27,6 +32,7 @@ function dailyTax(state: GameState): bigint {
 function commandBasisKey(command: GameCommand): string {
   if ('businessId' in command) return businessTaxSource(command.businessId);
   if ('propertyId' in command) return propertyTaxBasis(command.propertyId);
+  if (command.type === 'SellCollectible') return collectibleTaxBasis(command.pieceId);
   if (command.type !== 'ExecuteTrade') return '';
   return instrumentTaxBasis(command.assetId);
 }

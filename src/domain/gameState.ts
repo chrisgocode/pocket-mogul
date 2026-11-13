@@ -4,6 +4,7 @@ import { freshAdSchedule, type AdScheduleState } from './adSchedule';
 import { EMPTY_ACTIVITY, type ActivityLog } from './activity';
 import { NO_REWARDS, type RewardState } from './boost';
 import type { OwnedBusiness } from './business/owned';
+import type { OwnedCollectible } from './collection/rules';
 import type { DividendAccrual } from './dividends';
 import { NO_GOAL_PROGRESS, type GoalProgress } from './goals';
 import { freshMarket, type MarketState } from './market';
@@ -80,6 +81,7 @@ export type GameState = {
   readonly tap: { readonly walletLevel: number; readonly totalAcceptedTaps: number };
   readonly businesses: readonly OwnedBusiness[];
   readonly properties: readonly OwnedProperty[];
+  readonly collectibles: readonly OwnedCollectible[];
   readonly income: IncomeState;
   readonly unlockedTiers: readonly number[];
   readonly returnSummary: PendingReturnSummary;
@@ -119,6 +121,7 @@ export function freshGameState(start: {
     tap: { walletLevel: 0, totalAcceptedTaps: 0 },
     businesses: [],
     properties: [],
+    collectibles: [],
     income: freshIncome(),
     unlockedTiers: [1],
     returnSummary: { status: 'none' },

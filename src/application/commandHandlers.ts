@@ -39,6 +39,7 @@ import {
   applyRestockVending,
   applySetVendingMix,
 } from '@/domain/business/vendingCommands';
+import { applyBuyCollectible, applySellCollectible } from '@/domain/collection/commands';
 import { applyDismissCoachMark } from '@/domain/coachMarks';
 import type { CommandResult, GameCommand } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
@@ -56,7 +57,13 @@ import { applyExecuteTrade, applySetWatchlist } from '@/domain/trades';
 import { applySkipTutorial } from '@/domain/tutorial';
 import { applyWalletUpgrade } from '@/domain/wallet';
 
-import { businessEconomy, goalRules, propertyEconomy, tradeEconomy } from './economy';
+import {
+  businessEconomy,
+  collectionEconomy,
+  goalRules,
+  propertyEconomy,
+  tradeEconomy,
+} from './economy';
 import { MECHANIC_HANDLERS, MECHANIC_INVESTMENTS } from './mechanicHandlers';
 
 type CommandsByType = { [Type in GameCommand['type']]: Extract<GameCommand, { type: Type }> };
@@ -159,6 +166,10 @@ const COMMAND_HANDLERS: CommandHandlers = {
     applySetRentalStatus(state, { ...command, economy: propertyEconomy(content) }),
   SellProperty: (state, command, content) =>
     applySellProperty(state, { ...command, economy: propertyEconomy(content) }),
+  BuyCollectible: (state, command, content) =>
+    applyBuyCollectible(state, { ...command, economy: collectionEconomy(content) }),
+  SellCollectible: (state, command, content) =>
+    applySellCollectible(state, { ...command, economy: collectionEconomy(content) }),
   ExecuteTrade: (state, command, content) =>
     applyExecuteTrade(state, { ...command, economy: tradeEconomy(content, state) }),
   SetWatchlist: (state, command, content) =>
@@ -210,6 +221,7 @@ export function applyCommand<Type extends keyof CommandsByType>(
 const INVESTMENTS = new Set<GameCommand['type']>([
   'BuyBusiness',
   'BuyProperty',
+  'BuyCollectible',
   'BuyUnit',
   'UpgradeBusiness',
   'UpgradeProperty',

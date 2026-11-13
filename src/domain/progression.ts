@@ -1,5 +1,7 @@
 import { taxLiabilityCents } from './tax/assessment';
 import { carryingValueCents } from './business/core';
+import { collectionValueCents } from './collection/appraisal';
+import { collectionDayOf, type CollectionEconomy } from './collection/rules';
 import { pendingDividendsCents } from './dividends';
 import type { GameState } from './gameState';
 import { moneyCents, type MoneyCents } from './money';
@@ -14,6 +16,7 @@ export type TierThresholds = Readonly<Record<number, MoneyCents>>;
 export type ProgressRules = {
   readonly tierUnlocks: TierThresholds;
   readonly properties: PropertyEconomy;
+  readonly collection: CollectionEconomy;
   readonly instruments: readonly MarketInstrument[];
 };
 
@@ -35,6 +38,12 @@ const propertyEstimatedValue: AssetValuation = (state, rules) =>
     return total + estimatedValueCents(property, { definition, rules: rules.properties.rules });
   }, 0n);
 
+const collectionAppraisedValue: AssetValuation = (state, rules) =>
+  collectionValueCents(state.collectibles, {
+    ...collectionDayOf(state, rules.collection.rules),
+    economy: rules.collection,
+  });
+
 const positionMarkedValue: AssetValuation = (state, rules) =>
   state.positions.reduce<bigint>((total, position) => {
     const instrument =
@@ -52,6 +61,7 @@ export type NetWorthBreakdown = {
   readonly cashCents: MoneyCents;
   readonly businessesCents: MoneyCents;
   readonly propertiesCents: MoneyCents;
+  readonly collectionCents: MoneyCents;
   readonly positionsCents: MoneyCents;
   readonly pendingDividendsCents: MoneyCents;
   readonly netWorthCents: MoneyCents;
@@ -63,6 +73,7 @@ export function netWorthBreakdown(state: GameState, rules: ProgressRules): NetWo
     cashCents: moneyCents(cash(state, rules)),
     businessesCents: moneyCents(businessCarryingValue(state, rules)),
     propertiesCents: moneyCents(propertyEstimatedValue(state, rules)),
+    collectionCents: moneyCents(collectionAppraisedValue(state, rules)),
     positionsCents: moneyCents(positionMarkedValue(state, rules)),
     pendingDividendsCents: moneyCents(pendingDividends(state, rules)),
   };

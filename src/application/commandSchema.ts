@@ -189,6 +189,16 @@ const gameCommandSchema = z.discriminatedUnion('type', [
     quotedRevision: fromLevel.exactOptional(),
   }),
   z.object({
+    type: z.literal('BuyCollectible'),
+    pieceId: assetId,
+    priceCents: amountCents,
+  }),
+  z.object({
+    type: z.literal('SellCollectible'),
+    pieceId: assetId,
+    quotedRevision: fromLevel.exactOptional(),
+  }),
+  z.object({
     type: z.literal('ExecuteTrade'),
     assetId,
     side: z.enum(['buy', 'sell']),

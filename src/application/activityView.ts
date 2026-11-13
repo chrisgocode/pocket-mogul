@@ -30,7 +30,13 @@ const TRACK_NAMES: Readonly<Record<string, string>> = {
 };
 
 function assetName(content: Content, assetId: string): string {
-  const named = [...content.businesses, ...content.properties, ...content.stocks, ...content.coins];
+  const named = [
+    ...content.businesses,
+    ...content.properties,
+    ...content.stocks,
+    ...content.coins,
+    ...content.collection.pieces,
+  ];
   return named.find((listed) => listed.id === assetId)?.name ?? assetId;
 }
 

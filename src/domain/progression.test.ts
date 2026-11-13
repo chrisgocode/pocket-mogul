@@ -2,6 +2,7 @@ import { freshGameState, type GameState } from './gameState';
 import { dollars } from './money';
 import { withProgress } from './progression';
 import { levelZeroProperty } from './propertyQuotes';
+import { testCollection } from './testCollection';
 import { ownedBusiness, propertyRules } from './testRules';
 
 const thresholds = {
@@ -18,6 +19,7 @@ const thresholds = {
     ],
     rules: propertyRules,
   },
+  collection: testCollection,
   instruments: [],
 };
 

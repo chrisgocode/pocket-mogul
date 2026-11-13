@@ -20,7 +20,7 @@ const groupedEarnings = {
 };
 
 const assetDeal = {
-  asset: z.enum(['business', 'property']),
+  asset: z.enum(['business', 'property', 'collectible']),
   assetId,
   cashChangeCents: cents,
 };

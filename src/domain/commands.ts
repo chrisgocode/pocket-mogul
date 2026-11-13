@@ -12,6 +12,7 @@ import type { LaundromatCommand } from './business/laundromatOrders';
 import type { RestockTarget } from './business/vendingCommands';
 import type { StockMix, VendingLocation } from './business/vendingRules';
 import type { CoachMark } from './coachMarks';
+import type { CollectionCommand } from './collection/orders';
 import type { GameState } from './gameState';
 import type { MoneyCents, QuantityMicrounits } from './money';
 import type { PropertyTrack } from './propertyQuotes';
@@ -281,6 +282,7 @@ export type GameCommand =
   | UpgradeProperty
   | SetRentalStatus
   | SellProperty
+  | CollectionCommand
   | ExecuteTrade
   | SetWatchlist
   | RecordAdReward
