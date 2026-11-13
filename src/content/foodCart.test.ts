@@ -1,4 +1,4 @@
-import { economyV3 } from './economy-v3';
+import { economyV2 } from './economy-v2';
 import { findContentIssues, getContent } from './index';
 import type { ContentInput } from './schema';
 
@@ -14,7 +14,7 @@ function foodCartOf(content: ContentInput): FoodCartInput {
 }
 
 const issuesFor = (mutate: (foodCart: FoodCartInput) => void) => {
-  const content: ContentInput = structuredClone(economyV3);
+  const content: ContentInput = structuredClone(economyV2);
   mutate(foodCartOf(content));
   return findContentIssues(content);
 };
@@ -25,7 +25,7 @@ describe('the Food Cart mechanic in content (BUS20d)', () => {
       (business) => business.mechanic?.kind === 'food_cart',
     );
     expect(carts.map((business) => business.id)).toEqual(['food_cart']);
-    expect(foodCartOf(economyV3)).toMatchObject({
+    expect(foodCartOf(economyV2)).toMatchObject({
       unlockStage: 2,
       forecastDays: 1,
       secondWindow: { stage: 5, capacityPercent: 30 },
@@ -39,7 +39,7 @@ describe('the Food Cart mechanic in content (BUS20d)', () => {
   });
 
   it('passes validation as bundled', () => {
-    expect(findContentIssues(economyV3)).toEqual([]);
+    expect(findContentIssues(economyV2)).toEqual([]);
   });
 
   it('rejects crowd chances that do not add up and spots that shrink with the crowd', () => {
