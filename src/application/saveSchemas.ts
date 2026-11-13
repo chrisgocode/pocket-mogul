@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { activityLog, goalProgress } from './activitySchemas';
 import { adSchedule, settings, tutorialProgress } from './preferenceSchemas';
 import { fromSaveDocument } from './saveDocument';
+import { savedBakery } from './bakerySaveSchema';
 import { savedCarWash } from './carWashSaveSchema';
 import { savedDelivery } from './deliverySaveSchema';
 import { savedCoffeeKiosk } from './coffeeKioskSaveSchema';
@@ -164,6 +165,7 @@ export const saveDocumentSchema = z.looseObject({
   foodCart: z.record(z.string().min(1), savedFoodCart).default({}),
   coffeeKiosk: z.record(z.string().min(1), savedCoffeeKiosk).default({}),
   laundromat: z.record(z.string().min(1), savedLaundromat).default({}),
+  bakery: z.record(z.string().min(1), savedBakery).default({}),
   takeovers: z.record(z.string().min(1), savedTakeovers).default({}),
   listings: z
     .record(

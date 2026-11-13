@@ -4,6 +4,7 @@ import { MICROS_PER_DOLLAR } from '@/domain/money';
 import { inexactCoreFigures } from './businessCore';
 import { contentSchema, TIERS, type Content } from './schema';
 import { businessRisksFit } from './validateRisks';
+import { bakeryMechanicsFit } from './validateBakery';
 import { carWashMechanicsFit } from './validateCarWash';
 import { coffeeKioskMechanicsFit } from './validateCoffeeKiosk';
 import { deliveryMechanicsFit } from './validateDelivery';
@@ -75,6 +76,7 @@ function crossChecks(content: Content): string[] {
     foodCartMechanicsFit,
     coffeeKioskMechanicsFit,
     laundromatMechanicsFit,
+    bakeryMechanicsFit,
     takeoversFit,
     efficiencyKeepsCostsPositive,
     systemsKeepUpkeepPositive,

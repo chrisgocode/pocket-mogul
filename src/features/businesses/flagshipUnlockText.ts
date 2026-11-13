@@ -10,6 +10,7 @@ const UNLOCK_NAMES: Readonly<Record<FlagshipKind, Record<'mechanic' | 'signature
   food_cart: { mechanic: 'Spot and menu', signature: 'Second window' },
   coffee_kiosk: { mechanic: 'Morning rush and beans', signature: 'Order-ahead' },
   laundromat: { mechanic: 'Machine mix and service washes', signature: 'Pickup and delivery' },
+  bakery: { mechanic: 'Oven schedule and wholesale', signature: 'Central kitchen' },
 };
 
 export function flagshipUnlockName(business: Business, unlock: FlagshipUnlock): string | undefined {

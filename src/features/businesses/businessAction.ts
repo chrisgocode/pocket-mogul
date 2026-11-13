@@ -5,6 +5,7 @@ import type {
   BusinessSale,
   ReadyStage,
 } from '@/application/businessDetailView';
+import type { AvailableCentralKitchen } from '@/application/bakeryView';
 import type { AvailableDetailing } from '@/application/carWashView';
 import type { AvailableOrderAhead } from '@/application/coffeeKioskView';
 import type { AvailableSortingHub, OfferView } from '@/application/deliveryView';
@@ -20,6 +21,7 @@ import { formatCashChange } from '@/features/game/priceFormat';
 
 import { profitChange, spent, TRACK_NAMES } from './businessFormat';
 import { fireText, hireText, stageText } from './growthActionText';
+import { centralKitchenText } from './bakeryActionText';
 import { detailingText } from './carWashActionText';
 import { orderAheadText } from './coffeeKioskActionText';
 import { contractText, sortingHubText } from './deliveryActionText';
@@ -67,6 +69,11 @@ export type BusinessAction =
       readonly kind: 'order_ahead';
       readonly business: Business;
       readonly orderAhead: AvailableOrderAhead;
+    }
+  | {
+      readonly kind: 'central_kitchen';
+      readonly business: Business;
+      readonly centralKitchen: AvailableCentralKitchen;
     }
   | { readonly kind: 'pickup'; readonly business: Business; readonly pickup: AvailablePickup }
   | {
@@ -146,6 +153,10 @@ const COMMANDS: ActionHandlers<GameCommand> = {
   second_window: ({ business }) => ({ type: 'InstallSecondWindow', businessId: business.id }),
   order_ahead: ({ business }) => ({ type: 'InstallOrderAhead', businessId: business.id }),
   pickup: ({ business }) => ({ type: 'InstallPickup', businessId: business.id }),
+  central_kitchen: ({ business }) => ({
+    type: 'InstallCentralKitchen',
+    businessId: business.id,
+  }),
   takeover: ({ business, choice }) => ({
     type: 'MakeTakeoverOffer',
     businessId: business.id,
@@ -237,6 +248,7 @@ const SHEET_TEXT: ActionHandlers<ActionSheetText> = {
   second_window: (action) => secondWindowText(action.secondWindow),
   order_ahead: (action) => orderAheadText(action.orderAhead),
   pickup: (action) => pickupText(action.pickup),
+  central_kitchen: (action) => centralKitchenText(action.centralKitchen),
   takeover: (action) => takeoverText(action.choice, action.business),
 };
 

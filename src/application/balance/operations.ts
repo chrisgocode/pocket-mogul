@@ -1,4 +1,5 @@
 import { locationCommand, membershipCapCommand } from './flagshipChoices';
+import { bakeryCommands } from './bakeryChoices';
 import { coffeeKioskCommands } from './coffeeKioskChoices';
 import { foodCartCommands } from './foodCartChoices';
 import { laundromatCommands } from './laundromatChoices';
@@ -119,6 +120,11 @@ export function operationCommands(
       ...foodCartCommands(owned, pricing),
       ...coffeeKioskCommands(owned, pricing),
       ...laundromatCommands(owned, pricing),
+      ...bakeryCommands(owned, {
+        pricing,
+        seed: context.state.market.seed,
+        atMs: context.state.clock.simulationMs,
+      }),
       ...contractCommands(owned, { pricing, atMs: context.state.clock.simulationMs }),
       ...price,
     ];

@@ -108,6 +108,14 @@ const gameCommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('SetJumboShare'), businessId, percent: z.number().int() }),
   z.object({ type: z.literal('SetServiceLevel'), businessId, level: z.number().int() }),
   z.object({ type: z.literal('InstallPickup'), businessId }),
+  z.object({ type: z.literal('SetBakeLevel'), businessId, percent: z.number().int() }),
+  z.object({
+    type: z.literal('AnswerWholesaleOffer'),
+    businessId,
+    offerId: z.number().int(),
+    answer: z.enum(['accept', 'decline']),
+  }),
+  z.object({ type: z.literal('InstallCentralKitchen'), businessId }),
   z.object({
     type: z.literal('MakeTakeoverOffer'),
     businessId,

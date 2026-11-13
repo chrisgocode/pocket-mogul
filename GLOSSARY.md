@@ -159,7 +159,7 @@ Cover for one incident category, available from stage 2 (Local). It costs a dail
 _Avoid_: Cover plan, protection
 
 **Flagship mechanic**:
-A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships; the Delivery Company's is Contracts, Reputation and Drivers; the Food Cart's is Spot, Crowd and Menu; the Coffee Kiosk's is Morning rush, Rush plan and Bean grade; the Laundromat's is Jumbo machines and Service washes.
+A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships; the Delivery Company's is Contracts, Reputation and Drivers; the Food Cart's is Spot, Crowd and Menu; the Coffee Kiosk's is Morning rush, Rush plan and Bean grade; the Laundromat's is Jumbo machines and Service washes; the Bakery's is Bake level and Wholesale orders.
 _Avoid_: Minigame, feature
 
 **Coach mark**:
@@ -253,6 +253,18 @@ _Avoid_: Washer (that is the unit)
 **Pickup and delivery**:
 The Laundromat's stage 5 (Global) signature upgrade, paid once from the Treasury: it adds 25 percent demand.
 _Avoid_: Courier, van service
+
+**Bake level**:
+The share of a Bakery's oven capacity baked each day: 60, 70, 80, 90 or 100 percent. What is baked for the retail shelf and not sold goes stale at the cost per customer. A Manager sets the most profitable level.
+_Avoid_: Batch size, output
+
+**Wholesale order**:
+A Bakery's standing order from a fictional client: a fixed number of orders a day at a discount for several days, baked before retail. One offer is open at a time and at most two orders run at once.
+_Avoid_: Contract (that is a Delivery Company's), bulk order (that is planned for the Manufacturing Company)
+
+**Central kitchen**:
+The Bakery's stage 5 (Global) signature upgrade, paid once from the Treasury: it adds 30 percent capacity.
+_Avoid_: Commissary
 
 **Second window**:
 The Food Cart's stage 5 (Global) signature upgrade, paid once from the Treasury: a second serving window that adds 30 percent capacity.

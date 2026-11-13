@@ -34,6 +34,10 @@ function mechanicOf(business: Business): BusinessMechanic {
     const { kind: _kind, ...delivery } = mechanic;
     return { kind: 'delivery', delivery };
   }
+  if (mechanic.kind === 'bakery') {
+    const { kind: _kind, ...bakery } = mechanic;
+    return { kind: 'bakery', bakery };
+  }
   if (mechanic.kind === 'laundromat') {
     const { kind: _kind, ...laundromat } = mechanic;
     return { kind: 'laundromat', laundromat };

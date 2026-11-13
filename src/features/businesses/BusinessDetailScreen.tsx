@@ -19,7 +19,12 @@ import type { TreasuryActions } from './treasuryActions';
 import type { CarWashActions } from './carWashFormat';
 import type { DeliveryActions } from './deliveryFormat';
 import type { FlagshipActions } from './FlagshipSections';
-import { coffeeKioskActions, foodCartActions, laundromatActions } from './mechanicActions';
+import {
+  bakeryActions,
+  coffeeKioskActions,
+  foodCartActions,
+  laundromatActions,
+} from './mechanicActions';
 import type { VendingActions } from './vendingFormat';
 import { useBusinessCommand } from './useBusinessCommand';
 
@@ -110,6 +115,7 @@ function flagshipActions(
     foodCart: foodCartActions(detail, handlers),
     coffeeKiosk: coffeeKioskActions(detail, handlers),
     laundromat: laundromatActions(detail, handlers),
+    bakery: bakeryActions(detail, handlers),
   };
 }
 

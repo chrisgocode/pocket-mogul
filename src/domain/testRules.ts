@@ -156,6 +156,7 @@ export function ownedBusiness(
     foodCart: { status: 'inactive' },
     coffeeKiosk: { status: 'inactive' },
     laundromat: { status: 'inactive' },
+    bakery: { status: 'inactive' },
     takeovers: { offer: { status: 'none' }, locks: [], merged: [] },
     listing: { status: 'private' },
     ...change,
