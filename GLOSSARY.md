@@ -159,7 +159,7 @@ Cover for one incident category, available from stage 2 (Local). It costs a dail
 _Avoid_: Cover plan, protection
 
 **Flagship mechanic**:
-A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships; the Delivery Company's is Contracts, Reputation and Drivers; the Food Cart's is Spot, Crowd and Menu; the Coffee Kiosk's is Morning rush, Rush plan and Bean grade; the Laundromat's is Jumbo machines and Service washes; the Bakery's is Bake level and Wholesale orders.
+A business's own small game on top of the shared core, unlocked at stage 2 (Local) with a Coach mark. At stage 1 the business shows only the shared core. The Vending Machine's is Locations and stock; the Car Wash's is Wash packages, Weather and Memberships; the Delivery Company's is Contracts, Reputation and Drivers; the Food Cart's is Spot, Crowd and Menu; the Coffee Kiosk's is Morning rush, Rush plan and Bean grade; the Laundromat's is Jumbo machines and Service washes; the Bakery's is Bake level and Wholesale orders; the Gym Chain's is Gym members, Tier on sale and Classes.
 _Avoid_: Minigame, feature
 
 **Coach mark**:
@@ -265,6 +265,22 @@ _Avoid_: Contract (that is a Delivery Company's), bulk order (that is planned fo
 **Central kitchen**:
 The Bakery's stage 5 (Global) signature upgrade, paid once from the Treasury: it adds 30 percent capacity.
 _Avoid_: Commissary
+
+**Gym member**:
+A Gym Chain customer who pays a daily fee and uses half a visit of studio capacity a day before day-pass visitors. New members join at each day boundary and the tier's share leaves.
+_Avoid_: Subscriber. A Car Wash's customer of the same kind is a Member.
+
+**Tier on sale**:
+The Gym Chain membership every Gym member pays: Basic, Plus or Elite. A higher tier charges more and loses members faster.
+_Avoid_: Plan, package
+
+**Classes**:
+A Gym Chain's class schedule, levels 0 to 3. Each level keeps half a percentage point more members a day and takes 3 percent of studio capacity. A Manager adds a level a day while studios have room and trims one when they are full.
+_Avoid_: Sessions, programs
+
+**24-hour access**:
+The Gym Chain's stage 5 (Global) signature upgrade, paid once from the Treasury: it adds 20 percent capacity.
+_Avoid_: All-night, always open
 
 **Second window**:
 The Food Cart's stage 5 (Global) signature upgrade, paid once from the Treasury: a second serving window that adds 30 percent capacity.

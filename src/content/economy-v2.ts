@@ -5,6 +5,7 @@ import { foodCartMechanic } from './economy-food-cart';
 import { coffeeKioskMechanic } from './economy-coffee-kiosk';
 import { laundromatMechanic } from './economy-laundromat';
 import { bakeryMechanic } from './economy-bakery';
+import { gymMechanic } from './economy-gym-chain';
 import { withMechanics } from './mechanicUpgrade';
 import type { ContentInput } from './schema';
 
@@ -16,6 +17,7 @@ export const economyV2 = {
     coffee_kiosk: coffeeKioskMechanic,
     laundromat: laundromatMechanic,
     bakery: bakeryMechanic,
+    gym_chain: gymMechanic,
   }),
   economy: {
     ...economyV1.economy,

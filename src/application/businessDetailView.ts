@@ -42,6 +42,7 @@ import { selectBakery, type BakeryView } from './bakeryView';
 import { selectCarWash, type CarWashView } from './carWashView';
 import { selectCoffeeKiosk, type CoffeeKioskView } from './coffeeKioskView';
 import { selectFoodCart, type FoodCartView } from './foodCartView';
+import { selectGym, type GymView } from './gymView';
 import { selectLaundromat, type LaundromatView } from './laundromatView';
 import { selectDelivery, type DeliveryView } from './deliveryView';
 import { selectDeals, type DealsView } from './takeoverView';
@@ -120,6 +121,7 @@ export type OwnedBusinessDetail = {
   readonly coffeeKiosk: CoffeeKioskView | undefined;
   readonly laundromat: LaundromatView | undefined;
   readonly bakery: BakeryView | undefined;
+  readonly gym: GymView | undefined;
   readonly deals: DealsView;
   readonly sale: BusinessSale;
 };
@@ -192,6 +194,7 @@ function mechanicViews(context: DetailContext) {
     coffeeKiosk: selectCoffeeKiosk(context),
     laundromat: selectLaundromat(context),
     bakery: selectBakery(context),
+    gym: selectGym(context),
   };
 }
 

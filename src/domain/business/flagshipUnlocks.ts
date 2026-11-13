@@ -7,37 +7,35 @@ export type FlagshipUnlock = 'none' | 'mechanic' | 'signature';
 
 type UnlockStages = { readonly mechanic: number; readonly signature: number };
 
-function unlockStages(mechanic: BusinessMechanic): UnlockStages | undefined {
-  if (mechanic.kind === 'vending') {
-    return {
-      mechanic: mechanic.vending.unlockStage,
-      signature: mechanic.vending.cardReaders.stage,
-    };
-  }
-  if (mechanic.kind === 'car_wash') {
-    return { mechanic: mechanic.carWash.unlockStage, signature: mechanic.carWash.detailing.stage };
-  }
-  if (mechanic.kind === 'delivery') {
-    const { unlockStage, sortingHub } = mechanic.delivery;
-    return { mechanic: unlockStage, signature: sortingHub.stage };
-  }
-  if (mechanic.kind === 'food_cart') {
-    const { unlockStage, secondWindow } = mechanic.foodCart;
-    return { mechanic: unlockStage, signature: secondWindow.stage };
-  }
-  if (mechanic.kind === 'coffee_kiosk') {
-    const { unlockStage, orderAhead } = mechanic.coffeeKiosk;
-    return { mechanic: unlockStage, signature: orderAhead.stage };
-  }
-  if (mechanic.kind === 'laundromat') {
-    const { unlockStage, pickup } = mechanic.laundromat;
-    return { mechanic: unlockStage, signature: pickup.stage };
-  }
-  if (mechanic.kind === 'bakery') {
-    const { unlockStage, centralKitchen } = mechanic.bakery;
-    return { mechanic: unlockStage, signature: centralKitchen.stage };
-  }
-  return undefined;
+type Kind = BusinessMechanic['kind'];
+type MechanicOf<Each extends Kind> = Extract<BusinessMechanic, { kind: Each }>;
+
+const stagesOf = (
+  rules: { readonly unlockStage: number },
+  upgrade: { readonly stage: number },
+) => ({
+  mechanic: rules.unlockStage,
+  signature: upgrade.stage,
+});
+
+const UNLOCK_STAGES: {
+  readonly [Each in Kind]: (mechanic: MechanicOf<Each>) => UnlockStages | undefined;
+} = {
+  shared_core: () => undefined,
+  vending: ({ vending }) => stagesOf(vending, vending.cardReaders),
+  car_wash: ({ carWash }) => stagesOf(carWash, carWash.detailing),
+  delivery: ({ delivery }) => stagesOf(delivery, delivery.sortingHub),
+  food_cart: ({ foodCart }) => stagesOf(foodCart, foodCart.secondWindow),
+  coffee_kiosk: ({ coffeeKiosk }) => stagesOf(coffeeKiosk, coffeeKiosk.orderAhead),
+  laundromat: ({ laundromat }) => stagesOf(laundromat, laundromat.pickup),
+  bakery: ({ bakery }) => stagesOf(bakery, bakery.centralKitchen),
+  gym: ({ gym }) => stagesOf(gym, gym.allHours),
+};
+
+function unlockStages<Each extends Kind>(mechanic: MechanicOf<Each>): UnlockStages | undefined {
+  const stages: (mechanic: MechanicOf<Each>) => UnlockStages | undefined =
+    UNLOCK_STAGES[mechanic.kind];
+  return stages(mechanic);
 }
 
 export function flagshipUnlockAt(mechanic: BusinessMechanic, stage: number): FlagshipUnlock {

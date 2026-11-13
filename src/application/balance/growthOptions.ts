@@ -3,6 +3,7 @@ import { quoteCentralKitchen } from '@/domain/business/bakeryQuotes';
 import { quoteDetailing } from '@/domain/business/carWashQuotes';
 import { quoteOrderAhead } from '@/domain/business/coffeeKioskQuotes';
 import { quoteSecondWindow } from '@/domain/business/foodCartQuotes';
+import { quoteAllHours } from '@/domain/business/gymQuotes';
 import { quotePickup } from '@/domain/business/laundromatQuotes';
 import { quoteSortingHub } from '@/domain/business/deliveryQuotes';
 import { STAFF_ROLES, type BusinessPricing } from '@/domain/business/definition';
@@ -89,6 +90,7 @@ function signatureOptions(owned: OwnedBusiness, pricing: BusinessPricing): Impro
     { quote: quoteOrderAhead(owned, pricing), type: 'InstallOrderAhead' },
     { quote: quotePickup(owned, pricing), type: 'InstallPickup' },
     { quote: quoteCentralKitchen(owned, pricing), type: 'InstallCentralKitchen' },
+    { quote: quoteAllHours(owned, pricing), type: 'InstallAllHours' },
   ] as const;
   return quotes.flatMap(({ quote, type }) =>
     quote?.status === 'available'
