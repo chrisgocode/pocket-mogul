@@ -19,6 +19,7 @@ import { findBusiness, type BusinessEconomy, type BusinessPricing } from './defi
 import type { OwnedBusiness } from './owned';
 import { startBusinessDay, type StruckIncident } from './risks';
 import { managerDecisions } from './staff';
+import { withSynergiesSynced } from './synergies';
 import { answerTakeover } from './takeovers';
 import { restockedByStaff, soldVendingDay, withVendingUnlocked } from './vending';
 
@@ -54,7 +55,11 @@ type Settled = {
   readonly accounting?: readonly BusinessAccounting[];
 };
 
-type Settlement = Period & { readonly pricing: BusinessPricing; readonly seed: string };
+type Settlement = Period & {
+  readonly pricing: BusinessPricing;
+  readonly seed: string;
+  readonly ownedIds: readonly string[];
+};
 
 const PERCENT = 100n;
 
@@ -148,9 +153,10 @@ type Settling = Settled & {
 };
 
 function dayStarted(segment: Settled, boundary: { settlement: Settlement; endMs: number }) {
-  const { pricing, seed } = boundary.settlement;
+  const { pricing, seed, ownedIds } = boundary.settlement;
   const day = boundary.endMs / pricing.rules.dayMs;
-  const ended = endedDeliveryDay(soldVendingDay(segment.business, pricing), { pricing, day });
+  const synced = withSynergiesSynced(segment.business, { pricing, ownedIds });
+  const ended = endedDeliveryDay(soldVendingDay(synced, pricing), { pricing, day });
   const brewing = withCoffeeKioskUnlocked(withVendingUnlocked(ended, pricing), pricing);
   const opened = withLaundromatUnlocked(brewing, pricing);
   const started = startBusinessDay(opened, { pricing, seed, day });
@@ -252,10 +258,11 @@ export function settleBusinesses(
   settlement: Period & { readonly economy: BusinessEconomy; readonly seed: string },
 ): BusinessSettlement {
   const { rules, catalog } = settlement.economy;
+  const ownedIds = businesses.map((business) => business.definitionId);
   const settled = businesses.map((business): Settled => {
     const definition = findBusiness(catalog, business.definitionId);
     if (definition === undefined) return { business, toCashCents: 0n };
-    return settleBusiness(business, { ...settlement, pricing: { definition, rules } });
+    return settleBusiness(business, { ...settlement, ownedIds, pricing: { definition, rules } });
   });
   return {
     accounting: settled.flatMap((each) => each.accounting ?? []),

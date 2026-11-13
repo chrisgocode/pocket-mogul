@@ -59,11 +59,8 @@ describe('bundled content', () => {
   it('derives the Vending Machine core figures from its catalog row (BUS09)', () => {
     const content = getContent();
     const vending = content.businesses.find((b) => b.id === 'vending')!;
-    const { mechanic, rivals, ...core } = businessDefinition(
-      vending,
-      content.economy.businessRules,
-    );
-    expect([mechanic.kind, rivals.length]).toEqual(['vending', 3]);
+    const { mechanic, rivals, synergies, ...core } = businessDefinition(vending, content);
+    expect([mechanic.kind, rivals.length, synergies.length]).toEqual(['vending', 3, 1]);
     expect(core).toEqual({
       id: 'vending',
       tier: 1,
@@ -82,7 +79,7 @@ describe('bundled content', () => {
   it('derives whole core figures for every business in the catalog', () => {
     const content = getContent();
     const figures = content.businesses.map((business) => {
-      const core = businessDefinition(business, content.economy.businessRules);
+      const core = businessDefinition(business, content);
       return [business.id, core.capacityPerUnit, core.baseDemand];
     });
     expect(figures).toEqual([

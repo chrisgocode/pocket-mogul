@@ -7,6 +7,7 @@ import type { MoneyCents, PriceMicros } from '@/domain/money';
 import { eventTemplateSchema, marketParamsSchema } from './marketSchema';
 import { incidentSchema, riskRulesSchema } from './riskSchema';
 import { mechanicSchema } from './mechanicSchema';
+import { NO_SYNERGY_CONTENT, synergiesSchema } from './synergySchema';
 import { rivalSchema, takeoverRulesSchema } from './takeoverSchema';
 
 const id = z.string().regex(/^[a-z][a-z0-9_]*$/, 'IDs are lowercase snake_case');
@@ -291,6 +292,7 @@ export const contentSchema = z.object({
   economyVersion: positiveInt,
   economy: economySchema,
   businesses: z.array(businessSchema).min(1),
+  synergies: synergiesSchema.default(NO_SYNERGY_CONTENT),
   stocks: z.array(stockSchema).min(1),
   coins: z.array(coinSchema).min(1),
   properties: z.array(propertySchema).min(1),

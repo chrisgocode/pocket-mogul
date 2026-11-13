@@ -13,6 +13,7 @@ import { hotelDay, runningHotel } from './hotelDemand';
 import { laundromatDay, runningLaundromat } from './laundromatDemand';
 import type { OwnedBusiness } from './owned';
 import { NO_RUSH, type RushDay } from './rush';
+import { synergyDay } from './synergies';
 import { vendingCapacityBps, vendingDemandBps } from './vendingDemand';
 
 export type MechanicDay = {
@@ -88,5 +89,12 @@ export function mechanicDay(business: OwnedBusiness, pricing: BusinessPricing): 
     workingUnits: business.units,
     contracts: [],
   };
-  return { ...neutral, ...flagshipDay(business, pricing) };
+  const day = { ...neutral, ...flagshipDay(business, pricing) };
+  const synergy = synergyDay(business, pricing);
+  return {
+    ...day,
+    demandBps: (day.demandBps * synergy.demandBps) / NO_EFFECT_BPS,
+    capacityBps: (day.capacityBps * synergy.capacityBps) / NO_EFFECT_BPS,
+    costBps: (day.costBps * synergy.costBps) / NO_EFFECT_BPS,
+  };
 }

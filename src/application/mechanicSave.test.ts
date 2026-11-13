@@ -256,3 +256,20 @@ describe('space launch cadence and payload contracts (BUS20l)', () => {
     });
   });
 });
+
+describe('business synergies (BUS21)', () => {
+  it('loads a baseline save with no synergies running', () => {
+    expect(currentState(baselineFixture)).toMatchObject({ businesses: [{ synergies: [] }] });
+  });
+
+  it('keeps running synergies in a top-level record and round-trips them', () => {
+    const synergies = ['laundromat_hosts_vending'];
+    const encoded = encodeSave(
+      currentState(baselineDocument({ synergies: { vending: synergies } })),
+    );
+    const document = JSON.parse(encoded) as { businesses: readonly object[] };
+    expect(document).toMatchObject({ synergies: { vending: synergies } });
+    expect(document.businesses[0]).not.toHaveProperty('synergies');
+    expect(currentState(encoded)).toMatchObject({ businesses: [{ synergies }] });
+  });
+});
