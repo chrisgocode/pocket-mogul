@@ -62,6 +62,7 @@ const BASELINE_STATE = {
   ],
   collectibles: [],
   showpiece: null,
+  claimedGoals: [],
   income: {
     businessEarningsCents: dollars('9123.45'),
     rentRemainders: { studio: 12 },

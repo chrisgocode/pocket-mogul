@@ -48,6 +48,7 @@ import { applyDismissCoachMark } from '@/domain/coachMarks';
 import type { CommandResult, GameCommand } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
 import { applyPinGoal } from '@/domain/goals';
+import { applyClaimGoals } from '@/domain/goalRewards';
 import { moneyCents } from '@/domain/money';
 import {
   applyBuyProperty,
@@ -184,6 +185,8 @@ const COMMAND_HANDLERS: CommandHandlers = {
     applySetWatchlist(state, { ...command, economy: tradeEconomy(content, state) }),
   RecordAdReward: (state, command) => applyRecordAdReward(state, command),
   ActivateBoost: (state, _command, content) => applyActivateBoost(state, content.economy.boost),
+  ClaimGoals: (state, command, content) =>
+    applyClaimGoals(state, { goalIds: command.goalIds, rules: goalRules(content) }),
   PinGoal: (state, command, content) =>
     applyPinGoal(state, { goalId: command.goalId, rules: goalRules(content) }),
   AdvanceTime: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),

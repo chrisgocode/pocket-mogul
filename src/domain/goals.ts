@@ -2,6 +2,7 @@ import type { CollectionEconomy, CollectionMeasure } from './collection/rules';
 import { collectionProgress } from './collection/sets';
 import type { CommandResult } from './commands';
 import type { GameState } from './gameState';
+import { businessStage, goalMeasure, type GoalMeasure } from './goalMeasures';
 import type { MarketInstrument } from './marketRules';
 import { moneyCents, type MoneyCents } from './money';
 
@@ -13,15 +14,17 @@ export type FirstAction =
   | 'crypto_purchase'
   | 'dividend_received';
 
-export type GoalDefinition =
-  | { readonly id: string; readonly kind: 'first_action'; readonly action: FirstAction }
-  | { readonly id: string; readonly kind: 'peak_net_worth'; readonly threshold: MoneyCents }
-  | {
-      readonly id: string;
-      readonly kind: 'collection';
-      readonly measure: CollectionMeasure;
-      readonly count: number;
-    };
+type GoalTarget =
+  | { readonly kind: 'first_action'; readonly action: FirstAction }
+  | { readonly kind: 'peak_net_worth'; readonly threshold: MoneyCents }
+  | { readonly kind: 'collection'; readonly measure: CollectionMeasure; readonly count: number }
+  | { readonly kind: 'business_stage'; readonly businessId: string; readonly stage: number }
+  | { readonly kind: 'milestone'; readonly measure: GoalMeasure; readonly count: number };
+
+export type GoalDefinition = GoalTarget & {
+  readonly id: string;
+  readonly reward: MoneyCents;
+};
 
 export type CompletedGoal = { readonly goalId: string; readonly simulationMs: number };
 
@@ -63,6 +66,8 @@ const FIRST_ACTION_CHECKS: Readonly<Record<FirstAction, ActionCheck>> = {
 function isReached(goal: GoalDefinition, state: GameState, rules: GoalRules): boolean {
   if (goal.kind === 'peak_net_worth') return state.peakNetWorthCents >= goal.threshold;
   if (goal.kind === 'first_action') return FIRST_ACTION_CHECKS[goal.action](state, rules);
+  if (goal.kind === 'business_stage') return businessStage(state, goal.businessId) >= goal.stage;
+  if (goal.kind === 'milestone') return goalMeasure(state, goal.measure) >= goal.count;
   const { collection: economy } = rules;
   return collectionProgress(state.collectibles, { economy, measure: goal.measure }) >= goal.count;
 }

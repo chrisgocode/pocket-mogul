@@ -51,7 +51,7 @@ describe('balance simulation', () => {
       content,
     );
     expect(run.final.elapsedMs).toBe(126_000 + 10 * HOUR_MS);
-    expect<bigint>(run.final.worth.netWorthCents).toBe(dollars('4,765.65'));
+    expect<bigint>(run.final.worth.netWorthCents).toBe(dollars('5,365.65'));
   });
 
   it('stops once peak net worth reaches the target', () => {

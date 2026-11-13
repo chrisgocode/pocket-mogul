@@ -4,9 +4,10 @@ import { operationCommands } from './operations';
 import type { OwnedBusiness } from '@/domain/business/owned';
 import type { ActivityEntry } from '@/domain/activity';
 import type { Content } from '@/content';
-import { progressRules } from '@/application/economy';
+import { goalRules, progressRules } from '@/application/economy';
 import type { GameCommand } from '@/domain/commands';
 import { freshGameState, type GameState } from '@/domain/gameState';
+import { claimableGoalIds, goalRewardCents } from '@/domain/goalRewards';
 import type { MoneyCents } from '@/domain/money';
 import { netWorthBreakdown, type NetWorthBreakdown } from '@/domain/progression';
 
@@ -30,6 +31,7 @@ export type BalanceScenario = {
   readonly start?: GameState;
   readonly management?: 'manager' | 'handsOn';
   readonly payoutPercent?: number;
+  readonly goalRewards?: 'claimed' | 'unclaimed';
 };
 
 export type Moment = { readonly activeMs: number; readonly elapsedMs: number };
@@ -54,6 +56,11 @@ export type BalanceRun = {
   readonly businesses: readonly OwnedBusiness[];
   readonly events: readonly ActivityEntry[];
   readonly actions: Readonly<Partial<Record<GameCommand['type'], number>>>;
+  readonly rewards: {
+    readonly goalsClaimed: number;
+    readonly goalCashCents: MoneyCents;
+    readonly businessIncomeCents: MoneyCents;
+  };
 };
 
 const MS_PER_SECOND = 1000;
@@ -164,6 +171,12 @@ function operate(sim: Simulation) {
   }
 }
 
+function claimRewards(sim: Simulation) {
+  if (sim.scenario.goalRewards === 'unclaimed') return;
+  const goalIds = claimableGoalIds(sim.state, goalRules(sim.content));
+  if (goalIds.length > 0) commit(sim, { type: 'ClaimGoals', goalIds });
+}
+
 function playStep(sim: Simulation) {
   const { stepMs, tapsPerSecond } = sim.scenario;
   const taps = Math.round((tapsPerSecond * stepMs) / MS_PER_SECOND);
@@ -176,6 +189,7 @@ function playStep(sim: Simulation) {
     commit: (action) => commit(sim, action),
     policy: sim.scenario.taxPolicy ?? 'honest',
   });
+  claimRewards(sim);
   operate(sim);
   spend(sim);
   if (sim.activeMs < sim.nextSampleMs) return;
@@ -208,6 +222,14 @@ function startingState(scenario: BalanceScenario, content: Content): GameState {
   );
 }
 
+function rewardsOf(sim: Simulation): BalanceRun['rewards'] {
+  return {
+    goalsClaimed: sim.state.claimedGoals.length,
+    goalCashCents: goalRewardCents(sim.state.claimedGoals, goalRules(sim.content)),
+    businessIncomeCents: sim.state.income.businessEarningsCents,
+  };
+}
+
 export function simulateBalance(scenario: BalanceScenario, content: Content): BalanceRun {
   if (!scenario.sessions.some((session) => session.activeMs > 0)) {
     throw new Error(`Scenario ${scenario.name} has no active play`);
@@ -234,17 +256,17 @@ export function simulateBalance(scenario: BalanceScenario, content: Content): Ba
   while (!finished(sim)) {
     for (const session of scenario.sessions) playSession(sim, session);
   }
-  const { goals, tiers, purchases, samples } = sim;
   return {
     tax: sim.state.tax,
     scenario,
-    goals,
-    tiers,
-    purchases,
-    samples,
+    goals: sim.goals,
+    tiers: sim.tiers,
+    purchases: sim.purchases,
+    samples: sim.samples,
     final: sample(sim),
     businesses: sim.state.businesses,
     events: sim.events,
     actions: sim.actions,
+    rewards: rewardsOf(sim),
   };
 }

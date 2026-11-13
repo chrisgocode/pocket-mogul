@@ -93,6 +93,7 @@ export type GameState = {
   readonly watchlist: readonly string[];
   readonly reward: RewardState;
   readonly goals: GoalProgress;
+  readonly claimedGoals: readonly string[];
   readonly activity: ActivityLog;
   readonly tutorial: TutorialProgress;
   readonly settings: Settings;
@@ -134,6 +135,7 @@ export function freshGameState(start: {
     watchlist: [],
     reward: NO_REWARDS,
     goals: NO_GOAL_PROGRESS,
+    claimedGoals: [],
     activity: EMPTY_ACTIVITY,
     tutorial: freshTutorial(),
     settings: defaultSettings(),

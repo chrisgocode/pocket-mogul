@@ -1,9 +1,12 @@
-import { CURRENT_ECONOMY_VERSION } from '@/content';
+import { CURRENT_ECONOMY_VERSION, getContent } from '@/content';
 import type { CommandEnvelope, GameCommand } from '@/domain/commands';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { dollars, units } from '@/domain/money';
+import { ownedBusiness } from '@/domain/testRules';
 
 import type { Game, GameEvent } from './game';
+import { selectGoals } from './goalsView';
+import { selectRank } from './rankView';
 import { startTestGameFrom, type TestGame } from './testGame';
 
 const HOUR_MS = 3_600_000;
@@ -14,6 +17,20 @@ function startWith(overrides: Partial<GameState> = {}): Promise<TestGame> {
     ...overrides,
   });
 }
+
+const FRESH = freshGameState({
+  saveId: 'goals',
+  economyVersion: CURRENT_ECONOMY_VERSION,
+  wallMs: 0,
+});
+
+const withVending = (stage: number): GameState => ({
+  ...FRESH,
+  businesses: [ownedBusiness('vending', { stage })],
+});
+
+const at = (peak: string) =>
+  selectRank({ ...FRESH, peakNetWorthCents: dollars(peak) }, getContent());
 
 const run = (game: Game, command: GameCommand) =>
   game.dispatch({ id: game.createCommandId(), command });
@@ -89,14 +106,15 @@ describe('wealth goals', () => {
   it('completes every wealth goal from $1K to $1B in order', async () => {
     const { game } = await startWith({ cashCents: dollars('1,000,000,000') });
     await game.checkpoint();
-    expect(completedGoals(game)).toEqual(PEAK_GOALS);
+    expect(completedGoals(game)).toEqual([...PEAK_GOALS, 'every_tier']);
   });
 
-  it('awards badges only, with no cash', async () => {
+  it('pays nothing until the reward is claimed', async () => {
     const { game } = await startWith({ cashCents: dollars('1,000,000,000') });
     const outcome = await game.checkpoint();
     expect(outcome).toEqual({ ok: true, revision: 1, cashChangeCents: dollars('0') });
     expect<bigint>(game.getSnapshot().state.cashCents).toBe(dollars('1,000,000,000'));
+    expect(game.getSnapshot().state.claimedGoals).toEqual([]);
   });
 
   it('keeps a goal once wealth falls', async () => {
@@ -157,5 +175,89 @@ describe('goal completion event', () => {
     await game.dispatch(envelope);
     await game.dispatch(envelope);
     expect(events).toHaveLength(1);
+  });
+});
+
+describe('goal rewards (UX03)', () => {
+  it('pays each reward once, when claimed', async () => {
+    const { game } = await startWith({ cashCents: dollars('1,000') });
+    await game.checkpoint();
+    const claim = { type: 'ClaimGoals', goalIds: ['peak_1k'] } as const;
+    expect(await run(game, claim)).toMatchObject({ ok: true, cashChangeCents: dollars('50') });
+    expect(game.getSnapshot().state).toMatchObject({
+      cashCents: dollars('1,050'),
+      claimedGoals: ['peak_1k'],
+    });
+    expect(await run(game, claim)).toEqual({ ok: false, error: 'GOAL_NOT_CLAIMABLE' });
+  });
+
+  it('claims several rewards at once and refuses goals that are not reached', async () => {
+    const { game } = await startWith({ cashCents: dollars('1,000') });
+    await run(game, { type: 'BuyBusiness', businessId: 'vending' });
+    const goalIds = ['peak_1k', 'first_business'];
+    expect(await run(game, { type: 'ClaimGoals', goalIds: [...goalIds, 'peak_10k'] })).toEqual({
+      ok: false,
+      error: 'GOAL_NOT_CLAIMABLE',
+    });
+    expect(await run(game, { type: 'ClaimGoals', goalIds })).toMatchObject({
+      cashChangeCents: dollars('100'),
+    });
+    expect(await run(game, { type: 'ClaimGoals', goalIds: ['nope'] })).toEqual({
+      ok: false,
+      error: 'UNKNOWN_GOAL',
+    });
+  });
+
+  it('lets a goal reached before rewards existed be claimed once', async () => {
+    const { game } = await startWith({
+      goals: { completed: [{ goalId: 'first_business', simulationMs: 0 }], pinnedGoalId: null },
+    });
+    const view = selectGoals(game.getSnapshot().state, getContent());
+    expect(view).toMatchObject({ claimableIds: ['first_business'], claimableCents: dollars('50') });
+    await run(game, { type: 'ClaimGoals', goalIds: view.claimableIds });
+    expect(selectGoals(game.getSnapshot().state, getContent())).toMatchObject({
+      reachedCount: 1,
+      claimableIds: [],
+      claimableCents: dollars('0'),
+    });
+  });
+});
+
+describe('stage and milestone goals (UX03)', () => {
+  it('reaches a business goal at Local and shows where the business stands', async () => {
+    const state = withVending(1);
+    const open = selectGoals(state, getContent()).goals.find((goal) => goal.id === 'vending_local');
+    expect(open).toMatchObject({
+      status: 'open',
+      title: 'Pick your locations',
+      rewardCents: dollars('25'),
+      progressLabel: 'Grow the Vending Machine to Local · now Startup',
+    });
+    const { game } = await startWith(withVending(2));
+    await game.checkpoint();
+    expect(completedGoals(game)).toContain('vending_local');
+    expect(completedGoals(game)).not.toContain('vending_global');
+  });
+
+  it('counts milestones from the save', async () => {
+    const { game } = await startWith({ tap: { walletLevel: 10, totalAcceptedTaps: 999 } });
+    await game.checkpoint();
+    expect(completedGoals(game)).toEqual(['first_wallet_upgrade', 'wallet_10']);
+    const taps = selectGoals(game.getSnapshot().state, getContent()).goals.find(
+      (goal) => goal.id === 'taps_1k',
+    );
+    expect(taps).toMatchObject({ progressLabel: 'Taps 999 of 1,000' });
+  });
+});
+
+describe('rank (UX03)', () => {
+  it('names the rank for peak net worth and the next one', () => {
+    expect(at('0')).toEqual({
+      title: 'Hustler',
+      next: { title: 'Operator', thresholdCents: dollars('10,000') },
+    });
+    expect(at('999,999.99')?.title).toBe('Entrepreneur');
+    expect(at('1,000,000')?.title).toBe('Millionaire');
+    expect(at('5,000,000,000')).toEqual({ title: 'Mogul', next: undefined });
   });
 });

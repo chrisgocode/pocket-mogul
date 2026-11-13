@@ -503,8 +503,16 @@ The stocks and coins the player has marked to see at the top of Markets; it chan
 _Avoid_: Favorites, starred
 
 **Goal**:
-One of 13 milestones (six first actions and seven peak net worth levels) that earns a badge, never cash, and stays reached once reached. The player can pin one goal not yet reached to Home.
-_Avoid_: Achievement, quest, reward
+One of sixty milestones that earns a badge and a Goal reward, and stays reached once reached. The player can pin one goal not yet reached to Earn.
+_Avoid_: Achievement, quest
+
+**Goal reward**:
+The one-time cash a reached Goal pays when the player claims it. It is a gift, not income, so it is not taxed.
+_Avoid_: Prize, bonus, payout (that is a business's)
+
+**Rank**:
+The player's title on Profile, set by peak net worth, from Hustler to Mogul. It never falls.
+_Avoid_: Level, tier (that is a business tier), status
 
 **Activity history**:
 The player-visible record of purchases, sales, upgrades, rentals, trades, dividend payouts and offline settlements, kept to the newest 2,000 entries. Lifetime totals on the save keep counting past that bound.

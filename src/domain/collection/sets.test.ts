@@ -23,9 +23,15 @@ const goalRules: GoalRules = {
   instruments: [],
   collection: economy,
   goals: [
-    { id: 'first_piece', kind: 'collection', measure: 'pieces', count: 1 },
-    { id: 'first_set', kind: 'collection', measure: 'sets', count: 1 },
-    { id: 'three_kinds', kind: 'collection', measure: 'categories', count: 3 },
+    { id: 'first_piece', kind: 'collection', measure: 'pieces', count: 1, reward: dollars('5') },
+    { id: 'first_set', kind: 'collection', measure: 'sets', count: 1, reward: dollars('5') },
+    {
+      id: 'three_kinds',
+      kind: 'collection',
+      measure: 'categories',
+      count: 3,
+      reward: dollars('5'),
+    },
   ],
 };
 

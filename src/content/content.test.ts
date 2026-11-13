@@ -27,7 +27,7 @@ describe('bundled content', () => {
     expect(c.stocks).toHaveLength(24);
     expect(c.coins).toHaveLength(6);
     expect(c.properties).toHaveLength(8);
-    expect(c.goals).toHaveLength(17);
+    expect(c.goals).toHaveLength(60);
   });
 
   it('has three businesses in each of the four tiers', () => {

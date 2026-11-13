@@ -164,6 +164,7 @@ export const saveDocumentSchema = z.looseObject({
   watchlist: z.array(z.string().min(1)),
   reward: z.object({ boost, processedRewardIds: z.array(grantId) }),
   goals: goalProgress,
+  claimedGoals: z.array(z.string().min(1)).default([]),
   activity: activityLog,
   tutorial: tutorialProgress,
   settings,

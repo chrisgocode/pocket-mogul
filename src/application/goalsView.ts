@@ -1,80 +1,62 @@
 import type { Content, Goal } from '@/content';
 import type { GameState } from '@/domain/gameState';
-import type { CollectionMeasure } from '@/domain/collection/rules';
-import { collectionProgress } from '@/domain/collection/sets';
-import { formatMoneyCompact } from '@/domain/money';
+import { moneyCents, type MoneyCents } from '@/domain/money';
 
 import { gameClockText } from './clockText';
-import { collectionEconomy } from './economy';
+import { goalProgressText } from './goalProgressText';
+
+type Named = {
+  readonly id: string;
+  readonly title: string;
+  readonly rewardCents: MoneyCents;
+};
 
 export type GoalView =
-  | {
-      readonly status: 'reached';
-      readonly id: string;
-      readonly title: string;
-      readonly reachedLabel: string;
-    }
-  | {
+  | (Named & { readonly status: 'claimable' | 'claimed'; readonly reachedLabel: string })
+  | (Named & {
       readonly status: 'open';
-      readonly id: string;
-      readonly title: string;
       readonly progressLabel: string;
       readonly pinned: boolean;
-    };
+    });
 
 export type GoalsView = {
   readonly goals: readonly GoalView[];
   readonly reachedCount: number;
+  readonly claimableIds: readonly string[];
+  readonly claimableCents: MoneyCents;
 };
 
-const FIRST_ACTION_HINTS: Readonly<Record<string, string>> = {
-  wallet_upgrade: 'Upgrade your wallet on Earn',
-  business_purchase: 'Buy any business',
-  rental_started: 'Rent out a property you own',
-  stock_purchase: 'Buy shares of any stock',
-  crypto_purchase: 'Buy any coin',
-  dividend_received: 'Hold a dividend stock through a market hour',
-};
-
-const MEASURE_NAMES: Readonly<Record<CollectionMeasure, string>> = {
-  pieces: 'Pieces collected',
-  sets: 'Sets finished',
-  categories: 'Categories collected',
-};
-
-function progressLabel(goal: Goal, state: GameState, content: Content): string {
-  if (goal.kind === 'first_action') return FIRST_ACTION_HINTS[goal.action] ?? goal.title;
-  if (goal.kind === 'collection') {
-    const progress = { economy: collectionEconomy(content), measure: goal.measure };
-    const reached = collectionProgress(state.collectibles, progress);
-    return `${MEASURE_NAMES[goal.measure]} ${reached} of ${goal.count}`;
-  }
-  const peak = formatMoneyCompact(state.peakNetWorthCents);
-  return `Peak net worth ${peak} of ${formatMoneyCompact(goal.threshold)}`;
+function reachedStatus(goal: Goal, state: GameState): 'claimable' | 'claimed' {
+  return goal.reward === 0n || state.claimedGoals.includes(goal.id) ? 'claimed' : 'claimable';
 }
 
 function goalView(goal: Goal, state: GameState, content: Content): GoalView {
+  const named = { id: goal.id, title: goal.title, rewardCents: goal.reward };
   const reached = state.goals.completed.find((completed) => completed.goalId === goal.id);
   if (reached !== undefined) {
     return {
-      status: 'reached',
-      id: goal.id,
-      title: goal.title,
+      ...named,
+      status: reachedStatus(goal, state),
       reachedLabel: `Reached ${gameClockText(reached.simulationMs)}`,
     };
   }
   return {
+    ...named,
     status: 'open',
-    id: goal.id,
-    title: goal.title,
-    progressLabel: progressLabel(goal, state, content),
+    progressLabel: goalProgressText(goal, { state, content }),
     pinned: state.goals.pinnedGoalId === goal.id,
   };
 }
 
 export function selectGoals(state: GameState, content: Content): GoalsView {
   const goals = content.goals.map((goal) => goalView(goal, state, content));
-  return { goals, reachedCount: goals.filter((goal) => goal.status === 'reached').length };
+  const claimable = goals.filter((goal) => goal.status === 'claimable');
+  return {
+    goals,
+    reachedCount: goals.filter((goal) => goal.status !== 'open').length,
+    claimableIds: claimable.map((goal) => goal.id),
+    claimableCents: moneyCents(claimable.reduce((total, goal) => total + goal.rewardCents, 0n)),
+  };
 }
 
 export function selectPinnedGoal(
