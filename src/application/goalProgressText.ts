@@ -33,6 +33,7 @@ const MEASURE_NAMES: Readonly<Record<GoalMeasure, string>> = {
   wallet_level: 'Wallet level',
   taps: 'Taps',
   tiers: 'Tiers unlocked',
+  moguls_passed: 'Moguls passed',
 };
 
 const STAGE_NAMES = ['Startup', 'Local', 'Regional', 'National', 'Global'];

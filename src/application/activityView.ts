@@ -4,6 +4,7 @@ import { formatMoneyExact, formatQuantity, moneyCents, type MoneyCents } from '@
 
 import { durationText, gameClockText } from './clockText';
 import { incidentStrikeText } from './incidentText';
+import { rankingText } from './richListView';
 
 export type ActivityRow = {
   readonly key: string;
@@ -149,6 +150,7 @@ const DESCRIBERS: Describers = {
     cashChangeCents: event.cashChangeCents,
   }),
   dividend: (event) => ({ title: 'Dividends paid', cashChangeCents: event.cashChangeCents }),
+  ranking: (event, content) => ({ title: rankingText(event, content), cashChangeCents: undefined }),
   offline: (event, content) => ({
     title: 'Offline earnings',
     detail: [

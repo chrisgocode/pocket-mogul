@@ -1,6 +1,7 @@
 import type { BusinessTrack, StaffRole } from './business/definition';
 import type { IncomeBySource } from './gameState';
 import { moneyCents, type MoneyCents, type QuantityMicrounits } from './money';
+import type { RankingMove } from './richList';
 import type { TradeSide } from './tradeQuotes';
 
 const EARNINGS_GROUP_MS = 600_000;
@@ -65,6 +66,7 @@ export type ActivityEvent =
       readonly realizedProfitCents: MoneyCents;
     }
   | { readonly kind: 'dividend'; readonly cashChangeCents: MoneyCents }
+  | ({ readonly kind: 'ranking' } & RankingMove)
   | {
       readonly kind: 'offline';
       readonly awayMs: number;
@@ -113,6 +115,7 @@ const zeroCounts: Readonly<Record<ActivityKind, number>> = {
   rental: 0,
   trade: 0,
   dividend: 0,
+  ranking: 0,
   offline: 0,
 };
 

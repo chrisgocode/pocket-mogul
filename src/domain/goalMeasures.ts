@@ -11,6 +11,7 @@ export const GOAL_MEASURES = [
   'wallet_level',
   'taps',
   'tiers',
+  'moguls_passed',
 ] as const;
 
 export type GoalMeasure = (typeof GOAL_MEASURES)[number];
@@ -34,6 +35,7 @@ const MEASURES: Readonly<Record<GoalMeasure, (state: GameState) => number>> = {
   wallet_level: (state) => state.tap.walletLevel,
   taps: (state) => state.tap.totalAcceptedTaps,
   tiers: (state) => state.unlockedTiers.length,
+  moguls_passed: (state) => (state.richList.status === 'active' ? state.richList.mostPassed : 0),
 };
 
 export function goalMeasure(state: GameState, measure: GoalMeasure): number {

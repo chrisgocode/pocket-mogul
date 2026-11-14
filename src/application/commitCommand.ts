@@ -19,6 +19,7 @@ import { advanceMarket, type MarketHistory } from '@/domain/market';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 import { settleOffline, type WallClockReading } from '@/domain/offline';
 import { withProgress } from '@/domain/progression';
+import { withRichList } from '@/domain/richList';
 import { newTutorialSteps, withTutorialProgress, type TutorialStep } from '@/domain/tutorial';
 
 import {
@@ -28,6 +29,7 @@ import {
   marketEconomy,
   passiveEconomy,
   progressRules,
+  richListRules,
   type EconomyVersions,
 } from './economy';
 import { applyCommand } from './commandHandlers';
@@ -137,10 +139,11 @@ type Applied = {
 
 function finish(previous: GameState, applied: Applied) {
   const { content, result } = applied;
-  const goals = withCompletedGoals(
+  const listed = withRichList(
     withProgress(result.state, progressRules(content)),
-    goalRules(content),
+    richListRules(content),
   );
+  const goals = withCompletedGoals(listed.state, goalRules(content));
   const tutored = withTutorialProgress(goals.state);
   const logged = withCommittedActivity({
     command: applied.command,
@@ -148,6 +151,7 @@ function finish(previous: GameState, applied: Applied) {
     before: applied.progressed,
     after: tutored,
     commandCashCents: result.cashChangeCents,
+    ranking: listed.move,
   });
   const briefed = withBriefing(logged.state, {
     before: previous,

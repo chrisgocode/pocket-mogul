@@ -8,6 +8,7 @@ import type { MarketEconomy, MarketInstrument } from '@/domain/market';
 import type { PassiveEconomy } from '@/domain/passiveIncome';
 import type { BriefingRules } from '@/domain/briefing';
 import type { GoalRules } from '@/domain/goals';
+import type { RichListRules } from '@/domain/richList';
 import type { ProgressRules } from '@/domain/progression';
 import type { PropertyEconomy } from '@/domain/properties';
 import type { TradeEconomy } from '@/domain/trades';
@@ -55,6 +56,10 @@ export function progressRules(content: Content): ProgressRules {
 
 export function briefingRules(content: Content): BriefingRules {
   return { ...content.briefing, walletMaxLevel: content.economy.tap.maxLevel };
+}
+
+export function richListRules(content: Content): RichListRules {
+  return { moguls: content.moguls, dayMs: content.economy.businessRules.dayMs };
 }
 
 export function goalRules(content: Content): GoalRules {

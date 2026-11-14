@@ -64,6 +64,12 @@ const activityEvent = z.discriminatedUnion('kind', [
   }),
   z.object({ kind: z.literal('dividend'), cashChangeCents: cents }),
   z.object({
+    kind: z.literal('ranking'),
+    direction: z.enum(['passed', 'overtaken']),
+    mogulId: assetId,
+    place: z.number().int().positive(),
+  }),
+  z.object({
     kind: z.literal('offline'),
     awayMs: count,
     creditedMs: count,

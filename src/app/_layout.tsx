@@ -5,11 +5,13 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { STARTUP_CONTENT_ISSUES } from '@/content';
 import { AdBreakCard } from '@/features/ads/AdBreakCard';
 import { GoalCelebration } from '@/features/goals/GoalCelebration';
+import { RichListNews } from '@/features/richList/RichListNews';
 import { ContentErrorScreen } from '@/features/startup/ContentErrorScreen';
 import { ReturnSummarySheet } from '@/features/returnSummary/ReturnSummarySheet';
 import { DeviceGameProvider } from '@/features/startup/DeviceGameProvider';
 import { OpeningSaveScreen } from '@/features/startup/OpeningSaveScreen';
 import { RecoveryNoticeSheet } from '@/features/startup/RecoveryNoticeSheet';
+import { NoticeStack } from '@/ui/NoticeStack';
 import { RootStack } from '@/ui/RootStack';
 
 export default function RootLayout() {
@@ -22,7 +24,10 @@ export default function RootLayout() {
         <Suspense fallback={<OpeningSaveScreen />}>
           <DeviceGameProvider>
             <RootStack />
-            <GoalCelebration />
+            <NoticeStack>
+              <GoalCelebration />
+              <RichListNews />
+            </NoticeStack>
             <ReturnSummarySheet />
             <RecoveryNoticeSheet />
             <AdBreakCard />

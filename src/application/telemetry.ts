@@ -120,6 +120,7 @@ const DESCRIBERS: Describers = {
     details: { assetId: entry.assetId, side: entry.side },
   }),
   dividend: () => undefined,
+  ranking: () => undefined,
   offline: (entry) => ({
     name: 'offline_settled',
     details: {

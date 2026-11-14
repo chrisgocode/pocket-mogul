@@ -47,7 +47,7 @@ type SavedReturnSummary =
 
 type SavedActivity = Omit<ActivityLog, 'lifetime'> & {
   readonly lifetime: Omit<ActivityLog['lifetime'], 'byKind'> & {
-    readonly byKind: Readonly<Record<Exclude<ActivityKind, 'incident'>, number>>;
+    readonly byKind: Readonly<Record<Exclude<ActivityKind, 'incident' | 'ranking'>, number>>;
   };
 };
 
@@ -65,6 +65,7 @@ export type SaveDocument = Omit<GameState, 'businesses' | 'returnSummary' | 'act
     readonly takeovers: Readonly<Record<string, Takeovers>>;
     readonly absenceIncidents: readonly AbsenceIncident[];
     readonly incidentEntries: number;
+    readonly rankingEntries: number;
   };
 
 function savedReturnSummary(pending: PendingReturnSummary): SavedReturnSummary {
@@ -74,7 +75,7 @@ function savedReturnSummary(pending: PendingReturnSummary): SavedReturnSummary {
 }
 
 function savedActivity(activity: ActivityLog): SavedActivity {
-  const { incident: _incident, ...byKind } = activity.lifetime.byKind;
+  const { incident: _incident, ranking: _ranking, ...byKind } = activity.lifetime.byKind;
   return { ...activity, lifetime: { ...activity.lifetime, byKind } };
 }
 
@@ -112,6 +113,7 @@ export function toSaveDocument(state: GameState): SaveDocument {
     takeovers: byBusiness(businesses, (business) => business.takeovers),
     absenceIncidents: returnSummary.status === 'pending' ? returnSummary.summary.incidents : [],
     incidentEntries: activity.lifetime.byKind.incident,
+    rankingEntries: activity.lifetime.byKind.ranking,
   };
 }
 
@@ -148,8 +150,12 @@ function loadedReturnSummary(document: SaveDocument): PendingReturnSummary {
 }
 
 function loadedActivity(document: SaveDocument): ActivityLog {
-  const { activity, incidentEntries } = document;
-  const byKind = { ...activity.lifetime.byKind, incident: incidentEntries };
+  const { activity, incidentEntries, rankingEntries } = document;
+  const byKind = {
+    ...activity.lifetime.byKind,
+    incident: incidentEntries,
+    ranking: rankingEntries,
+  };
   return { ...activity, lifetime: { ...activity.lifetime, byKind } };
 }
 
@@ -160,6 +166,7 @@ export function fromSaveDocument(document: SaveDocument): GameState {
     risks: _risks,
     absenceIncidents: _absenceIncidents,
     incidentEntries: _incidentEntries,
+    rankingEntries: _rankingEntries,
     vending: _vending,
     carWash: _carWash,
     delivery: _delivery,

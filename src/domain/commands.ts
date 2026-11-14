@@ -16,6 +16,7 @@ import type { CollectionCommand } from './collection/orders';
 import type { GameState } from './gameState';
 import type { ClaimBriefing } from './briefing';
 import type { ClaimGoals } from './goalRewards';
+import type { DismissRichListNews } from './richList';
 import type { MoneyCents, QuantityMicrounits } from './money';
 import type { PropertyTrack } from './propertyQuotes';
 import type { SettingsChange } from './settings';
@@ -292,6 +293,7 @@ export type GameCommand =
   | PinGoal
   | ClaimGoals
   | ClaimBriefing
+  | DismissRichListNews
   | AdvanceTime
   | SettleOffline
   | AcknowledgeReturnSummary

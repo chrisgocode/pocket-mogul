@@ -13,6 +13,7 @@ import { spaceMechanic } from './economy-space-launch';
 import { collection } from './economy-collection';
 import { briefing } from './economy-briefing';
 import { goals, ranks } from './economy-goals';
+import { moguls } from './economy-rich-list';
 import { businessSynergies } from './economy-synergies';
 import { withMechanics } from './mechanicUpgrade';
 import type { ContentInput } from './schema';
@@ -35,6 +36,7 @@ export const economyV2 = {
   collection,
   goals,
   ranks,
+  moguls,
   briefing,
   economy: {
     ...economyV1.economy,

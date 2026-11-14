@@ -10,6 +10,7 @@ import type { DividendAccrual } from './dividends';
 import { NO_GOAL_PROGRESS, type GoalProgress } from './goals';
 import { freshMarket, type MarketState } from './market';
 import { moneyCents, type MoneyCents } from './money';
+import { NO_RICH_LIST, type RichList } from './richList';
 import type { Position } from './tradeQuotes';
 import { defaultSettings, type Settings } from './settings';
 import { freshTutorial, type TutorialProgress } from './tutorial';
@@ -96,6 +97,7 @@ export type GameState = {
   readonly goals: GoalProgress;
   readonly claimedGoals: readonly string[];
   readonly briefing: Briefing;
+  readonly richList: RichList;
   readonly activity: ActivityLog;
   readonly tutorial: TutorialProgress;
   readonly settings: Settings;
@@ -103,7 +105,11 @@ export type GameState = {
   readonly seenCoachMarks: readonly string[];
 };
 
-const INITIAL_ADDITIONS = { shareholderPayouts: [], briefing: NO_BRIEFING };
+const INITIAL_ADDITIONS = {
+  shareholderPayouts: [],
+  briefing: NO_BRIEFING,
+  richList: NO_RICH_LIST,
+};
 
 export function freshGameState(start: {
   saveId: string;
