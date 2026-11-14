@@ -6,7 +6,7 @@ import { Card } from '@/ui/Card';
 import { ListRow } from '@/ui/ListRow';
 import { AppText } from '@/ui/Typography';
 
-import { lotActionLabel, pieceKind } from './collectionFormat';
+import { lotActionLabel, lotKind } from './collectionFormat';
 
 export function AuctionLotCard({
   lot,
@@ -21,7 +21,7 @@ export function AuctionLotCard({
       <CollectibleArtwork pieceId={lot.piece.id} categoryName={lot.categoryName} />
       <ListRow
         title={lot.piece.name}
-        subtitle={pieceKind(lot)}
+        subtitle={lotKind(lot)}
         value={formatMoneyExact(lot.priceCents)}
       />
       <AppText variant="caption" muted>

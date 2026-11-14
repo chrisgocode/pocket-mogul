@@ -16,6 +16,10 @@ export function pieceKind(described: AuctionLot | OwnedPiece): string {
   return `${described.categoryName} · ${RARITY_NAMES[described.piece.rarity]}`;
 }
 
+export function lotKind(lot: AuctionLot): string {
+  return lot.access === 'pass' ? `${pieceKind(lot)} · Collector's pass` : pieceKind(lot);
+}
+
 export function auctionNote(view: CollectionView): string {
   return `New lots in ${dayCount(view.daysUntilNewLots)} · ${view.lots.length} lots every ${dayCount(view.lotDays)}`;
 }
@@ -40,13 +44,13 @@ export function perkLabel(perk: CollectionSetView['perk']): string {
 }
 
 export function setNote(set: CollectionSetView): string {
-  return set.status === 'complete'
-    ? 'Perk active while you hold all five'
-    : `Missing: ${set.missing.join(', ')}`;
+  if (set.status === 'complete') return 'Perk active while you hold all five';
+  const pieces = set.missing.join(', ');
+  return set.status === 'locked' ? `Locked · Collector's pass: ${pieces}` : `Missing: ${pieces}`;
 }
 
 export function setsNote(sets: CollectionSetsView): string {
-  const finished = `${sets.completedCount} of ${sets.sets.length} finished`;
+  const finished = `${sets.completedCount} of ${sets.setCount} finished`;
   const perks = [
     sets.tapBonusPercent > 0 && `+${sets.tapBonusPercent}% tap income`,
     sets.resaleBonusPercent > 0 && `sales pay +${sets.resaleBonusPercent}%`,

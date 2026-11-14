@@ -4,8 +4,9 @@ import {
   listPriceCents,
   ownedValueCents,
 } from '@/domain/collection/appraisal';
-import { auctionLots, daysUntilNewLots, lotRedrawsOn } from '@/domain/collection/auction';
-import { saleReturnPercent } from '@/domain/collection/sets';
+import { daysUntilNewLots } from '@/domain/collection/auction';
+import { lotsOnOffer } from '@/domain/collection/offer';
+import { passPieceIds, saleReturnPercent } from '@/domain/collection/sets';
 import {
   collectionDayOf,
   type CollectionDay,
@@ -17,7 +18,11 @@ import { moneyCents, type MoneyCents } from '@/domain/money';
 
 import { affordability, type Affordability } from './affordability';
 import { selectCashCents, stateWithUnsavedIncome } from './cashView';
-import { selectCollectionSets, type CollectionSetsView } from './collectionSetsView';
+import {
+  countedPieceCount,
+  selectCollectionSets,
+  type CollectionSetsView,
+} from './collectionSetsView';
 import { collectionEconomy } from './economy';
 import type { GameSnapshot } from './game';
 
@@ -32,6 +37,7 @@ type Described = {
 export type AuctionLot = Described &
   Affordability & {
     readonly status: 'available' | 'owned';
+    readonly access: 'open' | 'pass';
     readonly priceCents: MoneyCents;
   };
 
@@ -77,6 +83,7 @@ function lotOf(piece: Piece, context: Context): AuctionLot {
   return {
     ...described(piece, context.content),
     status: owned ? 'owned' : 'available',
+    access: passPieceIds(context.valuing.economy).includes(piece.id) ? 'pass' : 'open',
     priceCents,
     ...affordability(priceCents, context.cashCents),
   };
@@ -106,11 +113,10 @@ export function selectCollection(snapshot: GameSnapshot, content: Content): Coll
   const valuing = { ...collectionDayOf(state, economy.rules), economy };
   const context = { content, state, valuing, cashCents: selectCashCents(snapshot, content) };
   const pieces = state.collectibles.flatMap((owned) => ownedOf(owned, context));
-  const redraws = lotRedrawsOn(state.adRewards.lotRedraws, valuing);
-  const lots = auctionLots({ ...valuing, redraws, maxTier: Math.max(...state.unlockedTiers) });
+  const lots = lotsOnOffer(state, economy);
   return {
     valueCents: moneyCents(pieces.reduce<bigint>((total, each) => total + each.valueCents, 0n)),
-    pieceCount: content.collection.pieces.length,
+    pieceCount: countedPieceCount(state, content),
     saleReturnPercent: saleReturnPercent(state.collectibles, economy),
     lotDays: economy.rules.lotDays,
     daysUntilNewLots: daysUntilNewLots(valuing.day, economy),
