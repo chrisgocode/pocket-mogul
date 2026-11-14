@@ -194,6 +194,7 @@ async function localizedProducts(
           productId: product.identifier,
           displayName: product.title,
           displayPrice: product.priceString,
+          price: product.price,
         })),
     };
   } catch {

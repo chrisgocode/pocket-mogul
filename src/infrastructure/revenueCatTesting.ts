@@ -22,6 +22,7 @@ const localizedProduct = {
   identifier: 'pm_tax_exemption',
   title: 'Exonération',
   priceString: '1,99 €',
+  price: 1.99,
 };
 
 export function revenueCatFake(script: RevenueCatScript = {}) {

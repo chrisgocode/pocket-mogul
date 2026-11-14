@@ -572,6 +572,14 @@ _Avoid_: Gold card (a wallet level's artwork), tap upgrade
 The product that raises the offline cap from 8 to 24 hours.
 _Avoid_: Manager (a business hire), offline boost
 
+**Mogul bundle**:
+The product that grants the tax exemption, VIP pass, Golden wallet and Night manager in one purchase. Its parts are those four products.
+_Avoid_: Starter pack, everything pack (it leaves out the Founder's badge and Collector's pass)
+
+**Founder's badge**:
+The cosmetic product: a Founder title on Profile and a gold name on the Rich List. It changes no money.
+_Avoid_: Supporter tier, rank (a Rank is earned from peak net worth)
+
 **Store**:
 The screen that lists the catalogue with store prices and what is owned. Restore purchases is in Settings.
 _Avoid_: Shop, paywall

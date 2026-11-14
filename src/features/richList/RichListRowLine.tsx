@@ -18,6 +18,7 @@ export function RichListRowLine({ row }: { row: RichListRow }) {
           </AppText>
         }
         title={row.name}
+        titleTone={row.nameTone}
         subtitle={row.sector}
         value={fortune}
         accessibilityLabel={`Number ${row.place}, ${row.name}, ${row.sector}, ${fortune}`}

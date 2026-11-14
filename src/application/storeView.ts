@@ -1,6 +1,7 @@
 import type { GameState } from '@/domain/gameState';
 
 import type { ProductMetadata } from './billingPort';
+import { bundleTerms } from './storeBundleView';
 import {
   ownsProduct,
   STORE_UNREACHABLE,
@@ -13,6 +14,7 @@ export type StoreRow = {
   readonly name: string;
   readonly pitch: string;
   readonly finePrint: string | undefined;
+  readonly saving: string | undefined;
   readonly offer:
     | { readonly status: 'owned' }
     | { readonly status: 'forSale' | 'buying'; readonly price: string };
@@ -21,6 +23,12 @@ export type StoreRow = {
 type Copy = { readonly name: string; readonly pitch: string; readonly finePrint?: string };
 
 const COPY: Readonly<Record<string, Copy>> = {
+  pm_mogul_bundle: {
+    name: 'Mogul bundle',
+    pitch:
+      'Four in one: Tax exemption, VIP pass (with Remove ads), Golden wallet and Night manager.',
+    finePrint: "Founder's badge and Collector's pass are not included.",
+  },
   pm_tax_exemption: {
     name: 'Tax exemption',
     pitch:
@@ -47,19 +55,19 @@ const COPY: Readonly<Record<string, Copy>> = {
     pitch: 'Your empire earns for up to 24 hours while you are away, instead of 8.',
     finePrint: 'Applies from your next return. Taxes and incidents keep running too.',
   },
+  pm_founder: {
+    name: "Founder's badge",
+    pitch: 'A Founder title on your Profile and your name in gold on the Rich List.',
+    finePrint: 'Cosmetic only: it changes no money.',
+  },
 };
 
 type Shelf = Pick<Storefront, 'catalogue'> & { readonly front: StorefrontState };
 
-function described(productId: string, metadata: ProductMetadata | undefined) {
-  const copy = COPY[productId];
-  return {
-    productId,
-    name: metadata?.displayName ?? copy?.name ?? productId,
-    pitch: copy?.pitch ?? '',
-    finePrint: copy?.finePrint,
-  };
-}
+const nameOf = (listed: readonly ProductMetadata[]) => (productId: string) =>
+  listed.find((product) => product.productId === productId)?.displayName ??
+  COPY[productId]?.name ??
+  productId;
 
 function offered(metadata: ProductMetadata, front: StorefrontState): StoreRow['offer'] {
   const { activity } = front;
@@ -67,14 +75,44 @@ function offered(metadata: ProductMetadata, front: StorefrontState): StoreRow['o
   return { status: buying ? 'buying' : 'forSale', price: metadata.displayPrice };
 }
 
+function forSale(state: GameState, sale: { metadata: ProductMetadata; shelf: Shelf }): StoreRow {
+  const { metadata, shelf } = sale;
+  const { productId } = metadata;
+  const listed = shelf.front.shelf.status === 'listed' ? shelf.front.shelf.products : [];
+  const copy = COPY[productId];
+  const terms = bundleTerms(state, {
+    productId,
+    shelf: { catalogue: shelf.catalogue, listed, nameOf: nameOf(listed) },
+  });
+  return {
+    productId,
+    name: metadata.displayName,
+    pitch: copy?.pitch ?? '',
+    finePrint: terms.ownedParts ?? copy?.finePrint,
+    saving: terms.saving,
+    offer: offered(metadata, shelf.front),
+  };
+}
+
+function owned(productId: string, listed: readonly ProductMetadata[]): StoreRow {
+  const copy = COPY[productId];
+  return {
+    productId,
+    name: nameOf(listed)(productId),
+    pitch: copy?.pitch ?? '',
+    finePrint: copy?.finePrint,
+    saving: undefined,
+    offer: { status: 'owned' },
+  };
+}
+
 export function selectStore(state: GameState, shelf: Shelf): readonly StoreRow[] {
   const { front, catalogue } = shelf;
   const listed = front.shelf.status === 'listed' ? front.shelf.products : [];
   return catalogue.flatMap((product): StoreRow[] => {
+    if (ownsProduct(state, product)) return [owned(product.productId, listed)];
     const metadata = listed.find((candidate) => candidate.productId === product.productId);
-    const row = described(product.productId, metadata);
-    if (ownsProduct(state, product)) return [{ ...row, offer: { status: 'owned' } }];
-    return metadata === undefined ? [] : [{ ...row, offer: offered(metadata, front) }];
+    return metadata === undefined ? [] : [forSale(state, { metadata, shelf })];
   });
 }
 

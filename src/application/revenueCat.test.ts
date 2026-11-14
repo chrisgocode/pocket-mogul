@@ -23,7 +23,12 @@ it.each([
     expect(await session.game.purchases.products()).toEqual({
       status: 'available',
       products: [
-        { productId: 'pm_tax_exemption', displayName: 'Exonération', displayPrice: '1,99 €' },
+        {
+          productId: 'pm_tax_exemption',
+          displayName: 'Exonération',
+          displayPrice: '1,99 €',
+          price: 1.99,
+        },
       ],
     });
     expect(await session.game.purchases.restore()).toEqual({ status: 'unavailable' });
