@@ -12,6 +12,7 @@ import type { GameCommand } from '@/domain/commands';
 import type { GameState, IncomeBySource, ReturnSummary } from '@/domain/gameState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 import { totalIncome } from '@/domain/passiveIncome';
+import type { RankingMove } from '@/domain/richList';
 
 export type PassedTime = {
   readonly earnings: IncomeBySource;
@@ -26,6 +27,7 @@ type ActivityChange = {
   readonly before: GameState;
   readonly after: GameState;
   readonly commandCashCents: MoneyCents;
+  readonly ranking: RankingMove | undefined;
 };
 
 function incomeEvents(time: PassedTime): readonly ActivityEvent[] {
@@ -51,6 +53,10 @@ function timeEvents(time: PassedTime): readonly ActivityEvent[] {
     insured: incident.insured,
   }));
   return [...incomeEvents(time), ...incidents, ...closures];
+}
+
+function rankingEvents(move: RankingMove | undefined): readonly ActivityEvent[] {
+  return move === undefined ? [] : [{ kind: 'ranking', ...move }];
 }
 
 function earnedOf(change: ActivityChange): Earned {
@@ -79,6 +85,7 @@ export function withCommittedActivity(change: ActivityChange): {
       after,
       cashChangeCents: change.commandCashCents,
     }),
+    ...rankingEvents(change.ranking),
   ];
   const recorded = recordActivity(after.activity, {
     earned: earnedOf(change),

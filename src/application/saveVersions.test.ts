@@ -64,6 +64,7 @@ const BASELINE_STATE = {
   showpiece: null,
   claimedGoals: [],
   briefing: { status: 'none' },
+  richList: { status: 'none' },
   income: {
     businessEarningsCents: dollars('9123.45'),
     rentRemainders: { studio: 12 },
@@ -107,6 +108,7 @@ const BASELINE_STATE = {
         rental: 0,
         trade: 0,
         dividend: 0,
+        ranking: 0,
         offline: 0,
       },
       spentCents: dollars('0'),

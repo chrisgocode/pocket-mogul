@@ -102,6 +102,11 @@ const milestoneGoals: GoalInput[] = [
   milestone('first_takeover', ['rivals_merged', 1], ['First takeover', '25,000']),
   milestone('takeovers_3', ['rivals_merged', 3], ['Serial acquirer', '1,000,000']),
   milestone('first_listing', ['listings', 1], ['Going public', '250,000']),
+  milestone('rich_list_top_15', ['moguls_passed', 6], ['Rich List top 15', '2,500']),
+  milestone('rich_list_top_10', ['moguls_passed', 11], ['Rich List top 10', '100,000']),
+  milestone('rich_list_top_5', ['moguls_passed', 16], ['Rich List top 5', '5,000,000']),
+  milestone('rich_list_top_3', ['moguls_passed', 18], ['Rich List top 3', '25,000,000']),
+  milestone('rich_list_first', ['moguls_passed', 20], ['Richest of all', '100,000,000']),
 ];
 
 const collectionGoals: GoalInput[] = [

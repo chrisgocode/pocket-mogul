@@ -9,6 +9,7 @@ import { incidentSchema, riskRulesSchema } from './riskSchema';
 import { collectionSchema, NO_COLLECTION_CONTENT } from './collectionSchema';
 import { briefingSchema, NO_BRIEFING_CONTENT } from './briefingSchema';
 import { goalSchema, rankSchema } from './goalSchema';
+import { mogulSchema } from './richListSchema';
 import { mechanicSchema } from './mechanicSchema';
 import { NO_SYNERGY_CONTENT, synergiesSchema } from './synergySchema';
 import { rivalSchema, takeoverRulesSchema } from './takeoverSchema';
@@ -280,6 +281,7 @@ export const contentSchema = z.object({
   properties: z.array(propertySchema).min(1),
   goals: z.array(goalSchema).min(1),
   ranks: z.array(rankSchema).default([]),
+  moguls: z.array(mogulSchema).default([]),
   briefing: briefingSchema.default(NO_BRIEFING_CONTENT),
   events: z.array(eventTemplateSchema).min(1),
   retiredIds: z.array(id),

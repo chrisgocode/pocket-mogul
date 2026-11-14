@@ -14,6 +14,7 @@ import { CollectionShelf } from './CollectionShelf';
 import { ProfileIncome } from './ProfileIncome';
 import { ProfileLinks } from './ProfileLinks';
 import { RankLines } from './RankLines';
+import { RichListLink } from './RichListLink';
 import { HoldingsCard } from './HoldingsCard';
 import { IncomeCard } from './IncomeCard';
 import { RecentActivity } from './RecentActivity';
@@ -27,6 +28,7 @@ export function PortfolioScreen() {
       <PageTitle title="Profile" />
       <ProfileLinks />
       <RankLines />
+      <RichListLink />
       <WorthCard worth={view.worth} />
       <ProfileIncome />
       <CollectionShelf />

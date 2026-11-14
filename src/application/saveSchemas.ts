@@ -161,6 +161,26 @@ const savedBriefing = z.discriminatedUnion('status', [
   }),
 ]);
 
+const rankingMove = {
+  direction: z.enum(['passed', 'overtaken']),
+  mogulId: z.string().min(1),
+  place: z.number().int().positive(),
+};
+const savedRichList = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('none') }),
+  z.object({
+    status: z.literal('active'),
+    day: count,
+    fortunes: z.record(z.string().min(1), nonNegativeMoneyText),
+    passed: count,
+    mostPassed: count,
+    news: z.discriminatedUnion('status', [
+      z.object({ status: z.literal('none') }),
+      z.object({ status: z.literal('new'), ...rankingMove }),
+    ]),
+  }),
+]);
+
 export const saveDocumentSchema = z.looseObject({
   tax: savedTax.default({ status: 'notStarted' }),
   saveId: z.string().min(1),
@@ -197,6 +217,8 @@ export const saveDocumentSchema = z.looseObject({
   risks: z.record(z.string().min(1), savedRisks).default({}),
   absenceIncidents: z.array(absenceIncident).default([]),
   incidentEntries: count.default(0),
+  rankingEntries: count.default(0),
+  richList: savedRichList.default({ status: 'none' }),
   vending: z.record(z.string().min(1), savedVending).default({}),
   carWash: z.record(z.string().min(1), savedCarWash).default({}),
   delivery: z.record(z.string().min(1), savedDelivery).default({}),

@@ -19,10 +19,10 @@ const peakGoals = (goals: Goals) =>
 describe('goals in content (UX03)', () => {
   const { goals, businesses, ranks } = getContent();
 
-  it('lists sixty goals, each with a cash reward', () => {
+  it('lists sixty-five goals, each with a cash reward', () => {
     const kinds = ['first_action', 'peak_net_worth', 'collection', 'business_stage', 'milestone'];
     expect(kinds.map((kind) => goals.filter((goal) => goal.kind === kind).length)).toEqual([
-      6, 7, 4, 24, 19,
+      6, 7, 4, 24, 24,
     ]);
     expect(goals.filter((goal) => goal.reward <= 0n)).toEqual([]);
   });

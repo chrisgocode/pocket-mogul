@@ -30,6 +30,26 @@ function briefingIssues(content: Content): string[] {
     : ['The daily briefing needs a task that every player can do'];
 }
 
+function richListIssues(content: Content): string[] {
+  const names = content.moguls.map((mogul) => mogul.name);
+  const places = content.goals.flatMap((goal) =>
+    goal.kind === 'milestone' && goal.measure === 'moguls_passed' ? [goal] : [],
+  );
+  return [
+    new Set(names).size !== names.length && 'Rich List names must be unique',
+    ...places.map(
+      (goal) =>
+        goal.count > content.moguls.length &&
+        `Goal ${goal.id} asks for more moguls than the Rich List has`,
+    ),
+  ].filter((issue) => issue !== false);
+}
+
 export function goalsFit(content: Content): string[] {
-  return [...stageGoalIssues(content), ...rankIssues(content), ...briefingIssues(content)];
+  return [
+    ...stageGoalIssues(content),
+    ...rankIssues(content),
+    ...briefingIssues(content),
+    ...richListIssues(content),
+  ];
 }

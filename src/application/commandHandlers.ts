@@ -57,6 +57,7 @@ import {
   applySetRentalStatus,
   applyUpgradeProperty,
 } from '@/domain/properties';
+import { applyDismissRichListNews } from '@/domain/richList';
 import { applyTapBatch } from '@/domain/tapping';
 
 import { tapBonusPercent } from './collectionSetsView';
@@ -190,6 +191,7 @@ const COMMAND_HANDLERS: CommandHandlers = {
   ClaimGoals: (state, command, content) =>
     applyClaimGoals(state, { goalIds: command.goalIds, rules: goalRules(content) }),
   ClaimBriefing: (state, _command, content) => applyClaimBriefing(state, briefingRules(content)),
+  DismissRichListNews: (state) => applyDismissRichListNews(state),
   PinGoal: (state, command, content) =>
     applyPinGoal(state, { goalId: command.goalId, rules: goalRules(content) }),
   AdvanceTime: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),

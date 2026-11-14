@@ -106,7 +106,13 @@ describe('wealth goals', () => {
   it('completes every wealth goal from $1K to $1B in order', async () => {
     const { game } = await startWith({ cashCents: dollars('1,000,000,000') });
     await game.checkpoint();
-    expect(completedGoals(game)).toEqual([...PEAK_GOALS, 'every_tier']);
+    expect(completedGoals(game)).toEqual([
+      ...PEAK_GOALS,
+      'every_tier',
+      'rich_list_top_15',
+      'rich_list_top_10',
+      'rich_list_top_5',
+    ]);
   });
 
   it('pays nothing until the reward is claimed', async () => {

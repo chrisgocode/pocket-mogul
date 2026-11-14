@@ -503,7 +503,7 @@ The stocks and coins the player has marked to see at the top of Markets; it chan
 _Avoid_: Favorites, starred
 
 **Goal**:
-One of sixty milestones that earns a badge and a Goal reward, and stays reached once reached. The player can pin one goal not yet reached to Earn.
+One of sixty-five milestones that earns a badge and a Goal reward, and stays reached once reached. The player can pin one goal not yet reached to Earn.
 _Avoid_: Achievement, quest
 
 **Goal reward**:
@@ -517,6 +517,14 @@ _Avoid_: Level, tier (that is a business tier), status
 **Daily briefing**:
 Three small tasks drawn each calendar day on Earn, fitted to what the player owns. Each pays a share of peak net worth when claimed, with a bonus for finishing all three. Unfinished tasks clear when the day changes; nothing is lost for a missed day.
 _Avoid_: Daily quests, missions, streak, login bonus
+
+**Rich List**:
+The ranking of the player and twenty Moguls by fortune, richest first. The player's fortune on it is their peak net worth.
+_Avoid_: Leaderboard, high scores
+
+**Mogul**:
+A made-up rival on the Rich List whose fortune moves each business day. Each is a parody of a real billionaire, under a spoof name.
+_Avoid_: Rival, NPC, competitor
 
 **Activity history**:
 The player-visible record of purchases, sales, upgrades, rentals, trades, dividend payouts and offline settlements, kept to the newest 2,000 entries. Lifetime totals on the save keep counting past that bound.
