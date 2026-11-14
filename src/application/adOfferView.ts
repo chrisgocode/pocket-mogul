@@ -59,7 +59,7 @@ export function adOfferText(
   if (view.status === 'used_up')
     return {
       buttonLabel: 'Back tomorrow',
-      note: `All ${view.limit} used today`,
+      note: view.limit === 1 ? 'Used today' : `All ${view.limit} used today`,
       enabled: false,
     };
   const note =
