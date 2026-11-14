@@ -1,6 +1,7 @@
 import type { RivalView } from '@/application/takeoverView';
 import type { Business } from '@/content';
 import { formatMoneyExact } from '@/domain/money';
+import { AdRewardButton } from '@/features/adRewards/AdRewardButton';
 import { ListRow } from '@/ui/ListRow';
 
 import { dayCount } from './businessFormat';
@@ -31,11 +32,20 @@ export function RivalRow({
   const facts = rivalFacts(business, rival);
   if (rival.status !== 'open') {
     return (
-      <ListRow
-        title={rival.name}
-        subtitle={`${facts}\n${standing(rival)}`}
-        dimmed={rival.status !== 'pending'}
-      />
+      <>
+        <ListRow
+          title={rival.name}
+          subtitle={`${facts}\n${standing(rival)}`}
+          dimmed={rival.status !== 'pending'}
+        />
+        {rival.status === 'locked' ? (
+          <AdRewardButton
+            offer={{ kind: 'clear_takeover_lock', businessId: business.id, rivalId: rival.id }}
+            name={rival.name}
+            reward="offer again now"
+          />
+        ) : null}
+      </>
     );
   }
   const offer = rival.offers.find((each) => each.percent === percent) ?? rival.offers[0];

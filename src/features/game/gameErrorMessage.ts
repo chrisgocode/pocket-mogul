@@ -23,6 +23,8 @@ const MESSAGES: Record<GameErrorCode, string> = {
   TRADING_LOCKED: 'Trading opens after you buy your first business.',
   STALE_QUOTE: 'The price changed. Check the new amount and try again.',
   BOOST_ACTIVE: 'A Tap Boost is already running.',
+  AD_REWARD_LIMIT: 'You have used all of these ad rewards for today.',
+  AD_REWARD_UNAVAILABLE: 'That ad reward is no longer available.',
   UNKNOWN_GOAL: "That goal isn't available.",
   GOAL_NOT_CLAIMABLE: 'That reward is not ready to claim, or you already claimed it.',
   BRIEFING_NOT_CLAIMABLE: 'No briefing reward is ready to claim.',

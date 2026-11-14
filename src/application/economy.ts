@@ -6,6 +6,7 @@ import type { CollectionEconomy } from '@/domain/collection/rules';
 import type { DividendRates } from '@/domain/dividends';
 import type { MarketEconomy, MarketInstrument } from '@/domain/market';
 import type { PassiveEconomy } from '@/domain/passiveIncome';
+import type { AdRewardEconomy } from '@/domain/adRewards';
 import type { BriefingRules } from '@/domain/briefing';
 import type { GoalRules } from '@/domain/goals';
 import type { RichListRules } from '@/domain/richList';
@@ -56,6 +57,14 @@ export function progressRules(content: Content): ProgressRules {
 
 export function briefingRules(content: Content): BriefingRules {
   return { ...content.briefing, walletMaxLevel: content.economy.tap.maxLevel };
+}
+
+export function adRewardEconomy(content: Content): AdRewardEconomy {
+  return {
+    rules: content.adRewards,
+    passive: passiveEconomy(content),
+    collection: collectionEconomy(content),
+  };
 }
 
 export function richListRules(content: Content): RichListRules {

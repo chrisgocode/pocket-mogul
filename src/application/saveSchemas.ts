@@ -4,6 +4,7 @@ import { savedTax } from './taxSaveSchema';
 import { z } from 'zod';
 
 import { activityLog, goalProgress } from './activitySchemas';
+import { NO_SAVED_AD_REWARDS, savedAdRewards, savedRushDay } from './adRewardSaveSchema';
 import { adSchedule, settings, tutorialProgress } from './preferenceSchemas';
 import { fromSaveDocument } from './saveDocument';
 import { savedAirline } from './airlineSaveSchema';
@@ -219,6 +220,8 @@ export const saveDocumentSchema = z.looseObject({
   incidentEntries: count.default(0),
   rankingEntries: count.default(0),
   richList: savedRichList.default({ status: 'none' }),
+  adRewards: savedAdRewards.default(NO_SAVED_AD_REWARDS),
+  rushDay: z.record(z.string().min(1), savedRushDay).default({}),
   vending: z.record(z.string().min(1), savedVending).default({}),
   carWash: z.record(z.string().min(1), savedCarWash).default({}),
   delivery: z.record(z.string().min(1), savedDelivery).default({}),

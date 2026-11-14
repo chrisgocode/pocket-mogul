@@ -1,5 +1,6 @@
 import { payoutReport, sweepPayouts } from './payoutSweep';
 import { actionReport, deepReport } from './deepReport';
+import { adCeiling, adReport, type AdCeiling } from './adReport';
 import { goalReport } from './goalReport';
 import type { Content } from '@/content';
 import { formatMoneyCompact, formatMoneyExact, moneyCents } from '@/domain/money';
@@ -16,6 +17,7 @@ export type BalanceReport = {
   readonly runs: readonly BalanceRun[];
   readonly loops: readonly LoopCheck[];
   readonly payoutRuns: readonly BalanceRun[];
+  readonly adCeilings: readonly AdCeiling[];
 };
 
 const MS_PER_SECOND = 1000;
@@ -32,11 +34,13 @@ export function runBalance(options: {
   scenarios?: readonly BalanceScenario[];
 }): BalanceReport {
   const scenarios = options.scenarios ?? balanceScenarios(options.seed);
+  const runs = scenarios.map((scenario) => simulateBalance(scenario, options.content));
   return {
     seed: options.seed,
     economyVersion: options.content.economyVersion,
     unlockableTiers: Object.keys(options.content.economy.tierUnlocks).map(Number),
-    runs: scenarios.map((scenario) => simulateBalance(scenario, options.content)),
+    runs,
+    adCeilings: runs.map((run) => adCeiling(run, options.content)),
     loops: checkProfitLoops(options.content),
     payoutRuns: options.scenarios === undefined ? sweepPayouts(options.seed, options.content) : [],
   };
@@ -217,7 +221,7 @@ function introduction(report: BalanceReport): string[] {
     `- Economy version: ${report.economyVersion}`,
     `- Market seed: \`${report.seed}\``,
     `- Tap rate: ${rates} taps per second of active play`,
-    '- Every run is ad-free: no Tap Boost and no ads.',
+    '- Every run is ad-free: no Tap Boost, no rewarded ads and no automatic ads.',
     '- Policies: **cheapestNext** buys the cheapest purchase that adds income; **bestPayback** waits for the purchase with the shortest payback; **saveForNextBusiness** saves for the cheapest unowned business it can buy, and otherwise buys the best payback.',
     '- Deep policies prioritize affordable stage upgrades, first flagship operating staff, and managers (manager style only), then follow the named purchase policy. Stages unlock capacity rather than immediate income.',
     '- Hands-on play chooses the best current price, stock mixes and locations, restocks empty locations, adjusts wash packages and membership prices, parks the food cart at the busiest spot with its most profitable menu, picks the most profitable coffee kiosk rush plan and bean grade and laundromat jumbo share and service level, sets the bakery bake level and takes wholesale orders that add profit, runs as many gym classes as the studios hold and sells the tier with the highest long-run fees, takes factory bulk orders that add profit and never retools, sets the launch cadence for the day’s weather and takes payload contracts that add profit, uses the forecast for member caps, and accepts contracts with positive incremental profit. Managers make only engine-defined daily decisions; they never accept contracts or move machines.',
@@ -242,6 +246,8 @@ export function renderBalanceReport(report: BalanceReport): string {
     ...spending(report),
     '',
     ...goalReport(report.runs),
+    '',
+    ...adReport(report.adCeilings),
     '',
     ...profitLoops(report),
     '',

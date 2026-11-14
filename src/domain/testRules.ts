@@ -151,6 +151,7 @@ export function ownedBusiness(
     capitalizedSpendCents: dollars('250'),
     insurance: { equipment: 'none', liability: 'none', supply: 'none' },
     incident: { status: 'none' },
+    rushDay: { status: 'none' },
     vending: { status: 'inactive' },
     carWash: { status: 'inactive' },
     delivery: { status: 'inactive' },

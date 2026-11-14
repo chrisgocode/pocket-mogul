@@ -110,6 +110,12 @@ export function applyExecuteTrade(
   };
 }
 
+export type SetWatchlist = {
+  readonly type: 'SetWatchlist';
+  readonly assetId: string;
+  readonly watched: boolean;
+};
+
 export function applySetWatchlist(
   state: GameState,
   order: { readonly assetId: string; readonly watched: boolean; readonly economy: TradeEconomy },

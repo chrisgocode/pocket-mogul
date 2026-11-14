@@ -4,7 +4,7 @@ import { moneyCents, type MoneyCents } from '@/domain/money';
 import { spend } from '@/domain/pricing';
 
 import { collectibleSaleCents, findPiece, listPriceCents } from './appraisal';
-import { auctionLots } from './auction';
+import { auctionLots, lotRedrawsOn } from './auction';
 import { collectionDayOf, type CollectionEconomy } from './rules';
 
 type CollectibleOrder = { readonly pieceId: string; readonly economy: CollectionEconomy };
@@ -20,7 +20,8 @@ export function applyBuyCollectible(
     return { ok: false, error: 'ALREADY_OWNED' };
   const today = collectionDayOf(state, economy.rules);
   const maxTier = Math.max(...state.unlockedTiers);
-  const onOffer = auctionLots({ ...today, economy, maxTier }).includes(piece);
+  const redraws = lotRedrawsOn(state.adRewards.lotRedraws, { day: today.day, economy });
+  const onOffer = auctionLots({ ...today, economy, maxTier, redraws }).includes(piece);
   const priceCents = listPriceCents(piece, { ...today, economy });
   if (!onOffer || priceCents !== order.priceCents) return { ok: false, error: 'STALE_QUOTE' };
   const bought = { pieceId: piece.id, acquiredDay: today.day, paidCents: priceCents };

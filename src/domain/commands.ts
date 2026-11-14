@@ -14,6 +14,8 @@ import type { StockMix, VendingLocation } from './business/vendingRules';
 import type { CoachMark } from './coachMarks';
 import type { CollectionCommand } from './collection/orders';
 import type { GameState } from './gameState';
+import type { ClaimAdReward } from './adRewards';
+import type { ActivateBoost, RecordAdReward } from './boost';
 import type { ClaimBriefing } from './briefing';
 import type { ClaimGoals } from './goalRewards';
 import type { DismissRichListNews } from './richList';
@@ -21,6 +23,7 @@ import type { MoneyCents, QuantityMicrounits } from './money';
 import type { PropertyTrack } from './propertyQuotes';
 import type { SettingsChange } from './settings';
 import type { TradeSide } from './tradeQuotes';
+import type { SetWatchlist } from './trades';
 
 export type TapBatch = {
   readonly type: 'TapBatch';
@@ -208,21 +211,12 @@ export type ExecuteTrade = {
   readonly quotedRevision?: number;
 };
 
-export type SetWatchlist = {
-  readonly type: 'SetWatchlist';
-  readonly assetId: string;
-  readonly watched: boolean;
-};
-
 export type PinGoal = { readonly type: 'PinGoal'; readonly goalId: string | null };
 
 export type AdvanceTime = { readonly type: 'AdvanceTime' };
 
 export type SettleOffline = { readonly type: 'SettleOffline' };
 
-export type RecordAdReward = { readonly type: 'RecordAdReward'; readonly presentationId: string };
-
-export type ActivateBoost = { readonly type: 'ActivateBoost' };
 export type UpdateSettings = { readonly type: 'UpdateSettings'; readonly change: SettingsChange };
 
 export type SkipTutorial = { readonly type: 'SkipTutorial' };
@@ -293,6 +287,7 @@ export type GameCommand =
   | PinGoal
   | ClaimGoals
   | ClaimBriefing
+  | ClaimAdReward
   | DismissRichListNews
   | AdvanceTime
   | SettleOffline
@@ -332,6 +327,8 @@ export const GAME_ERROR_CODES = [
   'GOAL_COMPLETED',
   'GOAL_NOT_CLAIMABLE',
   'BRIEFING_NOT_CLAIMABLE',
+  'AD_REWARD_LIMIT',
+  'AD_REWARD_UNAVAILABLE',
   'SAVE_FAILED',
 ] as const;
 

@@ -8,7 +8,8 @@ import { NO_LAUNDROMAT, type LaundromatOperation } from '@/domain/business/laund
 import { NO_AIRLINE, type AirlineOperation } from '@/domain/business/airlineRules';
 import { NO_SPACE, type SpaceOperation } from '@/domain/business/spaceRules';
 import { NO_SYNERGIES } from '@/domain/business/synergyRules';
-import type { OwnedBusiness } from '@/domain/business/owned';
+import type { OwnedBusiness, RushDay } from '@/domain/business/owned';
+import { NO_RUSH_DAY } from '@/domain/business/rushDay';
 
 type ByBusiness<Value> = Readonly<Record<string, Value>>;
 
@@ -23,6 +24,7 @@ export type SavedMechanics = {
   readonly airline: ByBusiness<AirlineOperation>;
   readonly space: ByBusiness<SpaceOperation>;
   readonly synergies: ByBusiness<readonly string[]>;
+  readonly rushDay: ByBusiness<RushDay>;
 };
 
 export type MechanicField = keyof SavedMechanics;
@@ -44,6 +46,7 @@ export function savedMechanics(businesses: readonly OwnedBusiness[]): SavedMecha
     airline: byBusiness(businesses, (business) => business.airline),
     space: byBusiness(businesses, (business) => business.space),
     synergies: byBusiness(businesses, (business) => business.synergies),
+    rushDay: byBusiness(businesses, (business) => business.rushDay),
   };
 }
 
@@ -64,6 +67,7 @@ export function loadedMechanicFields(
     airline: saved(document.airline, NO_AIRLINE),
     space: saved(document.space, NO_SPACE),
     synergies: saved(document.synergies, NO_SYNERGIES),
+    rushDay: saved(document.rushDay, NO_RUSH_DAY),
   };
 }
 
@@ -81,6 +85,7 @@ export function withoutMechanicFields<Holder extends Record<MechanicField, unkno
     airline: _airline,
     space: _space,
     synergies: _synergies,
+    rushDay: _rushDay,
     ...rest
   } = holder;
   return rest;

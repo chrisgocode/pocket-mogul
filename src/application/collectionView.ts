@@ -4,7 +4,7 @@ import {
   listPriceCents,
   ownedValueCents,
 } from '@/domain/collection/appraisal';
-import { auctionLots, daysUntilNewLots } from '@/domain/collection/auction';
+import { auctionLots, daysUntilNewLots, lotRedrawsOn } from '@/domain/collection/auction';
 import { saleReturnPercent } from '@/domain/collection/sets';
 import {
   collectionDayOf,
@@ -106,7 +106,8 @@ export function selectCollection(snapshot: GameSnapshot, content: Content): Coll
   const valuing = { ...collectionDayOf(state, economy.rules), economy };
   const context = { content, state, valuing, cashCents: selectCashCents(snapshot, content) };
   const pieces = state.collectibles.flatMap((owned) => ownedOf(owned, context));
-  const lots = auctionLots({ ...valuing, maxTier: Math.max(...state.unlockedTiers) });
+  const redraws = lotRedrawsOn(state.adRewards.lotRedraws, valuing);
+  const lots = auctionLots({ ...valuing, redraws, maxTier: Math.max(...state.unlockedTiers) });
   return {
     valueCents: moneyCents(pieces.reduce<bigint>((total, each) => total + each.valueCents, 0n)),
     pieceCount: content.collection.pieces.length,

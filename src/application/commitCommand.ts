@@ -4,6 +4,7 @@ import { advanceTaxTime } from './taxTime';
 import { activateTaxes } from './taxActivation';
 import { listingValuesAt } from './listingMarket';
 import type { Content } from '@/content';
+import { withAdRewardDay } from '@/domain/adRewards';
 import { withBriefing } from '@/domain/briefing';
 import { consumeBoostTime, isBoostActive, rewardChange, type RewardChange } from '@/domain/boost';
 import type {
@@ -188,7 +189,10 @@ export function applyEnvelope(
     { ...advanced.state, economyVersion: content.economyVersion },
     content,
   );
-  const progressed = withProgress(adopted, progressRules(content));
+  const progressed = withAdRewardDay(
+    withProgress(adopted, progressRules(content)),
+    change.time.dayKey,
+  );
   const result = applyCommand(progressed, { type: command.type, payload: command }, content);
   if (!result.ok) return { outcome: result };
   const cashChangeCents = moneyCents(advanced.earnedCents + result.cashChangeCents);

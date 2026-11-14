@@ -4,6 +4,8 @@ import { fileTaxReturn } from '@/domain/tax/filing';
 import { collectTaxDebt, taxRestricted } from '@/domain/tax/collection';
 import { applyGoPublic } from '@/domain/business/listingCommands';
 import type { Content } from '@/content';
+import { applyClaimAdReward } from '@/domain/adRewardEffects';
+import { withOfflineDoubleCleared } from '@/domain/adRewards';
 import { applyActivateBoost, applyRecordAdReward } from '@/domain/boost';
 import { applyClaimBriefing } from '@/domain/briefing';
 import {
@@ -67,6 +69,7 @@ import { applySkipTutorial } from '@/domain/tutorial';
 import { applyWalletUpgrade } from '@/domain/wallet';
 
 import {
+  adRewardEconomy,
   briefingRules,
   businessEconomy,
   collectionEconomy,
@@ -191,6 +194,8 @@ const COMMAND_HANDLERS: CommandHandlers = {
   ClaimGoals: (state, command, content) =>
     applyClaimGoals(state, { goalIds: command.goalIds, rules: goalRules(content) }),
   ClaimBriefing: (state, _command, content) => applyClaimBriefing(state, briefingRules(content)),
+  ClaimAdReward: (state, command, content) =>
+    applyClaimAdReward(state, { offer: command.offer, economy: adRewardEconomy(content) }),
   DismissRichListNews: (state) => applyDismissRichListNews(state),
   PinGoal: (state, command, content) =>
     applyPinGoal(state, { goalId: command.goalId, rules: goalRules(content) }),
@@ -199,7 +204,7 @@ const COMMAND_HANDLERS: CommandHandlers = {
   AcknowledgeReturnSummary: (state) => ({
     ok: true,
     state: {
-      ...state,
+      ...withOfflineDoubleCleared(state),
       returnSummary: { status: 'none' },
       tax:
         state.tax.status === 'notStarted'

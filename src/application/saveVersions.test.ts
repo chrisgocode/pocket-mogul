@@ -65,6 +65,12 @@ const BASELINE_STATE = {
   claimedGoals: [],
   briefing: { status: 'none' },
   richList: { status: 'none' },
+  adRewards: {
+    dayKey: '',
+    used: {},
+    lotRedraws: { period: 0, count: 0 },
+    offlineDouble: { status: 'none' },
+  },
   income: {
     businessEarningsCents: dollars('9123.45'),
     rentRemainders: { studio: 12 },

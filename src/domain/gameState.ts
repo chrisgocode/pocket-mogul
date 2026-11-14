@@ -2,6 +2,7 @@ import type { TaxState } from './tax/types';
 import type { ShareholderPayout } from './business/listingState';
 import { freshAdSchedule, type AdScheduleState } from './adSchedule';
 import { EMPTY_ACTIVITY, type ActivityLog } from './activity';
+import { NO_AD_REWARDS, type AdRewards } from './adRewards';
 import { NO_REWARDS, type RewardState } from './boost';
 import { NO_BRIEFING, type Briefing } from './briefing';
 import type { OwnedBusiness } from './business/owned';
@@ -98,6 +99,7 @@ export type GameState = {
   readonly claimedGoals: readonly string[];
   readonly briefing: Briefing;
   readonly richList: RichList;
+  readonly adRewards: AdRewards;
   readonly activity: ActivityLog;
   readonly tutorial: TutorialProgress;
   readonly settings: Settings;
@@ -106,6 +108,7 @@ export type GameState = {
 };
 
 const INITIAL_ADDITIONS = {
+  adRewards: NO_AD_REWARDS,
   shareholderPayouts: [],
   briefing: NO_BRIEFING,
   richList: NO_RICH_LIST,

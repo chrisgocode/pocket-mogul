@@ -5,8 +5,16 @@ A portrait mobile idle wealth game: the player taps for cash, then builds wealth
 ## Ads
 
 **Rewarded ad**:
-An ad the player chooses to watch in exchange for a stated reward (in v1, a Tap Boost).
+An ad the player chooses to watch in exchange for a stated reward: a Tap Boost, doubled offline earnings, a Rush day, ending an incident, redrawn auction lots, a cleared takeover lock or the Daily briefcase.
 _Avoid_: Bonus ad, video ad
+
+**Rush day**:
+A rewarded ad's 2x profit for one business, running to the end of the next business day. Not the Coffee Kiosk's morning rush.
+_Avoid_: Profit boost, double day
+
+**Daily briefcase**:
+A once-a-day rewarded ad that pays 15 minutes of current income.
+_Avoid_: Daily gift, login reward
 
 **Tap Boost**:
 A temporary multiplier on tap earnings granted by a rewarded ad; it affects taps only and never stacks.

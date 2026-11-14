@@ -23,6 +23,14 @@ import { MOTION_PREFERENCES, NUMBER_FORMATS, SWITCH_VALUES } from '@/domain/sett
 
 const businessId = z.string().min(1);
 const propertyId = z.string().min(1);
+const adOffer = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('double_offline') }),
+  z.object({ kind: z.literal('rush_day'), businessId }),
+  z.object({ kind: z.literal('end_incident'), businessId }),
+  z.object({ kind: z.literal('redraw_lots') }),
+  z.object({ kind: z.literal('clear_takeover_lock'), businessId, rivalId: z.string().min(1) }),
+  z.object({ kind: z.literal('briefcase') }),
+]);
 const fromLevel = z.number().int().nonnegative();
 const fromCount = z.number().int().nonnegative();
 const assetId = z.string().min(1);
@@ -213,6 +221,7 @@ const gameCommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('PinGoal'), goalId: z.string().min(1).nullable() }),
   z.object({ type: z.literal('ClaimGoals'), goalIds: z.array(z.string().min(1)).min(1) }),
   z.object({ type: z.literal('ClaimBriefing') }),
+  z.object({ type: z.literal('ClaimAdReward'), presentationId: z.string().min(1), offer: adOffer }),
   z.object({ type: z.literal('DismissRichListNews') }),
   z.object({ type: z.literal('AdvanceTime') }),
   z.object({ type: z.literal('SettleOffline') }),

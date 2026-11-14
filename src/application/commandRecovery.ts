@@ -9,9 +9,16 @@ type Attempt = {
 
 type Result = { readonly outcome: CommandOutcome; readonly blocked: boolean };
 
+const SAVED_FOR_CERTAIN = new Set<CommandEnvelope['command']['type']>([
+  'SettleOffline',
+  'RecordAdReward',
+  'ActivateBoost',
+  'ClaimAdReward',
+]);
+
 export function retryUntilSaved(envelope: CommandEnvelope): boolean {
   const { type } = envelope.command;
-  return type === 'SettleOffline' || type === 'RecordAdReward' || type === 'ActivateBoost';
+  return SAVED_FOR_CERTAIN.has(type);
 }
 
 export function recoveryAttempt(read: () => CommandTime): () => CommandTime {

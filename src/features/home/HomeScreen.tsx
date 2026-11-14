@@ -5,6 +5,7 @@ import { Screen } from '@/ui/Screen';
 import { HomeOverview } from './HomeOverview';
 import { HomeDecisions } from './HomeDecisions';
 import { HomeAssets } from './HomeAssets';
+import { BriefcaseOffer } from './BriefcaseOffer';
 import { BriefingCard } from './BriefingCard';
 import { BriefingRow } from './BriefingRow';
 import { PinnedGoalCard } from './PinnedGoalCard';
@@ -21,6 +22,7 @@ export function HomeScreen() {
       <TutorialHint steps={TUTORIAL_STEPS} />
       <TapEarnings />
       <BriefingCard />
+      <BriefcaseOffer />
       <ShowpieceCard />
       <HomeAssets />
     </Screen>

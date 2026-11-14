@@ -1,9 +1,11 @@
+import { adOfferRefusal } from '@/domain/adRewardEffects';
 import type { CommandEnvelope } from '@/domain/commands';
 import { moneyCents } from '@/domain/money';
 
 import { commitCommand, type Committed } from './commitCommand';
+import { adRewardEconomy } from './economy';
 import type { Committer, GamePorts } from './game';
-import { tapBoost } from './tapBoost';
+import { tapBoost, type RewardedView } from './tapBoost';
 
 function grantActivation(ports: GamePorts, core: Committer) {
   return () =>
@@ -25,6 +27,12 @@ function grantActivation(ports: GamePorts, core: Committer) {
     );
 }
 
+function rewardCommand({ id, offer }: RewardedView): CommandEnvelope {
+  if (offer.kind === 'tap_boost')
+    return { id: `reward-${id}`, command: { type: 'RecordAdReward', presentationId: id } };
+  return { id: `ad-reward-${id}`, command: { type: 'ClaimAdReward', presentationId: id, offer } };
+}
+
 export function rewardedBoost(
   ports: GamePorts,
   game: { core: Committer; flushTaps: () => Promise<void> },
@@ -37,11 +45,12 @@ export function rewardedBoost(
     snapshots: core.snapshots,
     boostTime: core.boostTime,
     flushTaps: game.flushTaps,
-    recordReward: (presentationId) =>
-      void core.run({
-        id: `reward-${presentationId}`,
-        command: { type: 'RecordAdReward', presentationId },
-      }),
+    recordReward: (view) => void core.run(rewardCommand(view)),
+    canClaim: (offer) =>
+      adOfferRefusal(core.snapshots.get().state, {
+        offer,
+        economy: adRewardEconomy(ports.content),
+      }) === undefined,
     activatePendingGrant: () => void activatePendingGrant(),
     requested: (request) => core.telemetry.adRequested(request, core.snapshots.get().state),
   });

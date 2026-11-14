@@ -13,6 +13,7 @@ import type { OwnedBusiness } from './owned';
 import { serveContracts, type ContractsServed } from './deliveryDemand';
 import { mechanicDay, type MechanicDay } from './mechanics';
 import { serveWithRush } from './rush';
+import { withRushDayProfit } from './rushDay';
 import { activePolicies, premiumCents, wagesOf } from './runningCosts';
 
 export type BusinessDayQuote = {
@@ -264,8 +265,12 @@ export function quoteImprovement(
   };
 }
 
+export function earnedPerDayCents(business: OwnedBusiness, pricing: BusinessPricing): bigint {
+  return withRushDayProfit(business, profitPerDayCents(business, pricing));
+}
+
 export function cashPerMinuteCents(business: OwnedBusiness, pricing: BusinessPricing): MoneyCents {
-  const profit = profitPerDayCents(business, pricing);
+  const profit = earnedPerDayCents(business, pricing);
   if (business.status === 'closed' || profit <= 0n) return moneyCents(0);
   const perDay = profit * BigInt(business.payoutPercent) * MS_PER_MINUTE;
   const stake = business.listing.status === 'private' ? TOTAL_SHARES : business.listing.sharesHeld;
