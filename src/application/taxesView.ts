@@ -2,6 +2,7 @@ import type { Content } from '@/content';
 import type { GameState } from '@/domain/gameState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 import { currentTaxLines, debtCents, taxLiabilityCents } from '@/domain/tax/assessment';
+import { AD_REWARD_TAX_SOURCE } from '@/domain/tax/sources';
 import type { TaxLine, TaxReturn } from '@/domain/tax/types';
 
 import { durationText } from './clockText';
@@ -10,11 +11,16 @@ import type { GameSnapshot } from './game';
 const BPS_PER_PERCENT = 100;
 const ZERO = moneyCents(0);
 
+const WHOLE_SOURCES: Readonly<Record<string, string>> = {
+  capital: 'Realized capital gains',
+  [AD_REWARD_TAX_SOURCE]: 'Ad rewards',
+};
+
 function taxSourceName(source: string, content: Content): string {
   const [kind, id] = source.split(':');
   if (kind === 'business') return content.businesses.find((b) => b.id === id)?.name ?? source;
   if (kind === 'rental') return content.properties.find((p) => p.id === id)?.name ?? source;
-  return source === 'capital' ? 'Realized capital gains' : 'Stock dividends';
+  return WHOLE_SOURCES[source] ?? 'Stock dividends';
 }
 
 const EMPTY_LEDGER_VIEW = {

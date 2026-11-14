@@ -7,7 +7,7 @@ import { startAirlineDay } from './airline';
 import { startBakeryDay } from './bakery';
 import { startCarWashDay } from './carWash';
 import { withCoffeeKioskUnlocked } from './coffeeKiosk';
-import { profitPerDayCents, quoteBusinessDay } from './core';
+import { earnedPerDayCents, quoteBusinessDay } from './core';
 import { endedDeliveryDay, startDeliveryDay } from './delivery';
 import { startFactoryDay } from './factory';
 import { startFoodCartDay } from './foodCart';
@@ -18,6 +18,7 @@ import { withLaundromatUnlocked } from './laundromat';
 import { findBusiness, type BusinessEconomy, type BusinessPricing } from './definition';
 import type { OwnedBusiness } from './owned';
 import { startBusinessDay, type StruckIncident } from './risks';
+import { withoutEndedRushDay } from './rushDay';
 import { managerDecisions } from './staff';
 import { withSynergiesSynced } from './synergies';
 import { answerTakeover } from './takeovers';
@@ -123,7 +124,7 @@ function settleSegment(
   settlement: Period & { readonly pricing: BusinessPricing },
 ): Settled {
   if (business.status === 'closed') return { business, toCashCents: 0n };
-  const profit = profitPerDayCents(business, settlement.pricing);
+  const profit = earnedPerDayCents(business, settlement.pricing);
   const dayMs = BigInt(settlement.pricing.rules.dayMs);
   const elapsedMs = BigInt(settlement.elapsedMs);
   if (profit < 0n) {
@@ -155,7 +156,8 @@ type Settling = Settled & {
 function dayStarted(segment: Settled, boundary: { settlement: Settlement; endMs: number }) {
   const { pricing, seed, ownedIds } = boundary.settlement;
   const day = boundary.endMs / pricing.rules.dayMs;
-  const synced = withSynergiesSynced(segment.business, { pricing, ownedIds });
+  const calm = withoutEndedRushDay(segment.business, day);
+  const synced = withSynergiesSynced(calm, { pricing, ownedIds });
   const ended = endedDeliveryDay(soldVendingDay(synced, pricing), { pricing, day });
   const brewing = withCoffeeKioskUnlocked(withVendingUnlocked(ended, pricing), pricing);
   const opened = withLaundromatUnlocked(brewing, pricing);

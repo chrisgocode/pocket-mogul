@@ -3,6 +3,7 @@ import type { PurchasePolicy } from './purchaseLedger';
 import type { BillingPort } from './billingPort';
 import { commitTaxEntitlement, type TaxEntitlementPort } from './taxEntitlement';
 import type { Content } from '@/content';
+import type { AdOffer } from '@/domain/adRewards';
 import type { NaturalBreak } from '@/domain/adSchedule';
 import type { ActivityEntry } from '@/domain/activity';
 import type { CommandEnvelope, CommandOutcome } from '@/domain/commands';
@@ -63,6 +64,7 @@ export type Game = {
   tap: () => void;
   flushTaps: () => Promise<void>;
   pressTapBoost: () => Promise<void>;
+  watchAd: (offer: AdOffer) => Promise<void>;
   naturalBreak: (trigger: NaturalBreak) => Promise<void>;
   checkpoint: () => Promise<CommandOutcome>;
   pause: () => Promise<void>;
@@ -193,7 +195,8 @@ async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
     dispatch,
     checkpoint,
     flushTaps,
-    pressTapBoost: boost.press,
+    pressTapBoost: () => boost.press(),
+    watchAd: boost.press,
     ...ads.controls(tap),
     createCommandId: ports.createId,
     ...saveControls(ports, { core, flushTaps }),

@@ -7,6 +7,7 @@ import type { MoneyCents, PriceMicros } from '@/domain/money';
 import { eventTemplateSchema, marketParamsSchema } from './marketSchema';
 import { incidentSchema, riskRulesSchema } from './riskSchema';
 import { collectionSchema, NO_COLLECTION_CONTENT } from './collectionSchema';
+import { adRewardSchema, NO_AD_REWARD_CONTENT } from './adRewardSchema';
 import { briefingSchema, NO_BRIEFING_CONTENT } from './briefingSchema';
 import { goalSchema, rankSchema } from './goalSchema';
 import { mogulSchema } from './richListSchema';
@@ -283,6 +284,7 @@ export const contentSchema = z.object({
   ranks: z.array(rankSchema).default([]),
   moguls: z.array(mogulSchema).default([]),
   briefing: briefingSchema.default(NO_BRIEFING_CONTENT),
+  adRewards: adRewardSchema.default(NO_AD_REWARD_CONTENT),
   events: z.array(eventTemplateSchema).min(1),
   retiredIds: z.array(id),
 });

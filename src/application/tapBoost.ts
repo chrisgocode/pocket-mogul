@@ -1,3 +1,5 @@
+import type { AdOffer } from '@/domain/adRewards';
+
 import type { BoostTime } from './boostTime';
 import type { GameSnapshot } from './game';
 import type { AdAvailability, FullScreenAd, FullScreenAdEvent } from './ports';
@@ -5,9 +7,15 @@ import type { SnapshotStore } from './snapshotStore';
 import type { AdRequest } from './telemetry';
 import { boostExists } from './tapBoostView';
 
+export type RewardedOffer = { readonly kind: 'tap_boost' } | AdOffer;
+
+export type RewardedView = { readonly id: string; readonly offer: RewardedOffer };
+
 type Presentation =
-  | { readonly status: AdAvailability; readonly recentId: string | undefined }
-  | { readonly status: 'showing'; readonly id: string };
+  | { readonly status: AdAvailability; readonly recent: RewardedView | undefined }
+  | ({ readonly status: 'showing' } & RewardedView);
+
+const TAP_BOOST: RewardedOffer = { kind: 'tap_boost' };
 
 export type TapBoostDependencies = {
   readonly ad: FullScreenAd;
@@ -15,24 +23,26 @@ export type TapBoostDependencies = {
   readonly snapshots: SnapshotStore<GameSnapshot>;
   readonly boostTime: BoostTime;
   readonly flushTaps: () => Promise<void>;
-  readonly recordReward: (presentationId: string) => void;
+  readonly recordReward: (view: RewardedView) => void;
+  readonly canClaim: (offer: AdOffer) => boolean;
   readonly activatePendingGrant: () => void;
   readonly requested: (request: AdRequest) => void;
 };
 
 export type TapBoost = {
-  press: () => Promise<void>;
+  press: (offer?: RewardedOffer) => Promise<void>;
   isPresenting: () => boolean;
 };
 
-function rewardedPresentation(presentation: Presentation): string | undefined {
-  return presentation.status === 'showing' ? presentation.id : presentation.recentId;
+function rewardedPresentation(presentation: Presentation): RewardedView | undefined {
+  if (presentation.status !== 'showing') return presentation.recent;
+  return { id: presentation.id, offer: presentation.offer };
 }
 
 type Presentations = { current: () => Presentation; publish: (next: Presentation) => void };
 
 function presentations(snapshots: SnapshotStore<GameSnapshot>): Presentations {
-  let presentation: Presentation = { status: 'loading', recentId: undefined };
+  let presentation: Presentation = { status: 'loading', recent: undefined };
   return {
     current: () => presentation,
     publish(next) {
@@ -46,15 +56,15 @@ function adEvents(deps: TapBoostDependencies, ads: Presentations) {
   const finish = (id: string) => {
     const presentation = ads.current();
     if (presentation.status !== 'showing' || presentation.id !== id) return;
-    ads.publish({ status: 'loading', recentId: id });
+    ads.publish({ status: 'loading', recent: { id, offer: presentation.offer } });
     deps.boostTime.uncover('fullScreenAd');
     deps.activatePendingGrant();
     deps.ad.load();
   };
   const earned = () => {
-    const id = rewardedPresentation(ads.current());
-    if (id === undefined) return;
-    deps.recordReward(id);
+    const view = rewardedPresentation(ads.current());
+    if (view === undefined) return;
+    deps.recordReward(view);
     if (ads.current().status !== 'showing') deps.activatePendingGrant();
   };
   const handle = (event: FullScreenAdEvent) => {
@@ -63,7 +73,7 @@ function adEvents(deps: TapBoostDependencies, ads: Presentations) {
     else if (presentation.status === 'showing') {
       if (event.type === 'closed' || event.type === 'failed') finish(presentation.id);
     } else if (event.type === 'availability') {
-      ads.publish({ status: event.availability, recentId: presentation.recentId });
+      ads.publish({ status: event.availability, recent: presentation.recent });
     }
   };
   return { handle, finish };
@@ -83,6 +93,11 @@ function requestingAd(deps: TapBoostDependencies): FullScreenAd {
   };
 }
 
+function claimable(deps: TapBoostDependencies, offer: RewardedOffer): boolean {
+  if (offer.kind === 'tap_boost') return !boostExists(deps.snapshots.get());
+  return deps.canClaim(offer);
+}
+
 export function tapBoost(dependencies: TapBoostDependencies): TapBoost {
   const deps = { ...dependencies, ad: requestingAd(dependencies) };
   const ads = presentations(deps.snapshots);
@@ -91,15 +106,15 @@ export function tapBoost(dependencies: TapBoostDependencies): TapBoost {
   deps.ad.load();
   return {
     isPresenting: () => ads.current().status === 'showing',
-    async press() {
+    async press(offer = TAP_BOOST) {
       const presentation = ads.current();
       if (presentation.status === 'unavailable') {
         deps.ad.load();
         return;
       }
-      if (presentation.status !== 'ready' || boostExists(deps.snapshots.get())) return;
+      if (presentation.status !== 'ready' || !claimable(deps, offer)) return;
       const id = deps.createId();
-      ads.publish({ status: 'showing', id });
+      ads.publish({ status: 'showing', id, offer });
       deps.boostTime.cover('fullScreenAd');
       await deps.flushTaps();
       try {

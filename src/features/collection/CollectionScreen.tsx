@@ -1,5 +1,6 @@
 import { selectCollection } from '@/application/collectionView';
 import { getContent } from '@/content';
+import { AdRewardButton } from '@/features/adRewards/AdRewardButton';
 import { ActionSheet } from '@/features/game/ActionSheet';
 import { useGameSnapshot } from '@/features/game/GameContext';
 import { useGameAction } from '@/features/game/useGameAction';
@@ -31,6 +32,11 @@ export function CollectionScreen() {
         {view.lots.map((lot) => (
           <AuctionLotCard key={lot.piece.id} lot={lot} onBuy={() => review({ kind: 'buy', lot })} />
         ))}
+        <AdRewardButton
+          offer={{ kind: 'redraw_lots' }}
+          name="Auction house"
+          reward="redraw the lots"
+        />
       </Section>
       <PiecesSection
         view={view}

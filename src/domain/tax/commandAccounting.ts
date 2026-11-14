@@ -1,6 +1,7 @@
 import { requireTaxBasis } from './basis';
 
 import {
+  AD_REWARD_TAX_SOURCE,
   businessTaxSource,
   collectibleTaxBasis,
   instrumentTaxBasis,
@@ -186,10 +187,24 @@ function tradeCommand(
   });
 }
 
+function rewardCommand(state: GameState, before: GameState): GameState {
+  const paid = state.cashCents - before.cashCents;
+  if (state.tax.status !== 'active' || paid <= 0n) return state;
+  return {
+    ...state,
+    tax: recordWholeTaxReceipt(state.tax, {
+      source: AD_REWARD_TAX_SOURCE,
+      grossCents: paid,
+      profitCents: paid,
+    }),
+  };
+}
+
 function classified(
   state: GameState,
   step: { before: GameState; command: GameCommand; economy: TaxCommandEconomy },
 ): GameState {
+  if (step.command.type === 'ClaimAdReward') return rewardCommand(state, step.before);
   if (step.command.type === 'ExecuteTrade')
     return tradeCommand(state, {
       before: step.before,

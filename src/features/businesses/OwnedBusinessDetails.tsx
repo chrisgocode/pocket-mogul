@@ -9,6 +9,7 @@ import { BusinessOverviewCard } from './BusinessOverviewCard';
 import { FlagshipSections, type FlagshipActions } from './FlagshipSections';
 import { GrowSection } from './GrowSection';
 import { PriceLevelCard } from './PriceLevelCard';
+import { RushDayOffer } from './RushDayOffer';
 import type { InsuranceChange } from './InsuranceButton';
 import { SellCard } from './SellCard';
 import { StaffSection } from './StaffSection';
@@ -36,6 +37,7 @@ export function OwnedBusinessDetails({
     <>
       <BusinessHeading detail={detail} />
       <BusinessOverviewCard detail={detail} />
+      <RushDayOffer businessId={business.id} />
       <PriceLevelCard detail={detail} onSelect={onPriceLevel} />
       <Section title="Treasury">
         <TreasuryCard detail={detail} actions={treasury} />

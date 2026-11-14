@@ -23,7 +23,7 @@ const onDay = (day: number, change: Partial<GameState> = {}): GameState => {
 };
 
 const lotIds = (day: number, maxTier: number) =>
-  auctionLots({ seed, day, economy, maxTier }).map((piece) => piece.id);
+  auctionLots({ seed, day, economy, maxTier, redraws: 0 }).map((piece) => piece.id);
 
 const wine = { pieceId: 'table_red', acquiredDay: 0, paidCents: dollars('500') };
 

@@ -2,6 +2,7 @@ import type { TaxAbsence } from '@/domain/tax/types';
 import type { Content } from '@/content';
 import type { AbsenceIncident, GameState, IncomeBySource } from '@/domain/gameState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
+import { totalIncome } from '@/domain/passiveIncome';
 
 import { durationText } from './clockText';
 import { incidentStrikeText } from './incidentText';
@@ -28,6 +29,7 @@ export type ReturnSummaryView = {
   readonly capReached: boolean;
   readonly earnings: readonly EarningsLine[];
   readonly totalCents: MoneyCents;
+  readonly adBonusCents: MoneyCents | undefined;
   readonly closedBusinesses: readonly string[];
   readonly incidents: readonly IncidentLine[];
 };
@@ -41,6 +43,11 @@ function earningsLines(earnings: IncomeBySource): EarningsLine[] {
   return INCOME_SOURCES.map(({ source, label }) => ({ label, cents: earnings[source] })).filter(
     (line) => line.cents > 0n,
   );
+}
+
+function adBonusCents(state: GameState): MoneyCents | undefined {
+  const { offlineDouble } = state.adRewards;
+  return offlineDouble.status === 'none' ? undefined : totalIncome(offlineDouble.bonus);
 }
 
 export function selectReturnSummary(
@@ -61,6 +68,7 @@ export function selectReturnSummary(
     capReached: summary.awayMs > summary.creditedMs,
     earnings,
     totalCents: moneyCents(earnings.reduce<bigint>((total, line) => total + line.cents, 0n)),
+    adBonusCents: adBonusCents(state),
     closedBusinesses: summary.closures.map(
       (businessId) =>
         content.businesses.find((business) => business.id === businessId)?.name ?? businessId,

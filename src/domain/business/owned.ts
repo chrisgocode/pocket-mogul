@@ -45,6 +45,10 @@ export type ActiveIncident =
 
 export const NO_INCIDENT: ActiveIncident = { status: 'none' };
 
+export type RushDay =
+  | { readonly status: 'none' }
+  | { readonly status: 'active'; readonly endsDay: number; readonly profitBps: number };
+
 export type OwnedBusiness = {
   readonly definitionId: string;
   readonly stage: number;
@@ -61,6 +65,7 @@ export type OwnedBusiness = {
   readonly capitalizedSpendCents: MoneyCents;
   readonly insurance: Insurance;
   readonly incident: ActiveIncident;
+  readonly rushDay: RushDay;
   readonly vending: VendingOperation;
   readonly carWash: CarWashOperation;
   readonly delivery: DeliveryOperation;
@@ -100,6 +105,7 @@ export function newBusiness(
     capitalizedSpendCents: definition.price,
     insurance: NO_INSURANCE,
     incident: NO_INCIDENT,
+    rushDay: { status: 'none' },
     vending: NO_VENDING,
     carWash: NO_CAR_WASH,
     delivery: NO_DELIVERY,

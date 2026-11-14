@@ -30,6 +30,10 @@ const withBoost = (state: GameState, boost: Boost): GameState => ({
   reward: { ...state.reward, boost },
 });
 
+export type RecordAdReward = { readonly type: 'RecordAdReward'; readonly presentationId: string };
+
+export type ActivateBoost = { readonly type: 'ActivateBoost' };
+
 export type RewardChange = 'granted' | 'activated';
 
 export function rewardChange(before: Boost, after: Boost): RewardChange | undefined {
