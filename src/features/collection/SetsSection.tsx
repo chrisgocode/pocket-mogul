@@ -5,6 +5,7 @@ import { Section } from '@/ui/Section';
 import { AppText } from '@/ui/Typography';
 
 import { perkLabel, setNote, setsNote } from './collectionFormat';
+import { CollectorsPassLink } from './CollectorsPassLink';
 
 export function SetsSection({ sets }: { sets: CollectionSetsView }) {
   return (
@@ -19,6 +20,7 @@ export function SetsSection({ sets }: { sets: CollectionSetsView }) {
           <AppText variant="caption" muted>
             {setNote(set)}
           </AppText>
+          {set.status === 'locked' ? <CollectorsPassLink /> : null}
         </Card>
       ))}
     </Section>
