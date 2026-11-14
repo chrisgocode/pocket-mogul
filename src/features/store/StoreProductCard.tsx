@@ -9,6 +9,7 @@ export function StoreProductCard({ row, onBuy }: { row: StoreRow; onBuy: () => v
     <Card accessibilityLabel={row.name}>
       <AppText variant="heading">{row.name}</AppText>
       <AppText>{row.pitch}</AppText>
+      {row.saving === undefined ? null : <AppText variant="heading">{row.saving}</AppText>}
       {row.finePrint === undefined ? null : (
         <AppText variant="caption" muted>
           {row.finePrint}
