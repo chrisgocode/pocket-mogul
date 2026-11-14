@@ -4,11 +4,12 @@ import { operationCommands } from './operations';
 import type { OwnedBusiness } from '@/domain/business/owned';
 import type { ActivityEntry } from '@/domain/activity';
 import type { Content } from '@/content';
-import { goalRules, progressRules } from '@/application/economy';
+import { briefingRules, goalRules, progressRules } from '@/application/economy';
+import { briefingRewards } from '@/domain/briefing';
 import type { GameCommand } from '@/domain/commands';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { claimableGoalIds, goalRewardCents } from '@/domain/goalRewards';
-import type { MoneyCents } from '@/domain/money';
+import { moneyCents, type MoneyCents } from '@/domain/money';
 import { netWorthBreakdown, type NetWorthBreakdown } from '@/domain/progression';
 
 import { engineStep } from './engineStep';
@@ -59,6 +60,7 @@ export type BalanceRun = {
   readonly rewards: {
     readonly goalsClaimed: number;
     readonly goalCashCents: MoneyCents;
+    readonly briefingCashCents: MoneyCents;
     readonly businessIncomeCents: MoneyCents;
   };
 };
@@ -77,6 +79,7 @@ type Simulation = {
   activeMs: number;
   elapsedMs: number;
   nextSampleMs: number;
+  briefingCashCents: MoneyCents;
   readonly goals: Record<string, Moment>;
   readonly tiers: Record<number, Moment>;
   readonly purchases: Purchase[];
@@ -175,6 +178,9 @@ function claimRewards(sim: Simulation) {
   if (sim.scenario.goalRewards === 'unclaimed') return;
   const goalIds = claimableGoalIds(sim.state, goalRules(sim.content));
   if (goalIds.length > 0) commit(sim, { type: 'ClaimGoals', goalIds });
+  const briefingCents = briefingRewards(sim.state, briefingRules(sim.content)).claimableCents;
+  if (briefingCents > 0n && commit(sim, { type: 'ClaimBriefing' }))
+    sim.briefingCashCents = moneyCents(sim.briefingCashCents + briefingCents);
 }
 
 function playStep(sim: Simulation) {
@@ -211,6 +217,13 @@ function playSession(sim: Simulation, session: Session) {
   commit(sim, { type: 'AcknowledgeReturnSummary' });
 }
 
+const EMPTY_RUN = {
+  activeMs: 0,
+  elapsedMs: 0,
+  nextSampleMs: SAMPLE_EVERY_MS,
+  briefingCashCents: moneyCents(0),
+};
+
 function startingState(scenario: BalanceScenario, content: Content): GameState {
   return (
     scenario.start ??
@@ -226,6 +239,7 @@ function rewardsOf(sim: Simulation): BalanceRun['rewards'] {
   return {
     goalsClaimed: sim.state.claimedGoals.length,
     goalCashCents: goalRewardCents(sim.state.claimedGoals, goalRules(sim.content)),
+    briefingCashCents: sim.briefingCashCents,
     businessIncomeCents: sim.state.income.businessEarningsCents,
   };
 }
@@ -243,9 +257,7 @@ export function simulateBalance(scenario: BalanceScenario, content: Content): Ba
     content,
     wallStartMs: state.clock.lastWallCheckpointMs,
     state,
-    activeMs: 0,
-    elapsedMs: 0,
-    nextSampleMs: SAMPLE_EVERY_MS,
+    ...EMPTY_RUN,
     goals: {},
     tiers: {},
     purchases: [],

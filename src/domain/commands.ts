@@ -14,6 +14,7 @@ import type { StockMix, VendingLocation } from './business/vendingRules';
 import type { CoachMark } from './coachMarks';
 import type { CollectionCommand } from './collection/orders';
 import type { GameState } from './gameState';
+import type { ClaimBriefing } from './briefing';
 import type { ClaimGoals } from './goalRewards';
 import type { MoneyCents, QuantityMicrounits } from './money';
 import type { PropertyTrack } from './propertyQuotes';
@@ -290,6 +291,7 @@ export type GameCommand =
   | ActivateBoost
   | PinGoal
   | ClaimGoals
+  | ClaimBriefing
   | AdvanceTime
   | SettleOffline
   | AcknowledgeReturnSummary
@@ -327,6 +329,7 @@ export const GAME_ERROR_CODES = [
   'UNKNOWN_GOAL',
   'GOAL_COMPLETED',
   'GOAL_NOT_CLAIMABLE',
+  'BRIEFING_NOT_CLAIMABLE',
   'SAVE_FAILED',
 ] as const;
 

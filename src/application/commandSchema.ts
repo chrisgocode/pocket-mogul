@@ -212,6 +212,7 @@ const gameCommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('ActivateBoost') }),
   z.object({ type: z.literal('PinGoal'), goalId: z.string().min(1).nullable() }),
   z.object({ type: z.literal('ClaimGoals'), goalIds: z.array(z.string().min(1)).min(1) }),
+  z.object({ type: z.literal('ClaimBriefing') }),
   z.object({ type: z.literal('AdvanceTime') }),
   z.object({ type: z.literal('SettleOffline') }),
   z.object({ type: z.literal('AcknowledgeReturnSummary') }),

@@ -5,6 +5,7 @@ import { collectTaxDebt, taxRestricted } from '@/domain/tax/collection';
 import { applyGoPublic } from '@/domain/business/listingCommands';
 import type { Content } from '@/content';
 import { applyActivateBoost, applyRecordAdReward } from '@/domain/boost';
+import { applyClaimBriefing } from '@/domain/briefing';
 import {
   applyBuyBusiness,
   applyBuyUnit,
@@ -65,6 +66,7 @@ import { applySkipTutorial } from '@/domain/tutorial';
 import { applyWalletUpgrade } from '@/domain/wallet';
 
 import {
+  briefingRules,
   businessEconomy,
   collectionEconomy,
   goalRules,
@@ -187,6 +189,7 @@ const COMMAND_HANDLERS: CommandHandlers = {
   ActivateBoost: (state, _command, content) => applyActivateBoost(state, content.economy.boost),
   ClaimGoals: (state, command, content) =>
     applyClaimGoals(state, { goalIds: command.goalIds, rules: goalRules(content) }),
+  ClaimBriefing: (state, _command, content) => applyClaimBriefing(state, briefingRules(content)),
   PinGoal: (state, command, content) =>
     applyPinGoal(state, { goalId: command.goalId, rules: goalRules(content) }),
   AdvanceTime: (state) => ({ ok: true, state, cashChangeCents: moneyCents(0) }),

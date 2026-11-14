@@ -7,10 +7,10 @@ type Clock = { unsaved: () => Elapsed; saved: (elapsed: Elapsed) => void };
 export function recoveryTime(clock: Clock) {
   let consumed: Elapsed = { elapsedMs: 0, boostElapsedMs: 0 };
   return {
-    capture(wallMs: number): CommandTime {
+    capture(wall: Pick<CommandTime, 'wallMs' | 'dayKey'>): CommandTime {
       const unsaved = clock.unsaved();
       return {
-        wallMs,
+        ...wall,
         elapsedMs: consumed.elapsedMs + unsaved.elapsedMs,
         boostElapsedMs: consumed.boostElapsedMs + unsaved.boostElapsedMs,
       };
@@ -18,6 +18,7 @@ export function recoveryTime(clock: Clock) {
     remaining(captured: CommandTime): CommandTime {
       return {
         wallMs: captured.wallMs,
+        dayKey: captured.dayKey,
         elapsedMs: Math.max(0, captured.elapsedMs - consumed.elapsedMs),
         boostElapsedMs: Math.max(0, captured.boostElapsedMs - consumed.boostElapsedMs),
       };

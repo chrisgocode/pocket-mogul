@@ -3,6 +3,7 @@ import type { ShareholderPayout } from './business/listingState';
 import { freshAdSchedule, type AdScheduleState } from './adSchedule';
 import { EMPTY_ACTIVITY, type ActivityLog } from './activity';
 import { NO_REWARDS, type RewardState } from './boost';
+import { NO_BRIEFING, type Briefing } from './briefing';
 import type { OwnedBusiness } from './business/owned';
 import type { OwnedCollectible } from './collection/rules';
 import type { DividendAccrual } from './dividends';
@@ -94,6 +95,7 @@ export type GameState = {
   readonly reward: RewardState;
   readonly goals: GoalProgress;
   readonly claimedGoals: readonly string[];
+  readonly briefing: Briefing;
   readonly activity: ActivityLog;
   readonly tutorial: TutorialProgress;
   readonly settings: Settings;
@@ -101,7 +103,7 @@ export type GameState = {
   readonly seenCoachMarks: readonly string[];
 };
 
-const INITIAL_SHAREHOLDER_PAYOUTS = { shareholderPayouts: [] };
+const INITIAL_ADDITIONS = { shareholderPayouts: [], briefing: NO_BRIEFING };
 
 export function freshGameState(start: {
   saveId: string;
@@ -109,7 +111,7 @@ export function freshGameState(start: {
   wallMs: number;
 }): GameState {
   return {
-    ...INITIAL_SHAREHOLDER_PAYOUTS,
+    ...INITIAL_ADDITIONS,
     tax: { status: 'notStarted' },
     saveId: start.saveId,
     schemaVersion: SAVE_SCHEMA_VERSION,

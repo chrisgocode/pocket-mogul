@@ -22,6 +22,14 @@ function rankIssues(content: Content): string[] {
   ].filter((issue) => issue !== false);
 }
 
+function briefingIssues(content: Content): string[] {
+  const { templates } = content.briefing;
+  if (templates.length === 0) return [];
+  return templates.some((template) => template.needs === 'nothing')
+    ? []
+    : ['The daily briefing needs a task that every player can do'];
+}
+
 export function goalsFit(content: Content): string[] {
-  return [...stageGoalIssues(content), ...rankIssues(content)];
+  return [...stageGoalIssues(content), ...rankIssues(content), ...briefingIssues(content)];
 }

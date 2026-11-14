@@ -11,6 +11,7 @@ import { factoryMechanic } from './economy-manufacturer';
 import { airlineMechanic } from './economy-airline';
 import { spaceMechanic } from './economy-space-launch';
 import { collection } from './economy-collection';
+import { briefing } from './economy-briefing';
 import { goals, ranks } from './economy-goals';
 import { businessSynergies } from './economy-synergies';
 import { withMechanics } from './mechanicUpgrade';
@@ -34,6 +35,7 @@ export const economyV2 = {
   collection,
   goals,
   ranks,
+  briefing,
   economy: {
     ...economyV1.economy,
     taxes: {

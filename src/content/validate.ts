@@ -136,6 +136,7 @@ function catalogsOf(content: Content): Catalog[] {
     },
     { kind: 'goal', ids: content.goals.map((g) => g.id), retirable: true },
     { kind: 'rank', ids: content.ranks.map((rank) => rank.id), retirable: true },
+    { kind: 'briefing task', ids: content.briefing.templates.map((t) => t.id), retirable: true },
     { kind: 'event', ids: content.events.map((e) => e.id), retirable: true },
   ];
 }

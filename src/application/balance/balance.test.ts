@@ -32,7 +32,10 @@ describe('balance simulation', () => {
   });
 
   it('buys the first business after $250 of taps when saving for it', () => {
-    const run = simulateBalance(scenario({ policy: 'saveForNextBusiness' }), content);
+    const run = simulateBalance(
+      scenario({ policy: 'saveForNextBusiness', goalRewards: 'unclaimed' }),
+      content,
+    );
     expect(run.goals['first_business']).toEqual({ activeMs: 125_000, elapsedMs: 125_000 });
     expect(run.purchases[0]).toMatchObject({ kind: 'business purchase', assetId: 'vending' });
     expect(run.purchases[0]?.paybackMinutes).toBe(25);
@@ -51,7 +54,7 @@ describe('balance simulation', () => {
       content,
     );
     expect(run.final.elapsedMs).toBe(126_000 + 10 * HOUR_MS);
-    expect<bigint>(run.final.worth.netWorthCents).toBe(dollars('5,365.65'));
+    expect<bigint>(run.final.worth.netWorthCents).toBe(dollars('5,376.49'));
   });
 
   it('stops once peak net worth reaches the target', () => {

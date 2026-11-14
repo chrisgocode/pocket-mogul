@@ -79,7 +79,9 @@ function commitOperations(context: CommitContext) {
   };
   const commit = (step: CommitStep, options: RunOptions = {}) => {
     const wallMs = options.issuedAtWallMs ?? ports.clock.wallMs();
-    const attempt = recoveryAttempt(() => timing.capture(wallMs));
+    const attempt = recoveryAttempt(() =>
+      timing.capture({ wallMs, dayKey: ports.clock.localDayKey(wallMs) }),
+    );
     return queue.run(async () => {
       if (options.retryUntilSaved === true) attempt();
       const result = await recovery.run({
