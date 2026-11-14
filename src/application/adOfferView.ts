@@ -1,6 +1,7 @@
 import type { Content } from '@/content';
 import { adOfferRefusal, briefcaseCents } from '@/domain/adRewardEffects';
 import { adRewardsLeft, type AdOffer } from '@/domain/adRewards';
+import { holdsEntitlement } from '@/domain/entitlements';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 
 import { adRewardEconomy } from './economy';
@@ -12,7 +13,7 @@ type DailyUse = { readonly left: number; readonly limit: number };
 export type AdOfferView =
   | { readonly status: 'hidden' }
   | { readonly status: 'used_up'; readonly limit: number }
-  | { readonly status: TapBoostAd; readonly daily: DailyUse | undefined };
+  | { readonly status: TapBoostAd | 'free'; readonly daily: DailyUse | undefined };
 
 function dailyUse(snapshot: GameSnapshot, content: Content, offer: AdOffer): DailyUse | undefined {
   if (offer.kind === 'double_offline') return undefined;
@@ -33,7 +34,8 @@ export function selectAdOffer(
   if (refusal === 'AD_REWARD_LIMIT' && daily !== undefined)
     return { status: 'used_up', limit: daily.limit };
   if (refusal !== undefined) return { status: 'hidden' };
-  return { status: snapshot.tapBoostAd, daily };
+  const free = holdsEntitlement(snapshot.state, 'vipPass');
+  return { status: free ? 'free' : snapshot.tapBoostAd, daily };
 }
 
 export function selectBriefcaseCents(snapshot: GameSnapshot, content: Content): MoneyCents {
@@ -64,6 +66,7 @@ export function adOfferText(
     };
   const note =
     view.daily === undefined ? undefined : `${view.daily.left} of ${view.daily.limit} left today`;
+  if (view.status === 'free') return { buttonLabel: `Claim · ${reward}`, note, enabled: true };
   if (view.status === 'ready') return { buttonLabel: `Watch ad · ${reward}`, note, enabled: true };
   return { ...WAITING[view.status], note };
 }

@@ -31,6 +31,7 @@ type MockAd = 'empty' | 'loaded' | 'showing';
 
 export type ScriptedAd = {
   readonly shows: () => number;
+  readonly loads: () => number;
   readonly emit: (event: FullScreenAdEvent) => void;
   readonly fill: (fill: AdFill) => void;
 };
@@ -42,7 +43,7 @@ export type ScriptedAds = AdPort &
     readonly automatic: { readonly interstitial: ScriptedAd; readonly appOpen: ScriptedAd };
   };
 
-type MockState = { ad: MockAd; fill: AdFill; shows: number; scripts: AdScript[] };
+type MockState = { ad: MockAd; fill: AdFill; shows: number; loads: number; scripts: AdScript[] };
 
 type PlacementSetup = { fill?: AdFill; scripts?: readonly AdScript[]; fallback: AdScript };
 
@@ -65,6 +66,7 @@ function scriptedPlacement(setup: PlacementSetup): ScriptedPlacement {
     ad: 'empty',
     fill: setup.fill ?? 'fill',
     shows: 0,
+    loads: 0,
     scripts: [...(setup.scripts ?? [])],
   };
   const emit = (event: FullScreenAdEvent) => {
@@ -73,6 +75,7 @@ function scriptedPlacement(setup: PlacementSetup): ScriptedPlacement {
   };
   const ad: FullScreenAd = {
     load() {
+      mock.loads += 1;
       if (mock.ad !== 'empty') return;
       emit({ type: 'availability', availability: 'loading' });
       if (mock.fill === 'fill') mock.ad = 'loaded';
@@ -86,6 +89,7 @@ function scriptedPlacement(setup: PlacementSetup): ScriptedPlacement {
   };
   const controls: ScriptedAd = {
     shows: () => mock.shows,
+    loads: () => mock.loads,
     emit,
     fill: (fill) => {
       mock.fill = fill;

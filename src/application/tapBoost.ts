@@ -25,6 +25,7 @@ export type TapBoostDependencies = {
   readonly flushTaps: () => Promise<void>;
   readonly recordReward: (view: RewardedView) => void;
   readonly canClaim: (offer: AdOffer) => boolean;
+  readonly adFree: () => boolean;
   readonly activatePendingGrant: () => void;
   readonly requested: (request: AdRequest) => void;
 };
@@ -98,15 +99,24 @@ function claimable(deps: TapBoostDependencies, offer: RewardedOffer): boolean {
   return deps.canClaim(offer);
 }
 
+async function claimWithoutAd(deps: TapBoostDependencies, offer: RewardedOffer): Promise<void> {
+  if (!claimable(deps, offer)) return;
+  await deps.flushTaps();
+  deps.recordReward({ id: deps.createId(), offer });
+  deps.activatePendingGrant();
+}
+
 export function tapBoost(dependencies: TapBoostDependencies): TapBoost {
   const deps = { ...dependencies, ad: requestingAd(dependencies) };
   const ads = presentations(deps.snapshots);
   const events = adEvents(deps, ads);
   deps.ad.subscribe(events.handle);
-  deps.ad.load();
+  if (deps.adFree()) ads.publish({ status: 'unavailable', recent: undefined });
+  else deps.ad.load();
   return {
     isPresenting: () => ads.current().status === 'showing',
     async press(offer = TAP_BOOST) {
+      if (deps.adFree()) return claimWithoutAd(deps, offer);
       const presentation = ads.current();
       if (presentation.status === 'unavailable') {
         deps.ad.load();

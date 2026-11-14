@@ -28,16 +28,20 @@ export async function syncedStoreKitOwnership(source: Source): Promise<Ownership
     await storeKit.sync();
     const [entitlements, latest] = await Promise.all([
       storeKit.entitlements(),
-      Promise.all(source.config.productIds.map((productId) => storeKit.latest(productId))),
+      Promise.all(source.config.productIds.map((productId) => latestOf(storeKit, productId))),
     ]);
-    return inventory(source.config, {
-      observedAtMs,
-      entitlements,
-      latest: latest.filter((record) => record !== undefined),
-    });
+    return inventory(source.config, { observedAtMs, entitlements, latest: latest.flat() });
   } catch {
     return { status: 'unavailable' };
   }
+}
+
+async function latestOf(
+  storeKit: StoreKitEvidence,
+  productId: string,
+): Promise<readonly StoreKitTransaction[]> {
+  const record = await storeKit.latest(productId);
+  return record?.productId === productId ? [record] : [];
 }
 
 export async function signedStoreKitOwnership(

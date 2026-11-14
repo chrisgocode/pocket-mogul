@@ -95,7 +95,6 @@ function automaticAd(ad: InterstitialAd | AppOpenAd): FullScreenAd {
 }
 
 export function googleMobileAds(): AdPort {
-  void mobileAdsStarted();
   return {
     rewarded: rewardedAd(),
     interstitial: automaticAd(InterstitialAd.createForAdRequest(INTERSTITIAL_AD_UNIT_ID)),
