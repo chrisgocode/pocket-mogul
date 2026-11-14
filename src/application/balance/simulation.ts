@@ -4,6 +4,7 @@ import { operationCommands } from './operations';
 import type { OwnedBusiness } from '@/domain/business/owned';
 import type { ActivityEntry } from '@/domain/activity';
 import type { Content } from '@/content';
+import type { Entitlements } from '@/domain/entitlements';
 import { briefingRules, goalRules, progressRules } from '@/application/economy';
 import { briefingRewards } from '@/domain/briefing';
 import type { GameCommand } from '@/domain/commands';
@@ -33,6 +34,7 @@ export type BalanceScenario = {
   readonly management?: 'manager' | 'handsOn';
   readonly payoutPercent?: number;
   readonly goalRewards?: 'claimed' | 'unclaimed';
+  readonly entitlements?: Entitlements;
 };
 
 export type Moment = { readonly activeMs: number; readonly elapsedMs: number };
@@ -225,14 +227,16 @@ const EMPTY_RUN = {
 };
 
 function startingState(scenario: BalanceScenario, content: Content): GameState {
-  return (
+  const start =
     scenario.start ??
     freshGameState({
       saveId: scenario.seed,
       economyVersion: content.economyVersion,
       wallMs: SIMULATION_WALL_START_MS,
-    })
-  );
+    });
+  return scenario.entitlements === undefined
+    ? start
+    : { ...start, entitlements: scenario.entitlements };
 }
 
 function rewardsOf(sim: Simulation): BalanceRun['rewards'] {

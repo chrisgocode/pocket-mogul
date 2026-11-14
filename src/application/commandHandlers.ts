@@ -77,6 +77,7 @@ import {
   propertyEconomy,
   tradeEconomy,
 } from './economy';
+import { tapMultiplier } from './purchaseEffects';
 import { MECHANIC_HANDLERS, MECHANIC_INVESTMENTS } from './mechanicHandlers';
 
 type CommandsByType = { [Type in GameCommand['type']]: Extract<GameCommand, { type: Type }> };
@@ -99,11 +100,10 @@ const COMMAND_HANDLERS: CommandHandlers = {
     return { ok: true, state: paid, cashChangeCents: moneyCents(paid.cashCents - state.cashCents) };
   },
   TapBatch: (state, command, content) => {
-    const multiplier = command.boosted === true ? content.economy.boost.tapMultiplier : 1;
     const paid = applyTapBatch(state, {
       taps: command.taps,
       rules: content.economy.tap,
-      multiplier,
+      multiplier: tapMultiplier(state, { content, boosted: command.boosted === true }),
       bonusPercent: tapBonusPercent(state, content),
     });
     return { ok: true, state: paid.state, cashChangeCents: paid.earnedCents };

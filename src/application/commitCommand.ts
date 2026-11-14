@@ -37,6 +37,7 @@ import { applyCommand } from './commandHandlers';
 import { validCommand } from './commandSchema';
 import { withCommittedActivity, type PassedTime } from './committedActivity';
 import type { SaveStore, SaveTransaction } from './ports';
+import { offlineCapMs } from './purchaseEffects';
 
 export type Committed = {
   outcome: CommandOutcome;
@@ -100,7 +101,7 @@ function passTime(
 ): TimeStep {
   const economy = passiveEconomy(step.content);
   if (step.command.type === 'SettleOffline') {
-    const capMs = step.content.economy.time.offlineCapMs;
+    const capMs = offlineCapMs(state, step.content);
     const settled = settleOffline(state, {
       wallMs: step.time.wallMs,
       capMs,

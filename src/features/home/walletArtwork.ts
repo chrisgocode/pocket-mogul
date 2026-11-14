@@ -1,3 +1,4 @@
+import type { WalletSkin } from '@/application/purchaseEffects';
 import { walletArt } from '@/ui/tokens';
 
 export type WalletArtwork = { readonly name: string; readonly color: string };
@@ -12,6 +13,9 @@ const ARTWORK_BY_STAGE: readonly WalletArtwork[] = [
   { name: 'Obsidian card', color: walletArt.obsidian },
 ];
 
-export function walletArtwork(stage: number): WalletArtwork {
+const GOLDEN: WalletArtwork = { name: 'Golden wallet', color: walletArt.golden };
+
+export function walletArtwork(stage: number, skin: WalletSkin): WalletArtwork {
+  if (skin === 'golden') return GOLDEN;
   return ARTWORK_BY_STAGE[Math.min(stage, ARTWORK_BY_STAGE.length - 1)] ?? STARTER;
 }

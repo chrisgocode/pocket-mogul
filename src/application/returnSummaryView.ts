@@ -6,6 +6,7 @@ import { totalIncome } from '@/domain/passiveIncome';
 
 import { durationText } from './clockText';
 import { incidentStrikeText } from './incidentText';
+import { offlineCapMs } from './purchaseEffects';
 
 const INCOME_SOURCES: readonly { source: keyof IncomeBySource; label: string }[] = [
   { source: 'businesses', label: 'Businesses' },
@@ -64,7 +65,7 @@ export function selectReturnSummary(
         : undefined,
     awayLabel: durationText(summary.awayMs),
     creditedLabel: durationText(summary.creditedMs),
-    capLabel: durationText(content.economy.time.offlineCapMs),
+    capLabel: durationText(offlineCapMs(state, content)),
     capReached: summary.awayMs > summary.creditedMs,
     earnings,
     totalCents: moneyCents(earnings.reduce<bigint>((total, line) => total + line.cents, 0n)),
