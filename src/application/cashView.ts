@@ -8,6 +8,7 @@ import { boostedTapCents, tapPayoutCents } from '@/domain/tapping';
 import { tapBonusPercent } from './collectionSetsView';
 import { passiveEconomy } from './economy';
 import type { GameSnapshot } from './game';
+import { tapMultiplier } from './purchaseEffects';
 
 export function stateWithUnsavedIncome(snapshot: GameSnapshot, content: Content): GameState {
   const { state } = snapshot;
@@ -22,9 +23,12 @@ export function selectCashCents(snapshot: GameSnapshot, content: Content): Money
   const settled = stateWithUnsavedIncome(snapshot, content);
   const perTap = tapPayoutCents(settled.tap.walletLevel, content.economy.tap);
   const bonusPercent = tapBonusPercent(settled, content);
-  const plain = boostedTapCents(perTap, { multiplier: 1, bonusPercent });
+  const plain = boostedTapCents(perTap, {
+    multiplier: tapMultiplier(settled, { content, boosted: false }),
+    bonusPercent,
+  });
   const boosted = boostedTapCents(perTap, {
-    multiplier: content.economy.boost.tapMultiplier,
+    multiplier: tapMultiplier(settled, { content, boosted: true }),
     bonusPercent,
   });
   const pendingCents =
