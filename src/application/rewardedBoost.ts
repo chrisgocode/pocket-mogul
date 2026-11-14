@@ -1,4 +1,5 @@
 import { adOfferRefusal } from '@/domain/adRewardEffects';
+import { holdsEntitlement } from '@/domain/entitlements';
 import type { CommandEnvelope } from '@/domain/commands';
 import { moneyCents } from '@/domain/money';
 
@@ -51,6 +52,7 @@ export function rewardedBoost(
         offer,
         economy: adRewardEconomy(ports.content),
       }) === undefined,
+    adFree: () => holdsEntitlement(core.snapshots.get().state, 'vipPass'),
     activatePendingGrant: () => void activatePendingGrant(),
     requested: (request) => core.telemetry.adRequested(request, core.snapshots.get().state),
   });

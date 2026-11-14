@@ -47,12 +47,12 @@ async function presentUntilClosed(
   return result;
 }
 
-export function trackedAd(ad: FullScreenAd): TrackedAd {
-  let availability: AdAvailability = 'loading';
+export function trackedAd(ad: FullScreenAd, start: 'load' | 'idle' = 'load'): TrackedAd {
+  let availability: AdAvailability = start === 'load' ? 'loading' : 'unavailable';
   ad.subscribe((event) => {
     if (event.type === 'availability') availability = event.availability;
   });
-  ad.load();
+  if (start === 'load') ad.load();
   return {
     availability: () => availability,
     retryIfUnavailable: () => {

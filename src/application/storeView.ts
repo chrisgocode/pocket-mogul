@@ -27,6 +27,16 @@ const COPY: Readonly<Record<string, Copy>> = {
       'Never file or pay tax again. Unpaid tax and fines are waived, on this save and every new one.',
     finePrint: 'No cash is refunded for tax already paid. Ads stay.',
   },
+  pm_remove_ads: {
+    name: 'Remove ads',
+    pitch: 'No more ads between screens or when you come back to the game.',
+    finePrint: 'Ads you choose to watch for a reward stay.',
+  },
+  pm_vip_pass: {
+    name: 'VIP pass',
+    pitch: 'No ads at all. Tap Boost and every ad reward are yours at the press of a button.',
+    finePrint: 'Includes Remove ads. Daily limits on each reward still apply.',
+  },
 };
 
 type Shelf = Pick<Storefront, 'catalogue'> & { readonly front: StorefrontState };
