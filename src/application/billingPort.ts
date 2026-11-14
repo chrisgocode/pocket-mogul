@@ -16,6 +16,7 @@ export type ProductMetadata = {
   readonly productId: string;
   readonly displayName: string;
   readonly displayPrice: string;
+  readonly price?: number;
 };
 
 export type VerifiedOwnership = {
