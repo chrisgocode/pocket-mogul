@@ -4,8 +4,8 @@ import { operationCommands } from './operations';
 import type { OwnedBusiness } from '@/domain/business/owned';
 import type { ActivityEntry } from '@/domain/activity';
 import type { Content } from '@/content';
-import { goalRules, progressRules } from '@/application/economy';
-import { claimableBriefingCents } from '@/domain/briefing';
+import { briefingRules, goalRules, progressRules } from '@/application/economy';
+import { briefingRewards } from '@/domain/briefing';
 import type { GameCommand } from '@/domain/commands';
 import { freshGameState, type GameState } from '@/domain/gameState';
 import { claimableGoalIds, goalRewardCents } from '@/domain/goalRewards';
@@ -178,7 +178,7 @@ function claimRewards(sim: Simulation) {
   if (sim.scenario.goalRewards === 'unclaimed') return;
   const goalIds = claimableGoalIds(sim.state, goalRules(sim.content));
   if (goalIds.length > 0) commit(sim, { type: 'ClaimGoals', goalIds });
-  const briefingCents = claimableBriefingCents(sim.state.briefing);
+  const briefingCents = briefingRewards(sim.state, briefingRules(sim.content)).claimableCents;
   if (briefingCents > 0n && commit(sim, { type: 'ClaimBriefing' }))
     sim.briefingCashCents = moneyCents(sim.briefingCashCents + briefingCents);
 }

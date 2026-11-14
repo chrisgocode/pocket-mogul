@@ -1,4 +1,5 @@
 import { selectBriefing } from '@/application/briefingView';
+import { getContent } from '@/content';
 import { formatMoneyCompact } from '@/domain/money';
 import { useGameSnapshot } from '@/features/game/GameContext';
 import { GoalBadge } from '@/features/goals/GoalBadge';
@@ -8,7 +9,7 @@ import { briefingSummaryText, briefingSummaryTitle } from './briefingText';
 import { useClaimBriefing } from './useClaimBriefing';
 
 export function BriefingRow() {
-  const briefing = selectBriefing(useGameSnapshot().state);
+  const briefing = selectBriefing(useGameSnapshot().state, getContent());
   const claim = useClaimBriefing();
   if (briefing.status === 'hidden') return null;
   const title = briefingSummaryTitle(briefing);

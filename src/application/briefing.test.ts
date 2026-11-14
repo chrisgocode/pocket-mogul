@@ -40,8 +40,9 @@ const task = (
   measure,
   target: 5,
   progress: 5,
-  rewardCents: dollars('10'),
+  rewardBps: 200,
   claim: 'unclaimed',
+  paidCents: dollars('0'),
   ...change,
 });
 
@@ -49,8 +50,8 @@ const active = (tasks: readonly BriefingTask[], dayKey = 'day-0'): Briefing => (
   status: 'active',
   dayKey,
   tasks,
-  bonusCents: dollars('25'),
   bonus: 'unclaimed',
+  bonusPaidCents: dollars('0'),
 });
 
 const drawnOver = (state: GameState, days: number) =>
@@ -75,7 +76,7 @@ describe('daily briefing (UX03c)', () => {
     expect(briefingOf(game)).toEqual({ status: 'none' });
     await game.checkpoint();
     expect(measuresOf(briefingOf(game))).toEqual(NEW_PLAYER_MEASURES);
-    expect(briefingOf(game)).toMatchObject({ dayKey: 'day-0', bonusCents: dollars('25') });
+    expect(briefingOf(game)).toMatchObject({ dayKey: 'day-0', bonus: 'unclaimed' });
   });
 
   it('draws the same tasks for the same save and day', async () => {
@@ -127,20 +128,38 @@ describe('daily briefing (UX03c)', () => {
 });
 
 describe('daily briefing rewards and days (UX03c)', () => {
-  it('sizes rewards to peak net worth, with a floor', async () => {
-    const poor = await startWith();
-    await poor.game.checkpoint();
-    expect(tasksOf(briefingOf(poor.game)).map((drawn) => drawn.rewardCents)).toEqual([
-      dollars('10'),
-      dollars('10'),
-      dollars('10'),
-    ]);
-    const rich = await startWith({ cashCents: dollars('1,000,000') });
-    await rich.game.checkpoint();
-    const rewards = tasksOf(briefingOf(rich.game)).map((drawn) => drawn.rewardCents);
-    expect(rewards.filter((reward) => reward < dollars('1,000'))).toEqual([]);
-    expect(rewards.filter((reward) => reward > dollars('2,500'))).toEqual([]);
-    expect(briefingOf(rich.game)).toMatchObject({ bonusCents: dollars('5,000') });
+  it('sizes rewards to peak net worth when they are claimed', async () => {
+    const tasks = [task('taps'), task('trades', { rewardBps: 1000 })];
+    const { game } = await startWith({
+      briefing: active(tasks),
+      cashCents: dollars('1,000,000'),
+    });
+    expect(await run(game, { type: 'ClaimBriefing' })).toMatchObject({
+      ok: true,
+      cashChangeCents: dollars('220,000'),
+    });
+    expect(briefingOf(game)).toMatchObject({
+      tasks: [{ paidCents: dollars('20,000') }, { paidCents: dollars('100,000') }],
+      bonusPaidCents: dollars('100,000'),
+    });
+  });
+
+  it('shows a waiting reward growing with net worth and a claimed one as paid', () => {
+    const tasks = [task('taps'), task('trades', { claim: 'claimed', paidCents: dollars('75') })];
+    const shown = (peak: string) =>
+      selectBriefing(
+        { ...FRESH, peakNetWorthCents: dollars(peak), briefing: active(tasks) },
+        getContent(),
+      );
+    expect(shown('0')).toMatchObject({
+      tasks: [{ rewardCents: dollars('10') }, { rewardCents: dollars('75') }],
+      bonusCents: dollars('25'),
+    });
+    expect(shown('1,000,000')).toMatchObject({
+      tasks: [{ rewardCents: dollars('20,000') }, { rewardCents: dollars('75') }],
+      bonusCents: dollars('100,000'),
+      claimableCents: dollars('120,000'),
+    });
   });
 
   it('clears unfinished tasks when the day changes, with no penalty', async () => {
@@ -175,7 +194,7 @@ describe('daily briefing rewards and days (UX03c)', () => {
 
 describe('daily briefing card', () => {
   it('is hidden until tasks are drawn', () => {
-    expect(selectBriefing(FRESH)).toEqual({ status: 'hidden' });
+    expect(selectBriefing(FRESH, getContent())).toEqual({ status: 'hidden' });
   });
 
   it('describes each task, its progress and what can be claimed', () => {
@@ -184,7 +203,7 @@ describe('daily briefing card', () => {
       task('trades', { target: 1, progress: 0 }),
       task('play_minutes', { claim: 'claimed' }),
     ];
-    expect(selectBriefing({ ...FRESH, briefing: active(tasks) })).toMatchObject({
+    expect(selectBriefing({ ...FRESH, briefing: active(tasks) }, getContent())).toMatchObject({
       status: 'shown',
       doneCount: 2,
       bonus: 'locked',

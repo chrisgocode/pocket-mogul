@@ -48,8 +48,9 @@ export type BriefingTask = {
   readonly measure: BriefingMeasure;
   readonly target: number;
   readonly progress: number;
-  readonly rewardCents: MoneyCents;
+  readonly rewardBps: number;
   readonly claim: Claim;
+  readonly paidCents: MoneyCents;
 };
 
 export type Briefing =
@@ -58,8 +59,8 @@ export type Briefing =
       readonly status: 'active';
       readonly dayKey: string;
       readonly tasks: readonly BriefingTask[];
-      readonly bonusCents: MoneyCents;
       readonly bonus: Claim;
+      readonly bonusPaidCents: MoneyCents;
     };
 
 type ActiveBriefing = Extract<Briefing, { status: 'active' }>;
@@ -116,7 +117,6 @@ function drawnTemplates(state: GameState, day: Day): readonly BriefingTemplate[]
 type Day = { readonly dayKey: string; readonly rules: BriefingRules };
 
 function drawBriefing(state: GameState, day: Day): ActiveBriefing {
-  const { rules } = day;
   return {
     status: 'active',
     dayKey: day.dayKey,
@@ -125,13 +125,16 @@ function drawBriefing(state: GameState, day: Day): ActiveBriefing {
       measure: template.measure,
       target: template.count,
       progress: 0,
-      rewardCents: shareOfPeak(state, { bps: template.rewardBps, minCents: rules.minRewardCents }),
+      rewardBps: template.rewardBps,
       claim: 'unclaimed',
+      paidCents: moneyCents(0),
     })),
-    bonusCents: shareOfPeak(state, { bps: rules.bonusBps, minCents: rules.minBonusCents }),
     bonus: 'unclaimed',
+    bonusPaidCents: moneyCents(0),
   };
 }
+
+const isClaimable = (task: BriefingTask) => isTaskDone(task) && task.claim === 'unclaimed';
 
 function bonusDue(briefing: ActiveBriefing): boolean {
   return (
@@ -139,12 +142,39 @@ function bonusDue(briefing: ActiveBriefing): boolean {
   );
 }
 
-export function claimableBriefingCents(briefing: Briefing): MoneyCents {
-  if (briefing.status === 'none') return moneyCents(0);
-  const tasks = briefing.tasks
-    .filter((task) => isTaskDone(task) && task.claim === 'unclaimed')
-    .reduce((total, task) => total + task.rewardCents, 0n);
-  return moneyCents(tasks + (bonusDue(briefing) ? briefing.bonusCents : 0n));
+export type BriefingRewards = {
+  readonly taskCents: readonly MoneyCents[];
+  readonly bonusCents: MoneyCents;
+  readonly claimableCents: MoneyCents;
+};
+
+const NO_REWARDS: BriefingRewards = {
+  taskCents: [],
+  bonusCents: moneyCents(0),
+  claimableCents: moneyCents(0),
+};
+
+export function briefingRewards(state: GameState, rules: BriefingRules): BriefingRewards {
+  const { briefing } = state;
+  if (briefing.status === 'none') return NO_REWARDS;
+  const taskCents = briefing.tasks.map((task) =>
+    task.claim === 'claimed'
+      ? task.paidCents
+      : shareOfPeak(state, { bps: task.rewardBps, minCents: rules.minRewardCents }),
+  );
+  const bonusCents =
+    briefing.bonus === 'claimed'
+      ? briefing.bonusPaidCents
+      : shareOfPeak(state, { bps: rules.bonusBps, minCents: rules.minBonusCents });
+  const ready = briefing.tasks.reduce(
+    (total, task, index) => total + (isClaimable(task) ? taskCents[index]! : 0n),
+    0n,
+  );
+  return {
+    taskCents,
+    bonusCents,
+    claimableCents: moneyCents(ready + (bonusDue(briefing) ? bonusCents : 0n)),
+  };
 }
 
 function progressed(briefing: Briefing, span: { before: GameState; after: GameState }): Briefing {
@@ -160,7 +190,7 @@ function progressed(briefing: Briefing, span: { before: GameState; after: GameSt
 
 function isStale(briefing: Briefing, dayKey: string): boolean {
   if (briefing.status === 'none') return true;
-  return briefing.dayKey !== dayKey && claimableBriefingCents(briefing) === 0n;
+  return briefing.dayKey !== dayKey && !briefing.tasks.some(isClaimable) && !bonusDue(briefing);
 }
 
 export function withBriefing(
@@ -177,23 +207,27 @@ export function withBriefing(
 
 export type ClaimBriefing = { readonly type: 'ClaimBriefing' };
 
-export function applyClaimBriefing(state: GameState): CommandResult {
+export function applyClaimBriefing(state: GameState, rules: BriefingRules): CommandResult {
   const { briefing } = state;
-  const cashChangeCents = claimableBriefingCents(briefing);
-  if (briefing.status === 'none' || cashChangeCents === 0n)
+  const rewards = briefingRewards(state, rules);
+  if (briefing.status === 'none' || rewards.claimableCents === 0n)
     return { ok: false, error: 'BRIEFING_NOT_CLAIMABLE' };
+  const paid = bonusDue(briefing);
   return {
     ok: true,
-    cashChangeCents,
+    cashChangeCents: rewards.claimableCents,
     state: {
       ...state,
-      cashCents: moneyCents(state.cashCents + cashChangeCents),
+      cashCents: moneyCents(state.cashCents + rewards.claimableCents),
       briefing: {
         ...briefing,
-        tasks: briefing.tasks.map((task) =>
-          isTaskDone(task) ? { ...task, claim: 'claimed' } : task,
+        tasks: briefing.tasks.map((task, index) =>
+          isClaimable(task)
+            ? { ...task, claim: 'claimed', paidCents: rewards.taskCents[index]! }
+            : task,
         ),
-        bonus: bonusDue(briefing) ? 'claimed' : briefing.bonus,
+        bonus: paid ? 'claimed' : briefing.bonus,
+        bonusPaidCents: paid ? rewards.bonusCents : briefing.bonusPaidCents,
       },
     },
   };

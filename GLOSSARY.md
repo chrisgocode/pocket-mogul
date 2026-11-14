@@ -515,7 +515,7 @@ The player's title on Profile, set by peak net worth, from Hustler to Mogul. It 
 _Avoid_: Level, tier (that is a business tier), status
 
 **Daily briefing**:
-Three small tasks drawn each calendar day on Earn, fitted to what the player owns. Each pays a cash reward when claimed, with a bonus for finishing all three. Unfinished tasks clear when the day changes; nothing is lost for a missed day.
+Three small tasks drawn each calendar day on Earn, fitted to what the player owns. Each pays a share of peak net worth when claimed, with a bonus for finishing all three. Unfinished tasks clear when the day changes; nothing is lost for a missed day.
 _Avoid_: Daily quests, missions, streak, login bonus
 
 **Activity history**:

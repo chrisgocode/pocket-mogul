@@ -151,12 +151,13 @@ const savedBriefing = z.discriminatedUnion('status', [
         measure: z.enum(BRIEFING_MEASURES),
         target: count,
         progress: count,
-        rewardCents: nonNegativeMoneyText,
+        rewardBps: count,
         claim,
+        paidCents: nonNegativeMoneyText,
       }),
     ),
-    bonusCents: nonNegativeMoneyText,
     bonus: claim,
+    bonusPaidCents: nonNegativeMoneyText,
   }),
 ]);
 

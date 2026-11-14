@@ -23,8 +23,9 @@ const task = (change: Partial<BriefingTask>): BriefingTask => ({
   measure: 'taps',
   target: 200,
   progress: 200,
-  rewardCents: dollars('10'),
+  rewardBps: 200,
   claim: 'unclaimed',
+  paidCents: dollars('0'),
   ...change,
 });
 
@@ -39,8 +40,8 @@ const briefingOf = (tasks: readonly BriefingTask[]): Pick<GameState, 'briefing'>
     status: 'active',
     dayKey: 'day-0',
     tasks,
-    bonusCents: dollars('25'),
     bonus: 'unclaimed',
+    bonusPaidCents: dollars('0'),
   },
 });
 

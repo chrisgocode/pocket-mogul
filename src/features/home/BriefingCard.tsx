@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { selectBriefing } from '@/application/briefingView';
+import { getContent } from '@/content';
 import { formatMoneyCompact } from '@/domain/money';
 import { useGameSnapshot } from '@/features/game/GameContext';
 import { Button } from '@/ui/Button';
@@ -12,7 +13,7 @@ import { briefingBonusText } from './briefingText';
 import { useClaimBriefing } from './useClaimBriefing';
 
 export function BriefingCard() {
-  const briefing = selectBriefing(useGameSnapshot().state);
+  const briefing = selectBriefing(useGameSnapshot().state, getContent());
   const claim = useClaimBriefing();
   if (briefing.status === 'hidden') return null;
   const progress = `${briefing.doneCount} of ${briefing.tasks.length} done`;

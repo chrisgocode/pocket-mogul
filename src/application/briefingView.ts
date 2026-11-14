@@ -1,11 +1,14 @@
 import {
-  claimableBriefingCents,
+  briefingRewards,
   isTaskDone,
   type BriefingMeasure,
   type BriefingTask,
 } from '@/domain/briefing';
+import type { Content } from '@/content';
 import type { GameState } from '@/domain/gameState';
 import type { MoneyCents } from '@/domain/money';
+
+import { briefingRules } from './economy';
 
 export type BriefingTaskView = {
   readonly id: string;
@@ -55,20 +58,21 @@ function taskStatus(task: BriefingTask): BriefingTaskView['status'] {
   return task.claim === 'claimed' ? 'claimed' : 'claimable';
 }
 
-function taskView(task: BriefingTask): BriefingTaskView {
+function taskView(task: BriefingTask, rewardCents: MoneyCents): BriefingTaskView {
   return {
     id: task.templateId,
     title: taskTitle(task),
     progressLabel: `${counted(task.progress)} of ${counted(task.target)}`,
-    rewardCents: task.rewardCents,
+    rewardCents,
     status: taskStatus(task),
   };
 }
 
-export function selectBriefing(state: GameState): BriefingView {
+export function selectBriefing(state: GameState, content: Content): BriefingView {
   const { briefing } = state;
   if (briefing.status === 'none' || briefing.tasks.length === 0) return { status: 'hidden' };
-  const tasks = briefing.tasks.map(taskView);
+  const rewards = briefingRewards(state, briefingRules(content));
+  const tasks = briefing.tasks.map((task, index) => taskView(task, rewards.taskCents[index]!));
   const doneCount = tasks.filter((task) => task.status !== 'open').length;
   const finished = doneCount === tasks.length;
   const earned = briefing.bonus === 'claimed' ? 'claimed' : 'claimable';
@@ -76,8 +80,8 @@ export function selectBriefing(state: GameState): BriefingView {
     status: 'shown',
     tasks,
     doneCount,
-    bonusCents: briefing.bonusCents,
+    bonusCents: rewards.bonusCents,
     bonus: finished ? earned : 'locked',
-    claimableCents: claimableBriefingCents(briefing),
+    claimableCents: rewards.claimableCents,
   };
 }

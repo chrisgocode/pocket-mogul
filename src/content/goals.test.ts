@@ -84,11 +84,13 @@ describe('goals in content (UX03)', () => {
     ]);
   });
 
-  it('offers briefing tasks that fit every player, with small rewards (UX03c)', () => {
+  it('offers briefing tasks that fit every player, paying 2% to 10% of peak net worth (UX03c)', () => {
     const { briefing } = getContent();
     expect(briefing.tasksPerDay).toBe(3);
     expect(new Set(briefing.templates.map((template) => template.measure)).size).toBe(6);
-    expect(briefing.templates.every((template) => template.rewardBps <= 25)).toBe(true);
+    expect(briefing.templates.filter((template) => template.rewardBps < 200)).toEqual([]);
+    expect(briefing.templates.filter((template) => template.rewardBps > 1000)).toEqual([]);
+    expect(briefing.bonusBps).toBe(1000);
     expect(
       issuesFor((content) => {
         content.briefing!.templates = content.briefing!.templates.filter(
