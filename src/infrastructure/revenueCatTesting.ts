@@ -19,7 +19,7 @@ export type RevenueCatScript = {
 
 const info = { requestDate: '2027-01-15T08:00:00Z', entitlements: { verification: 'VERIFIED' } };
 const localizedProduct = {
-  identifier: validationConfig.productId,
+  identifier: 'pm_tax_exemption',
   title: 'Exonération',
   priceString: '1,99 €',
 };

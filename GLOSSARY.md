@@ -542,6 +542,24 @@ _Avoid_: Ledger (for the screen), log, transactions
 One activity entry that sums taps and business and rent income between other activities, so the history never lists every tap or checkpoint.
 _Avoid_: Tap entry, income tick
 
+## Purchases
+
+**Product**:
+A permanent item bought once with real money through the store account, such as the tax exemption or the Mogul bundle.
+_Avoid_: IAP, SKU, upgrade
+
+**Entitlement**:
+One lasting benefit a product grants. A bundle grants several, and an entitlement is held while any owned product grants it.
+_Avoid_: Perk, unlock, license
+
+**Catalogue**:
+The products this build can sell and the entitlements each one grants.
+_Avoid_: Shop inventory, offering
+
+**Store**:
+The screen that lists the catalogue with store prices and what is owned. Restore purchases is in Settings.
+_Avoid_: Shop, paywall
+
 ## Taxes
 
 **Tax return**:

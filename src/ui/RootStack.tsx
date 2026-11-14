@@ -20,6 +20,7 @@ export function RootStack() {
       <Stack.Screen name="rich-list" options={{ title: 'Rich List', presentation: 'modal' }} />
       <Stack.Screen name="collection" options={{ title: 'Collection', presentation: 'modal' }} />
       <Stack.Screen name="taxes" options={{ title: 'Taxes', presentation: 'modal' }} />
+      <Stack.Screen name="store" options={{ title: 'Store', presentation: 'modal' }} />
       <Stack.Screen name="settings" options={{ title: 'Settings', presentation: 'modal' }} />
     </Stack>
   );

@@ -1,14 +1,18 @@
 import type { CheckoutGuard } from './purchaseGuard';
 import type { PurchaseScope, VerifiedOwnership } from './billingPort';
+import type { Entitlement } from '@/domain/entitlements';
+
+export type CatalogueProduct = {
+  readonly productId: string;
+  readonly entitlements: readonly Entitlement[];
+};
 
 export type PurchasePolicy = {
   readonly scopes: readonly PurchaseScope[];
-  readonly products: readonly {
-    readonly productId: string;
+  readonly products: readonly (CatalogueProduct & {
     readonly productClass: 'nonConsumable';
-    readonly benefit: 'taxExemption';
     readonly duplicateCharge?: 'storePrevents';
-  }[];
+  })[];
 };
 
 export type CurrentOwnership =
@@ -21,7 +25,7 @@ export type CurrentOwnership =
 
 export type PurchaseRecord = {
   readonly ownership: VerifiedOwnership;
-  readonly benefit: 'taxExemption';
+  readonly entitlements: readonly Entitlement[];
   readonly result: { readonly status: 'delivered' };
   readonly completion: 'pending' | 'completed';
   readonly currentOwnership?: undefined | CurrentOwnership;
@@ -73,4 +77,11 @@ function acceptsCompletion(ownership: VerifiedOwnership): boolean {
     completion.owner === 'provider' ||
     (verification.source === 'store' && completion.action === 'finish')
   );
+}
+
+export function grantedEntitlements(
+  policy: PurchasePolicy,
+  productId: string,
+): readonly Entitlement[] {
+  return policy.products.find((product) => product.productId === productId)?.entitlements ?? [];
 }

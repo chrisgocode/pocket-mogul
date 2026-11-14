@@ -1,5 +1,5 @@
-import { exemptTaxes } from '@/domain/tax/exemption';
-import { authorizesPurchaseScope, purchaseKey } from './purchaseLedger';
+import { applyPurchaseRecord } from './purchaseEntitlements';
+import { authorizesPurchaseScope } from './purchaseLedger';
 import { moneyCents } from '@/domain/money';
 import type { BillingPort } from './billingPort';
 import type { Committer, GamePorts } from './game';
@@ -136,15 +136,8 @@ function projectCachedPurchases(
   current: GameState,
   records: readonly PurchaseRecord[],
 ): GameState {
-  const rules = ports.content.economy.taxes;
-  if (rules === undefined) return current;
   return records.reduce(
-    (previous, record) =>
-      exemptTaxes(previous, {
-        transactionId: purchaseKey(record.ownership.reference),
-        rules,
-        dayMs: ports.content.economy.businessRules.dayMs,
-      }),
+    (previous, record) => applyPurchaseRecord(previous, { record, content: ports.content }),
     current,
   );
 }

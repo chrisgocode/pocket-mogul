@@ -20,7 +20,7 @@ const record: PurchaseRecord = {
     verification: { source: 'store', verifiedAtMs: 123 },
     completion: { owner: 'application', action: 'finish' },
   },
-  benefit: 'taxExemption',
+  entitlements: ['taxExemption'],
   result: { status: 'delivered' },
   completion: 'pending',
 };

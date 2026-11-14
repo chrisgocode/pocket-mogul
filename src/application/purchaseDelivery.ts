@@ -5,7 +5,7 @@ import {
   restoreCachedPurchases,
   requireActive,
 } from './purchaseRecovery';
-import { exemptTaxes } from '@/domain/tax/exemption';
+import { applyPurchaseRecord, deliversUntaxed } from './purchaseEntitlements';
 import { moneyCents } from '@/domain/money';
 import type {
   DeliveryResult,
@@ -19,6 +19,7 @@ import type { Committed } from './commitCommand';
 import type { Committer, GamePorts } from './game';
 import {
   acceptsPurchase,
+  grantedEntitlements,
   purchaseKey,
   type PurchasePolicy,
   type PurchaseRecord,
@@ -48,24 +49,22 @@ async function writeDelivery(
       outcome: { ok: true, revision: change.current.revision, cashChangeCents: moneyCents(0) },
     };
   requireActive(change.context.active);
-  const rules = change.context.ports.content.economy.taxes;
-  if (rules === undefined) return { outcome: { ok: false, error: 'TAX_RETURN_UNAVAILABLE' } };
+  const { content } = change.context.ports;
+  const record: PurchaseRecord = {
+    ownership: change.ownership,
+    entitlements: grantedEntitlements(change.context.policy, change.ownership.reference.productId),
+    result: { status: 'delivered' },
+    completion: change.ownership.completion.owner === 'provider' ? 'completed' : 'pending',
+  };
+  if (deliversUntaxed(record, content))
+    return { outcome: { ok: false, error: 'TAX_RETURN_UNAVAILABLE' } };
   const state = {
-    ...exemptTaxes(change.current, {
-      transactionId: purchaseKey(change.ownership.reference),
-      rules,
-      dayMs: change.context.ports.content.economy.businessRules.dayMs,
-    }),
+    ...applyPurchaseRecord(change.current, { record, content }),
     revision: change.current.revision + 1,
   };
   await tx.writeState(state);
   requireActive(change.context.active);
-  await tx.writePurchase({
-    ownership: change.ownership,
-    benefit: 'taxExemption',
-    result: { status: 'delivered' },
-    completion: change.ownership.completion.owner === 'provider' ? 'completed' : 'pending',
-  });
+  await tx.writePurchase(record);
   requireActive(change.context.active);
   return {
     state,
