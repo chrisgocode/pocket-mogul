@@ -1,4 +1,3 @@
-import type { RevenueCatConfig } from './revenueCatConfig';
 import type { StoreKitEvidence, StoreKitTransaction } from './storeKitEvidence';
 
 const VISIBLE_ID_CHARACTERS = 4;
@@ -22,13 +21,13 @@ export type StoreKitReport =
 
 type Source = {
   readonly storeKit: () => Promise<StoreKitEvidence>;
-  readonly config: Pick<RevenueCatConfig, 'productId'>;
+  readonly productId: string;
 };
 
 export async function storeKitReport(source: Source): Promise<StoreKitReport> {
   try {
     const storeKit = await source.storeKit();
-    const { productId } = source.config;
+    const { productId } = source;
     const [latest, entitlements] = await Promise.all([
       storeKit.latest(productId),
       storeKit.entitlements(),

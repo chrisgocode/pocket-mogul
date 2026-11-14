@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { SaveTransaction } from '@/application/ports';
 import { purchaseKey } from '@/application/purchaseLedger';
+import { ENTITLEMENTS } from '@/domain/entitlements';
 import type { SqlExecutor } from './sqlDriver';
 
 export const CREATE_PURCHASE_IDENTITY =
@@ -9,7 +10,7 @@ export const CREATE_PURCHASE_IDENTITY =
 export const CREATE_PURCHASES =
   'CREATE TABLE purchase_receipts (purchase_key TEXT PRIMARY KEY, document TEXT NOT NULL)';
 
-const purchaseRecord = z.object({
+const savedRecord = z.object({
   ownership: z.object({
     reference: z.object({
       store: z.enum(['apple', 'google']),
@@ -25,7 +26,8 @@ const purchaseRecord = z.object({
       z.object({ owner: z.literal('application'), action: z.enum(['finish', 'consume']) }),
     ]),
   }),
-  benefit: z.literal('taxExemption'),
+  benefit: z.literal('taxExemption').optional(),
+  entitlements: z.array(z.enum(ENTITLEMENTS)).optional(),
   result: z.object({ status: z.literal('delivered') }),
   completion: z.enum(['pending', 'completed']),
   currentOwnership: z
@@ -39,6 +41,16 @@ const purchaseRecord = z.object({
     ])
     .optional(),
 });
+const LEGACY_ENTITLEMENTS = ['taxExemption'] as const;
+
+const purchaseRecord = savedRecord.transform((saved) => ({
+  ownership: saved.ownership,
+  entitlements: saved.entitlements ?? LEGACY_ENTITLEMENTS,
+  result: saved.result,
+  completion: saved.completion,
+  ...(saved.currentOwnership === undefined ? {} : { currentOwnership: saved.currentOwnership }),
+}));
+
 const identity = z.object({
   id: z.string(),
   providerReference: z.string().optional(),

@@ -1,5 +1,6 @@
 import { purchaseDelivery, type GamePurchases } from './purchaseDelivery';
 import type { PurchasePolicy } from './purchaseLedger';
+import { storefront, type Storefront } from './storefront';
 import type { BillingPort } from './billingPort';
 import { commitTaxEntitlement, type TaxEntitlementPort } from './taxEntitlement';
 import type { Content } from '@/content';
@@ -57,6 +58,7 @@ export type GameEvent = { readonly type: 'goalsCompleted'; readonly goalIds: rea
 
 export type Game = {
   purchases: GamePurchases;
+  storefront: Storefront;
   getSnapshot: () => GameSnapshot;
   subscribe: (listener: () => void) => () => void;
   subscribeEvents: (listener: (event: GameEvent) => void) => () => void;
@@ -175,8 +177,7 @@ function bufferedTaps(ports: GamePorts, core: Committer) {
 
 async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
   const core = committer(ports, opened);
-  const wallMs = ports.clock.wallMs();
-  await core.backUp({ revision: opened.state.revision, wallMs });
+  await core.backUp({ revision: opened.state.revision, wallMs: ports.clock.wallMs() });
   const purchases = purchaseDelivery(ports, core);
   await purchases.recover();
   const { offline, restoreTaxExemption } = await beginOffline(ports, core);
@@ -188,6 +189,7 @@ async function startGame(ports: GamePorts, opened: Opened): Promise<Game> {
     dispatch({ id: `checkpoint-${ports.createId()}`, command: { type: 'AdvanceTime' } });
   return {
     purchases,
+    storefront: storefront({ policy: ports.purchasePolicy, purchases, snapshots: core.snapshots }),
     restoreTaxExemption,
     getSnapshot: core.snapshots.get,
     subscribe: core.snapshots.subscribe,

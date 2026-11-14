@@ -65,6 +65,7 @@ const BASELINE_STATE = {
   claimedGoals: [],
   briefing: { status: 'none' },
   richList: { status: 'none' },
+  entitlements: {},
   adRewards: {
     dayKey: '',
     used: {},
