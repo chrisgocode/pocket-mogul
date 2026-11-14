@@ -37,7 +37,7 @@ const WORDING: Readonly<Record<BriefingMeasure, Wording>> = {
   },
   improvements: {
     once: 'Improve a business',
-    many: (count) => `Improve your businesses ${count} times`,
+    many: (count) => `Improve businesses ${count} times`,
   },
   trades: { once: 'Make a trade', many: (count) => `Make ${count} trades` },
   tax_returns: { once: 'File a tax return', many: (count) => `File ${count} tax returns` },

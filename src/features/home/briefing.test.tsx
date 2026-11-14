@@ -50,6 +50,7 @@ describe('Daily briefing card on Earn (UX03c)', () => {
     expect(screen.queryByText('Daily briefing')).toBeNull();
     await act(() => session.game.checkpoint());
     expect(await screen.findByText('Daily briefing')).toBeOnTheScreen();
+    expect(screen.getByLabelText(/^Daily briefing · 0 of 3 done, /)).toBeOnTheScreen();
     expect(screen.getByText('0 of 3 done')).toBeOnTheScreen();
     expect(
       screen.getByText('Finish all 3 for a $25.00 bonus. New tasks every day.'),
@@ -69,6 +70,21 @@ describe('Daily briefing card on Earn (UX03c)', () => {
     );
     expect(await screen.findByText('Claimed')).toBeOnTheScreen();
     expect(screen.queryByRole('button', { name: /daily briefing$/ })).toBeNull();
+    expect(session.game.getSnapshot().state.cashCents).toBe(dollars('10'));
+  });
+
+  it('keeps the next task in view at the top of Earn and claims from there', async () => {
+    const trade = task({ templateId: 'brief_trades_1', measure: 'trades', target: 1, progress: 0 });
+    await start(briefingOf([task({}), trade]));
+    await fireEvent.press(
+      screen.getByRole('button', {
+        name: 'Daily briefing · 1 of 2 done, Make a trade · 0 of 1, claim $10.00',
+      }),
+    );
+    expect(await screen.findByText('Claimed')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Daily briefing · 1 of 2 done, Make a trade · 0 of 1'),
+    ).toBeOnTheScreen();
     expect(session.game.getSnapshot().state.cashCents).toBe(dollars('10'));
   });
 
