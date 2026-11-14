@@ -117,7 +117,7 @@ An AdvanceTime commit that saves the simulation time and wall time reached so fa
 _Avoid_: Autosave, sync
 
 **Offline cap**:
-The maximum away time credited to the economy on return; absence beyond it is discarded.
+The maximum away time credited to the economy on return: 8 hours, or 24 with the Night manager. Absence beyond it is discarded.
 _Avoid_: Idle limit, AFK cap
 
 **Offline settlement**:
@@ -563,6 +563,14 @@ _Avoid_: Perk, unlock, license
 **Catalogue**:
 The products this build can sell and the entitlements each one grants.
 _Avoid_: Shop inventory, offering
+
+**Golden wallet**:
+The product that doubles every tap for good and draws the wallet in gold. It multiplies with Tap Boost.
+_Avoid_: Gold card (a wallet level's artwork), tap upgrade
+
+**Night manager**:
+The product that raises the offline cap from 8 to 24 hours.
+_Avoid_: Manager (a business hire), offline boost
 
 **Store**:
 The screen that lists the catalogue with store prices and what is owned. Restore purchases is in Settings.

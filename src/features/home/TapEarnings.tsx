@@ -26,7 +26,7 @@ export function TapEarnings() {
           perTapCents={view.perTapCents}
           walletLevel={view.walletLevel}
           boosted={view.boosted}
-          artwork={walletArtwork(view.artworkStage)}
+          artwork={walletArtwork(view.artworkStage, view.skin)}
           highlight={tutorial.isOn('tap') ? 'tutorial' : 'none'}
           onTap={tap}
         />

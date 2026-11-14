@@ -46,6 +46,7 @@ export const walletArt = {
   silver: '#526072',
   gold: '#9A6A00',
   obsidian: '#14171F',
+  golden: '#F2B705',
 } as const;
 
 export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;
