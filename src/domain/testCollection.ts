@@ -7,6 +7,8 @@ export const testCollection: CollectionEconomy = {
   rules: {
     dayMs: DAY_MS,
     lotCount: 2,
+    passLotCount: 1,
+    perkCaps: { tap: 30, resale: 6 },
     lotDays: 6,
     saleReturnPercent: 90,
     rarityWeights: { common: 6, uncommon: 3, rare: 1 },
@@ -37,8 +39,18 @@ export const testCollection: CollectionEconomy = {
     ],
   },
   sets: [
-    { id: 'garage', pieceIds: ['table_red', 'roadster'], perk: { kind: 'resale', percent: 4 } },
-    { id: 'gallery', pieceIds: ['sketch', 'meteorite'], perk: { kind: 'tap', percent: 5 } },
+    {
+      id: 'garage',
+      access: 'open',
+      pieceIds: ['table_red', 'roadster'],
+      perk: { kind: 'resale', percent: 4 },
+    },
+    {
+      id: 'gallery',
+      access: 'open',
+      pieceIds: ['sketch', 'meteorite'],
+      perk: { kind: 'tap', percent: 5 },
+    },
   ],
   pieces: [
     { id: 'table_red', category: 'wine', tier: 1, rarity: 'common', price: dollars('500') },

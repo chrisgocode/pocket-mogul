@@ -31,7 +31,9 @@ function setIssues(set: CollectionSetContent, content: Content): string[] {
 function perkIssues(content: Content): string[] {
   const { sets, perkCaps, saleReturnPercent } = content.collection;
   const total = (kind: 'tap' | 'resale') =>
-    sets.filter((set) => set.perk.kind === kind).reduce((sum, set) => sum + set.perk.percent, 0);
+    sets
+      .filter((set) => set.access === 'open' && set.perk.kind === kind)
+      .reduce((sum, set) => sum + set.perk.percent, 0);
   const shared = sets.flatMap((set) => set.pieceIds);
   return [
     total('tap') > perkCaps.tap && 'Collection tap perks pass their cap',

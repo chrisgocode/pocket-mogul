@@ -60,6 +60,12 @@ const COPY: Readonly<Record<string, Copy>> = {
     pitch: 'A Founder title on your Profile and your name in gold on the Rich List.',
     finePrint: 'Cosmetic only: it changes no money.',
   },
+  pm_collectors_pass: {
+    name: "Collector's pass",
+    pitch:
+      'A fourth lot at every auction, and The Vault: a set of five pieces only pass holders are offered.',
+    finePrint: 'The Vault adds +5% tap income, inside the +30% cap on set perks.',
+  },
 };
 
 type Shelf = Pick<Storefront, 'catalogue'> & { readonly front: StorefrontState };

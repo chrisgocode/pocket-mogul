@@ -17,12 +17,19 @@ const issuesFor = (mutate: (collection: Collection) => void) => {
 const PERCENT = 100n;
 const BPS = 10_000n;
 
+const everyone = (collection: ReturnType<typeof getContent>['collection']) => {
+  const sets = collection.sets.filter((set) => set.access === 'open');
+  const pieceIds = new Set(sets.flatMap((set) => set.pieceIds));
+  return { sets, pieces: collection.pieces.filter((piece) => pieceIds.has(piece.id)) };
+};
+
 describe('the collection in content (COL01)', () => {
   const { collection } = getContent();
+  const open = everyone(collection);
 
   it('holds sixty pieces, ten in each of six categories, from $500 to $5B', () => {
     const counts = COLLECTIBLE_CATEGORIES.map(
-      (category) => collection.pieces.filter((piece) => piece.category === category).length,
+      (category) => open.pieces.filter((piece) => piece.category === category).length,
     );
     const prices = collection.pieces.map((piece) => Number(piece.price));
     expect(counts).toEqual([10, 10, 10, 10, 10, 10]);
@@ -32,7 +39,7 @@ describe('the collection in content (COL01)', () => {
 
   it('draws three lots every six business days and pays 90 percent on a sale', () => {
     expect(collection).toMatchObject({ lotCount: 3, lotDays: 6, saleReturnPercent: 90 });
-    expect(collection.pieces.filter((piece) => piece.tier === 1)).toHaveLength(18);
+    expect(open.pieces.filter((piece) => piece.tier === 1)).toHaveLength(18);
   });
 
   it('keeps the best possible resale under double the price paid', () => {
@@ -75,24 +82,36 @@ describe('the collection in content (COL01)', () => {
 
 describe('collection sets in content (COL07)', () => {
   const { collection } = getContent();
+  const open = everyone(collection);
 
   it('holds twelve sets of five, two in each category, covering every piece once', () => {
     const counts = COLLECTIBLE_CATEGORIES.map(
-      (category) => collection.sets.filter((set) => set.category === category).length,
+      (category) => open.sets.filter((set) => set.category === category).length,
     );
     const covered = collection.sets.flatMap((set) => set.pieceIds);
     expect(counts).toEqual([2, 2, 2, 2, 2, 2]);
-    expect(collection.sets.map((set) => set.pieceIds.length)).toEqual(Array(12).fill(5));
+    expect(open.sets.map((set) => set.pieceIds.length)).toEqual(Array(12).fill(5));
     expect(new Set(covered).size).toBe(collection.pieces.length);
   });
 
+  const total = (kind: 'tap' | 'resale') =>
+    open.sets
+      .filter((set) => set.perk.kind === kind)
+      .reduce((sum, set) => sum + set.perk.percent, 0);
+
   it('caps every finished set together at +30% tap income and 96% on a sale', () => {
-    const total = (kind: 'tap' | 'resale') =>
-      collection.sets
-        .filter((set) => set.perk.kind === kind)
-        .reduce((sum, set) => sum + set.perk.percent, 0);
     expect(collection.perkCaps).toEqual({ tap: 30, resale: 6 });
     expect([total('tap'), total('resale')]).toEqual([30, 6]);
+  });
+
+  it('keeps one set of five for Collector’s pass holders, with a fourth lot (#158)', () => {
+    const pass = collection.sets.filter((set) => set.access === 'pass');
+    expect(collection.passLotCount).toBe(1);
+    expect(pass).toMatchObject([
+      { id: 'collectors_vault', category: 'curiosities', perk: { kind: 'tap', percent: 5 } },
+    ]);
+    expect(pass[0]?.pieceIds).toHaveLength(5);
+    expect(collection.pieces).toHaveLength(65);
   });
 
   it('adds four collection goals to the thirteen of economy 1', () => {

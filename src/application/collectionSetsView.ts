@@ -1,6 +1,7 @@
 import type { Content } from '@/content';
 import type { OwnedCollectible, PerkKind } from '@/domain/collection/rules';
 import { perkPercent } from '@/domain/collection/sets';
+import { holdsEntitlement } from '@/domain/entitlements';
 import type { GameState } from '@/domain/gameState';
 
 import { collectionEconomy } from './economy';
@@ -12,7 +13,7 @@ export type CollectionSetView = {
   readonly name: string;
   readonly categoryName: string;
   readonly perk: { readonly kind: PerkKind; readonly percent: number };
-  readonly status: 'complete' | 'open';
+  readonly status: 'complete' | 'open' | 'locked';
   readonly heldCount: number;
   readonly pieceCount: number;
   readonly missing: readonly string[];
@@ -21,16 +22,33 @@ export type CollectionSetView = {
 export type CollectionSetsView = {
   readonly sets: readonly CollectionSetView[];
   readonly completedCount: number;
+  readonly setCount: number;
   readonly tapBonusPercent: number;
   readonly resaleBonusPercent: number;
 };
 
-function setView(
-  set: SetContent,
-  held: readonly OwnedCollectible[],
-  content: Content,
-): CollectionSetView {
+const holdsPieceOf = (set: SetContent, held: readonly OwnedCollectible[]) =>
+  set.pieceIds.some((pieceId) => held.some((owned) => owned.pieceId === pieceId));
+
+function countedSets(state: GameState, content: Content): readonly SetContent[] {
+  const pass = holdsEntitlement(state, 'collectorsPass');
+  return content.collection.sets.filter(
+    (set) => set.access === 'open' || pass || holdsPieceOf(set, state.collectibles),
+  );
+}
+
+export function countedPieceCount(state: GameState, content: Content): number {
+  return countedSets(state, content).reduce((total, set) => total + set.pieceIds.length, 0);
+}
+
+function statusOf(set: SetContent, state: GameState, missing: number): CollectionSetView['status'] {
+  if (missing === 0) return 'complete';
+  return set.access === 'pass' && !holdsEntitlement(state, 'collectorsPass') ? 'locked' : 'open';
+}
+
+function setView(set: SetContent, state: GameState, content: Content): CollectionSetView {
   const { pieces, categories } = content.collection;
+  const held = state.collectibles;
   const missing = set.pieceIds.filter(
     (pieceId) => !held.some((owned) => owned.pieceId === pieceId),
   );
@@ -39,7 +57,7 @@ function setView(
     name: set.name,
     categoryName: categories.find((each) => each.id === set.category)?.name ?? set.category,
     perk: set.perk,
-    status: missing.length === 0 ? 'complete' : 'open',
+    status: statusOf(set, state, missing.length),
     heldCount: set.pieceIds.length - missing.length,
     pieceCount: set.pieceIds.length,
     missing: missing.map((pieceId) => pieces.find((each) => each.id === pieceId)?.name ?? pieceId),
@@ -51,11 +69,12 @@ export function tapBonusPercent(state: GameState, content: Content): number {
 }
 
 export function selectCollectionSets(state: GameState, content: Content): CollectionSetsView {
-  const sets = content.collection.sets.map((set) => setView(set, state.collectibles, content));
+  const sets = content.collection.sets.map((set) => setView(set, state, content));
   const economy = collectionEconomy(content);
   return {
     sets,
     completedCount: sets.filter((set) => set.status === 'complete').length,
+    setCount: countedSets(state, content).length,
     tapBonusPercent: perkPercent(state.collectibles, { economy, kind: 'tap' }),
     resaleBonusPercent: perkPercent(state.collectibles, { economy, kind: 'resale' }),
   };
@@ -90,14 +109,15 @@ export type ShelfView = {
 };
 
 export function selectShelf(state: GameState, content: Content): ShelfView {
-  const { pieces, sets } = content.collection;
+  const { pieces } = content.collection;
+  const sets = selectCollectionSets(state, content);
   return {
     heldCount: pieces.filter((piece) =>
       state.collectibles.some((owned) => owned.pieceId === piece.id),
     ).length,
-    pieceCount: pieces.length,
-    completedSets: selectCollectionSets(state, content).completedCount,
-    setCount: sets.length,
+    pieceCount: countedPieceCount(state, content),
+    completedSets: sets.completedCount,
+    setCount: sets.setCount,
     showpiece: showpieceOf(state, content),
   };
 }
