@@ -36,10 +36,14 @@ describe('Activity rows', () => {
     ]);
   });
 
-  it('keeps incidents apart when something else happened between them', () => {
-    const rows = activityRows([vandalism(3, '280'), dividend(2), vandalism(1, '280')], content);
+  it('folds across other entries from the same moment, but not across moments', () => {
+    const earlier = { ...vandalism(1, '280'), simulationMs: ABSENCE_MS - 1 };
+    const rows = activityRows(
+      [vandalism(4, '280'), dividend(3), vandalism(2, '280'), earlier],
+      content,
+    );
     expect(rows.map((row) => row.title)).toEqual([
-      'Vending Machine: Vandalism',
+      'Vending Machine: Vandalism ×2',
       'Dividends paid',
       'Vending Machine: Vandalism',
     ]);

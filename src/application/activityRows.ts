@@ -8,15 +8,8 @@ type IncidentEntry = Extract<ActivityEntry, { kind: 'incident' }>;
 
 type Fold = { readonly entry: ActivityEntry; count: number; changeCents: bigint };
 
-function sameStrike(fold: Fold | undefined, entry: IncidentEntry): fold is Fold {
-  if (fold === undefined || fold.entry.kind !== 'incident') return false;
-  const first = fold.entry;
-  return (
-    first.simulationMs === entry.simulationMs &&
-    first.assetId === entry.assetId &&
-    first.incidentId === entry.incidentId &&
-    first.insured === entry.insured
-  );
+function foldKey(entry: IncidentEntry): string {
+  return [entry.simulationMs, entry.assetId, entry.incidentId, String(entry.insured)].join(':');
 }
 
 function foldedRow(fold: Fold, content: Content): ActivityRow {
@@ -32,17 +25,23 @@ function foldedRow(fold: Fold, content: Content): ActivityRow {
   };
 }
 
-export function activityRows(entries: readonly ActivityEntry[], content: Content): ActivityRow[] {
-  const folds: Fold[] = [];
-  for (const entry of entries) {
-    const last = folds.at(-1);
-    if (entry.kind === 'incident' && sameStrike(last, entry)) {
-      last.count += 1;
-      last.changeCents += entry.treasuryChangeCents;
-    } else {
-      const changeCents = entry.kind === 'incident' ? entry.treasuryChangeCents : 0n;
-      folds.push({ entry, count: 1, changeCents });
-    }
+function addIncident(entry: IncidentEntry, folds: { list: Fold[]; byKey: Map<string, Fold> }) {
+  const fold = folds.byKey.get(foldKey(entry));
+  if (fold === undefined) {
+    const created: Fold = { entry, count: 1, changeCents: entry.treasuryChangeCents };
+    folds.list.push(created);
+    folds.byKey.set(foldKey(entry), created);
+    return;
   }
-  return folds.map((fold) => foldedRow(fold, content));
+  fold.count += 1;
+  fold.changeCents += entry.treasuryChangeCents;
+}
+
+export function activityRows(entries: readonly ActivityEntry[], content: Content): ActivityRow[] {
+  const folds = { list: [] as Fold[], byKey: new Map<string, Fold>() };
+  for (const entry of entries) {
+    if (entry.kind === 'incident') addIncident(entry, folds);
+    else folds.list.push({ entry, count: 1, changeCents: 0n });
+  }
+  return folds.list.map((fold) => foldedRow(fold, content));
 }
