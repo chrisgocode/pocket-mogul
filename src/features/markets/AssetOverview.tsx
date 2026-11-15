@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import type { AssetDetail } from '@/application/marketsView';
-import { formatPrice } from '@/domain/money';
+import { formatPrice, formatPriceCompact } from '@/domain/money';
 import { DetailLine } from '@/ui/DetailLine';
 import { LogoMark } from '@/ui/LogoMark';
 import { AppText } from '@/ui/Typography';
@@ -28,7 +28,7 @@ export function AssetOverview({ detail }: { detail: ListedAsset }) {
       </View>
       <View style={styles.price}>
         <AppText variant="display" accessibilityLabel={`Price, ${price}`}>
-          {price}
+          {formatPriceCompact(detail.price)}
         </AppText>
         <AppText
           variant="number"

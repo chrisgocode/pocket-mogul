@@ -23,9 +23,9 @@ export function ChoiceOption({
       style={[styles.choice, selected && styles.choiceSelected]}
     >
       <AppText
-        variant="number"
+        variant="caption"
         numberOfLines={1}
-        style={selected ? styles.labelSelected : undefined}
+        style={[styles.label, selected && styles.labelSelected]}
       >
         {label}
       </AppText>
@@ -37,11 +37,12 @@ const styles = StyleSheet.create({
   choice: {
     flexGrow: 1,
     minHeight: minimumTouchTarget,
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: spacing.xs,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radius.sm,
   },
   choiceSelected: { backgroundColor: colors.surface },
+  label: { fontWeight: '700', color: colors.text },
   labelSelected: { color: colors.accent },
 });
