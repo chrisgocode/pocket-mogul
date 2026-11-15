@@ -6,7 +6,7 @@ import { Section } from '@/ui/Section';
 
 const REPORT_SUBJECT = 'Report an ad in Pocket Fortune';
 
-const AD_REPORT_ADDRESS = 'ads@pocketfortune.example';
+const AD_REPORT_ADDRESS = 'support@chrisgo.dev';
 
 function reportAd(): void {
   const subject = encodeURIComponent(REPORT_SUBJECT);
