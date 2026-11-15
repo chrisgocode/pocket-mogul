@@ -3,14 +3,17 @@
     "name": "Pocket Fortune",
     "slug": "pocket-fortune",
     "scheme": "pocketfortune",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#16171D",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.chrisgocode.pocketfortune"
+      "bundleIdentifier": "com.chrisgocode.pocketfortune",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.chrisgocode.pocketfortune",
