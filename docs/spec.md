@@ -985,8 +985,8 @@ Before public distribution, the owner supplies the final app identity, signing a
 - AdMob app IDs and production ad unit IDs for all three placements. iOS supplied 2026-11-15 (see the decision log); Android stays on Google's sample IDs while Android is deferred (#118).
 - The iOS tracking usage description (`userTrackingUsageDescription`) and the SKAdNetwork identifiers in the config plugin. Both are set: the 50 identifiers come from Google's list (https://developers.google.com/admob/ios/3p-skadnetworks, updated 2026-01-30); recheck it before each release.
 - Google Play Console: "App contains ads: Yes" and the Data safety form.
-- A public privacy policy URL for both stores.
-- A way for players to report an inappropriate ad (Apple guideline 2.5.18): Settings has "Report an ad"; the owner replaces its placeholder address (`ads@pocketfortune.example` in `src/features/settings/ReportAdSection.tsx`) with a monitored one.
+- A public privacy policy URL for both stores: `https://pocketfortune.chrisgo.dev/privacy/`, with the support page at `https://pocketfortune.chrisgo.dev/` (Cloudflare Pages, owner-hosted).
+- A way for players to report an inappropriate ad (Apple guideline 2.5.18): Settings has "Report an ad", which emails `support@chrisgo.dev` (set 2026-11-15; `src/features/settings/ReportAdSection.tsx`).
 - Google Play: a closed test with 12 testers for 14 days for a new personal account, and a physical Android device for the performance check. These do not block local gameplay or test-ad implementation. Do not label a mock integration as production complete.
 
 ## 20 Instructions for the implementing agent
