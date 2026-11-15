@@ -41,6 +41,7 @@ describe('starting a Tap Boost', () => {
     expect(boostOf({ game })).toEqual({ status: 'none' });
     expect(selectTapBoost(game.getSnapshot(), getContent())).toEqual({
       status: 'ready',
+      cost: 'ad',
       multiplier: 5,
       durationSeconds: 60,
     });

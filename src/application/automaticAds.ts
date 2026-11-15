@@ -7,6 +7,7 @@ import {
   type AdMoment,
   type NaturalBreak,
 } from '@/domain/adSchedule';
+import { holdsEntitlement } from '@/domain/entitlements';
 import { isTutorialFinished } from '@/domain/tutorial';
 
 import { trackedAd, type TrackedAd } from './adPresentation';
@@ -159,19 +160,22 @@ export function automaticAds(
   game: { core: Committer; rewardedPresenting: () => boolean },
 ) {
   const { core } = game;
+  const adFree = () => holdsEntitlement(core.snapshots.get().state, 'removeAds');
+  const start = adFree() ? 'idle' : 'load';
   const context: Context = {
     ports,
     core,
     keeper: core.adSchedule,
-    interstitial: trackedAd(ports.ads.interstitial),
-    appOpen: trackedAd(ports.ads.appOpen),
+    interstitial: trackedAd(ports.ads.interstitial, start),
+    appOpen: trackedAd(ports.ads.appOpen, start),
   };
   const taps = tapIdle(ports.clock);
   const away = presence(context);
   const stage = stages(core);
   const interstitialAt = interstitials(context, game.rewardedPresenting);
   const naturalBreak = (trigger: NaturalBreak) =>
-    away.present() ? interstitialAt(trigger, taps.sinceTapMs()) : Promise.resolve();
+    away.present() && !adFree() ? interstitialAt(trigger, taps.sinceTapMs()) : Promise.resolve();
+  const appOpen = appOpenAds(context);
   watchClicksAndRewards(context);
   core.events.subscribe(() => void naturalBreak('goal_completed'));
   context.keeper.startSession();
@@ -187,7 +191,7 @@ export function automaticAds(
     left: away.left,
     returned: away.returned,
     back: away.back,
-    beforeReturnSummary: appOpenAds(context),
+    beforeReturnSummary: (awayMs: number) => (adFree() ? Promise.resolve() : appOpen(awayMs)),
   };
 }
 

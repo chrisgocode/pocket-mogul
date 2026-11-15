@@ -4,6 +4,14 @@ A portrait mobile idle wealth game: the player taps for cash, then builds wealth
 
 ## Ads
 
+**Remove ads**:
+The product that ends interstitials and app open ads. Rewarded ads stay.
+_Avoid_: Ad-free, premium
+
+**VIP pass**:
+The product that ends every ad: it includes Remove ads, and Tap Boost and ad rewards are claimed without watching.
+_Avoid_: Subscription, season pass
+
 **Rewarded ad**:
 An ad the player chooses to watch in exchange for a stated reward: a Tap Boost, doubled offline earnings, a Rush day, ending an incident, redrawn auction lots, a cleared takeover lock or the Daily briefcase.
 _Avoid_: Bonus ad, video ad

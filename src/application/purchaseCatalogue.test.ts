@@ -156,7 +156,8 @@ describe('the App Store adapter with several products (#151)', () => {
   it('needs no product named in its configuration', async () => {
     const { productId: _product, entitlementId: _entitlement, ...config } = validationConfig;
     const session = await appleGame(storeKitFake(), config);
-    expect(session.game.storefront).toMatchObject({ status: 'open', catalogue: [{}, {}] });
+    expect(session.game.storefront.status).toBe('open');
+    expect(session.game.storefront.catalogue).toHaveLength(CATALOGUE.length);
   });
 
   it('restores each owned product and sees a refund of any of them', async () => {

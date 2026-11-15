@@ -1,5 +1,6 @@
 import type { Content } from '@/content';
 import { boostRemainingMs } from '@/domain/boost';
+import { holdsEntitlement } from '@/domain/entitlements';
 
 import type { GameSnapshot } from './game';
 
@@ -8,7 +9,12 @@ const MS_PER_SECOND = 1_000;
 export type TapBoostAd = 'loading' | 'ready' | 'unavailable' | 'showing';
 
 export type TapBoostView =
-  | { readonly status: 'ready'; readonly multiplier: number; readonly durationSeconds: number }
+  | {
+      readonly status: 'ready';
+      readonly cost: 'ad' | 'free';
+      readonly multiplier: number;
+      readonly durationSeconds: number;
+    }
   | { readonly status: 'loading' | 'unavailable' | 'showing' | 'pending' }
   | { readonly status: 'active'; readonly multiplier: number; readonly remainingSeconds: number };
 
@@ -37,6 +43,7 @@ export function selectTapBoost(snapshot: GameSnapshot, content: Content): TapBoo
     };
   }
   if (snapshot.state.reward.boost.status === 'pending') return { status: 'pending' };
-  if (snapshot.tapBoostAd !== 'ready') return { status: snapshot.tapBoostAd };
-  return { status: 'ready', multiplier, durationSeconds: durationMs / MS_PER_SECOND };
+  const cost = holdsEntitlement(snapshot.state, 'vipPass') ? 'free' : 'ad';
+  if (cost === 'ad' && snapshot.tapBoostAd !== 'ready') return { status: snapshot.tapBoostAd };
+  return { status: 'ready', cost, multiplier, durationSeconds: durationMs / MS_PER_SECOND };
 }

@@ -45,6 +45,14 @@ const UNAVAILABLE: TapBoostText = {
 };
 
 export function tapBoostText(view: TapBoostView): TapBoostText {
+  if (view.status === 'ready' && view.cost === 'free') {
+    return {
+      title: 'Tap Boost',
+      detail: `VIP pass: ${view.multiplier}x per tap for ${view.durationSeconds} seconds, no ad.`,
+      buttonLabel: `Start boost · ${view.multiplier}x for ${view.durationSeconds}s`,
+      enabled: true,
+    };
+  }
   if (view.status === 'ready') {
     return {
       title: 'Tap Boost',
