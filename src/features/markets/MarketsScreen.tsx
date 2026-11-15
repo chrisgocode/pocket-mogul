@@ -6,7 +6,6 @@ import {
 } from '@/application/marketsView';
 import { FICTIONAL_NOTICE, getContent } from '@/content';
 import { useGameSnapshot } from '@/features/game/GameContext';
-import { PageTitle } from '@/ui/PageTitle';
 import { Screen } from '@/ui/Screen';
 import { SegmentedControl } from '@/ui/SegmentedControl';
 import { useSegment } from '@/ui/state/useSegment';
@@ -23,7 +22,6 @@ export function MarketsScreen() {
   const watched = selectWatchedQuotes(snapshot, quotes);
   return (
     <Screen tone="markets">
-      <PageTitle title="Markets" />
       <SegmentedControl
         options={MODES.map((label) => ({ value: label, label }))}
         selected={mode.selected}

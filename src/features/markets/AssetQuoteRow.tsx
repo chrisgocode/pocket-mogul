@@ -28,6 +28,7 @@ export function AssetQuoteRow({ quote }: { quote: AssetQuote }) {
   const price = formatPriceCompact(quote.price);
   return (
     <ListRow
+      variant="card"
       leading={<LogoMark logo={asset.logo} />}
       title={asset.name}
       subtitle={assetSubtitle(quote)}

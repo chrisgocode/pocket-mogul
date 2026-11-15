@@ -4,7 +4,6 @@ import { useGameSnapshot } from '@/features/game/GameContext';
 import { formatCashChange } from '@/features/game/priceFormat';
 import { DetailLine } from '@/ui/DetailLine';
 import { Disclosure } from '@/ui/Disclosure';
-import { PageTitle } from '@/ui/PageTitle';
 import { Screen } from '@/ui/Screen';
 import { Section } from '@/ui/Section';
 import { SegmentedControl } from '@/ui/SegmentedControl';
@@ -26,13 +25,12 @@ export function PortfolioScreen() {
   const segment = useSegment<string>('Summary');
   return (
     <Screen>
-      <PageTitle title="Profile" />
-      <ProfileLinks />
+      <WorthCard worth={view.worth} />
       <FounderLine />
       <RankLines />
-      <RichListLink />
-      <WorthCard worth={view.worth} />
+      <ProfileLinks />
       <ProfileIncome />
+      <RichListLink />
       <CollectionShelf />
       <SegmentedControl
         options={VIEWS.map((label) => ({ value: label, label }))}

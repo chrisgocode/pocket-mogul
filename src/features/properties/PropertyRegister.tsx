@@ -1,8 +1,9 @@
 import type { PropertyListing } from '@/application/propertiesView';
 import { SegmentedControl } from '@/ui/SegmentedControl';
+import { TileGrid } from '@/ui/TileGrid';
 import { useSegment } from '@/ui/state/useSegment';
 import { AppText } from '@/ui/Typography';
-import { PropertyListingRow } from './PropertyListingRow';
+import { PropertyTile } from './PropertyTile';
 const FILTERS = ['All', 'Owned'] as const;
 export function PropertyRegister({
   listings,
@@ -25,15 +26,17 @@ export function PropertyRegister({
         onSelect={filter.select}
       />
       {visible.length === 0 ? <AppText muted>No properties owned</AppText> : null}
-      {visible.map((listing) => (
-        <PropertyListingRow
-          key={listing.property.id}
-          listing={listing}
-          index={listings.indexOf(listing)}
-          onBuy={onBuy}
-          onManage={onManage}
-        />
-      ))}
+      <TileGrid>
+        {visible.map((listing) => (
+          <PropertyTile
+            key={listing.property.id}
+            listing={listing}
+            index={listings.indexOf(listing)}
+            onBuy={onBuy}
+            onManage={onManage}
+          />
+        ))}
+      </TileGrid>
     </>
   );
 }

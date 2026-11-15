@@ -13,7 +13,7 @@ export function StoreScreen() {
   const rows = selectStore(state, { catalogue: storefront.catalogue, front });
   const notice = storeNotice(front, 'checkout');
   return (
-    <Screen>
+    <Screen tone="earn">
       {rows.length === 0 ? <EmptyState {...emptyStoreText(front)} /> : null}
       {rows.map((row) => (
         <StoreProductCard
