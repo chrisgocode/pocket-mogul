@@ -23,7 +23,7 @@ async function openCoffeeKiosk(
   });
   await session.game.checkpoint();
   mockGame = Promise.resolve({ status: 'ready', game: session.game });
-  await renderRouter('src/app', { initialUrl: '/businesses/coffee_kiosk' });
+  await renderRouter('src/app', { initialUrl: '/businesses/coffee_kiosk?section=mechanic' });
   return session;
 }
 
@@ -33,6 +33,7 @@ describe('the Counter section (BUS20e)', () => {
   it('stays locked at Startup', async () => {
     await openCoffeeKiosk(ownedBusiness('coffee_kiosk'));
     expect(screen.queryByRole('header', { name: 'Counter' })).not.toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('tab', { name: 'More' }));
     expect(screen.getByRole('button', { name: '▸ Next unlocks' })).toBeOnTheScreen();
   });
 

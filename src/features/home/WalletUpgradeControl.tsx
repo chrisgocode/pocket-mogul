@@ -2,12 +2,15 @@ import { StyleSheet, View } from 'react-native';
 
 import type { AvailableWalletUpgrade, WalletUpgradeView } from '@/application/walletUpgradeView';
 import { formatMoneyExact } from '@/domain/money';
+import { useMoneyFormat } from '@/features/game/useMoneyFormat';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { AppText } from '@/ui/Typography';
 import { spacing } from '@/ui/tokens';
 
-function upgradeLabel(upgrade: AvailableWalletUpgrade): string {
+import { WalletMaxed } from './WalletMaxed';
+
+function spokenPrice(upgrade: AvailableWalletUpgrade): string {
   return upgrade.affordable
     ? `Upgrade · ${formatMoneyExact(upgrade.priceCents)}`
     : `Need ${formatMoneyExact(upgrade.shortfallCents)} more`;
@@ -22,30 +25,25 @@ export function WalletUpgradeControl({
   highlighted: boolean;
   onReview: (upgrade: AvailableWalletUpgrade) => void;
 }) {
+  const format = useMoneyFormat();
   const current = formatMoneyExact(upgrade.payoutCents);
-  if (upgrade.status === 'max') {
-    return (
-      <Card>
-        <AppText variant="heading">Wallet level {upgrade.level}</AppText>
-        <AppText muted>{current} per tap</AppText>
-        <AppText variant="heading">Max level</AppText>
-      </Card>
-    );
-  }
+  if (upgrade.status === 'max')
+    return <WalletMaxed level={upgrade.level} payoutCents={upgrade.payoutCents} />;
   const next = formatMoneyExact(upgrade.nextPayoutCents);
-  const label = upgradeLabel(upgrade);
   return (
-    <Card highlighted={highlighted}>
-      <View style={styles.heading}>
-        <AppText variant="heading">Wallet level {upgrade.level}</AppText>
-        <AppText variant="number">{formatMoneyExact(upgrade.priceCents)}</AppText>
+    <Card style={styles.dock} highlighted={highlighted}>
+      <View style={styles.text}>
+        <AppText variant="label" muted numberOfLines={1}>
+          Wallet Lv {upgrade.level + 1}
+        </AppText>
+        <AppText variant="heading" numberOfLines={1}>
+          +{format.short(upgrade.nextPayoutCents)} / tap
+        </AppText>
       </View>
-      <AppText muted>
-        {current} → {next} per tap
-      </AppText>
       <Button
-        label={label}
-        accessibilityLabel={`Upgrade wallet, ${current} to ${next} per tap, ${label}`}
+        icon="upgrade"
+        label={format.short(upgrade.priceCents)}
+        accessibilityLabel={`Upgrade wallet, ${current} to ${next} per tap, ${spokenPrice(upgrade)}`}
         onPress={() => onReview(upgrade)}
         disabled={!upgrade.affordable}
       />
@@ -53,6 +51,15 @@ export function WalletUpgradeControl({
   );
 }
 
+const DOCK_RADIUS = 18;
+
 const styles = StyleSheet.create({
-  heading: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
+  dock: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+    borderRadius: DOCK_RADIUS,
+  },
+  text: { flexShrink: 1, gap: 2 },
 });

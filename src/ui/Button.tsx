@@ -2,17 +2,25 @@ import { Pressable, StyleSheet } from 'react-native';
 
 import { useAccent } from './Accent';
 import { ButtonSurface } from './ButtonSurface';
+import { Icon, type IconName } from './Icons';
 import { useButtonPressedStyle } from './pressFeedback';
 import { AppText } from './Typography';
-import { colors, minimumTouchTarget, radius, spacing } from './tokens';
+import { colors, minimumTouchTarget, size as sizes, spacing } from './tokens';
 
 type ButtonVariant = 'primary' | 'secondary';
+
+const INK: Record<ButtonVariant, string> = {
+  primary: colors.textOnAccent,
+  secondary: colors.text,
+};
 
 type ButtonProps = {
   label: string;
   accessibilityLabel?: string;
   onPress: () => void;
   variant?: ButtonVariant;
+  size?: 'regular' | 'compact';
+  icon?: IconName;
   disabled?: boolean;
 };
 
@@ -21,10 +29,14 @@ export function Button({
   accessibilityLabel = label,
   onPress,
   variant = 'primary',
+  size = 'regular',
+  icon,
   disabled = false,
 }: ButtonProps) {
   const accent = useAccent();
   const pressedStyle = useButtonPressedStyle();
+  const primary = variant === 'primary';
+  const ink = INK[variant];
   return (
     <Pressable
       accessibilityRole="button"
@@ -34,43 +46,42 @@ export function Button({
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        variant === 'primary' && styles.primary,
-        variant === 'primary' ? { backgroundColor: accent } : styles.secondary,
+        size === 'compact' && styles.compact,
+        primary ? { backgroundColor: accent } : styles.secondary,
         pressed && pressedStyle,
         disabled && styles.disabled,
       ]}
     >
-      {variant === 'primary' && !disabled ? <ButtonSurface /> : null}
-      <AppText variant="heading" style={variant === 'primary' ? styles.onAccent : styles.onSurface}>
+      {primary && !disabled ? <ButtonSurface /> : null}
+      {icon === undefined ? null : <Icon name={icon} color={ink} size={sizes.iconSmall} />}
+      <AppText variant="heading" numberOfLines={1} style={{ color: ink }}>
         {label}
       </AppText>
     </Pressable>
   );
 }
 
+const BUTTON_RADIUS = 13;
+const COMPACT_HEIGHT = 36;
+
 const styles = StyleSheet.create({
   button: {
     minHeight: minimumTouchTarget,
-    borderRadius: radius.md,
+    borderRadius: BUTTON_RADIUS,
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,
+    flexDirection: 'row',
+    gap: spacing.xs,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.transparent,
-  },
-  primary: {
-    borderTopColor: colors.buttonTopEdge,
+    borderBottomWidth: sizes.buttonDepth,
     borderBottomColor: colors.buttonLowerEdge,
-    borderBottomWidth: 3,
-    shadowColor: colors.buttonShadow,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.18,
-    shadowRadius: 4,
-    elevation: 2,
   },
-  secondary: { backgroundColor: colors.surface, borderColor: colors.border },
-  disabled: { opacity: 0.4, shadowOpacity: 0, elevation: 0 },
-  onAccent: { color: colors.textOnAccent },
-  onSurface: { color: colors.text },
+  compact: {
+    minHeight: COMPACT_HEIGHT,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  secondary: { backgroundColor: colors.surfaceMuted },
+  disabled: { opacity: 0.4 },
 });

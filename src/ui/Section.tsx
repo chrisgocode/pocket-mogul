@@ -23,11 +23,11 @@ export function Section({
       onLayout={(event) => register?.(id ?? title.toLowerCase(), event.nativeEvent.layout.y)}
     >
       <View style={styles.heading}>
-        <AppText variant="title" accessibilityRole="header">
+        <AppText variant="label" muted accessibilityRole="header">
           {title}
         </AppText>
         {note === undefined ? null : (
-          <AppText variant="caption" muted>
+          <AppText variant="caption" muted numberOfLines={2}>
             {note}
           </AppText>
         )}
@@ -39,5 +39,5 @@ export function Section({
 
 const styles = StyleSheet.create({
   section: { gap: spacing.sm },
-  heading: { gap: 2 },
+  heading: { gap: 2, paddingHorizontal: spacing.xs },
 });

@@ -5,7 +5,7 @@ import type {
   ReadyStage,
 } from '@/application/businessDetailView';
 import { Card } from '@/ui/Card';
-import { Section } from '@/ui/Section';
+import { AppText } from '@/ui/Typography';
 
 import { BusinessUpgradeRow } from './BusinessUpgradeRow';
 import { StageRow } from './StageRow';
@@ -23,7 +23,10 @@ export function GrowSection({
   onStage: (stage: ReadyStage) => void;
 }) {
   return (
-    <Section title="Grow" note="Paid from this business's treasury">
+    <>
+      <AppText variant="caption" muted>
+        Paid from this business's treasury
+      </AppText>
       <Card>
         <StageRow stage={detail.stageUpgrade} onReview={onStage} />
         <UnitRow unit={detail.unit} unitName={detail.business.unitName} onReview={onUnit} />
@@ -36,6 +39,6 @@ export function GrowSection({
           />
         ))}
       </Card>
-    </Section>
+    </>
   );
 }

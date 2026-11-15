@@ -24,11 +24,13 @@ const buyVending = () => screen.getByRole('button', { name: /^Buy Vending Machin
 describe('Businesses tab', () => {
   it('lists the Tier 1 catalog with profit per business day and previews locked tiers', async () => {
     await openWith('100');
-    expect(screen.getByText('Profit $100.00/day')).toBeOnTheScreen();
-    expect(buyVending()).toBeDisabled();
-    expect(screen.getByText('Need $150.00 more')).toBeOnTheScreen();
+    expect(
+      screen.getByRole('button', {
+        name: 'Buy Vending Machine, Profit $100.00/day, Need $150.00 more',
+      }),
+    ).toBeDisabled();
     await fireEvent.press(screen.getByRole('tab', { name: 'Tier 2' }));
-    expect(screen.getByText('Unlocks at $5,000.00 peak net worth')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Unlocks at $5,000.00 peak net worth')).toBeOnTheScreen();
     expect(screen.getByText('Laundromat')).toBeOnTheScreen();
     expect(screen.queryByRole('button', { name: /^Buy Laundromat/ })).not.toBeOnTheScreen();
   });
@@ -40,8 +42,8 @@ describe('Businesses tab', () => {
     expect(screen.getByText('+$100.00/day to its treasury')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: /^Confirm purchase/ }));
     expect(await screen.findByLabelText('Cash $50.00')).toBeOnTheScreen();
-    expect(screen.getByText('Owned')).toBeOnTheScreen();
-    expect(screen.getByText('1 owned · $5.00/min to cash')).toBeOnTheScreen();
+    expect(screen.getByLabelText('1 owned')).toBeOnTheScreen();
+    expect(screen.getByLabelText('$5.00/min to cash')).toBeOnTheScreen();
 
     await act(async () => {
       session.clock.advance(30_000);
@@ -65,6 +67,6 @@ describe('Businesses tab', () => {
     await act(() =>
       session.game.dispatch({ id: 'buy', command: { type: 'BuyBusiness', businessId: 'vending' } }),
     );
-    expect(screen.getAllByText('$5.00/min')[0]).toBeOnTheScreen();
+    expect(screen.getByText('+$5.00/m')).toBeOnTheScreen();
   });
 });

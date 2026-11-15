@@ -17,3 +17,15 @@ export function selectRank(state: GameState, content: Content): RankView | undef
     next: next === undefined ? undefined : { title: next.title, thresholdCents: next.threshold },
   };
 }
+
+const PROGRESS_STEPS = 1000n;
+
+export function selectRankProgress(state: GameState, content: Content): number {
+  const standing = rankStanding(state.peakNetWorthCents, content.ranks);
+  if (standing === undefined) return 0;
+  const { current, next } = standing;
+  if (next === undefined || next.threshold <= current.threshold) return 1;
+  const climbed = state.peakNetWorthCents - current.threshold;
+  const steps = (climbed * PROGRESS_STEPS) / (next.threshold - current.threshold);
+  return Number(steps) / Number(PROGRESS_STEPS);
+}

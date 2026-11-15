@@ -25,7 +25,7 @@ async function openGym(
   });
   await session.game.checkpoint();
   mockGame = Promise.resolve({ status: 'ready', game: session.game });
-  await renderRouter('src/app', { initialUrl: '/businesses/gym_chain' });
+  await renderRouter('src/app', { initialUrl: '/businesses/gym_chain?section=mechanic' });
   return session;
 }
 
@@ -35,6 +35,7 @@ describe('the Members section (BUS20h)', () => {
   it('stays locked at Startup', async () => {
     await openGym(ownedBusiness('gym_chain'));
     expect(screen.queryByRole('header', { name: 'Members' })).not.toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('tab', { name: 'More' }));
     expect(screen.getByRole('button', { name: '▸ Next unlocks' })).toBeOnTheScreen();
   });
 

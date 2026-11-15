@@ -20,7 +20,7 @@ async function openBakery(businesses: readonly OwnedBusiness[]) {
   });
   await session.game.checkpoint();
   mockGame = Promise.resolve({ status: 'ready', game: session.game });
-  await renderRouter('src/app', { initialUrl: '/businesses/bakery' });
+  await renderRouter('src/app', { initialUrl: '/businesses/bakery?section=deals' });
 }
 
 describe('the Synergies section (BUS21)', () => {

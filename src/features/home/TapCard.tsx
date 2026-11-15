@@ -1,49 +1,50 @@
-import { Pressable, StyleSheet } from 'react-native';
+import { Animated, Pressable, StyleSheet, View } from 'react-native';
 
 import { formatMoneyExact, type MoneyCents } from '@/domain/money';
+import { TapFloater } from '@/ui/TapFloater';
 import { AppText } from '@/ui/Typography';
-import { usePressedStyle } from '@/ui/pressFeedback';
-import { colors, highlightCardWidth, radius, spacing } from '@/ui/tokens';
+import { colors, highlightCardWidth, motion, radius, size, spacing } from '@/ui/tokens';
+import { useTapPop } from '@/ui/useTapPop';
 
 import { WalletDrawing } from './WalletDrawing';
 import type { WalletArtwork } from './walletArtwork';
 
 export function TapCard({
   perTapCents,
-  walletLevel,
   boosted,
   artwork,
   highlight,
   onTap,
 }: {
   perTapCents: MoneyCents;
-  walletLevel: number;
   boosted: boolean;
   artwork: WalletArtwork;
   highlight: 'tutorial' | 'none';
   onTap: () => void;
 }) {
   const payout = formatMoneyExact(perTapCents);
-  const pressedStyle = usePressedStyle();
+  const { progress, pop } = useTapPop();
+  const tap = () => {
+    pop();
+    onTap();
+  };
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`Tap card, ${artwork.name}, earns ${payout} per tap${boosted ? ', boosted' : ''}`}
-      onPress={onTap}
-      style={({ pressed }) => [
-        styles.card,
-
-        highlight === 'tutorial' && styles.highlighted,
-        pressed && pressedStyle,
-      ]}
+      onPress={tap}
+      style={[styles.card, highlight === 'tutorial' && styles.highlighted]}
     >
-      <WalletDrawing artwork={artwork} />
+      <View style={styles.glow} />
+      <Animated.View style={{ transform: [{ scale: progress.interpolate(motion.tapPulse) }] }}>
+        <WalletDrawing artwork={artwork} />
+      </Animated.View>
+      <TapFloater progress={progress} text={`+${payout}`} />
       <AppText variant="display" style={styles.value}>
         +{payout}
       </AppText>
-      <AppText variant="caption" muted>
-        per tap · wallet level {walletLevel}
-        {boosted ? ' · Boosted' : ''}
+      <AppText variant="label" muted>
+        {boosted ? 'per tap · boosted' : 'per tap'}
       </AppText>
     </Pressable>
   );
@@ -51,15 +52,22 @@ export function TapCard({
 
 const styles = StyleSheet.create({
   card: {
-    minHeight: 210,
-    borderColor: colors.transparent,
-    borderWidth: 1,
+    flex: 1,
+    minHeight: size.walletStage + spacing.xxl,
     alignItems: 'center',
-    borderRadius: radius.lg,
-    padding: spacing.md,
     justifyContent: 'center',
     gap: spacing.xs,
+    borderRadius: radius.lg,
+    borderWidth: highlightCardWidth,
+    borderColor: colors.transparent,
   },
-  highlighted: { borderWidth: highlightCardWidth, borderColor: colors.highlight },
+  highlighted: { borderColor: colors.highlight },
+  glow: {
+    position: 'absolute',
+    width: size.walletStage,
+    height: size.walletStage,
+    borderRadius: radius.pill,
+    backgroundColor: colors.stageGlow,
+  },
   value: { color: colors.highlight },
 });

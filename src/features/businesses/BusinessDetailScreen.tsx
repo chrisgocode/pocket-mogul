@@ -5,7 +5,6 @@ import { getContent } from '@/content';
 import { ActionSheet } from '@/features/game/ActionSheet';
 import { useGameSnapshot } from '@/features/game/GameContext';
 import { useGameAction } from '@/features/game/useGameAction';
-import { EmptyState } from '@/ui/EmptyState';
 import { backLinkOptions } from '@/ui/backLinkOptions';
 import { Screen } from '@/ui/Screen';
 
@@ -14,6 +13,8 @@ import {
   businessActionSheetText,
   type BusinessAction,
 } from './businessAction';
+import { tabForSection } from './businessTabs';
+import { MissingBusiness } from './MissingBusiness';
 import { OwnedBusinessDetails } from './OwnedBusinessDetails';
 import type { TreasuryActions } from './treasuryActions';
 import type { CarWashActions } from './carWashFormat';
@@ -139,26 +140,19 @@ export function BusinessDetailScreen() {
       <Stack.Screen options={{ ...BACK_OPTIONS, title: '' }} />
       {detail.status === 'owned' ? (
         <OwnedBusinessDetails
+          key={section ?? 'default'}
           detail={detail}
+          initialTab={tabForSection(section)}
           onReview={review}
-          onPriceLevel={(priceLevel) => run({ type: 'SetPriceLevel', businessId, priceLevel })}
-          onInsurance={(change) => run({ type: 'SetInsurance', businessId, ...change })}
-          treasury={treasuryActions(detail, { run, review })}
-          flagship={flagshipActions(detail, { run, review })}
+          run={{
+            onInsurance: (change) => run({ type: 'SetInsurance', businessId, ...change }),
+            onPriceLevel: (priceLevel) => run({ type: 'SetPriceLevel', businessId, priceLevel }),
+            treasury: treasuryActions(detail, { run, review }),
+            flagship: flagshipActions(detail, { run, review }),
+          }}
         />
       ) : null}
-      {detail.status === 'not_owned' ? (
-        <EmptyState
-          title={`You don't own ${detail.business.name}`}
-          message="Buy it from the Businesses list to start earning again."
-        />
-      ) : null}
-      {detail.status === 'unknown' ? (
-        <EmptyState
-          title="Business not found"
-          message="Pick a business from the Businesses list."
-        />
-      ) : null}
+      {detail.status === 'owned' ? null : <MissingBusiness detail={detail} />}
       <ActionSheet
         confirmation={confirmation}
         taxCommand={businessActionCommand}

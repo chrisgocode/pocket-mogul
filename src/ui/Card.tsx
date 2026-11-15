@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
-    padding: spacing.lg,
+    padding: spacing.md,
     gap: spacing.sm,
   },
   highlighted: { borderWidth: highlightWidth, borderColor: colors.highlight },

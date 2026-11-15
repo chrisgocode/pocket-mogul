@@ -23,7 +23,7 @@ async function openSpace(
   });
   await session.game.checkpoint();
   mockGame = Promise.resolve({ status: 'ready', game: session.game });
-  await renderRouter('src/app', { initialUrl: '/businesses/space_launch' });
+  await renderRouter('src/app', { initialUrl: '/businesses/space_launch?section=mechanic' });
   return session;
 }
 
@@ -33,6 +33,7 @@ describe('the Mission control section (BUS20l)', () => {
   it('stays locked at Startup', async () => {
     await openSpace(ownedBusiness('space_launch'));
     expect(screen.queryByRole('header', { name: 'Mission control' })).not.toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('tab', { name: 'More' }));
     expect(screen.getByRole('button', { name: '▸ Next unlocks' })).toBeOnTheScreen();
   });
 

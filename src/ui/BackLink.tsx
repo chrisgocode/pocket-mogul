@@ -1,7 +1,10 @@
 import { useRouter, type Href } from 'expo-router';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+
+import { Icon } from './Icons';
 import { AppText } from './Typography';
-import { colors, minimumTouchTarget, spacing } from './tokens';
+import { colors, minimumTouchTarget, radius, size, spacing } from './tokens';
+
 export function BackLink({ href, label }: { href: Href; label: string }) {
   const router = useRouter();
   return (
@@ -11,11 +14,34 @@ export function BackLink({ href, label }: { href: Href; label: string }) {
       onPress={() => router.dismissTo(href)}
       style={styles.back}
     >
-      <AppText style={styles.label}>← {label}</AppText>
+      <View style={styles.disc}>
+        <Icon name="back" color={colors.text} size={size.iconSmall} />
+      </View>
+      <AppText variant="caption" muted>
+        {label}
+      </AppText>
     </Pressable>
   );
 }
+
+const DISC_SIZE = 30;
+
 const styles = StyleSheet.create({
-  back: { minHeight: minimumTouchTarget, justifyContent: 'center', paddingRight: spacing.lg },
-  label: { color: colors.textMuted },
+  back: {
+    minHeight: minimumTouchTarget,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingRight: spacing.lg,
+  },
+  disc: {
+    width: DISC_SIZE,
+    height: DISC_SIZE,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
 });

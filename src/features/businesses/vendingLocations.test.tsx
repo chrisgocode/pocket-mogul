@@ -24,7 +24,7 @@ async function openVending(
   });
   await session.game.checkpoint();
   mockGame = Promise.resolve({ status: 'ready', game: session.game });
-  await renderRouter('src/app', { initialUrl: '/businesses/vending' });
+  await renderRouter('src/app', { initialUrl: '/businesses/vending?section=mechanic' });
   return session;
 }
 

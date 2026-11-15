@@ -23,7 +23,7 @@ async function openHotel(
   });
   await session.game.checkpoint();
   mockGame = Promise.resolve({ status: 'ready', game: session.game });
-  await renderRouter('src/app', { initialUrl: '/businesses/hotel_group' });
+  await renderRouter('src/app', { initialUrl: '/businesses/hotel_group?section=mechanic' });
   return session;
 }
 
@@ -33,6 +33,7 @@ describe('the Front desk section (BUS20i)', () => {
   it('stays locked at Startup', async () => {
     await openHotel(ownedBusiness('hotel_group'));
     expect(screen.queryByRole('header', { name: 'Front desk' })).not.toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('tab', { name: 'More' }));
     expect(screen.getByRole('button', { name: '▸ Next unlocks' })).toBeOnTheScreen();
   });
 

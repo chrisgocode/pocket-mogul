@@ -38,7 +38,7 @@ async function openDelivery(
   });
   await session.game.checkpoint();
   mockGame = Promise.resolve({ status: 'ready', game: session.game });
-  await renderRouter('src/app', { initialUrl: '/businesses/delivery' });
+  await renderRouter('src/app', { initialUrl: '/businesses/delivery?section=mechanic' });
   await fireEvent.press(screen.getByRole('button', { name: '▸ Daily figures' }));
   return session;
 }
@@ -50,12 +50,14 @@ describe('the Contracts section (BUS20c)', () => {
   it('stays locked at Startup and warns that vans will need drivers', async () => {
     await openDelivery(ownedBusiness('delivery'));
     expect(screen.queryByRole('header', { name: 'Contracts' })).not.toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('tab', { name: 'More' }));
     expect(screen.getByRole('button', { name: '▸ Next unlocks' })).toBeOnTheScreen();
   });
 
   it('says what Local unlocks and warns about vans without drivers before growing', async () => {
     const startup = ownedBusiness('delivery', { units: 3, treasuryCents: dollars('600,000') });
     await openDelivery(startup, ['delivery'], 3);
+    await fireEvent.press(screen.getByRole('tab', { name: 'Grow' }));
     await fireEvent.press(screen.getByRole('button', { name: 'Grow to Local · $500,000.00' }));
     expect(screen.getByRole('header', { name: 'Grow to Local' })).toBeOnTheScreen();
     expect(screen.getByText('Contracts and drivers')).toBeOnTheScreen();
@@ -73,10 +75,12 @@ describe('the Contracts section (BUS20c)', () => {
 
   it('names drivers, the route planner and the fleet', async () => {
     await openDelivery(deliveryBusiness());
-    expect(screen.getByText('Driving 1/5')).toBeOnTheScreen();
-    expect(screen.getByText('Route planner 0/20')).toBeOnTheScreen();
     expect(screen.getByText('2 of 2 · 2 per driver')).toBeOnTheScreen();
     expect(screen.getByText('★★★☆☆')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('tab', { name: 'Staff' }));
+    expect(screen.getByText('Driving 1/5')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('tab', { name: 'Grow' }));
+    expect(screen.getByText('Route planner 0/20')).toBeOnTheScreen();
   });
 
   it('accepts an offer after reviewing its terms and profit', async () => {
@@ -115,8 +119,9 @@ describe('the Contracts section (BUS20c)', () => {
 
   it('shows the loss from a van no one can drive', async () => {
     await openDelivery(deliveryBusiness({}, { staff: { operations: 0, sales: 0, manager: 0 } }));
-    expect(screen.getByText('-$14,000.00/day')).toBeOnTheScreen();
     expect(screen.getByText('0 of 2 · 2 per driver')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('tab', { name: 'Grow' }));
+    expect(screen.getByText('-$14,000.00/day profit')).toBeOnTheScreen();
   });
 
   it('builds the sorting hub at Global after confirming', async () => {

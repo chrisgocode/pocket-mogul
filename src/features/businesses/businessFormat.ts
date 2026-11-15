@@ -63,6 +63,8 @@ export const PRICE_LEVEL_NAMES: Readonly<Record<PriceLevel, string>> = {
 
 const STAGE_NAMES = ['Startup', 'Local', 'Regional', 'National', 'Global'] as const;
 
+export const STAGE_COUNT = STAGE_NAMES.length;
+
 export function stageName(stage: number): string {
   return STAGE_NAMES[stage - 1] ?? `Stage ${stage}`;
 }

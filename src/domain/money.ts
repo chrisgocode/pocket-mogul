@@ -137,6 +137,27 @@ export function formatMoneyCompact(value: MoneyCents): string {
   return `${sign}$${mantissa}e${digits.length - 1}`;
 }
 
+const SHORT_SIGNIFICANT_DIGITS = 3;
+const SHORT_WHOLE_DOLLARS_FROM = 100n;
+
+export function formatMoneyShort(value: MoneyCents): string {
+  const negative = value < 0n;
+  const cents: bigint = negative ? 0n - value : value;
+  const wholeDollars = cents / CENTS_PER_DOLLAR;
+  if (wholeDollars < SHORT_WHOLE_DOLLARS_FROM) return formatMoneyExact(value);
+
+  const sign = negative ? '-' : '';
+  const digits = wholeDollars.toString(DECIMAL_RADIX);
+  const group = Math.floor((digits.length - 1) / DIGITS_PER_THOUSANDS_GROUP);
+  const suffix = COMPACT_SUFFIXES[group];
+  if (suffix === undefined) return formatMoneyCompact(value);
+  const leadLength = digits.length - group * DIGITS_PER_THOUSANDS_GROUP;
+  const decimals =
+    group === 0 ? '' : digits.slice(leadLength, SHORT_SIGNIFICANT_DIGITS).replace(/0+$/, '');
+  const fraction = decimals === '' ? '' : `.${decimals}`;
+  return `${sign}$${digits.slice(0, leadLength)}${fraction}${suffix}`;
+}
+
 function formatMoney(value: MoneyCents, style: NumberFormatting = 'compact'): string {
   return style === 'full' ? formatMoneyExact(value) : formatMoneyCompact(value);
 }

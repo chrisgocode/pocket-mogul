@@ -22,7 +22,11 @@ export function ChoiceOption({
       onPress={onPress}
       style={[styles.choice, selected && styles.choiceSelected]}
     >
-      <AppText variant="heading" style={selected ? styles.labelSelected : undefined}>
+      <AppText
+        variant="caption"
+        numberOfLines={1}
+        style={[styles.label, selected && styles.labelSelected]}
+      >
         {label}
       </AppText>
     </Pressable>
@@ -33,11 +37,12 @@ const styles = StyleSheet.create({
   choice: {
     flexGrow: 1,
     minHeight: minimumTouchTarget,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.xs,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radius.sm,
   },
   choiceSelected: { backgroundColor: colors.surface },
+  label: { fontWeight: '700', color: colors.text },
   labelSelected: { color: colors.accent },
 });

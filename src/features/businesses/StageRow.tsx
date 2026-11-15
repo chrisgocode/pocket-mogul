@@ -1,11 +1,9 @@
-import { StyleSheet, View } from 'react-native';
-
 import type { ReadyStage, StageOption } from '@/application/businessDetailView';
 import { formatMoneyExact } from '@/domain/money';
 import { priceLabel } from '@/features/game/priceFormat';
-import { Button } from '@/ui/Button';
+import { useMoneyFormat } from '@/features/game/useMoneyFormat';
+import { ActionRow } from '@/ui/ActionRow';
 import { ListRow } from '@/ui/ListRow';
-import { spacing } from '@/ui/tokens';
 
 import { stageName } from './businessFormat';
 
@@ -23,27 +21,24 @@ export function StageRow({
   stage: StageOption;
   onReview: (stage: ReadyStage) => void;
 }) {
+  const format = useMoneyFormat();
   const title = `Stage ${stageName(stage.stage)}`;
   if (stage.status === 'final') {
     return <ListRow title={title} subtitle="The top stage" value="Max stage" />;
   }
   const next = stageName(stage.stage + 1);
   const needs = `Units ${stage.units}/${stage.unitsNeeded} · Days owned ${Math.min(stage.daysOwned, stage.daysNeeded)}/${stage.daysNeeded}`;
-  const label = stageButtonLabel(stage, next);
   const ready = stage.status === 'ready' ? stage : undefined;
   return (
-    <View style={styles.stage}>
-      <ListRow title={title} subtitle={`Next: ${next}. Needs ${needs}`} />
-      <Button
-        label={label}
-        accessibilityLabel={label}
-        onPress={() => (ready === undefined ? undefined : onReview(ready))}
-        disabled={ready === undefined || !ready.affordable}
-      />
-    </View>
+    <ActionRow
+      title={title}
+      subtitle={`Next: ${next}. Needs ${needs}`}
+      action={{
+        label: format.short(stage.priceCents),
+        accessibilityLabel: stageButtonLabel(stage, next),
+        disabled: ready === undefined || !ready.affordable,
+        onPress: () => (ready === undefined ? undefined : onReview(ready)),
+      }}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  stage: { gap: spacing.sm },
-});

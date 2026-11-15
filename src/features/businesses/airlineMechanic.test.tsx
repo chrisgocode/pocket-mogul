@@ -23,7 +23,7 @@ async function openAirline(
   });
   await session.game.checkpoint();
   mockGame = Promise.resolve({ status: 'ready', game: session.game });
-  await renderRouter('src/app', { initialUrl: '/businesses/airline' });
+  await renderRouter('src/app', { initialUrl: '/businesses/airline?section=mechanic' });
   return session;
 }
 
@@ -33,6 +33,7 @@ describe('the Operations section (BUS20k)', () => {
   it('stays locked at Startup', async () => {
     await openAirline(ownedBusiness('airline'));
     expect(screen.queryByRole('header', { name: 'Operations' })).not.toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('tab', { name: 'More' }));
     expect(screen.getByRole('button', { name: '▸ Next unlocks' })).toBeOnTheScreen();
   });
 

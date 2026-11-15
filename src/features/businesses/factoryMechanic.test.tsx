@@ -23,7 +23,7 @@ async function openFactory(
   });
   await session.game.checkpoint();
   mockGame = Promise.resolve({ status: 'ready', game: session.game });
-  await renderRouter('src/app', { initialUrl: '/businesses/manufacturer' });
+  await renderRouter('src/app', { initialUrl: '/businesses/manufacturer?section=mechanic' });
   return session;
 }
 
@@ -33,6 +33,7 @@ describe('the Factory floor section (BUS20j)', () => {
   it('stays locked at Startup', async () => {
     await openFactory(ownedBusiness('manufacturer'));
     expect(screen.queryByRole('header', { name: 'Factory floor' })).not.toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('tab', { name: 'More' }));
     expect(screen.getByRole('button', { name: '▸ Next unlocks' })).toBeOnTheScreen();
   });
 
