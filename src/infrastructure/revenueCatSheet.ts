@@ -19,7 +19,9 @@ type Checkout = {
   readonly trace: CheckoutLog;
 };
 
-type OpenSheet = { checkout: Promise<PurchaseResult> | undefined };
+type OpenSheet = {
+  open: { readonly productId: string; readonly checkout: Promise<PurchaseResult> } | undefined;
+};
 
 const openSheets = new WeakMap<object, OpenSheet>();
 
@@ -31,7 +33,7 @@ export type SheetCheckout = {
 export function sheetCheckout(
   source: Checkout & { readonly settled: () => void; readonly process: object },
 ): SheetCheckout {
-  const sheet = openSheets.get(source.process) ?? { checkout: undefined };
+  const sheet = openSheets.get(source.process) ?? { open: undefined };
   openSheets.set(source.process, sheet);
   const watch = (open: Promise<PurchaseResult>) => {
     void open.then(source.settled);
@@ -39,22 +41,26 @@ export function sheetCheckout(
   };
   return {
     purchase: (productId) => {
-      if (productId !== source.config.productId) return Promise.resolve({ status: 'disabled' });
-      sheet.checkout ??= checkout(source).finally(() => {
-        sheet.checkout = undefined;
-      });
-      return watch(sheet.checkout);
+      if (!source.config.productIds.includes(productId))
+        return Promise.resolve({ status: 'disabled' });
+      sheet.open ??= {
+        productId,
+        checkout: checkout(source, productId).finally(() => {
+          sheet.open = undefined;
+        }),
+      };
+      if (sheet.open.productId !== productId) return Promise.resolve({ status: 'unavailable' });
+      return watch(sheet.open.checkout);
     },
     pendingProductIds: () => {
-      if (sheet.checkout === undefined) return [];
-      void watch(sheet.checkout);
-      return [source.config.productId];
+      if (sheet.open === undefined) return [];
+      void watch(sheet.open.checkout);
+      return [sheet.open.productId];
     },
   };
 }
 
-async function checkout(source: Checkout): Promise<PurchaseResult> {
-  const { productId } = source.config;
+async function checkout(source: Checkout, productId: string): Promise<PurchaseResult> {
   const record = (revenueCat: CheckoutTrace['revenueCat'], result: PurchaseResult) => {
     source.trace.last = { revenueCat, storeKit: result.status };
     return result;
@@ -62,7 +68,10 @@ async function checkout(source: Checkout): Promise<PurchaseResult> {
   const confirm = async (revenueCat: CheckoutTrace['revenueCat']) =>
     record(
       revenueCat,
-      await confirmedStoreKitPurchase({ storeKit: source.storeKit, config: source.config }),
+      await confirmedStoreKitPurchase(
+        { storeKit: source.storeKit, config: source.config },
+        productId,
+      ),
     );
   try {
     const outcome = await (await source.sdk()).purchase(productId);

@@ -1,5 +1,6 @@
 import type { BillingPort, OwnershipResult } from '@/application/billingPort';
-import type { PurchasePolicy } from '@/application/purchaseLedger';
+import { PURCHASE_CATALOGUE } from '@/application/purchaseCatalogue';
+import type { CatalogueProduct, PurchasePolicy } from '@/application/purchaseLedger';
 import { disabledBilling } from './disabledBilling';
 import { readRevenueCatConfig } from './revenueCatConfig';
 import type { RevenueCatConfig } from './revenueCatConfig';
@@ -36,6 +37,7 @@ type Options = {
   readonly platform: string;
   readonly runtime: (config: RevenueCatConfig) => Promise<RevenueCatSdk>;
   readonly storeKit?: StoreKitSource;
+  readonly catalogue?: readonly CatalogueProduct[];
 };
 
 type StoreKitSource = {
@@ -44,7 +46,11 @@ type StoreKitSource = {
 };
 
 export function revenueCatBilling(options: Options): Selection {
-  const config = readRevenueCatConfig(options.config, options.platform);
+  const catalogue = options.catalogue ?? PURCHASE_CATALOGUE;
+  const config = readRevenueCatConfig(options.config, {
+    platform: options.platform,
+    productIds: catalogue.map((product) => product.productId),
+  });
   if (config === undefined) return { billing: disabledBilling() };
   const logs: Logs = { trace: {}, provider: { identity: 'unknown', transfer: 'notRequested' } };
   const billing = validationBilling(config, { ...options, ...logs });
@@ -53,16 +59,17 @@ export function revenueCatBilling(options: Options): Selection {
     validation: billingValidation(config, { options, ...logs }),
     purchasePolicy: {
       scopes: [{ store: config.store, appId: config.appId, environment: config.environment }],
-      products: [
-        {
-          productId: config.productId,
-          productClass: 'nonConsumable',
-          benefit: 'taxExemption',
-          ...(config.store === 'apple' ? { duplicateCharge: 'storePrevents' } : {}),
-        },
-      ],
+      products: catalogue.map((product) => policyProduct(product, config.store)),
     },
   };
+}
+
+function policyProduct(
+  product: CatalogueProduct,
+  store: RevenueCatConfig['store'],
+): PurchasePolicy['products'][number] {
+  const sold = { ...product, productClass: 'nonConsumable' } as const;
+  return store === 'apple' ? { ...sold, duplicateCharge: 'storePrevents' } : sold;
 }
 
 type Logs = { readonly trace: CheckoutLog; readonly provider: ProviderLog };
@@ -74,18 +81,21 @@ function billingValidation(
   const { storeKit, runtime } = source.options;
   const enabled = checkoutEnabled(config, storeKit);
   return {
-    productId: config.productId,
+    productId: config.validationProductId,
     checkout: enabled ? 'sandbox' : 'disabled',
     storeKit: () =>
       storeKit === undefined
         ? Promise.resolve({ status: 'unavailable' })
-        : storeKitReport({ storeKit: storeKit.evidence, config }),
+        : storeKitReport({
+            storeKit: storeKit.evidence,
+            productId: config.validationProductId,
+          }),
     lastCheckout: () => source.trace.last,
     provider: () => ({ ...source.provider }),
     requestRefund: async () => {
       if (!enabled) return 'disabled';
       try {
-        return await (await runtime(config)).requestRefund(config.productId);
+        return await (await runtime(config)).requestRefund(config.validationProductId);
       } catch {
         return 'failed';
       }
@@ -114,7 +124,7 @@ function validationBilling(config: RevenueCatConfig, options: Options & Logs): B
   return {
     ...disabledBilling(),
     ...session,
-    products: () => localizedProducts(sdk, config.productId),
+    products: () => localizedProducts(sdk, config.productIds),
     ...(sheet === undefined ? {} : { purchase: sheet.purchase }),
     currentOwnership: () =>
       storeKit === undefined
@@ -172,14 +182,14 @@ async function requestTransfer({ native, provider, active }: Transfer): Promise<
 
 async function localizedProducts(
   sdk: () => Promise<RevenueCatSdk>,
-  productId: string,
+  productIds: readonly string[],
 ): ReturnType<BillingPort['products']> {
   try {
-    const products = await (await sdk()).getProducts([productId]);
+    const products = await (await sdk()).getProducts([...productIds]);
     return {
       status: 'available',
       products: products
-        .filter((product) => product.identifier === productId)
+        .filter((product) => productIds.includes(product.identifier))
         .map((product) => ({
           productId: product.identifier,
           displayName: product.title,

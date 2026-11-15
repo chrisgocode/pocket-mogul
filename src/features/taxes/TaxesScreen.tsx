@@ -10,6 +10,7 @@ import { AppText } from '@/ui/Typography';
 
 import { TaxCurrentSection } from './TaxCurrentSection';
 import { TaxDebtCard } from './TaxDebtCard';
+import { TaxExemptionOffer } from './TaxExemptionOffer';
 import { TaxReturnCard } from './TaxReturnCard';
 import { taxActionText } from './taxActionText';
 
@@ -31,6 +32,7 @@ export function TaxesScreen() {
       ))}
       <TaxCurrentSection view={view} />
       {view.debtCents === 0n ? <TaxDebtCard view={view} review={action.review} /> : null}
+      {view.status === 'exempt' ? null : <TaxExemptionOffer />}
       <Disclosure title="Tax rules">
         <AppText muted>
           Taps and Tap Boost are exempt. Returns close every six credited hours. The first $10,000

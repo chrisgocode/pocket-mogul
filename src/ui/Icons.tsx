@@ -13,7 +13,8 @@ export type IconName =
   | 'collection'
   | 'settings'
   | 'profile'
-  | 'taxes';
+  | 'taxes'
+  | 'store';
 
 const PATHS: Record<IconName, string> = {
   home: 'M13 2 L5 14 H11 L10 22 L19 9 H13 Z',
@@ -27,6 +28,7 @@ const PATHS: Record<IconName, string> = {
   settings: '',
   profile: 'M8 8 A4 4 0 1 0 16 8 A4 4 0 1 0 8 8 M4 22 V19 A8 8 0 0 1 20 19 V22',
   taxes: 'M6 3 H18 V22 L15 20 L12 22 L9 20 L6 22 Z M9 8 H15 M9 12 H15 M9 16 H13',
+  store: 'M5 8 H19 L18 21 H6 Z M9 11 V6 A3 3 0 0 1 15 6 V11',
 };
 
 export function Icon({

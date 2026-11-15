@@ -13,6 +13,6 @@ export const ownership = {
 export const purchasePolicy = {
   scopes: [{ store: 'apple', appId: 'test.app', environment: 'sandbox' }],
   products: [
-    { productId: 'test-exemption', productClass: 'nonConsumable', benefit: 'taxExemption' },
+    { productId: 'test-exemption', productClass: 'nonConsumable', entitlements: ['taxExemption'] },
   ],
 } as const;

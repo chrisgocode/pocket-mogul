@@ -38,7 +38,7 @@ it('delivers a RevenueCat purchase once only after StoreKit confirms the scoped 
         verification: { source: 'store', verifiedAtMs: storeKitPurchase.signedDateMs },
         completion: { owner: 'provider' },
       },
-      benefit: 'taxExemption',
+      entitlements: ['taxExemption'],
       result: { status: 'delivered' },
       completion: 'completed',
     },

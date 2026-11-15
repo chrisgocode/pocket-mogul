@@ -43,7 +43,7 @@ In RevenueCat → Product catalog → Products, import or manually add the Apple
 
 Create a Sandbox Apple Account in App Store Connect → Users and Access → Sandbox, using an email you control and United States as its country/region. See [Apple's tester guide](https://developer.apple.com/help/app-store-connect/test-in-app-purchases/create-a-sandbox-apple-account/).
 
-Find the Apple public SDK key beginning `appl_` in RevenueCat → API keys or the Apple app settings. Provide that public key and confirm the two exact product/entitlement IDs when configuring the binary. Private `.p8` files stay in Apple/RevenueCat and secure owner storage; they are not needed in the app or chat. See [RevenueCat's API-key guide](https://www.revenuecat.com/docs/projects/authentication).
+Find the Apple public SDK key beginning `appl_` in RevenueCat → API keys or the Apple app settings. Provide that public key when configuring the binary. The products come from the catalogue in `src/application/purchaseCatalogue.ts`, so the configuration names none; an optional `productId` picks the catalogue product that the Billing validation report buys and refunds (default: the first). Private `.p8` files stay in Apple/RevenueCat and secure owner storage; they are not needed in the app or chat. See [RevenueCat's API-key guide](https://www.revenuecat.com/docs/projects/authentication).
 
 ## App configuration and remaining gates
 

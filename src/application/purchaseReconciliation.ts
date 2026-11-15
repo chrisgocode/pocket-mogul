@@ -5,12 +5,13 @@ import type { SaveTransaction } from './ports';
 import {
   acceptsPurchase,
   authorizesPurchaseScope,
+  grantedEntitlements,
   purchaseKey,
   type PurchasePolicy,
   type PurchaseRecord,
 } from './purchaseLedger';
 import { requireActive } from './purchaseRecovery';
-import { applyTaxEntitlement } from './taxEntitlement';
+import { applyPurchaseRecord } from './purchaseEntitlements';
 import type { GameState } from '@/domain/gameState';
 import { moneyCents } from '@/domain/money';
 
@@ -47,7 +48,7 @@ function reconcileRecords(
     if (previous !== undefined && !newer(previous, evidence, 'active')) continue;
     updated.set(key, {
       ...(previous ?? {
-        benefit: 'taxExemption',
+        entitlements: grantedEntitlements(policy, ownership.reference.productId),
         result: { status: 'delivered' },
         completion: ownership.completion.owner === 'provider' ? 'completed' : 'pending',
       }),
@@ -94,14 +95,7 @@ function project(
     ...records.filter((record) => record.currentOwnership?.status === 'removed'),
   ];
   return ordered.reduce(
-    (previous, record) =>
-      applyTaxEntitlement(previous, {
-        content: context.ports.content,
-        entitlement: {
-          status: record.currentOwnership?.status === 'removed' ? 'revoked' : 'verified',
-          transactionId: purchaseKey(record.ownership.reference),
-        },
-      }),
+    (previous, record) => applyPurchaseRecord(previous, { record, content: context.ports.content }),
     state,
   );
 }

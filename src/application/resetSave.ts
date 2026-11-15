@@ -25,7 +25,8 @@ export async function commitReset(
         economyVersion: context.content.economyVersion,
         wallMs: reset.wallMs,
       });
-      const state = preserveExemption(fresh, reset.current, context.content);
+      const kept = { ...fresh, entitlements: reset.current.entitlements };
+      const state = preserveExemption(kept, reset.current, context.content);
       const outcome = {
         ok: true,
         revision: state.revision,

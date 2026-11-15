@@ -1,3 +1,4 @@
+import { HELD_ENTITLEMENTS } from '@/domain/entitlements';
 import { hasOwnedTaxBasis } from './taxSaveValidation';
 import { TAX_READER_VERSION } from '@/domain/tax/types';
 import { savedTax } from './taxSaveSchema';
@@ -221,6 +222,7 @@ export const saveDocumentSchema = z.looseObject({
   rankingEntries: count.default(0),
   richList: savedRichList.default({ status: 'none' }),
   adRewards: savedAdRewards.default(NO_SAVED_AD_REWARDS),
+  entitlements: z.partialRecord(z.enum(HELD_ENTITLEMENTS), z.array(z.string().min(1))).default({}),
   rushDay: z.record(z.string().min(1), savedRushDay).default({}),
   vending: z.record(z.string().min(1), savedVending).default({}),
   carWash: z.record(z.string().min(1), savedCarWash).default({}),

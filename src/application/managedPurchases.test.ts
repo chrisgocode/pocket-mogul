@@ -36,7 +36,7 @@ it('recovers provider-completed ownership after local failure without claiming d
   expect(await reopened.purchaseRecords()).toEqual([
     {
       ownership: managed,
-      benefit: 'taxExemption',
+      entitlements: ['taxExemption'],
       result: { status: 'delivered' },
       completion: 'completed',
       currentOwnership: { status: 'active', observedAtMs: current.observedAtMs },

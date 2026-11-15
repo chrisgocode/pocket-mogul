@@ -18,7 +18,7 @@ type Source = {
 type Observation = {
   readonly observedAtMs: number;
   readonly entitlements: readonly StoreKitTransaction[];
-  readonly latest: StoreKitTransaction | undefined;
+  readonly latest: readonly StoreKitTransaction[];
 };
 
 export async function syncedStoreKitOwnership(source: Source): Promise<OwnershipResult> {
@@ -28,9 +28,13 @@ export async function syncedStoreKitOwnership(source: Source): Promise<Ownership
     await storeKit.sync();
     const [entitlements, latest] = await Promise.all([
       storeKit.entitlements(),
-      storeKit.latest(source.config.productId),
+      Promise.all(source.config.productIds.map((productId) => storeKit.latest(productId))),
     ]);
-    return inventory(source.config, { observedAtMs, entitlements, latest });
+    return inventory(source.config, {
+      observedAtMs,
+      entitlements,
+      latest: latest.filter((record) => record !== undefined),
+    });
   } catch {
     return { status: 'unavailable' };
   }
@@ -53,20 +57,25 @@ export async function signedStoreKitOwnership(
 
 export async function confirmedStoreKitPurchase(
   source: Omit<Source, 'clock'>,
+  productId: string,
 ): Promise<PurchaseResult> {
   try {
-    const latest = await (await source.storeKit()).latest(source.config.productId);
+    const latest = await (await source.storeKit()).latest(productId);
     if (latest === undefined) return { status: 'unavailable' };
-    return confirmed(source.config, latest);
+    return confirmed(source.config, { latest, productId });
   } catch {
     return { status: 'unavailable' };
   }
 }
 
-function confirmed(config: RevenueCatConfig, latest: StoreKitTransaction): PurchaseResult {
+function confirmed(
+  config: RevenueCatConfig,
+  purchase: { readonly latest: StoreKitTransaction; readonly productId: string },
+): PurchaseResult {
+  const { latest, productId } = purchase;
   const owned =
     latest.verified &&
-    latest.productId === config.productId &&
+    latest.productId === productId &&
     inScope(config, latest) &&
     latest.revocationDateMs === undefined;
   return owned
@@ -76,7 +85,7 @@ function confirmed(config: RevenueCatConfig, latest: StoreKitTransaction): Purch
 
 function inventory(config: RevenueCatConfig, observation: Observation): OwnershipResult {
   const { entitlements, latest, observedAtMs } = observation;
-  const records = latest === undefined ? entitlements : [...entitlements, latest];
+  const records = [...entitlements, ...latest];
   if (records.some((record) => !record.verified)) return { status: 'verificationFailed' };
   return {
     status: 'current',
@@ -90,10 +99,13 @@ function inventory(config: RevenueCatConfig, observation: Observation): Ownershi
 
 function removals(
   config: RevenueCatConfig,
-  latest: StoreKitTransaction | undefined,
+  latest: readonly StoreKitTransaction[],
 ): PurchaseRemoval[] {
-  if (latest?.revocationDateMs === undefined || !inScope(config, latest)) return [];
-  return [{ ...reference(config, latest), revokedAtMs: latest.revocationDateMs }];
+  return latest.flatMap((record) =>
+    record.revocationDateMs === undefined || !inScope(config, record)
+      ? []
+      : [{ ...reference(config, record), revokedAtMs: record.revocationDateMs }],
+  );
 }
 
 function ownedOwnership(

@@ -8,6 +8,7 @@ import { Section } from '@/ui/Section';
 import { AppText } from '@/ui/Typography';
 
 import { PreferencesSection } from './PreferencesSection';
+import { PurchasesSection } from './PurchasesSection';
 import { ReportAdSection } from './ReportAdSection';
 import { ResetSaveSection } from './ResetSaveSection';
 
@@ -15,6 +16,7 @@ export function SettingsScreen() {
   return (
     <Screen>
       <PreferencesSection />
+      <PurchasesSection />
       <ResetSaveSection />
       <ReportAdSection />
       <Section title="About">
