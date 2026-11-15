@@ -242,7 +242,7 @@ export const collection = {
     },
     {
       id: 'collectors_vault',
-      name: 'The Vault',
+      name: 'The Strongroom',
       category: 'curiosities',
       access: 'pass',
       pieceIds: [

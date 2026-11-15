@@ -40,6 +40,19 @@ function incidentLine(content: Content, incident: AbsenceIncident): IncidentLine
   return { key: `${incident.businessId}:${incident.atMs}`, title: text.title, detail: text.detail };
 }
 
+export function groupIncidentLines(lines: readonly IncidentLine[]): IncidentLine[] {
+  const groups = new Map<string, { line: IncidentLine; count: number }>();
+  for (const line of lines) {
+    const text = `${line.title}\n${line.detail}`;
+    const group = groups.get(text);
+    if (group === undefined) groups.set(text, { line, count: 1 });
+    else group.count += 1;
+  }
+  return [...groups.values()].map(({ line, count }) =>
+    count === 1 ? line : { key: line.key, title: `${line.title} ×${count}`, detail: line.detail },
+  );
+}
+
 function earningsLines(earnings: IncomeBySource): EarningsLine[] {
   return INCOME_SOURCES.map(({ source, label }) => ({ label, cents: earnings[source] })).filter(
     (line) => line.cents > 0n,
@@ -74,6 +87,8 @@ export function selectReturnSummary(
       (businessId) =>
         content.businesses.find((business) => business.id === businessId)?.name ?? businessId,
     ),
-    incidents: summary.incidents.map((incident) => incidentLine(content, incident)),
+    incidents: groupIncidentLines(
+      summary.incidents.map((incident) => incidentLine(content, incident)),
+    ),
   };
 }

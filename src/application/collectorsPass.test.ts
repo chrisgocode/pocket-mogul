@@ -89,13 +89,13 @@ describe('Collector’s pass (#158)', () => {
     });
   });
 
-  it('offers three lots and shows The Vault locked without the pass', () => {
+  it('offers three lots and shows The Strongroom locked without the pass', () => {
     const state = collector();
     expect(lotIds(state)).toHaveLength(3);
     expect(lotIds(state).filter((pieceId) => VAULT.includes(pieceId))).toEqual([]);
     expect(viewOf(state)).toMatchObject({ pieceCount: 60, sets: { setCount: 12 } });
     expect(vaultOf(state)).toMatchObject({
-      name: 'The Vault',
+      name: 'The Strongroom',
       status: 'locked',
       heldCount: 0,
       perk: { kind: 'tap', percent: 5 },
@@ -103,7 +103,7 @@ describe('Collector’s pass (#158)', () => {
     expect(vaultOf(state)?.missing).toHaveLength(5);
   });
 
-  it('adds a fourth lot from The Vault and leaves the other three as they were', () => {
+  it('adds a fourth lot from The Strongroom and leaves the other three as they were', () => {
     const state = collector({ entitlements: PASS });
     expect(lotIds(state).slice(0, 3)).toEqual(lotIds(collector()));
     expect(viewOf(state).lots[3]).toMatchObject({ access: 'pass', status: 'available' });
@@ -122,7 +122,7 @@ describe('Collector’s pass (#158)', () => {
     expect(refused.outcome).toEqual({ ok: false, error: 'STALE_QUOTE' });
   });
 
-  it('offers a Vault piece not bought before this auction, then an ordinary fourth lot', () => {
+  it('offers a Strongroom piece not bought before this auction, then an ordinary fourth lot', () => {
     const later = { clock: { ...collector().clock, simulationMs: LOT_DAYS * DAY_MS } };
     const one = collector({
       ...later,
@@ -142,7 +142,7 @@ describe('Collector’s pass (#158)', () => {
   });
 });
 
-describe('The Vault (#158)', () => {
+describe('The Strongroom (#158)', () => {
   it('keeps its perk inside the +30% cap on tap income', () => {
     const vault = VAULT.map(ownedOn(0));
     const vaultOnly = collector({ entitlements: PASS, collectibles: vault });

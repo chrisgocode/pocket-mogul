@@ -10,6 +10,7 @@ import { selectReturnSummary } from './returnSummaryView';
 import { scriptedBilling } from './scriptedBilling';
 import { selectStore } from './storeView';
 import { selectTapCard } from './tapCardView';
+import { selectWalletUpgrade } from './walletUpgradeView';
 import { startTestGameFrom, withoutIncidents, type TestGame } from './testGame';
 
 const HOUR_MS = 3_600_000;
@@ -121,6 +122,20 @@ describe('Golden wallet (#153)', () => {
     session.game.tap();
     expect<bigint>(tapCard(session).cashCents).toBe(dollars('2'));
     expect(await tapTimes(session, 2)).toBe(dollars('6'));
+  });
+
+  it('quotes the wallet upgrade at the doubled payout, without a running boost', async () => {
+    const session = await owning(FRESH, {
+      goldenWallet: ['purchase-1'],
+      vipPass: ['purchase-2'],
+      removeAds: ['purchase-2'],
+    });
+    await session.game.pressTapBoost();
+    await session.game.flushTaps();
+    expect(selectWalletUpgrade(tapCard(session), content)).toMatchObject({
+      payoutCents: dollars('2'),
+      nextPayoutCents: dollars('3'),
+    });
   });
 
   it('stacks with Tap Boost', async () => {

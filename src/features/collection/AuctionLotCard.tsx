@@ -1,6 +1,7 @@
 import { CollectibleArtwork } from './CollectibleArtwork';
 import type { AuctionLot } from '@/application/collectionView';
 import { formatMoneyExact } from '@/domain/money';
+import { useMoneyFormat } from '@/features/game/useMoneyFormat';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { ListRow } from '@/ui/ListRow';
@@ -15,21 +16,23 @@ export function AuctionLotCard({
   lot: AuctionLot;
   onBuy: (lot: AuctionLot) => void;
 }) {
-  const label = lotActionLabel(lot);
+  const format = useMoneyFormat();
+  const exactPrice = formatMoneyExact(lot.priceCents);
   return (
     <Card>
       <CollectibleArtwork pieceId={lot.piece.id} categoryName={lot.categoryName} />
       <ListRow
         title={lot.piece.name}
         subtitle={lotKind(lot)}
-        value={formatMoneyExact(lot.priceCents)}
+        value={format.short(lot.priceCents)}
+        accessibilityLabel={[lot.piece.name, lotKind(lot), exactPrice].join(', ')}
       />
       <AppText variant="caption" muted>
         {`${lot.piece.note} · ${lot.valueNote}`}
       </AppText>
       <Button
-        label={label}
-        accessibilityLabel={`${lot.piece.name}, ${label}`}
+        label={lotActionLabel(lot, format.short)}
+        accessibilityLabel={`${lot.piece.name}, ${lotActionLabel(lot)}`}
         disabled={lot.status === 'owned' || !lot.affordable}
         onPress={() => onBuy(lot)}
       />

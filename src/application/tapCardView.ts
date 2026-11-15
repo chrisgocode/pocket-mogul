@@ -16,21 +16,29 @@ export type TapCardView = {
   readonly walletLevel: number;
   readonly artworkStage: number;
   readonly skin: WalletSkin;
+  readonly perks: TapPerks;
 };
+
+export type TapPerks = { readonly multiplier: number; readonly bonusPercent: number };
 
 export function selectTapCard(snapshot: GameSnapshot, content: Content): TapCardView {
   const { walletLevel } = snapshot.state.tap;
   const rules = content.economy.tap;
   const boosted = isTapBoosted(snapshot);
+  const bonusPercent = tapBonusPercent(snapshot.state, content);
   return {
     cashCents: selectCashCents(snapshot, content),
     perTapCents: boostedTapCents(tapPayoutCents(walletLevel, rules), {
       multiplier: tapMultiplier(snapshot.state, { content, boosted }),
-      bonusPercent: tapBonusPercent(snapshot.state, content),
+      bonusPercent,
     }),
     boosted,
     walletLevel,
     artworkStage: walletArtworkStage(walletLevel, rules.artworkLevels),
     skin: walletSkin(snapshot.state),
+    perks: {
+      multiplier: tapMultiplier(snapshot.state, { content, boosted: false }),
+      bonusPercent,
+    },
   };
 }

@@ -51,9 +51,9 @@ async function open(entitlements: Entitlements, store: 'open' | 'closed'): Promi
 }
 
 describe('Collector’s pass in the Collection (#158)', () => {
-  it('shows The Vault locked with a link to the Store', async () => {
+  it('shows The Strongroom locked with a link to the Store', async () => {
     await open({}, 'open');
-    expect(screen.getByText('The Vault')).toBeOnTheScreen();
+    expect(screen.getByText('The Strongroom')).toBeOnTheScreen();
     expect(screen.getByText(LOCKED)).toBeOnTheScreen();
     expect(screen.getByText(/3 lots every 6 days/)).toBeOnTheScreen();
     await fireEvent.press(
@@ -71,7 +71,7 @@ describe('Collector’s pass in the Collection (#158)', () => {
     expect(screen.queryByRole('button', { name: /See the Collector's pass/ })).toBeNull();
   });
 
-  it('offers a fourth lot marked as the pass holder’s and opens The Vault', async () => {
+  it('offers a fourth lot marked as the pass holder’s and opens The Strongroom', async () => {
     await open({ collectorsPass: ['purchase-1'] }, 'open');
     expect(screen.getByText(/4 lots every 6 days/)).toBeOnTheScreen();
     expect(screen.getByText(/Curiosities · .* · Collector's pass/)).toBeOnTheScreen();
