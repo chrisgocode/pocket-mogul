@@ -37,6 +37,16 @@ const COPY: Readonly<Record<string, Copy>> = {
     pitch: 'No ads at all. Tap Boost and every ad reward are yours at the press of a button.',
     finePrint: 'Includes Remove ads. Daily limits on each reward still apply.',
   },
+  pm_golden_wallet: {
+    name: 'Golden wallet',
+    pitch: 'Every tap pays double, for good, and your wallet turns gold.',
+    finePrint: 'Stacks with Tap Boost and collection set bonuses.',
+  },
+  pm_night_manager: {
+    name: 'Night manager',
+    pitch: 'Your empire earns for up to 24 hours while you are away, instead of 8.',
+    finePrint: 'Applies from your next return. Taxes and incidents keep running too.',
+  },
 };
 
 type Shelf = Pick<Storefront, 'catalogue'> & { readonly front: StorefrontState };
