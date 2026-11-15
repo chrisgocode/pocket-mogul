@@ -10,9 +10,17 @@ import mobileAds, {
 
 import type { AdPort, FullScreenAd, FullScreenAdEvent } from '@/application/ports';
 
-const REWARDED_AD_UNIT_ID = TestIds.REWARDED;
-const INTERSTITIAL_AD_UNIT_ID = TestIds.INTERSTITIAL;
-const APP_OPEN_AD_UNIT_ID = TestIds.APP_OPEN;
+const PRODUCTION_AD_UNIT_IDS = {
+  rewarded: 'ca-app-pub-2452852128706019/7778646498',
+  interstitial: 'ca-app-pub-2452852128706019/3954805769',
+  appOpen: 'ca-app-pub-2452852128706019/2809245052',
+} as const;
+
+const REWARDED_AD_UNIT_ID = __DEV__ ? TestIds.REWARDED : PRODUCTION_AD_UNIT_IDS.rewarded;
+const INTERSTITIAL_AD_UNIT_ID = __DEV__
+  ? TestIds.INTERSTITIAL
+  : PRODUCTION_AD_UNIT_IDS.interstitial;
+const APP_OPEN_AD_UNIT_ID = __DEV__ ? TestIds.APP_OPEN : PRODUCTION_AD_UNIT_IDS.appOpen;
 
 const TEST_DEVICE_IDENTIFIERS: string[] = [];
 
