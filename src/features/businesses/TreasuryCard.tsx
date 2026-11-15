@@ -3,7 +3,6 @@ import { formatMoneyExact, moneyCents } from '@/domain/money';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { ChoiceRow } from '@/ui/ChoiceRow';
-import { DetailLine } from '@/ui/DetailLine';
 import { AppText } from '@/ui/Typography';
 
 import type { TreasuryActions } from './treasuryActions';
@@ -31,7 +30,6 @@ export function TreasuryCard({
   const withdraw = `Withdraw all · ${formatMoneyExact(detail.treasuryCents)}`;
   return (
     <Card>
-      <DetailLine label="Treasury" value={formatMoneyExact(detail.treasuryCents)} emphasis />
       {detail.operation === 'closed' ? (
         <AppText muted>Closed: its treasury ran out. A deposit reopens it.</AppText>
       ) : null}

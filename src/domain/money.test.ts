@@ -2,6 +2,7 @@ import {
   divideRoundingUp,
   formatMoneyCompact,
   formatMoneyExact,
+  formatMoneyShort,
   formatPrice,
   formatPriceCompact,
   formatQuantity,
@@ -80,6 +81,21 @@ describe('formatting', () => {
   it('formats exact cash beyond Number precision (AC24)', () => {
     const value = moneyCents(123_456_789_012_345_678_901n);
     expect(formatMoneyExact(value)).toBe('$1,234,567,890,123,456,789.01');
+  });
+
+  it('formats short money to three significant figures', () => {
+    expect(formatMoneyShort(dollars('1.50'))).toBe('$1.50');
+    expect(formatMoneyShort(dollars('99.99'))).toBe('$99.99');
+    expect(formatMoneyShort(dollars('100'))).toBe('$100');
+    expect(formatMoneyShort(dollars('999.99'))).toBe('$999');
+    expect(formatMoneyShort(dollars('1,240'))).toBe('$1.24K');
+    expect(formatMoneyShort(dollars('12,499'))).toBe('$12.4K');
+    expect(formatMoneyShort(dollars('124,999'))).toBe('$124K');
+    expect(formatMoneyShort(dollars('4,800,000'))).toBe('$4.8M');
+    expect(formatMoneyShort(dollars('10,000'))).toBe('$10K');
+    expect(formatMoneyShort(dollars('1,000,000'))).toBe('$1M');
+    expect(formatMoneyShort(dollars('-1,240'))).toBe('-$1.24K');
+    expect(formatMoneyShort(dollars('-0.05'))).toBe('-$0.05');
   });
 
   it('formats compact summaries, rounding toward zero', () => {

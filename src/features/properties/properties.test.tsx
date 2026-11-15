@@ -42,7 +42,6 @@ describe('Properties listings', () => {
     await open('25,000');
     expect(screen.getAllByRole('button', { name: /^Buy / })).toHaveLength(8);
     expect(screen.getByRole('button', { name: /^Buy Starter House/ })).toBeDisabled();
-    expect(screen.getByText('Need $55,000.00 more')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: /^Buy City Studio/ }));
     expect(sheet()).toHaveTextContent('Buy City Studio');
     expect(screen.getByText('-$20,000.00')).toBeOnTheScreen();

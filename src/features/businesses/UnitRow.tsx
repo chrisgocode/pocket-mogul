@@ -1,10 +1,8 @@
-import { StyleSheet, View } from 'react-native';
-
 import type { AvailableUnit, UnitOption } from '@/application/businessDetailView';
 import { priceLabel } from '@/features/game/priceFormat';
-import { Button } from '@/ui/Button';
+import { useMoneyFormat } from '@/features/game/useMoneyFormat';
+import { ActionRow } from '@/ui/ActionRow';
 import { ListRow } from '@/ui/ListRow';
-import { spacing } from '@/ui/tokens';
 
 import { profitGain } from './businessFormat';
 
@@ -17,26 +15,25 @@ export function UnitRow({
   unitName: string;
   onReview: (unit: AvailableUnit) => void;
 }) {
+  const format = useMoneyFormat();
   const title = `Units ${unit.units}/${unit.cap}`;
   const subtitle = `Each ${unitName} adds capacity and customers`;
   if (unit.status === 'at_cap') {
     return <ListRow title={title} subtitle={subtitle} value="At the stage cap" />;
   }
   const benefit = profitGain(unit.profitCents, unit.nextProfitCents);
-  const label = priceLabel(`Add a ${unitName}`, unit);
   return (
-    <View style={styles.unit}>
-      <ListRow title={title} subtitle={subtitle} value={benefit} detail="profit" />
-      <Button
-        label={label}
-        accessibilityLabel={`Add a ${unitName}, ${benefit}, ${label}`}
-        onPress={() => onReview(unit)}
-        disabled={!unit.affordable}
-      />
-    </View>
+    <ActionRow
+      title={title}
+      subtitle={subtitle}
+      benefit={`${benefit} profit`}
+      accessibilityLabel={`${title}, ${subtitle}, ${benefit}, profit`}
+      action={{
+        label: format.short(unit.priceCents),
+        accessibilityLabel: `Add a ${unitName}, ${benefit}, ${priceLabel(`Add a ${unitName}`, unit)}`,
+        disabled: !unit.affordable,
+        onPress: () => onReview(unit),
+      }}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  unit: { gap: spacing.sm },
-});

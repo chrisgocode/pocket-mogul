@@ -6,7 +6,6 @@ import { ActionSheet } from '@/features/game/ActionSheet';
 import { useGameSnapshot } from '@/features/game/GameContext';
 import { useGameAction } from '@/features/game/useGameAction';
 import { Screen } from '@/ui/Screen';
-import { PageTitle } from '@/ui/PageTitle';
 
 import { propertyActionCommand, propertyActionSheetText } from './propertyAction';
 import { PropertyRegister } from './PropertyRegister';
@@ -23,7 +22,6 @@ export function PropertiesScreen() {
     });
   return (
     <Screen tone="properties">
-      <PageTitle title="Properties" />
       <PropertySummary />
       <PropertyRegister
         listings={view.listings}

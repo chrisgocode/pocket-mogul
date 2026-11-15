@@ -25,7 +25,7 @@ async function openBakery(
   });
   await session.game.checkpoint();
   mockGame = Promise.resolve({ status: 'ready', game: session.game });
-  await renderRouter('src/app', { initialUrl: '/businesses/bakery' });
+  await renderRouter('src/app', { initialUrl: '/businesses/bakery?section=mechanic' });
   return session;
 }
 
@@ -35,6 +35,7 @@ describe('the Ovens section (BUS20g)', () => {
   it('stays locked at Startup', async () => {
     await openBakery(ownedBusiness('bakery'));
     expect(screen.queryByRole('header', { name: 'Ovens' })).not.toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('tab', { name: 'More' }));
     expect(screen.getByRole('button', { name: '▸ Next unlocks' })).toBeOnTheScreen();
   });
 

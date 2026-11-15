@@ -21,7 +21,8 @@ export function RushDayOffer({ businessId }: { businessId: string }) {
     <AdRewardButton
       offer={{ kind: 'rush_day', businessId }}
       name="Rush day"
-      reward={`${boost} through the next business day`}
+      reward={boost}
+      detail="Through the next business day"
     />
   );
 }

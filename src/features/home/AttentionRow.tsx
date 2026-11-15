@@ -1,9 +1,12 @@
 import { useRouter } from 'expo-router';
+
 import type { HomeAttention } from '@/application/homeAttention';
 import { ListRow } from '@/ui/ListRow';
-export function AttentionRow({ item }: { item: HomeAttention }) {
+
+export function AttentionRow({ item, onLeave }: { item: HomeAttention; onLeave: () => void }) {
   const router = useRouter();
   const open = () => {
+    onLeave();
     if (item.kind === 'taxes') router.push('/taxes');
     else if (item.kind === 'property')
       router.push({ pathname: '/properties/[propertyId]', params: { propertyId: item.id } });

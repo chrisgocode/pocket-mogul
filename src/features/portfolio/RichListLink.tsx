@@ -12,6 +12,7 @@ export function RichListLink() {
   const gap = richListGapText(view);
   return (
     <ListRow
+      variant="card"
       title="Rich List"
       subtitle={gap}
       value={`#${view.place}`}

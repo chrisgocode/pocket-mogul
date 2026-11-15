@@ -16,6 +16,7 @@ export function CollectionShelf() {
     shelf.showpiece === undefined ? 'Nothing on show' : `On show: ${shelf.showpiece.name}`;
   return (
     <ListRow
+      variant="card"
       leading={<ShelfArtwork showpiece={shelf.showpiece} />}
       title="Collection shelf"
       subtitle={shown}

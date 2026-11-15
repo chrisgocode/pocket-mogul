@@ -1,20 +1,49 @@
-import { selectRank } from '@/application/rankView';
+import { StyleSheet, View } from 'react-native';
+
+import { selectRank, selectRankProgress } from '@/application/rankView';
 import { getContent } from '@/content';
 import { formatMoneyCompact } from '@/domain/money';
 import { useGameSnapshot } from '@/features/game/GameContext';
-import { DetailLine } from '@/ui/DetailLine';
+import { Card } from '@/ui/Card';
+import { ProgressBar } from '@/ui/ProgressBar';
+import { AppText } from '@/ui/Typography';
+import { spacing } from '@/ui/tokens';
 
 export function RankLines() {
-  const rank = selectRank(useGameSnapshot().state, getContent());
+  const { state } = useGameSnapshot();
+  const rank = selectRank(state, getContent());
   if (rank === undefined) return null;
   const next =
     rank.next === undefined
       ? 'Top rank reached'
       : `${rank.next.title} at ${formatMoneyCompact(rank.next.thresholdCents)} peak net worth`;
   return (
-    <>
-      <DetailLine label="Rank" value={rank.title} emphasis />
-      <DetailLine label="Next rank" value={next} />
-    </>
+    <Card>
+      <View style={styles.row}>
+        <AppText variant="heading" accessibilityLabel={`Rank, ${rank.title}`}>
+          {rank.title}
+        </AppText>
+        <AppText
+          variant="caption"
+          muted
+          numberOfLines={1}
+          style={styles.next}
+          accessibilityLabel={`Next rank, ${next}`}
+        >
+          {rank.next === undefined ? next : `Next: ${rank.next.title}`}
+        </AppText>
+      </View>
+      <ProgressBar fraction={selectRankProgress(state, getContent())} />
+    </Card>
   );
 }
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+  },
+  next: { flexShrink: 1 },
+});

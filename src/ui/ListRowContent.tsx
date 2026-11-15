@@ -14,6 +14,7 @@ export type ListRowProps = {
   detail?: string | undefined;
   detailTrend?: Trend;
   dimmed?: boolean;
+  variant?: 'line' | 'card';
   accessibilityLabel?: string;
   onPress?: (() => void) | undefined;
 };

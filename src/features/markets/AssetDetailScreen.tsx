@@ -19,6 +19,7 @@ import { PositionCard } from './PositionCard';
 import { PriceChartCard } from './PriceChartCard';
 import { tradeUnits } from './tradeUnits';
 import { AssetTrading } from './AssetTrading';
+import { WatchlistToggle } from './WatchlistToggle';
 
 const BACK_OPTIONS = backLinkOptions({ href: '/markets', label: 'Markets' });
 
@@ -41,15 +42,15 @@ export function AssetDetailScreen() {
   const units = tradeUnits(detail.kind);
   const news = selectMarketNews(snapshot.state, { market, content, assetId, limit: NEWS_ITEMS });
   return (
-    <Screen tone="markets">
+    <Screen tone="markets" footer={<AssetTrading detail={detail} units={units} />}>
       <Stack.Screen options={{ ...BACK_OPTIONS, title: detail.asset.name }} />
       <AssetOverview detail={detail} />
+      <PriceChartCard detail={detail} />
       {detail.position === undefined ? null : (
         <PositionCard position={detail.position} units={units} />
       )}
       {detail.dividends === undefined ? null : <DividendCard dividends={detail.dividends} />}
-      <AssetTrading detail={detail} units={units} />
-      <PriceChartCard detail={detail} />
+      <WatchlistToggle assetId={detail.asset.id} watched={detail.watched} />
       <AssetAbout detail={detail} />
       <Section title="News" note={`Recent events that moved ${detail.asset.name}`}>
         <NewsList items={news} empty={`No recent news about ${detail.asset.name}.`} />

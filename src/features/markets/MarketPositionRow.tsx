@@ -31,6 +31,7 @@ export function MarketPositionRow({ quote }: { quote: AssetQuote }) {
     position.averageCost === undefined ? '—' : formatPriceCompact(position.averageCost);
   return (
     <ListRow
+      variant="card"
       leading={<LogoMark logo={quote.asset.logo} />}
       title={quote.asset.ticker}
       subtitle={`${formatQuantity(position.quantity)} held · avg ${average}`}

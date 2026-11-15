@@ -41,11 +41,13 @@ describe('app shell', () => {
   it('previews locked tiers with their unlock threshold', async () => {
     await renderApp('/businesses');
     await fireEvent.press(screen.getByRole('tab', { name: 'Tier 2' }));
-    expect(screen.getByText('Unlocks at $5,000.00 peak net worth')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Unlocks at $5,000.00 peak net worth')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('tab', { name: 'Tier 4' }));
-    expect(screen.getByText('Unlocks at $8,000,000.00 peak net worth')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Unlocks at $8,000,000.00 peak net worth')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('tab', { name: 'Tier 1' }));
-    expect(screen.getByText('Profit $100.00/day')).toBeOnTheScreen();
+    expect(
+      screen.getByRole('button', { name: /^Buy Vending Machine, Profit \$100\.00\/day/ }),
+    ).toBeOnTheScreen();
   });
 
   it('switches Markets between stocks and crypto, with the fictional notice', async () => {

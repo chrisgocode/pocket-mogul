@@ -33,7 +33,7 @@ async function open(session: TestGame, initialUrl: string): Promise<TestGame> {
 
 const DOUBLE = 'Double offline earnings, Watch ad · double to $4,800.00';
 const BRIEFCASE = 'Daily briefcase, Watch ad · $75.00 briefcase';
-const RUSH = 'Rush day, Watch ad · 2× profit through the next business day';
+const RUSH = 'Rush day, Watch ad · 2× profit';
 
 const END_INCIDENT = /, Watch ad · end this incident now$/;
 
@@ -61,6 +61,7 @@ describe('rewarded ads (#160, #165)', () => {
 
   it('pays the daily briefcase once from Earn', async () => {
     const session = await open(await startTestGameFrom(owner(), calm), '/home');
+    await fireEvent.press(screen.getByRole('button', { name: 'Open Briefcase' }));
     expect(screen.getByText('15 minutes of your income · 1 of 1 left today')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: BRIEFCASE }));
     expect(
@@ -70,8 +71,8 @@ describe('rewarded ads (#160, #165)', () => {
   });
 
   it('starts a rush day from the business page', async () => {
-    await open(await startTestGameFrom(owner(), calm), '/businesses/vending');
-    expect(screen.getByText('3 of 3 left today')).toBeOnTheScreen();
+    await open(await startTestGameFrom(owner(), calm), '/businesses/vending?section=mechanic');
+    expect(screen.getByText('Through the next business day · 3 of 3 left today')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: RUSH }));
     expect(await screen.findByText('Rush day running')).toBeOnTheScreen();
     expect(screen.queryByRole('button', { name: RUSH })).toBeNull();
@@ -87,7 +88,7 @@ describe('rewarded ads (#160, #165)', () => {
     } as const;
     const session = await open(
       await startTestGameFrom(owner({ incident }), calm),
-      '/businesses/vending',
+      '/businesses/vending?section=mechanic',
     );
     await fireEvent.press(screen.getByRole('button', { name: END_INCIDENT }));
     await session.game.flushTaps();

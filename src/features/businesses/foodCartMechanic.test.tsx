@@ -31,7 +31,7 @@ async function openFoodCart(
   });
   await session.game.checkpoint();
   mockGame = Promise.resolve({ status: 'ready', game: session.game });
-  await renderRouter('src/app', { initialUrl: '/businesses/food_cart' });
+  await renderRouter('src/app', { initialUrl: '/businesses/food_cart?section=mechanic' });
   return session;
 }
 
@@ -41,6 +41,7 @@ describe('the Street section (BUS20d)', () => {
   it('stays locked at Startup', async () => {
     await openFoodCart(ownedBusiness('food_cart'));
     expect(screen.queryByRole('header', { name: 'Street' })).not.toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('tab', { name: 'More' }));
     expect(screen.getByRole('button', { name: '▸ Next unlocks' })).toBeOnTheScreen();
   });
 
