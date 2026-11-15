@@ -21,6 +21,7 @@ export type RevenueCatSdk = {
       readonly identifier: string;
       readonly title: string;
       readonly priceString: string;
+      readonly price: number;
     }[]
   >;
   readonly purchase: (productId: string) => Promise<RevenueCatPurchase>;

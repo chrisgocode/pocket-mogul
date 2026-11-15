@@ -14,6 +14,7 @@ export const colors = {
   loss: '#F3A397',
   locked: '#626775',
   highlight: '#EABB72',
+  gold: '#F2B705',
   scrim: 'rgba(0, 0, 0, 0.65)',
   buttonHighlight: '#FFFFFF',
   buttonTopEdge: 'rgba(255, 255, 255, 0.28)',
@@ -46,7 +47,7 @@ export const walletArt = {
   silver: '#526072',
   gold: '#9A6A00',
   obsidian: '#14171F',
-  golden: '#F2B705',
+  golden: colors.gold,
 } as const;
 
 export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;

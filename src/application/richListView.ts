@@ -1,4 +1,5 @@
 import type { Content } from '@/content';
+import { holdsEntitlement } from '@/domain/entitlements';
 import type { GameState } from '@/domain/gameState';
 import { formatMoneyCompact, moneyCents, type MoneyCents } from '@/domain/money';
 import { mogulFortunes, type RankingMove, type RichListNews } from '@/domain/richList';
@@ -12,6 +13,7 @@ export type RichListRow = {
   readonly sector: string;
   readonly fortuneCents: MoneyCents;
   readonly who: 'player' | 'mogul';
+  readonly nameTone: 'plain' | 'gold';
 };
 
 export type RichListView =
@@ -50,14 +52,17 @@ export function selectRichList(state: GameState, content: Content): RichListView
       sector,
       fortuneCents,
       who: 'mogul',
+      nameTone: 'plain',
     }),
   );
+  const founder = holdsEntitlement(state, 'founder');
   const player: Entry = {
     id: PLAYER_ID,
     name: 'You',
-    sector: 'Peak net worth',
+    sector: founder ? 'Founder · Peak net worth' : 'Peak net worth',
     fortuneCents: state.peakNetWorthCents,
     who: 'player',
+    nameTone: founder ? 'gold' : 'plain',
   };
   const rows = ranked([...moguls, player]);
   const place = rows.findIndex((row) => row.who === 'player') + 1;
