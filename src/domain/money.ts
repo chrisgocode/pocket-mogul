@@ -152,7 +152,8 @@ export function formatMoneyShort(value: MoneyCents): string {
   const suffix = COMPACT_SUFFIXES[group];
   if (suffix === undefined) return formatMoneyCompact(value);
   const leadLength = digits.length - group * DIGITS_PER_THOUSANDS_GROUP;
-  const decimals = group === 0 ? '' : digits.slice(leadLength, SHORT_SIGNIFICANT_DIGITS);
+  const decimals =
+    group === 0 ? '' : digits.slice(leadLength, SHORT_SIGNIFICANT_DIGITS).replace(/0+$/, '');
   const fraction = decimals === '' ? '' : `.${decimals}`;
   return `${sign}$${digits.slice(0, leadLength)}${fraction}${suffix}`;
 }

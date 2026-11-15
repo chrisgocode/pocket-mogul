@@ -91,7 +91,9 @@ describe('formatting', () => {
     expect(formatMoneyShort(dollars('1,240'))).toBe('$1.24K');
     expect(formatMoneyShort(dollars('12,499'))).toBe('$12.4K');
     expect(formatMoneyShort(dollars('124,999'))).toBe('$124K');
-    expect(formatMoneyShort(dollars('4,800,000'))).toBe('$4.80M');
+    expect(formatMoneyShort(dollars('4,800,000'))).toBe('$4.8M');
+    expect(formatMoneyShort(dollars('10,000'))).toBe('$10K');
+    expect(formatMoneyShort(dollars('1,000,000'))).toBe('$1M');
     expect(formatMoneyShort(dollars('-1,240'))).toBe('-$1.24K');
     expect(formatMoneyShort(dollars('-0.05'))).toBe('-$0.05');
   });

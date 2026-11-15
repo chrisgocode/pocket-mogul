@@ -22,7 +22,11 @@ export function ChoiceOption({
       onPress={onPress}
       style={[styles.choice, selected && styles.choiceSelected]}
     >
-      <AppText variant="heading" style={selected ? styles.labelSelected : undefined}>
+      <AppText
+        variant="number"
+        numberOfLines={1}
+        style={selected ? styles.labelSelected : undefined}
+      >
         {label}
       </AppText>
     </Pressable>
@@ -33,7 +37,7 @@ const styles = StyleSheet.create({
   choice: {
     flexGrow: 1,
     minHeight: minimumTouchTarget,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.sm,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radius.sm,
