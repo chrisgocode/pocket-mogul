@@ -77,13 +77,11 @@ function confirmed(
   purchase: { readonly latest: StoreKitTransaction; readonly productId: string },
 ): PurchaseResult {
   const { latest, productId } = purchase;
+  const scoped = scopedReference(config, latest);
   const owned =
-    latest.verified &&
-    latest.productId === productId &&
-    inScope(config, latest) &&
-    latest.revocationDateMs === undefined;
-  return owned
-    ? { status: 'completed', ownership: verifiedOwnership(config, latest) }
+    latest.verified && latest.productId === productId && latest.revocationDateMs === undefined;
+  return owned && scoped !== undefined
+    ? { status: 'completed', ownership: verifiedOwnership(scoped, latest) }
     : { status: 'verificationFailed' };
 }
 
@@ -105,49 +103,53 @@ function removals(
   config: RevenueCatConfig,
   latest: readonly StoreKitTransaction[],
 ): PurchaseRemoval[] {
-  return latest.flatMap((record) =>
-    record.revocationDateMs === undefined || !inScope(config, record)
+  return latest.flatMap((record) => {
+    const scoped = scopedReference(config, record);
+    return scoped === undefined || record.revocationDateMs === undefined
       ? []
-      : [{ ...reference(config, record), revokedAtMs: record.revocationDateMs }],
-  );
+      : [{ ...scoped, revokedAtMs: record.revocationDateMs }];
+  });
 }
 
 function ownedOwnership(
   config: RevenueCatConfig,
   entitlements: readonly StoreKitTransaction[],
 ): VerifiedOwnership[] {
-  return entitlements
-    .filter((record) => inScope(config, record) && record.revocationDateMs === undefined)
-    .map((record) => verifiedOwnership(config, record));
+  return entitlements.flatMap((record) => {
+    const scoped = scopedReference(config, record);
+    return scoped === undefined || record.revocationDateMs !== undefined
+      ? []
+      : [verifiedOwnership(scoped, record)];
+  });
 }
 
-function inScope(config: RevenueCatConfig, record: StoreKitTransaction): boolean {
-  return (
-    config.store === 'apple' &&
-    record.appBundleId === config.appId &&
-    record.environment === config.environment &&
+function scopedReference(
+  config: RevenueCatConfig,
+  record: StoreKitTransaction,
+): PurchaseReference | undefined {
+  const environment = config.environments.find((allowed) => allowed === record.environment);
+  const purchased =
     record.productType === 'nonConsumable' &&
     record.ownershipType === 'purchased' &&
-    record.originalId.length > 0
-  );
-}
-
-function reference(config: RevenueCatConfig, record: StoreKitTransaction): PurchaseReference {
+    record.originalId.length > 0;
+  if (config.store !== 'apple' || record.appBundleId !== config.appId || !purchased)
+    return undefined;
+  if (environment === undefined) return undefined;
   return {
     store: 'apple',
     appId: config.appId,
-    environment: config.environment,
+    environment,
     purchaseId: record.originalId,
     productId: record.productId,
   };
 }
 
 function verifiedOwnership(
-  config: RevenueCatConfig,
+  reference: PurchaseReference,
   record: StoreKitTransaction,
 ): VerifiedOwnership {
   return {
-    reference: reference(config, record),
+    reference,
     productClass: 'nonConsumable',
     verification: { source: 'store', verifiedAtMs: record.signedDateMs },
     completion: { owner: 'provider' },

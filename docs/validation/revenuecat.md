@@ -12,7 +12,7 @@ For ownership feasibility, #112 must document the concrete SDK fields, supported
 
 ## Explicit configuration
 
-Leave `EXPO_PUBLIC_BILLING_VALIDATION` unset in ordinary builds. The variable is JSON inlined by Expo, so changing it requires rebuilding the bundle/binary. It contains a public SDK key, never a RevenueCat secret key or store credential. Development mode alone never enables billing. An explicitly configured release-mode sandbox build uses the same gate.
+Since 2026-11-15, store builds set `EXPO_PUBLIC_BILLING_VALIDATION` to the `release` profile (`{"profile":"release","store":"apple","appId":"com.chrisgocode.pocketfortune","apiKey":"appl_…"}`) through EAS environment variables; it enables checkout for `production` and `sandbox` StoreKit transactions and shows no validation report. The `revenuecat-validation` profile below is for sandbox validation builds only. Leave the variable unset in development builds that should not sell anything. The variable is JSON inlined by Expo, so changing it requires rebuilding the bundle/binary. It contains a public SDK key, never a RevenueCat secret key or store credential. Development mode alone never enables billing. An explicitly configured release-mode sandbox build uses the same gate.
 
 Example shape (replace the public SDK key with the validation app's real public key):
 
