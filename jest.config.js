@@ -3,4 +3,5 @@ module.exports = {
   testMatch: ['<rootDir>/src/**/*.test.tsx'],
   moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
   maxWorkers: 2,
+  testTimeout: 15_000,
 };

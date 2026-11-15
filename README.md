@@ -99,6 +99,8 @@ Engine tests run each Game over a fresh in-memory database from Node's built-in 
 
 Logic tests use `bun test`'s global `describe`/`it`/`expect`. Screen tests use Jest because `bun test` can't load React Native, so name them `*.test.tsx` and keep them out of the logic folders. Plain `bun test` from the root would also pick up the screen tests and fail; use the scripts.
 
+Screen tests have a 15-second timeout in `jest.config.js`. The first router render loads the app's routes and native component mocks, which can exceed Jest's default five seconds on CI runners. A timeout can leave that render running into the next test and cause misleading navigation errors.
+
 ## Git hooks and CI
 
 `bun install` sets up a Husky pre-commit hook. It formats and lints the staged files (lint-staged, `.lintstagedrc.json`), then runs the typecheck, knip and every test, so a commit only lands when they pass. It takes about 7 seconds.
