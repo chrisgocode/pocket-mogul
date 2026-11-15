@@ -1,6 +1,6 @@
 # Collectible artwork
 
-Artwork is cosmetic. Its manifest is separate from the economy, save state and appraisals. The app registers all sixty approved collectibles: ten each for cars, watches, yachts, art, wine and spirits, and curiosities (180 mobile variants). The same shared `Artwork` component can support another catalogue later; property and business-stage manifests are not registered here.
+Artwork is cosmetic. Its manifest is separate from the economy, save state and appraisals. The app registers all 65 approved pieces: ten each for cars, watches, yachts, art, and wine and spirits, plus fifteen curiosities including the five Collector’s pass pieces in The Strongroom (195 mobile variants). The same shared `Artwork` component can support another catalogue later; property and business-stage manifests are not registered here.
 
 ## Rendering
 
@@ -16,7 +16,17 @@ This adds the native `expo-image` module: make a new development/Release build b
 
 Watches use the corrected front-facing dials. The art catalogue mixes modest original works with playful interpretations of familiar masterpieces. At the owner’s request, the stable `corner_cafe_sketch` ID now displays as **Office Building Sketch**, a watercolour inspired by Pam’s office-building painting from _The Office_; its price and saved identity are unchanged. The other catalogue names remain fictional.
 
-Wine and spirits show a representative bottle beside its case when applicable, or the complete cask. Curiosities include fossils, meteorites and fictional flown space hardware. Master PNGs and exact generation prompts remain in the asset archive; only optimized WebPs are downloaded by the app.
+Wine and spirits show a representative bottle beside its case when applicable, or the complete cask. Curiosities include fossils, meteorites and fictional flown space hardware. The Strongroom adds the Railway Share Certificate, Brass Ticker Machine, Bank Vault Door, Exchange Opening Bell and Solid Gold Briefcase in the same dark studio catalogue style. Master PNGs and exact generation prompts remain in the asset archive; only optimized WebPs are downloaded by the app.
+
+## Strongroom source archive
+
+The five approved master PNGs and their [exact generation prompts](https://vn983smg1q.ufs.sh/f/LJGxwDt70D1eCS9KL18Yc06F8oEH5mqndw7ZijAKOQLp4DUh) are archived in the Pocket Fortune UploadThing project. The app uses only the mobile variants in its manifest.
+
+- [Railway Share Certificate](https://vn983smg1q.ufs.sh/f/LJGxwDt70D1ensWobMyXOHU9dQZrwDMzhaLk203gYAFGxTqR)
+- [Brass Ticker Machine](https://vn983smg1q.ufs.sh/f/LJGxwDt70D1eK9obmQXj8NFKpAcwDgVIjm2kT46ztEGWMJ3r)
+- [Bank Vault Door](https://vn983smg1q.ufs.sh/f/LJGxwDt70D1es1NbMSxyq20ZONXME4gVAyoPB5vYk1RcQeJb)
+- [Exchange Opening Bell](https://vn983smg1q.ufs.sh/f/LJGxwDt70D1eUAMarlmh5KEAXbkzdYMLc2R8jFN19PyJ47Bx)
+- [Solid Gold Briefcase](https://vn983smg1q.ufs.sh/f/LJGxwDt70D1eldSgwfkR9GmDQhjFd7l1yrT04MLHZVIY2pSE)
 
 ## Add or replace a piece
 
