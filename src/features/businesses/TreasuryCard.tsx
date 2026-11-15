@@ -4,6 +4,7 @@ import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { ChoiceRow } from '@/ui/ChoiceRow';
 import { AppText } from '@/ui/Typography';
+import { useMoneyFormat } from '@/features/game/useMoneyFormat';
 
 import type { TreasuryActions } from './treasuryActions';
 
@@ -26,8 +27,7 @@ export function TreasuryCard({
   actions: TreasuryActions;
 }) {
   const depositCents = moneyCents(detail.cashCents / DEPOSIT_SHARE);
-  const deposit = `Deposit half your cash · ${formatMoneyExact(depositCents)}`;
-  const withdraw = `Withdraw all · ${formatMoneyExact(detail.treasuryCents)}`;
+  const format = useMoneyFormat();
   return (
     <Card>
       {detail.operation === 'closed' ? (
@@ -41,13 +41,15 @@ export function TreasuryCard({
         onSelect={(percent) => actions.setPayout(Number(percent))}
       />
       <Button
-        label={deposit}
+        label={`Deposit half your cash · ${format.short(depositCents)}`}
+        accessibilityLabel={`Deposit half your cash · ${formatMoneyExact(depositCents)}`}
         variant="secondary"
         onPress={() => actions.deposit(depositCents)}
         disabled={depositCents <= 0n}
       />
       <Button
-        label={withdraw}
+        label={`Withdraw all · ${format.short(detail.treasuryCents)}`}
+        accessibilityLabel={`Withdraw all · ${formatMoneyExact(detail.treasuryCents)}`}
         variant="secondary"
         onPress={() => actions.withdrawAll(detail.treasuryCents)}
         disabled={detail.treasuryCents <= 0n}

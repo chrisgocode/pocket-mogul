@@ -2,6 +2,8 @@ import { growthOptions, treasuryFunded, type Improvement } from './growthOptions
 import type { Content } from '@/content';
 import { businessEconomy, propertyEconomy } from '@/application/economy';
 import { tapMultiplier } from '@/application/purchaseEffects';
+import { tapBonusPercent } from '@/application/collectionSetsView';
+import { boostedTapCents } from '@/domain/tapping';
 import { findOwnedBusiness } from '@/domain/business/commands';
 import { profitPerDayCents, quoteImprovement, quoteUnit } from '@/domain/business/core';
 import { BUSINESS_TRACKS, type BusinessPricing } from '@/domain/business/definition';
@@ -53,9 +55,12 @@ const MS_PER_MINUTE = 60_000n;
 function walletOptions({ state, content, tapsPerMinute }: OptionContext): PurchaseOption[] {
   const quote = quoteWalletUpgrade(state.tap.walletLevel, content.economy.tap);
   if (quote.status === 'max') return [];
+  const perks = {
+    multiplier: tapMultiplier(state, { content, boosted: false }),
+    bonusPercent: tapBonusPercent(state, content),
+  };
   const perTap =
-    (quote.nextPayoutCents - quote.payoutCents) *
-    BigInt(tapMultiplier(state, { content, boosted: false }));
+    boostedTapCents(quote.nextPayoutCents, perks) - boostedTapCents(quote.payoutCents, perks);
   return [
     {
       kind: 'wallet upgrade',

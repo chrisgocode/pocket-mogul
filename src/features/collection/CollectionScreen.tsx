@@ -25,7 +25,7 @@ export function CollectionScreen() {
   return (
     <Screen tone="profile">
       <StatPair
-        left={{ label: 'Collection value', value: format.money(view.valueCents) }}
+        left={{ label: 'Collection value', value: format.short(view.valueCents) }}
         right={{ label: 'Pieces', value: `${view.pieces.length} of ${view.pieceCount}` }}
       />
       <Section title="Auction house" note={auctionNote(view)}>

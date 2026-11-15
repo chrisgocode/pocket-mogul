@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 
-import { activityRow } from '@/application/activityView';
+import { activityRows } from '@/application/activityRows';
 import { getContent } from '@/content';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
@@ -19,15 +19,13 @@ export function RecentActivity() {
   }
   if (read.status !== 'loaded') return null;
   const content = getContent();
-  const recent = read.entries.slice(0, RECENT_ENTRIES);
+  const recent = activityRows(read.entries, content).slice(0, RECENT_ENTRIES);
   return (
     <Card>
       {recent.length === 0 ? (
         <AppText muted>Purchases, sales, upgrades, trades and dividends will appear here.</AppText>
       ) : (
-        recent.map((entry) => (
-          <ActivityRowView key={entry.sequence} row={activityRow(entry, content)} />
-        ))
+        recent.map((row) => <ActivityRowView key={row.key} row={row} />)
       )}
       <Button
         label="See all activity"

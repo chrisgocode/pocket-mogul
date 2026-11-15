@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 import { FlatList, StyleSheet } from 'react-native';
 
-import { activityRow } from '@/application/activityView';
+import { activityRows } from '@/application/activityRows';
 import { getContent } from '@/content';
 import { AppText } from '@/ui/Typography';
 import { colors, spacing } from '@/ui/tokens';
@@ -13,7 +13,7 @@ import { useActivity } from './useActivity';
 export function ActivityScreen() {
   const read = useActivity();
   const content = getContent();
-  const entries = read.status === 'loaded' ? read.entries : [];
+  const rows = read.status === 'loaded' ? activityRows(read.entries, content) : [];
   return (
     <>
       <Stack.Screen options={{ title: 'Activity' }} />
@@ -21,10 +21,10 @@ export function ActivityScreen() {
         style={styles.list}
         contentContainerStyle={styles.content}
         contentInsetAdjustmentBehavior="automatic"
-        data={entries}
-        keyExtractor={(entry) => String(entry.sequence)}
+        data={rows}
+        keyExtractor={(row) => row.key}
         ListHeaderComponent={LifetimeTotals}
-        renderItem={({ item }) => <ActivityRowView row={activityRow(item, content)} />}
+        renderItem={({ item }) => <ActivityRowView row={item} />}
         ListEmptyComponent={
           <AppText muted>
             {read.status === 'failed' ? "Activity history couldn't be loaded." : 'No activity yet.'}

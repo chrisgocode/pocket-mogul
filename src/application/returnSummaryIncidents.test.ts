@@ -1,35 +1,49 @@
-import { groupIncidentLines } from './returnSummaryView';
+import { getContent } from '@/content';
+import { dollars } from '@/domain/money';
 
-const vandalism = (key: string) => ({
-  key,
-  title: 'Vending Machine: Vandalism',
-  detail: 'Cost $280.00 from its treasury',
+import { incidentLines } from './returnSummaryIncidents';
+
+const content = getContent();
+
+const strike = (incidentId: string, at: { atMs: number; loss: string }) => ({
+  atMs: at.atMs,
+  businessId: 'vending',
+  incidentId,
+  treasuryLossCents: dollars(at.loss),
+  insured: false,
 });
-const breakdown = {
-  key: 'vending:2',
-  title: 'Vending Machine: Breakdown',
-  detail: 'Capacity down 30% for 4 days',
-};
 
 describe('Return summary incidents', () => {
-  it('folds identical incidents into one line with a count, in first-seen order', () => {
-    const lines = groupIncidentLines([
-      vandalism('vending:1'),
-      breakdown,
-      vandalism('vending:3'),
-      vandalism('vending:4'),
+  it('folds repeats of one incident into a line with a count and the total loss', () => {
+    const lines = incidentLines(content, [
+      strike('vending_vandalism', { atMs: 1, loss: '280' }),
+      strike('vending_breakdown', { atMs: 2, loss: '0' }),
+      strike('vending_vandalism', { atMs: 3, loss: '300' }),
+      strike('vending_vandalism', { atMs: 4, loss: '20.50' }),
     ]);
     expect(lines).toEqual([
       {
         key: 'vending:1',
         title: 'Vending Machine: Vandalism ×3',
-        detail: 'Cost $280.00 from its treasury',
+        detail: 'Cost $600.50 from its treasury',
       },
-      breakdown,
+      {
+        key: 'vending:2',
+        title: 'Vending Machine: Breakdown',
+        detail: 'Capacity down 30% for 4 days',
+      },
     ]);
   });
 
-  it('keeps an incident that happened once as it was', () => {
-    expect(groupIncidentLines([breakdown])).toEqual([breakdown]);
+  it('keeps insured and uninsured strikes apart', () => {
+    const insured = { ...strike('vending_breakdown', { atMs: 5, loss: '0' }), insured: true };
+    const lines = incidentLines(content, [
+      strike('vending_breakdown', { atMs: 4, loss: '0' }),
+      insured,
+    ]);
+    expect(lines.map((line) => line.title)).toEqual([
+      'Vending Machine: Breakdown',
+      'Vending Machine: Breakdown',
+    ]);
   });
 });

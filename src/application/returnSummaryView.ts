@@ -1,24 +1,18 @@
 import type { TaxAbsence } from '@/domain/tax/types';
 import type { Content } from '@/content';
-import type { AbsenceIncident, GameState, IncomeBySource } from '@/domain/gameState';
+import type { GameState, IncomeBySource } from '@/domain/gameState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 import { totalIncome } from '@/domain/passiveIncome';
 
 import { durationText } from './clockText';
-import { incidentStrikeText } from './incidentText';
 import { offlineCapMs } from './purchaseEffects';
+import { incidentLines, type IncidentLine } from './returnSummaryIncidents';
 
 const INCOME_SOURCES: readonly { source: keyof IncomeBySource; label: string }[] = [
   { source: 'businesses', label: 'Businesses' },
   { source: 'rent', label: 'Rent' },
   { source: 'dividends', label: 'Dividends' },
 ];
-
-export type IncidentLine = {
-  readonly key: string;
-  readonly title: string;
-  readonly detail: string;
-};
 
 export type EarningsLine = { readonly label: string; readonly cents: MoneyCents };
 
@@ -34,24 +28,6 @@ export type ReturnSummaryView = {
   readonly closedBusinesses: readonly string[];
   readonly incidents: readonly IncidentLine[];
 };
-
-function incidentLine(content: Content, incident: AbsenceIncident): IncidentLine {
-  const text = incidentStrikeText(content, incident);
-  return { key: `${incident.businessId}:${incident.atMs}`, title: text.title, detail: text.detail };
-}
-
-export function groupIncidentLines(lines: readonly IncidentLine[]): IncidentLine[] {
-  const groups = new Map<string, { line: IncidentLine; count: number }>();
-  for (const line of lines) {
-    const text = `${line.title}\n${line.detail}`;
-    const group = groups.get(text);
-    if (group === undefined) groups.set(text, { line, count: 1 });
-    else group.count += 1;
-  }
-  return [...groups.values()].map(({ line, count }) =>
-    count === 1 ? line : { key: line.key, title: `${line.title} ×${count}`, detail: line.detail },
-  );
-}
 
 function earningsLines(earnings: IncomeBySource): EarningsLine[] {
   return INCOME_SOURCES.map(({ source, label }) => ({ label, cents: earnings[source] })).filter(
@@ -87,8 +63,6 @@ export function selectReturnSummary(
       (businessId) =>
         content.businesses.find((business) => business.id === businessId)?.name ?? businessId,
     ),
-    incidents: groupIncidentLines(
-      summary.incidents.map((incident) => incidentLine(content, incident)),
-    ),
+    incidents: incidentLines(content, summary.incidents),
   };
 }

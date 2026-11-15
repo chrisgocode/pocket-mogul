@@ -5,6 +5,7 @@ import { collectionProgress } from '@/domain/collection/sets';
 import { dollars } from '@/domain/money';
 
 import { engineStep } from './balance/engineStep';
+import { purchaseOptions } from './balance/options';
 import { selectShelf } from './collectionSetsView';
 import { selectCollection } from './collectionView';
 import { collectionEconomy } from './economy';
@@ -143,6 +144,15 @@ describe('Collector’s pass (#158)', () => {
 });
 
 describe('The Strongroom (#158)', () => {
+  it('values the next wallet level with the tap income from completed sets', () => {
+    const vaultOnly = collector({ entitlements: PASS, collectibles: VAULT.map(ownedOn(0)) });
+    const [wallet] = purchaseOptions({ state: vaultOnly, content, tapsPerMinute: 1 });
+    expect(wallet).toMatchObject({
+      kind: 'wallet upgrade',
+      benefitPerMinuteCents: dollars('0.52'),
+    });
+  });
+
   it('keeps its perk inside the +30% cap on tap income', () => {
     const vault = VAULT.map(ownedOn(0));
     const vaultOnly = collector({ entitlements: PASS, collectibles: vault });
