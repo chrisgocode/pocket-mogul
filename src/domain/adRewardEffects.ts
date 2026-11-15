@@ -9,7 +9,8 @@ import { changed, lookUpOwned } from './business/commands';
 import { businessDayOf } from './business/definition';
 import { NO_INCIDENT } from './business/owned';
 import { lockOn } from './business/takeovers';
-import { auctionLots, auctionPeriod, lotRedrawsOn } from './collection/auction';
+import { auctionPeriod, lotRedrawsOn } from './collection/auction';
+import { lotsOnOffer } from './collection/offer';
 import { collectionDayOf } from './collection/rules';
 import type { CommandResult, GameErrorCode } from './commands';
 import type { GameState } from './gameState';
@@ -78,8 +79,7 @@ function redrawLots(state: GameState, economy: AdRewardEconomy): CommandResult {
   const { collection } = economy;
   const today = { ...collectionDayOf(state, collection.rules), economy: collection };
   const redraws = lotRedrawsOn(state.adRewards.lotRedraws, today);
-  const maxTier = Math.max(...state.unlockedTiers);
-  if (auctionLots({ ...today, maxTier, redraws }).length === 0) return UNAVAILABLE;
+  if (lotsOnOffer(state, collection).length === 0) return UNAVAILABLE;
   const lotRedraws = { period: auctionPeriod(today.day, collection), count: redraws + 1 };
   return {
     ok: true,

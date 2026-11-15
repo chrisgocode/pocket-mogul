@@ -151,8 +151,13 @@ describe('sets, perks and the showpiece (COL07, COL08)', () => {
 
   it('lists each set with what is held and what is missing', () => {
     const { sets } = selectCollection(snapshotOf(run(collector(), buyDinghy)), content);
-    expect(sets).toMatchObject({ completedCount: 0, tapBonusPercent: 0, resaleBonusPercent: 0 });
-    expect(sets.sets).toHaveLength(12);
+    expect(sets).toMatchObject({
+      completedCount: 0,
+      setCount: 12,
+      tapBonusPercent: 0,
+      resaleBonusPercent: 0,
+    });
+    expect(sets.sets.filter((set) => set.status !== 'locked')).toHaveLength(12);
     expect(sets.sets.find((set) => set.id === 'harbour_fleet')).toMatchObject({
       name: 'The Harbour Fleet',
       categoryName: 'Yachts',

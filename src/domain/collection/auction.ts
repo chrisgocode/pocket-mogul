@@ -1,11 +1,18 @@
 import { drawInt } from '@/domain/marketRandom';
 
-import type { CollectibleDefinition, CollectionDay, CollectionEconomy } from './rules';
+import type {
+  CollectibleDefinition,
+  CollectionDay,
+  CollectionEconomy,
+  OwnedCollectible,
+} from './rules';
+import { passPieceIds } from './sets';
 
 type Drawing = CollectionDay & {
   readonly economy: CollectionEconomy;
   readonly maxTier: number;
   readonly redraws: number;
+  readonly pass?: { readonly held: readonly OwnedCollectible[] };
 };
 
 type Draw = {
@@ -49,20 +56,35 @@ export function auctionPeriod(day: number, economy: CollectionEconomy): number {
   return Math.floor(day / economy.rules.lotDays);
 }
 
+function passPool(drawing: Drawing, reserved: readonly CollectibleDefinition[]) {
+  const { held } = drawing.pass ?? { held: [] };
+  const periodStart = auctionPeriod(drawing.day, drawing.economy) * drawing.economy.rules.lotDays;
+  return reserved.filter(
+    (piece) => !held.some((owned) => owned.pieceId === piece.id && owned.acquiredDay < periodStart),
+  );
+}
+
 export function auctionLots(drawing: Drawing): CollectibleDefinition[] {
   const { rules, pieces } = drawing.economy;
   if (rules.lotCount === 0) return [];
-  return pickLots(
-    pieces.filter((piece) => piece.tier <= drawing.maxTier),
-    {
-      seed: drawing.seed,
-      redraws: drawing.redraws,
-      period: auctionPeriod(drawing.day, drawing.economy),
-      weightOf: (piece) => rules.rarityWeights[piece.rarity],
-      lot: 0,
-      count: rules.lotCount,
-    },
+  const passIds = passPieceIds(drawing.economy);
+  const eligible = pieces.filter((piece) => piece.tier <= drawing.maxTier);
+  const draw = {
+    seed: drawing.seed,
+    redraws: drawing.redraws,
+    period: auctionPeriod(drawing.day, drawing.economy),
+    weightOf: (piece: CollectibleDefinition) => rules.rarityWeights[piece.rarity],
+  };
+  const open = eligible.filter((piece) => !passIds.includes(piece.id));
+  const lots = pickLots(open, { ...draw, lot: 0, count: rules.lotCount });
+  if (drawing.pass === undefined) return lots;
+  const reserved = passPool(
+    drawing,
+    eligible.filter((piece) => passIds.includes(piece.id)),
   );
+  const pool = reserved.length > 0 ? reserved : open.filter((piece) => !lots.includes(piece));
+  const extra = { ...draw, lot: rules.lotCount, count: rules.lotCount + rules.passLotCount };
+  return [...lots, ...pickLots(pool, extra)];
 }
 
 export function lotRedrawsOn(
