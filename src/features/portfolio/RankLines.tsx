@@ -8,6 +8,7 @@ import { Card } from '@/ui/Card';
 import { ProgressBar } from '@/ui/ProgressBar';
 import { AppText } from '@/ui/Typography';
 import { spacing } from '@/ui/tokens';
+import { FounderBadge } from './FounderBadge';
 
 export function RankLines() {
   const { state } = useGameSnapshot();
@@ -20,9 +21,12 @@ export function RankLines() {
   return (
     <Card>
       <View style={styles.row}>
-        <AppText variant="heading" accessibilityLabel={`Rank, ${rank.title}`}>
-          {rank.title}
-        </AppText>
+        <View style={styles.title}>
+          <AppText variant="heading" accessibilityLabel={`Rank, ${rank.title}`}>
+            {rank.title}
+          </AppText>
+          <FounderBadge />
+        </View>
         <AppText
           variant="caption"
           muted
@@ -41,9 +45,10 @@ export function RankLines() {
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing.md,
   },
+  title: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   next: { flexShrink: 1 },
 });

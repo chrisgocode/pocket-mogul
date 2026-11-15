@@ -762,7 +762,7 @@ Two permanent products change how much money the Game pays. Both are entitlement
 - Saving: the Store compares the bundle's price with the sum of the store prices of the parts the player does not own yet, and shows the saving as a whole percent ("Save 28% against buying each part on its own" at US prices). It uses the numeric prices the store returns, so it holds in every currency; with a price missing it shows no saving.
 - Parts already owned: the App Store gives no discount on a bundle for parts bought earlier. The bundle's card names the parts the player owns and says the bundle costs the same, before checkout. When the remaining parts cost less on their own, the card says that instead of a saving.
 - Owned: the bundle shows as owned when every entitlement it grants is held, whether from the bundle or from its parts. A refund of the bundle removes only the entitlements no other owned product still grants.
-- Founder's badge (`pm_founder`): cosmetic only, no money. Profile shows a "Title: Founder" line, and on the Rich List the player's name is drawn in gold with "Founder" before "Peak net worth".
+- Founder's badge (`pm_founder`): cosmetic only, no money. Profile shows a gold FOUNDER badge beside the rank title, and on the Rich List the player's name is drawn in gold with "Founder" before "Peak net worth".
 
 ### Collector's pass (#158)
 
