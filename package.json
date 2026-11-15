@@ -19,7 +19,6 @@
     "prepare": "husky",
     "knip:check": "knip",
     "doctor": "expo-doctor",
-    "performance:audit": "bun scripts/performance-audit.ts",
     "balance": "bun scripts/balance-report.ts",
     "balance:taxes": "bun scripts/tax-balance-report.ts",
     "artwork:publish": "bun scripts/artwork/publish.ts"
