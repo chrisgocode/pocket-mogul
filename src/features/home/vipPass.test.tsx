@@ -19,6 +19,7 @@ describe('VIP pass on Earn (#152)', () => {
     const session = await startTestGameFrom(vip);
     mockGame = Promise.resolve({ status: 'ready', game: session.game });
     await renderRouter('src/app', { initialUrl: '/home' });
+    await fireEvent.press(screen.getByRole('button', { name: 'Open Boost' }));
     await fireEvent.press(
       screen.getByRole('button', { name: 'Tap Boost, Start boost · 5x for 60s' }),
     );

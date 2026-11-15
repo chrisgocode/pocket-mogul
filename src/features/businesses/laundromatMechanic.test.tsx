@@ -25,7 +25,7 @@ async function openLaundromat(
   });
   await session.game.checkpoint();
   mockGame = Promise.resolve({ status: 'ready', game: session.game });
-  await renderRouter('src/app', { initialUrl: '/businesses/laundromat' });
+  await renderRouter('src/app', { initialUrl: '/businesses/laundromat?section=mechanic' });
   return session;
 }
 
@@ -36,6 +36,7 @@ describe('the Floor section (BUS20f)', () => {
   it('stays locked at Startup', async () => {
     await openLaundromat(ownedBusiness('laundromat'));
     expect(screen.queryByRole('header', { name: 'Floor' })).not.toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('tab', { name: 'More' }));
     expect(screen.getByRole('button', { name: '▸ Next unlocks' })).toBeOnTheScreen();
   });
 

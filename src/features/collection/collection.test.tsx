@@ -121,7 +121,7 @@ describe('sets and the showpiece (COL07, COL08)', () => {
   it('shows the piece on Earn', async () => {
     await open('100', { ...SHOWN, initialUrl: '/' });
     expect(
-      screen.getByRole('button', { name: 'On show, Puffin Dinghy, open the Collection' }),
+      screen.getByRole('button', { name: 'Open Collection, on show: Puffin Dinghy' }),
     ).toBeOnTheScreen();
   });
 

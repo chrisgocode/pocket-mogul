@@ -28,9 +28,13 @@ const confirmButton = () => screen.getByRole('button', { name: /^Confirm upgrade
 describe('Home wallet upgrade', () => {
   it('shows current and next earnings, price and what is still missing', async () => {
     await openHome(40);
-    expect(screen.getByText('$1.00 → $1.50 per tap')).toBeOnTheScreen();
-    expect(screen.getByText('Need $60.00 more')).toBeOnTheScreen();
-    expect(upgradeControl()).toBeDisabled();
+    expect(
+      screen.getByRole('button', {
+        name: 'Upgrade wallet, $1.00 to $1.50 per tap, Need $60.00 more',
+      }),
+    ).toBeDisabled();
+    expect(screen.getByText('Wallet Lv 1')).toBeOnTheScreen();
+    expect(screen.getByText('+$1.50 / tap')).toBeOnTheScreen();
   });
 
   it('confirms the cash change and effect, then updates all four together (AC03)', async () => {
@@ -40,8 +44,11 @@ describe('Home wallet upgrade', () => {
     expect(screen.getByText('$1.00 → $1.50')).toBeOnTheScreen();
     await fireEvent.press(confirmButton());
     expect(await screen.findByLabelText('Cash $30.00')).toBeOnTheScreen();
-    expect(screen.getByText('$1.50 → $2.00 per tap')).toBeOnTheScreen();
-    expect(screen.getByText('Need $115.00 more')).toBeOnTheScreen();
+    expect(
+      screen.getByRole('button', {
+        name: 'Upgrade wallet, $1.50 to $2.00 per tap, Need $115.00 more',
+      }),
+    ).toBeOnTheScreen();
     expect(screen.queryByText('-$100.00')).not.toBeOnTheScreen();
   });
 
@@ -90,7 +97,7 @@ describe('Home wallet upgrade', () => {
     });
     mockGame = Promise.resolve({ status: 'ready', game: session.game });
     await renderRouter('src/app', { initialUrl: '/home' });
-    expect(screen.getByText('Max level')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Wallet level 100, max level')).toBeOnTheScreen();
     expect(screen.getByRole('button', { name: /^Tap card, Obsidian card/ })).toBeOnTheScreen();
     expect(screen.queryByRole('button', { name: /^Upgrade wallet/ })).not.toBeOnTheScreen();
   });

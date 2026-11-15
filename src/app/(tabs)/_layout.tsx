@@ -3,7 +3,7 @@ import { Tabs } from 'expo-router/js-tabs';
 import { useHomeBreak } from '@/features/ads/useHomeBreak';
 import type { IconName } from '@/ui/Icons';
 import { TabIcon } from '@/ui/TabIcon';
-import { colors, sectionColors, type SectionTone } from '@/ui/tokens';
+import { colors, sectionColors, type, type SectionTone } from '@/ui/tokens';
 
 const TABS: { name: string; title: string; icon: IconName; tone: SectionTone }[] = [
   { name: 'businesses', title: 'Businesses', icon: 'businesses', tone: 'businesses' },
@@ -21,6 +21,7 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textMuted,
+        tabBarLabelStyle: type.micro,
         tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
       }}
     >

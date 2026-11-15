@@ -1,7 +1,9 @@
-import type { TapCardView } from '@/application/tapCardView';
+import { selectTapCard } from '@/application/tapCardView';
 import { selectWalletUpgrade, type AvailableWalletUpgrade } from '@/application/walletUpgradeView';
 import { getContent } from '@/content';
 import { formatMoneyExact, moneyCents } from '@/domain/money';
+import { useGameSnapshot } from '@/features/game/GameContext';
+import { useTutorial } from '@/features/tutorial/useTutorial';
 import type { ConfirmationLine } from '@/ui/ConfirmationDetails';
 import { ConfirmationSheet } from '@/ui/ConfirmationSheet';
 
@@ -19,19 +21,19 @@ function confirmationLines(upgrade: AvailableWalletUpgrade): ConfirmationLine[] 
   ];
 }
 
-export function WalletUpgrade({
-  tapCard,
-  highlighted,
-}: {
-  tapCard: TapCardView;
-  highlighted: boolean;
-}) {
-  const upgrade = selectWalletUpgrade(tapCard, getContent());
+export function WalletUpgrade() {
+  const content = getContent();
+  const upgrade = selectWalletUpgrade(selectTapCard(useGameSnapshot(), content), content);
+  const tutorial = useTutorial();
   const { confirmation, review, close, confirm } = useWalletUpgrade();
   const reviewed = confirmation.status === 'closed' ? undefined : confirmation.subject;
   return (
     <>
-      <WalletUpgradeControl upgrade={upgrade} highlighted={highlighted} onReview={review} />
+      <WalletUpgradeControl
+        upgrade={upgrade}
+        highlighted={tutorial.isOn('upgradeWallet')}
+        onReview={review}
+      />
       <ConfirmationSheet
         confirmation={confirmation}
         title="Upgrade wallet"

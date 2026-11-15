@@ -34,6 +34,7 @@ describe('Studio native flows', () => {
       { treasuryCents: dollars('10') },
     );
     const session = await open('/home', { businesses: [business] });
+    await fireEvent.press(screen.getByRole('button', { name: 'Open Alerts, 1 waiting' }));
     await fireEvent.press(screen.getByRole('button', { name: /^Restock Vending Machine/ }));
     expect(screen).toHavePathname('/businesses/vending');
     await fireEvent.press(screen.getByRole('button', { name: 'Restock all · $4.00' }));
@@ -46,7 +47,7 @@ describe('Studio native flows', () => {
   });
 
   it('keeps Startup mechanics hidden and exposes the Local controls', async () => {
-    await open('/businesses/vending', { businesses: [ownedBusiness('vending')] });
+    await open('/businesses/vending?section=mechanic', { businesses: [ownedBusiness('vending')] });
     expect(screen.queryByRole('header', { name: 'Locations' })).not.toBeOnTheScreen();
     expect(screen.queryByRole('header', { name: 'Risks' })).not.toBeOnTheScreen();
     expect(screen.getByText('TIER 1 · STARTUP')).toBeOnTheScreen();

@@ -21,7 +21,7 @@ async function openVending(business: Partial<OwnedBusiness>, day = 0): Promise<T
   });
   await session.game.checkpoint();
   mockGame = Promise.resolve({ status: 'ready', game: session.game });
-  await renderRouter('src/app', { initialUrl: '/businesses/vending' });
+  await renderRouter('src/app', { initialUrl: '/businesses/vending?section=mechanic' });
   return session;
 }
 
@@ -32,6 +32,7 @@ describe('the Risks section', () => {
     await openVending({});
     expect(screen.queryByRole('header', { name: 'Risks' })).not.toBeOnTheScreen();
     expect(screen.queryByRole('button', { name: /^Insure/ })).not.toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('tab', { name: 'More' }));
     expect(screen.getByRole('button', { name: '▸ Next unlocks' })).toBeOnTheScreen();
   });
 

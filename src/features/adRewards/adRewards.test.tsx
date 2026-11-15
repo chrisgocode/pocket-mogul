@@ -61,6 +61,7 @@ describe('rewarded ads (#160, #165)', () => {
 
   it('pays the daily briefcase once from Earn', async () => {
     const session = await open(await startTestGameFrom(owner(), calm), '/home');
+    await fireEvent.press(screen.getByRole('button', { name: 'Open Briefcase' }));
     expect(screen.getByText('15 minutes of your income · 1 of 1 left today')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: BRIEFCASE }));
     expect(
@@ -70,7 +71,7 @@ describe('rewarded ads (#160, #165)', () => {
   });
 
   it('starts a rush day from the business page', async () => {
-    await open(await startTestGameFrom(owner(), calm), '/businesses/vending');
+    await open(await startTestGameFrom(owner(), calm), '/businesses/vending?section=mechanic');
     expect(screen.getByText('3 of 3 left today')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: RUSH }));
     expect(await screen.findByText('Rush day running')).toBeOnTheScreen();
@@ -87,7 +88,7 @@ describe('rewarded ads (#160, #165)', () => {
     } as const;
     const session = await open(
       await startTestGameFrom(owner({ incident }), calm),
-      '/businesses/vending',
+      '/businesses/vending?section=mechanic',
     );
     await fireEvent.press(screen.getByRole('button', { name: END_INCIDENT }));
     await session.game.flushTaps();

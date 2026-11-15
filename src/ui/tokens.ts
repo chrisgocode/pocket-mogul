@@ -18,8 +18,9 @@ export const colors = {
   scrim: 'rgba(0, 0, 0, 0.65)',
   buttonHighlight: '#FFFFFF',
   buttonTopEdge: 'rgba(255, 255, 255, 0.28)',
-  buttonLowerEdge: 'rgba(0, 0, 0, 0.24)',
+  buttonLowerEdge: 'rgba(0, 0, 0, 0.32)',
   buttonShadow: '#000000',
+  stageGlow: 'rgba(234, 187, 114, 0.14)',
   transparent: 'transparent',
 } as const;
 
@@ -60,10 +61,41 @@ export const highlightWidth = 2;
 
 export const highlightCardWidth = 4;
 
+export const size = {
+  hudAvatar: 38,
+  hudRing: 3,
+  hudPill: 34,
+  railButton: 46,
+  railWidth: 58,
+  tabCentre: 52,
+  tabCentreLift: -22,
+  badge: 18,
+  pip: 6,
+  pipWidth: 12,
+  tabIcon: 22,
+  tabCentreIcon: 26,
+  tileArt: 52,
+  rowBadge: 38,
+  iconSmall: 16,
+  iconMedium: 20,
+  sheetHandleWidth: 40,
+  sheetHandleHeight: 4,
+  progressBar: 6,
+  buttonDepth: 4,
+  walletStage: 190,
+} as const;
+
+export const motion = {
+  tapPopMs: 650,
+  tapPulse: { inputRange: [0, 0.3, 1], outputRange: [0.92, 1.05, 1] },
+  tapRise: { inputRange: [0, 1], outputRange: [0, -70] },
+  tapFade: { inputRange: [0, 0.15, 1], outputRange: [0, 1, 0] },
+};
+
 export const feedback = {
   pressedScale: 0.97,
   buttonPressedScale: 0.985,
-  buttonPressedOffset: 2,
+  buttonPressedOffset: 3,
   buttonHighlightOpacity: 0.15,
   pressedOpacity: 0.7,
   hapticMinIntervalMs: 100,
@@ -72,12 +104,20 @@ export const feedback = {
 const numeric: TextStyle = { fontVariant: ['tabular-nums'] };
 
 export const type = {
-  display: { fontSize: 34, lineHeight: 40, fontWeight: '700', ...numeric },
-  title: { fontSize: 22, lineHeight: 28, fontWeight: '700' },
-  heading: { fontSize: 17, lineHeight: 22, fontWeight: '600' },
-  body: { fontSize: 15, lineHeight: 20, fontWeight: '400' },
-  caption: { fontSize: 13, lineHeight: 18, fontWeight: '400' },
-  number: { fontSize: 15, lineHeight: 20, fontWeight: '600', ...numeric },
+  display: { fontSize: 30, lineHeight: 36, fontWeight: '800', ...numeric },
+  title: { fontSize: 18, lineHeight: 24, fontWeight: '800' },
+  heading: { fontSize: 15, lineHeight: 20, fontWeight: '700' },
+  body: { fontSize: 14, lineHeight: 19, fontWeight: '400' },
+  caption: { fontSize: 12, lineHeight: 16, fontWeight: '500' },
+  number: { fontSize: 14, lineHeight: 19, fontWeight: '700', ...numeric },
+  label: {
+    fontSize: 11,
+    lineHeight: 14,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  micro: { fontSize: 10, lineHeight: 12, fontWeight: '700', ...numeric },
 } satisfies Record<string, TextStyle>;
 
 export const artworkThumbnailSize = 72;
