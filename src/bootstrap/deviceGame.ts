@@ -35,7 +35,7 @@ async function startDeviceGame(): Promise<OpenedGame> {
     createId: randomUUID,
     ...(developmentTelemetry === undefined ? {} : { telemetry: developmentTelemetry }),
   });
-  if (opened.status === 'ready' && billing.purchasePolicy !== undefined)
+  if (opened.status === 'ready' && validation !== undefined)
     installBillingValidationDriver({
       game: opened.game,
       probe: nativeRevenueCatEvidence,

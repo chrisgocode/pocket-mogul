@@ -56,9 +56,15 @@ export function revenueCatBilling(options: Options): Selection {
   const billing = validationBilling(config, { ...options, ...logs });
   return {
     billing,
-    validation: billingValidation(config, { options, ...logs }),
+    ...(config.profile === 'release'
+      ? {}
+      : { validation: billingValidation(config, { options, ...logs }) }),
     purchasePolicy: {
-      scopes: [{ store: config.store, appId: config.appId, environment: config.environment }],
+      scopes: config.environments.map((environment) => ({
+        store: config.store,
+        appId: config.appId,
+        environment,
+      })),
       products: catalogue.map((product) => policyProduct(product, config.store)),
     },
   };
@@ -104,7 +110,7 @@ function billingValidation(
 }
 
 function checkoutEnabled(config: RevenueCatConfig, storeKit: StoreKitSource | undefined): boolean {
-  return config.checkout === 'sandbox' && config.store === 'apple' && storeKit !== undefined;
+  return config.checkout === 'enabled' && config.store === 'apple' && storeKit !== undefined;
 }
 
 function validationBilling(config: RevenueCatConfig, options: Options & Logs): BillingPort {
