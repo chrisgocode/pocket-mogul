@@ -14,13 +14,19 @@ import type { ProgressRules } from '@/domain/progression';
 import type { PropertyEconomy } from '@/domain/properties';
 import type { TradeEconomy } from '@/domain/trades';
 
+const businessEconomies = new WeakMap<Content, BusinessEconomy>();
+
 export function businessEconomy(content: Content): BusinessEconomy {
+  const previous = businessEconomies.get(content);
+  if (previous !== undefined) return previous;
   const rules = content.economy.businessRules;
-  return {
+  const economy = {
     listedSaleFeeBps: content.economy.market.stocks.feeBps,
     catalog: content.businesses.map((business) => businessDefinition(business, content)),
     rules,
   };
+  businessEconomies.set(content, economy);
+  return economy;
 }
 
 export function propertyEconomy(content: Content): PropertyEconomy {

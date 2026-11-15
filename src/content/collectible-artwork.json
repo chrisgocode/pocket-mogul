@@ -1198,5 +1198,105 @@
       "height": 1024,
       "bytes": 28214
     }
+  ],
+  "railway_share_certificate": [
+    {
+      "uri": "https://vn983smg1q.ufs.sh/f/LJGxwDt70D1ekMhcX5vi6v10mUSzxn5tLYrTG8yd7Ejwfs4Q",
+      "width": 256,
+      "height": 256,
+      "bytes": 14082
+    },
+    {
+      "uri": "https://vn983smg1q.ufs.sh/f/LJGxwDt70D1edOJ16zZrwZB91cyeMSqLHP8TCUnJlj4Oxaks",
+      "width": 512,
+      "height": 512,
+      "bytes": 57744
+    },
+    {
+      "uri": "https://vn983smg1q.ufs.sh/f/LJGxwDt70D1eZB36ixluM9FLc4Pv7kYWOxifjBhU8yqeH0AR",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 95380
+    }
+  ],
+  "brass_ticker_machine": [
+    {
+      "uri": "https://vn983smg1q.ufs.sh/f/LJGxwDt70D1euUwkAk2RIwPj4sdXA0hUpqOVrlxLHib1Wn25",
+      "width": 256,
+      "height": 256,
+      "bytes": 8476
+    },
+    {
+      "uri": "https://vn983smg1q.ufs.sh/f/LJGxwDt70D1e92des4LYqQVPNOdyIo1Lh5FX07epra8BKfxW",
+      "width": 512,
+      "height": 512,
+      "bytes": 26416
+    },
+    {
+      "uri": "https://vn983smg1q.ufs.sh/f/LJGxwDt70D1eVss891niJzsdYCqDur2RyPNMIo7GjvLBfk0E",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 85234
+    }
+  ],
+  "bank_vault_door": [
+    {
+      "uri": "https://vn983smg1q.ufs.sh/f/LJGxwDt70D1eORa99xMsmMxU2tFWK4pvNjVrXLSDE9wqkdIa",
+      "width": 256,
+      "height": 256,
+      "bytes": 10496
+    },
+    {
+      "uri": "https://vn983smg1q.ufs.sh/f/LJGxwDt70D1ezbRdtO3mbORX8FWKYu1rCGgePDt57n94lqox",
+      "width": 512,
+      "height": 512,
+      "bytes": 35696
+    },
+    {
+      "uri": "https://vn983smg1q.ufs.sh/f/LJGxwDt70D1evLkVkWpmABi4LXHVP8JNrpf7T1bYCdeuSZ0g",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 94140
+    }
+  ],
+  "exchange_opening_bell": [
+    {
+      "uri": "https://vn983smg1q.ufs.sh/f/LJGxwDt70D1e442axmzmRcnf7EJOZtW89bwxjgQAasDM1Yhd",
+      "width": 256,
+      "height": 256,
+      "bytes": 7242
+    },
+    {
+      "uri": "https://vn983smg1q.ufs.sh/f/LJGxwDt70D1eawBxAU9KOu87JcnGolpmPMXBekEZYV0hRIbv",
+      "width": 512,
+      "height": 512,
+      "bytes": 24586
+    },
+    {
+      "uri": "https://vn983smg1q.ufs.sh/f/LJGxwDt70D1eviyqmXpmABi4LXHVP8JNrpf7T1bYCdeuSZ0g",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 92876
+    }
+  ],
+  "solid_gold_briefcase": [
+    {
+      "uri": "https://vn983smg1q.ufs.sh/f/LJGxwDt70D1e9hhKqVLYqQVPNOdyIo1Lh5FX07epra8BKfxW",
+      "width": 256,
+      "height": 256,
+      "bytes": 6630
+    },
+    {
+      "uri": "https://vn983smg1q.ufs.sh/f/LJGxwDt70D1eTnHyTf0egj2YAaw4uSzmPXQ96dRbnrfWG5F1",
+      "width": 512,
+      "height": 512,
+      "bytes": 20718
+    },
+    {
+      "uri": "https://vn983smg1q.ufs.sh/f/LJGxwDt70D1eIyXEQUo2cdn4v5TmsC1z0b8eatDBxowAVrQp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 71338
+    }
   ]
 }
