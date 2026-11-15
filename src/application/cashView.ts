@@ -10,13 +10,26 @@ import { passiveEconomy } from './economy';
 import type { GameSnapshot } from './game';
 import { tapMultiplier } from './purchaseEffects';
 
+type CashProjection = {
+  readonly committed: GameState;
+  readonly elapsedMs: number;
+  readonly projected: GameState;
+};
+
+const projections = new WeakMap<Content, CashProjection>();
+
 export function stateWithUnsavedIncome(snapshot: GameSnapshot, content: Content): GameState {
-  const { state } = snapshot;
-  return advanceTaxTime(state, {
-    elapsedMs: snapshot.unsavedElapsedMs,
+  const { state, unsavedElapsedMs } = snapshot;
+  const previous = projections.get(content);
+  if (previous?.committed === state && previous.elapsedMs === unsavedElapsedMs)
+    return previous.projected;
+  const projected = advanceTaxTime(state, {
+    elapsedMs: unsavedElapsedMs,
     wallMs: state.clock.lastWallCheckpointMs,
     content,
   }).state;
+  projections.set(content, { committed: state, elapsedMs: unsavedElapsedMs, projected });
+  return projected;
 }
 
 export function selectCashCents(snapshot: GameSnapshot, content: Content): MoneyCents {
