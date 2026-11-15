@@ -63,8 +63,8 @@ const COPY: Readonly<Record<string, Copy>> = {
   pm_collectors_pass: {
     name: "Collector's pass",
     pitch:
-      'A fourth lot at every auction, and The Vault: a set of five pieces only pass holders are offered.',
-    finePrint: 'The Vault adds +5% tap income, inside the +30% cap on set perks.',
+      'A fourth lot at every auction, and The Strongroom: a set of five pieces only pass holders are offered.',
+    finePrint: 'The Strongroom adds +5% tap income, inside the +30% cap on set perks.',
   },
 };
 

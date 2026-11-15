@@ -4,6 +4,7 @@ import { formatCashChange } from '@/features/game/priceFormat';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { AppText } from '@/ui/Typography';
+import { useMoneyFormat } from '@/features/game/useMoneyFormat';
 
 export function PropertySellCard({
   name,
@@ -16,7 +17,7 @@ export function PropertySellCard({
   valueUpgradePercent: number;
   onReview: () => void;
 }) {
-  const label = `Sell · ${formatCashChange(sale.proceedsCents)}`;
+  const format = useMoneyFormat();
   return (
     <Card>
       <AppText variant="heading">Sell</AppText>
@@ -25,8 +26,8 @@ export function PropertySellCard({
         purchase price plus {valueUpgradePercent}% of upgrade spending.
       </AppText>
       <Button
-        label={label}
-        accessibilityLabel={`Sell ${name}, ${label}`}
+        label={`Sell · ${format.shortGain(sale.proceedsCents)}`}
+        accessibilityLabel={`Sell ${name}, Sell · ${formatCashChange(sale.proceedsCents)}`}
         variant="secondary"
         onPress={onReview}
       />

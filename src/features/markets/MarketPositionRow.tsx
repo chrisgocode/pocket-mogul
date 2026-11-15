@@ -6,6 +6,7 @@ import { formatMoneyExact, formatPriceCompact, formatQuantity } from '@/domain/m
 import { useGameSnapshot } from '@/features/game/GameContext';
 import { cashTrend, formatCashChange } from '@/features/game/priceFormat';
 import { ListRow } from '@/ui/ListRow';
+import { useMoneyFormat } from '@/features/game/useMoneyFormat';
 import { LogoMark } from '@/ui/LogoMark';
 const PERCENT_SCALE = 10_000n;
 const PERCENT_DECIMALS = 100;
@@ -13,6 +14,7 @@ const PERCENT_DIGITS = 2;
 const HALF = 2n;
 export function MarketPositionRow({ quote }: { quote: AssetQuote }) {
   const router = useRouter();
+  const format = useMoneyFormat();
   const position = selectPosition(useGameSnapshot().state, {
     assetId: quote.asset.id,
     content: getContent(),
@@ -35,8 +37,14 @@ export function MarketPositionRow({ quote }: { quote: AssetQuote }) {
       leading={<LogoMark logo={quote.asset.logo} />}
       title={quote.asset.ticker}
       subtitle={`${formatQuantity(position.quantity)} held · avg ${average}`}
-      value={formatMoneyExact(position.valueCents)}
-      detail={`${formatCashChange(position.unrealizedCents)} · ${percent.toFixed(PERCENT_DIGITS)}%`}
+      value={format.short(position.valueCents)}
+      detail={`${format.shortGain(position.unrealizedCents)} · ${percent.toFixed(PERCENT_DIGITS)}%`}
+      accessibilityLabel={[
+        quote.asset.ticker,
+        `${formatQuantity(position.quantity)} held · avg ${average}`,
+        formatMoneyExact(position.valueCents),
+        `${formatCashChange(position.unrealizedCents)} · ${percent.toFixed(PERCENT_DIGITS)}%`,
+      ].join(', ')}
       detailTrend={cashTrend(position.unrealizedCents)}
       onPress={() =>
         router.push({ pathname: '/markets/[assetId]', params: { assetId: quote.asset.id } })

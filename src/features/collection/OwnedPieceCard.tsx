@@ -2,6 +2,7 @@ import { OwnedPieceHeading } from './OwnedPieceHeading';
 import type { OwnedPiece } from '@/application/collectionView';
 import { formatMoneyExact } from '@/domain/money';
 import { formatCashChange } from '@/features/game/priceFormat';
+import { useMoneyFormat } from '@/features/game/useMoneyFormat';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { ListRow } from '@/ui/ListRow';
@@ -19,11 +20,16 @@ export function OwnedPieceCard({
   onShow: (pieceId: string | null) => void;
 }) {
   const shown = owned.display === 'on_show';
+  const format = useMoneyFormat();
   const label = `Sell · ${formatCashChange(owned.saleCents)}`;
   return (
     <Card>
       <OwnedPieceHeading owned={owned} />
-      <ListRow title="Appraised value" value={formatMoneyExact(owned.valueCents)} />
+      <ListRow
+        title="Appraised value"
+        value={format.short(owned.valueCents)}
+        accessibilityLabel={`Appraised value, ${formatMoneyExact(owned.valueCents)}`}
+      />
       <AppText variant="caption" muted>
         {heldNote(owned)}
       </AppText>
@@ -36,7 +42,7 @@ export function OwnedPieceCard({
         onPress={() => onShow(shown ? null : owned.piece.id)}
       />
       <Button
-        label={label}
+        label={`Sell · ${format.shortGain(owned.saleCents)}`}
         accessibilityLabel={`Sell ${owned.piece.name}, ${label}`}
         variant="secondary"
         onPress={() => onSell(owned)}

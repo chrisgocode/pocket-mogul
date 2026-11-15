@@ -1,7 +1,7 @@
 import type { CollectionSetsView, CollectionSetView } from '@/application/collectionSetsView';
 import type { AuctionLot, CollectionView, OwnedPiece } from '@/application/collectionView';
 import type { Rarity } from '@/domain/collection/rules';
-import { formatMoneyExact } from '@/domain/money';
+import { formatMoneyExact, type MoneyCents } from '@/domain/money';
 import { formatCashChange } from '@/features/game/priceFormat';
 
 const RARITY_NAMES: Readonly<Record<Rarity, string>> = {
@@ -24,10 +24,13 @@ export function auctionNote(view: CollectionView): string {
   return `New lots in ${dayCount(view.daysUntilNewLots)} · ${view.lots.length} lots every ${dayCount(view.lotDays)}`;
 }
 
-export function lotActionLabel(lot: AuctionLot): string {
+export function lotActionLabel(
+  lot: AuctionLot,
+  money: (value: MoneyCents) => string = formatMoneyExact,
+): string {
   if (lot.status === 'owned') return 'In your collection';
-  if (lot.affordable) return `Buy · ${formatMoneyExact(lot.priceCents)}`;
-  return `Need ${formatMoneyExact(lot.shortfallCents)} more`;
+  if (lot.affordable) return `Buy · ${money(lot.priceCents)}`;
+  return `Need ${money(lot.shortfallCents)} more`;
 }
 
 export function heldNote(owned: OwnedPiece): string {

@@ -3,14 +3,15 @@ import { StyleSheet, View } from 'react-native';
 import type { VendingSpotView } from '@/application/vendingView';
 import { HOME_LOCATION } from '@/domain/business/vendingRules';
 import { formatMoneyExact } from '@/domain/money';
+import { useMoneyFormat, type MoneyFormat } from '@/features/game/useMoneyFormat';
 import { Button } from '@/ui/Button';
 import { spacing } from '@/ui/tokens';
 
 import { LOCATION_NAMES, type VendingActions } from './vendingFormat';
 
-function restockLabel(spot: VendingSpotView): string {
+function restockLabel(spot: VendingSpotView, format: MoneyFormat): string {
   if (spot.stock >= spot.fullStock) return 'Fully stocked';
-  return `Restock · ${formatMoneyExact(spot.restock.priceCents)}`;
+  return `Restock · ${format.short(spot.restock.priceCents)}`;
 }
 
 function restockA11y(spot: VendingSpotView, name: string): string {
@@ -26,12 +27,13 @@ export function VendingSpotActions({
   actions: VendingActions;
 }) {
   const name = LOCATION_NAMES[spot.location];
+  const format = useMoneyFormat();
   const needsStock = spot.machines > 0 && spot.stock < spot.fullStock;
   return (
     <View style={styles.actions}>
       {spot.machines > 0 ? (
         <Button
-          label={restockLabel(spot)}
+          label={restockLabel(spot, format)}
           accessibilityLabel={restockA11y(spot, name)}
           onPress={() => actions.restock(spot.location)}
           disabled={!needsStock || !spot.restock.affordable}

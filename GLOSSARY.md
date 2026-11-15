@@ -581,7 +581,7 @@ The cosmetic product: a Founder title on Profile and a gold name on the Rich Lis
 _Avoid_: Supporter tier, rank (a Rank is earned from peak net worth)
 
 **Collector's pass**:
-The product that adds a fourth auction lot and opens The Vault, a set of five pieces only its holders are offered.
+The product that adds a fourth auction lot and opens The Strongroom, a set of five pieces only its holders are offered.
 _Avoid_: Season pass, premium collection
 
 **Store**:
