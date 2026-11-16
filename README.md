@@ -153,6 +153,7 @@ Expo SDK 58, resolved on 2026-11-03. Exact versions are locked in `bun.lock`.
 | expo-sqlite | 58.0.15 (the save; WAL and exclusive transactions) |
 | expo-crypto | 58.0.7 (`randomUUID` for save and command IDs) |
 | expo-haptics | 58.0.7 (throttled tap haptics) |
+| expo-updates | 58.0.22 (over-the-air updates through EAS Update) |
 | react-native-safe-area-context | 5.11.1 |
 | react-native-screens | 4.30.1 |
 | react-native-svg | 15.16.0 |
@@ -198,6 +199,21 @@ iOS builds need **Xcode 27** (SDK 58 targets Xcode 27 and iOS 27). Xcode 26.x fa
 #102 adds provider-managed permanent ownership recovery. A verified provider-completed purchase is separate from local delivery: a failed SQLite commit returns `saveFailed`, publishes no benefit and saves no delivered receipt. Launch, foreground/events or explicit restore can re-read fresh, complete, authoritative ownership and retry the permanent effect once. Provider-owned receipts record completion as completed alongside local delivery and never enter the application's finish/acknowledge/consume path, including after restart with a raw-store adapter. Unavailable verification preserves committed access and allows later retry. Existing raw-store completion retries and ledger records remain compatible.
 
 This validates scripted application recovery only. Before native launch, choose and pin one SDK, validate SDK 58 iOS/Android development builds and completion ownership, configure store accounts/products, test real pending, cancellation, restoration and refund flows, and obtain product approval. RevenueCat remains a candidate. Provider completion cannot make a local consumable wallet durable across reinstall or devices; that requires a separately designed authoritative wallet. Reset Save retains the local ledger; reinstall can reconstruct permanent access only from verified provider ownership and does not restore progress.
+
+## Over-the-air updates
+
+Release builds check EAS Update for a newer JavaScript bundle at launch, download it in the background and run it on the next launch. Production builds listen on the `production` channel and sandbox builds on `preview` (`eas.json`).
+
+An update reaches only builds with the same runtime version. `runtimeVersion` uses the `fingerprint` policy, a hash of the native project: adding a native package, changing a config plugin or permission, editing `modules/` or upgrading the SDK changes it, and those changes need a new store build. JavaScript, content and asset changes can ship as an update. Check with `bunx expo-updates runtimeversion:resolve --platform ios` before and after a change.
+
+Publish from an up-to-date `main`:
+
+```sh
+bun run update:production --message "Fix the tap boost sheet"
+bun run update:preview --message "Try the new market chart"
+```
+
+The scripts pass `--environment`, because `EXPO_PUBLIC_BILLING_VALIDATION` is inlined into the bundle: an update published without the production environment would ship without the purchase configuration. Roll back with `bunx eas-cli@latest update:rollback`. Updates follow App Review Guideline 2.5.2: fixes and tuning, not new features or a changed purpose. A save written by an updated bundle must still load in the store build's bundle if the update is rolled back, so an update must not raise the save's minimum reader version.
 
 ## Branding and app identity
 

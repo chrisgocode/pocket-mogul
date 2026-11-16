@@ -97,12 +97,15 @@
       "typedRoutes": true
     },
     "updates": {
-      "enabled": false
+      "url": "https://u.expo.dev/99d0efbe-ad82-4b86-a4cd-8d81b4b8bcbb"
     },
     "extra": {
       "eas": {
         "projectId": "99d0efbe-ad82-4b86-a4cd-8d81b4b8bcbb"
       }
+    },
+    "runtimeVersion": {
+      "policy": "fingerprint"
     }
   }
 }
