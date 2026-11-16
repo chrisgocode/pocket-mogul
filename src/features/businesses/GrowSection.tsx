@@ -29,13 +29,13 @@ export function GrowSection({
       </AppText>
       <Card>
         <StageRow stage={detail.stageUpgrade} onReview={onStage} />
-        <UnitRow unit={detail.unit} unitName={detail.business.unitName} onReview={onUnit} />
+        <UnitRow unit={detail.unit} unitName={detail.business.unitName} onBuy={onUnit} />
         {detail.improvements.map((improvement) => (
           <BusinessUpgradeRow
             key={improvement.track}
             improvement={improvement}
             maxLevel={detail.maxTrackLevel}
-            onReview={onImprove}
+            onBuy={onImprove}
           />
         ))}
       </Card>

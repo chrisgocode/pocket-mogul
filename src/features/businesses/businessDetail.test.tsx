@@ -62,16 +62,15 @@ describe('Business details', () => {
     expect(await findLine('Profit', '$107.82/day')).toBeOnTheScreen();
   });
 
-  it('adds a machine from the treasury after confirming (BUS07, BUS10)', async () => {
+  it('adds a machine from the treasury on one tap (BUS03, BUS07, BUS10)', async () => {
     await openVending('0', { business: { treasuryCents: dollars('150') } });
     await fireEvent.press(
       screen.getByRole('button', { name: 'Add a machine, +$72.16/day, Add a machine · $100.00' }),
     );
-    expect(screen.getByRole('header', { name: 'Add a machine' })).toBeOnTheScreen();
-    expect(screen.getByText('-$100.00')).toBeOnTheScreen();
-    await confirm();
     expect(await findLine('Treasury', '$50.00')).toBeOnTheScreen();
     expect(screen.getByText('Units 2/3')).toBeOnTheScreen();
+    expect(screen.getByText('Added a machine · +$72.16/day profit')).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: /^Confirm/ })).not.toBeOnTheScreen();
   });
 
   it('shows what the treasury still needs, whatever the cash', async () => {
@@ -118,6 +117,16 @@ describe('Business details', () => {
     expect(screen.getByText('+$200.00')).toBeOnTheScreen();
     await confirm();
     expect(await screen.findByText("You don't own Vending Machine")).toBeOnTheScreen();
+  });
+});
+
+describe('Business upgrades (BUS03)', () => {
+  it('buys Quality upgrades back to back with no sheet (BUS03)', async () => {
+    const session = await openVending('0', { business: { treasuryCents: dollars('10,000') } });
+    await fireEvent.press(screen.getByRole('button', { name: /^Upgrade Quality/ }));
+    await fireEvent.press(await screen.findByRole('button', { name: /^Upgrade Quality/ }));
+    await screen.findByText(/^Quality 2 ·/);
+    expect(session.game.getSnapshot().state.businesses[0]?.levels.quality).toBe(2);
   });
 });
 

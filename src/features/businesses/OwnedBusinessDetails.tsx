@@ -1,4 +1,5 @@
 import type { OwnedBusinessDetail } from '@/application/businessDetailView';
+import type { QuickPurchase } from '@/features/game/useQuickBuy';
 import { SegmentedControl } from '@/ui/SegmentedControl';
 import { useSegment } from '@/ui/state/useSegment';
 
@@ -8,6 +9,7 @@ import { BusinessMoreTab } from './BusinessMoreTab';
 import { BusinessRunTab, type RunTabActions } from './BusinessRunTab';
 import { BusinessStats } from './BusinessStats';
 import { BUSINESS_TABS, type BusinessTab } from './businessTabs';
+import { improvementPurchase, unitPurchase } from './growPurchases';
 import { GrowSection } from './GrowSection';
 import { StaffSection } from './StaffSection';
 
@@ -15,6 +17,7 @@ type OwnedBusinessDetailsProps = {
   detail: OwnedBusinessDetail;
   initialTab: BusinessTab;
   onReview: (action: BusinessAction) => void;
+  onBuy: (purchase: QuickPurchase) => void;
   run: RunTabActions;
 };
 
@@ -22,6 +25,7 @@ export function OwnedBusinessDetails({
   detail,
   initialTab,
   onReview,
+  onBuy,
   run,
 }: OwnedBusinessDetailsProps) {
   const { business } = detail;
@@ -34,8 +38,8 @@ export function OwnedBusinessDetails({
       {tab.selected === 'grow' ? (
         <GrowSection
           detail={detail}
-          onUnit={(unit) => onReview({ kind: 'unit', business, unit })}
-          onImprove={(improvement) => onReview({ kind: 'improve', business, improvement })}
+          onUnit={(unit) => onBuy(unitPurchase(business, unit))}
+          onImprove={(improvement) => onBuy(improvementPurchase(business, improvement))}
           onStage={(stage) => onReview({ kind: 'stage', business, stage })}
         />
       ) : null}

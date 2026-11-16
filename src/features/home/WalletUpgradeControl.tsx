@@ -19,11 +19,11 @@ function spokenPrice(upgrade: AvailableWalletUpgrade): string {
 export function WalletUpgradeControl({
   upgrade,
   highlighted,
-  onReview,
+  onBuy,
 }: {
   upgrade: WalletUpgradeView;
   highlighted: boolean;
-  onReview: (upgrade: AvailableWalletUpgrade) => void;
+  onBuy: (upgrade: AvailableWalletUpgrade) => void;
 }) {
   const format = useMoneyFormat();
   const current = formatMoneyExact(upgrade.payoutCents);
@@ -44,7 +44,7 @@ export function WalletUpgradeControl({
         icon="upgrade"
         label={format.short(upgrade.priceCents)}
         accessibilityLabel={`Upgrade wallet, ${current} to ${next} per tap, ${spokenPrice(upgrade)}`}
-        onPress={() => onReview(upgrade)}
+        onPress={() => onBuy(upgrade)}
         disabled={!upgrade.affordable}
       />
     </Card>

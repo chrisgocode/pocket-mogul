@@ -23,7 +23,6 @@ async function openHome(taps: number): Promise<TestGame> {
 }
 
 const upgradeControl = () => screen.getByRole('button', { name: /^Upgrade wallet/ });
-const confirmButton = () => screen.getByRole('button', { name: /^Confirm upgrade|^Try again/ });
 
 describe('Home wallet upgrade', () => {
   it('shows current and next earnings, price and what is still missing', async () => {
@@ -37,28 +36,24 @@ describe('Home wallet upgrade', () => {
     expect(screen.getByText('+$1.50 / tap')).toBeOnTheScreen();
   });
 
-  it('confirms the cash change and effect, then updates all four together (AC03)', async () => {
+  it('upgrades on one tap and updates all four together (AC03, BUS03)', async () => {
     await openHome(130);
     await fireEvent.press(upgradeControl());
-    expect(screen.getByText('-$100.00')).toBeOnTheScreen();
-    expect(screen.getByText('$1.00 → $1.50')).toBeOnTheScreen();
-    await fireEvent.press(confirmButton());
     expect(await screen.findByLabelText('Cash $30.00')).toBeOnTheScreen();
     expect(
       screen.getByRole('button', {
         name: 'Upgrade wallet, $1.50 to $2.00 per tap, Need $115.00 more',
       }),
     ).toBeOnTheScreen();
-    expect(screen.queryByText('-$100.00')).not.toBeOnTheScreen();
+    expect(screen.getByText('Wallet Lv 1 · $1.50 per tap')).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: /^Confirm/ })).not.toBeOnTheScreen();
   });
 
-  it('cannot be submitted twice while the upgrade is saving', async () => {
+  it('buys one level per tap while the upgrade is saving', async () => {
     const session = await openHome(300);
-    await fireEvent.press(upgradeControl());
     const release = session.holdSaves();
-    await fireEvent.press(confirmButton());
-    expect(screen.getByRole('button', { name: 'Saving…' })).toBeDisabled();
-    await fireEvent.press(screen.getByRole('button', { name: 'Saving…' }));
+    await fireEvent.press(upgradeControl());
+    await fireEvent.press(upgradeControl());
     await act(async () => {
       release();
       await session.game.flushTaps();
@@ -67,19 +62,18 @@ describe('Home wallet upgrade', () => {
     expect(session.game.getSnapshot().state.tap.walletLevel).toBe(1);
   });
 
-  it('rolls back unsaved taps on a failed save and lets the player retry', async () => {
+  it('rolls back unsaved taps on a failed save and lets the player tap again', async () => {
     const session = await openHome(100);
     await fireEvent.press(screen.getByRole('button', { name: /^Tap card/ }));
     await fireEvent.press(screen.getByRole('button', { name: /^Tap card/ }));
     expect(screen.getByLabelText('Cash $102.00')).toBeOnTheScreen();
     session.faults.failWrites = true;
     await fireEvent.press(upgradeControl());
-    await fireEvent.press(confirmButton());
     expect(await screen.findByRole('alert')).toHaveTextContent(/couldn't be saved/);
     expect(screen.getByLabelText('Cash $100.00')).toBeOnTheScreen();
 
     session.faults.failWrites = false;
-    await fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
+    await fireEvent.press(upgradeControl());
     expect(await screen.findByLabelText('Cash $0.00')).toBeOnTheScreen();
     expect(session.game.getSnapshot().state.tap.walletLevel).toBe(1);
   });

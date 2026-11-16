@@ -45,8 +45,9 @@ describe('natural-break interstitials on screen', () => {
   });
 
   it('closing a confirmation sheet is a natural break', async () => {
-    const session = await openApp('/home');
-    await fireEvent.press(screen.getByRole('button', { name: /^Upgrade wallet/ }));
+    const session = await openApp('/businesses/vending');
+    await fireEvent.press(screen.getByRole('tab', { name: 'More' }));
+    await fireEvent.press(screen.getByRole('button', { name: /^Sell Vending Machine/ }));
     await fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
     expect(screen.getByText('Ad break')).toBeOnTheScreen();
     await act(async () => {

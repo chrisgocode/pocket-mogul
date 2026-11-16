@@ -5,6 +5,7 @@ import { getContent } from '@/content';
 import { ActionSheet } from '@/features/game/ActionSheet';
 import { useGameSnapshot } from '@/features/game/GameContext';
 import { useGameAction } from '@/features/game/useGameAction';
+import { useQuickBuy } from '@/features/game/useQuickBuy';
 import { backLinkOptions } from '@/ui/backLinkOptions';
 import { Screen } from '@/ui/Screen';
 
@@ -135,6 +136,7 @@ export function BusinessDetailScreen() {
   const detail = selectBusinessDetail(useGameSnapshot(), { businessId, content: getContent() });
   const { confirmation, review, close, confirm } = useGameAction(businessActionCommand);
   const run = useBusinessCommand();
+  const buy = useQuickBuy();
   return (
     <Screen tone="businesses" focusSection={section}>
       <Stack.Screen options={{ ...BACK_OPTIONS, title: '' }} />
@@ -144,6 +146,7 @@ export function BusinessDetailScreen() {
           detail={detail}
           initialTab={tabForSection(section)}
           onReview={review}
+          onBuy={buy}
           run={{
             onInsurance: (change) => run({ type: 'SetInsurance', businessId, ...change }),
             onPriceLevel: (priceLevel) => run({ type: 'SetPriceLevel', businessId, priceLevel }),
