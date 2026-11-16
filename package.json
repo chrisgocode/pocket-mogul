@@ -21,7 +21,9 @@
     "doctor": "expo-doctor",
     "balance": "bun scripts/balance-report.ts",
     "balance:taxes": "bun scripts/tax-balance-report.ts",
-    "artwork:publish": "bun scripts/artwork/publish.ts"
+    "artwork:publish": "bun scripts/artwork/publish.ts",
+    "update:production": "bunx eas-cli@latest update --channel production --environment production",
+    "update:preview": "bunx eas-cli@latest update --channel preview --environment preview"
   },
   "dependencies": {
     "expo": "~58.0.25",
@@ -36,6 +38,7 @@
     "expo-sqlite": "~58.0.17",
     "expo-status-bar": "~58.0.5",
     "expo-system-ui": "~58.0.7",
+    "expo-updates": "~58.0.22",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-native": "0.88.1",
