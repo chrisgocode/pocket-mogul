@@ -9,11 +9,11 @@ import { profitGain, TRACK_EFFECTS, TRACK_NAMES } from './businessFormat';
 export function BusinessUpgradeRow({
   improvement,
   maxLevel,
-  onReview,
+  onBuy,
 }: {
   improvement: ImprovementOption;
   maxLevel: number;
-  onReview: (improvement: AvailableImprovement) => void;
+  onBuy: (improvement: AvailableImprovement) => void;
 }) {
   const format = useMoneyFormat();
   const track = TRACK_NAMES[improvement.label];
@@ -33,7 +33,7 @@ export function BusinessUpgradeRow({
         label: format.short(improvement.priceCents),
         accessibilityLabel: `Upgrade ${track}, ${benefit}, ${priceLabel('Upgrade', improvement)}`,
         disabled: !improvement.affordable,
-        onPress: () => onReview(improvement),
+        onPress: () => onBuy(improvement),
       }}
     />
   );

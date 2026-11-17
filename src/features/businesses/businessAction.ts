@@ -1,10 +1,4 @@
-import type {
-  AvailableHire,
-  AvailableImprovement,
-  AvailableUnit,
-  BusinessSale,
-  ReadyStage,
-} from '@/application/businessDetailView';
+import type { AvailableHire, BusinessSale, ReadyStage } from '@/application/businessDetailView';
 import type { AvailableDetailing } from '@/application/carWashView';
 import type { AvailableSortingHub, OfferView } from '@/application/deliveryView';
 import type { AvailableCardReaders } from '@/application/vendingView';
@@ -15,7 +9,7 @@ import { formatMoneyExact, type MoneyCents } from '@/domain/money';
 import type { ActionSheetText } from '@/features/game/ActionSheet';
 import { formatCashChange } from '@/features/game/priceFormat';
 
-import { profitChange, spent, TRACK_NAMES } from './businessFormat';
+import { spent } from './businessFormat';
 import { fireText, hireText, stageText } from './growthActionText';
 import { detailingText } from './carWashActionText';
 import { contractText, sortingHubText } from './deliveryActionText';
@@ -30,12 +24,6 @@ export type BusinessAction =
       readonly floatPercent: number;
       readonly ticker: string;
       readonly proceedsCents: MoneyCents;
-    }
-  | { readonly kind: 'unit'; readonly business: Business; readonly unit: AvailableUnit }
-  | {
-      readonly kind: 'improve';
-      readonly business: Business;
-      readonly improvement: AvailableImprovement;
     }
   | { readonly kind: 'hire'; readonly business: Business; readonly hire: AvailableHire }
   | {
@@ -96,17 +84,6 @@ const COMMANDS: ActionHandlers<GameCommand> = {
     businessId: business.id,
     amountCents,
   }),
-  unit: ({ business, unit }) => ({
-    type: 'BuyUnit',
-    businessId: business.id,
-    fromUnits: unit.units,
-  }),
-  improve: ({ business, improvement }) => ({
-    type: 'UpgradeBusiness',
-    businessId: business.id,
-    track: improvement.track,
-    fromLevel: improvement.level,
-  }),
   hire: ({ business, hire }) => ({
     type: 'HireStaff',
     businessId: business.id,
@@ -143,35 +120,6 @@ const COMMANDS: ActionHandlers<GameCommand> = {
 
 export function businessActionCommand(action: BusinessAction): GameCommand {
   return handle(COMMANDS, action);
-}
-
-function unitText(action: Extract<BusinessAction, { kind: 'unit' }>): ActionSheetText {
-  const { unit, business } = action;
-  return {
-    title: `Add a ${business.unitName}`,
-    lines: [
-      { label: 'Treasury change', value: formatCashChange(spent(unit.priceCents)) },
-      { label: 'Profit', value: profitChange(unit.profitCents, unit.nextProfitCents) },
-      { label: 'Units', value: `${unit.units} → ${unit.units + 1}` },
-    ],
-    confirmLabel: `Confirm · ${formatMoneyExact(unit.priceCents)}`,
-  };
-}
-
-function improvementText(improvement: AvailableImprovement): ActionSheetText {
-  const track = TRACK_NAMES[improvement.label];
-  return {
-    title: `Upgrade ${track}`,
-    lines: [
-      { label: 'Treasury change', value: formatCashChange(spent(improvement.priceCents)) },
-      {
-        label: 'Profit',
-        value: profitChange(improvement.profitCents, improvement.nextProfitCents),
-      },
-      { label: `${track} level`, value: `${improvement.level} → ${improvement.level + 1}` },
-    ],
-    confirmLabel: `Confirm upgrade · ${formatMoneyExact(improvement.priceCents)}`,
-  };
 }
 
 function withdrawText(action: Extract<BusinessAction, { kind: 'withdraw' }>): ActionSheetText {
@@ -212,8 +160,6 @@ const SHEET_TEXT: ActionHandlers<ActionSheetText> = {
   }),
   sell: saleText,
   withdraw: withdrawText,
-  unit: unitText,
-  improve: (action) => improvementText(action.improvement),
   hire: (action) => hireText(action.hire, action.business),
   fire: (action) => fireText(action.role, action.business),
   stage: (action) => stageText(action.stage, action.business),

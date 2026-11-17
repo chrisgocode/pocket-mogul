@@ -4,6 +4,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { STARTUP_CONTENT_ISSUES } from '@/content';
 import { AdBreakCard } from '@/features/ads/AdBreakCard';
+import { QuickBuyBanner } from '@/features/game/QuickBuyBanner';
+import { QuickBuyProvider } from '@/features/game/QuickBuyProvider';
 import { GoalCelebration } from '@/features/goals/GoalCelebration';
 import { RichListNews } from '@/features/richList/RichListNews';
 import { ContentErrorScreen } from '@/features/startup/ContentErrorScreen';
@@ -23,11 +25,14 @@ export default function RootLayout() {
       ) : (
         <Suspense fallback={<OpeningSaveScreen />}>
           <DeviceGameProvider>
-            <RootStack />
-            <NoticeStack>
-              <GoalCelebration />
-              <RichListNews />
-            </NoticeStack>
+            <QuickBuyProvider>
+              <RootStack />
+              <NoticeStack>
+                <QuickBuyBanner />
+                <GoalCelebration />
+                <RichListNews />
+              </NoticeStack>
+            </QuickBuyProvider>
             <ReturnSummarySheet />
             <RecoveryNoticeSheet />
             <AdBreakCard />

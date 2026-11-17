@@ -9,11 +9,11 @@ import { profitGain } from './businessFormat';
 export function UnitRow({
   unit,
   unitName,
-  onReview,
+  onBuy,
 }: {
   unit: UnitOption;
   unitName: string;
-  onReview: (unit: AvailableUnit) => void;
+  onBuy: (unit: AvailableUnit) => void;
 }) {
   const format = useMoneyFormat();
   const title = `Units ${unit.units}/${unit.cap}`;
@@ -32,7 +32,7 @@ export function UnitRow({
         label: format.short(unit.priceCents),
         accessibilityLabel: `Add a ${unitName}, ${benefit}, ${priceLabel(`Add a ${unitName}`, unit)}`,
         disabled: !unit.affordable,
-        onPress: () => onReview(unit),
+        onPress: () => onBuy(unit),
       }}
     />
   );
