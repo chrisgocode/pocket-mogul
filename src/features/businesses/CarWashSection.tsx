@@ -4,7 +4,8 @@ import { Section } from '@/ui/Section';
 import type { CarWashActions } from './carWashFormat';
 import { CarWashCoachMark } from './CarWashCoachMark';
 import { DetailingCard } from './DetailingCard';
-import { LockedCarWashCard } from './LockedCarWashCard';
+import { LockedMechanicCard } from './LockedMechanicCard';
+import { LOCKED_TEXT } from './lockedMechanicText';
 import { MembershipCard } from './MembershipCard';
 import { WashPackagesCard } from './WashPackagesCard';
 import { WeatherCard } from './WeatherCard';
@@ -18,7 +19,8 @@ export function CarWashSection({
 }) {
   const { carWash } = detail;
   if (carWash === undefined) return null;
-  if (carWash.status === 'locked') return <LockedCarWashCard unlockStage={carWash.unlockStage} />;
+  if (carWash.status === 'locked')
+    return <LockedMechanicCard text={LOCKED_TEXT.car_wash} unlockStage={carWash.unlockStage} />;
   return (
     <Section id="mechanic" title="Washes" note="Packages, weather and memberships">
       {carWash.coachMark === 'show' ? (

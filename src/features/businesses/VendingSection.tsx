@@ -5,7 +5,8 @@ import { Button } from '@/ui/Button';
 import { Section } from '@/ui/Section';
 
 import { CardReaderCard } from './CardReaderCard';
-import { LockedVendingCard } from './LockedVendingCard';
+import { LockedMechanicCard } from './LockedMechanicCard';
+import { LOCKED_TEXT } from './lockedMechanicText';
 import type { VendingActions } from './vendingFormat';
 import { VendingCoachMark } from './VendingCoachMark';
 import { VendingSpotCard } from './VendingSpotCard';
@@ -31,7 +32,8 @@ export function VendingSection({
 }) {
   const { vending } = detail;
   if (vending === undefined) return null;
-  if (vending.status === 'locked') return <LockedVendingCard unlockStage={vending.unlockStage} />;
+  if (vending.status === 'locked')
+    return <LockedMechanicCard text={LOCKED_TEXT.vending} unlockStage={vending.unlockStage} />;
   const canRestockAll = vending.restockAll.priceCents > 0n && vending.restockAll.affordable;
   return (
     <Section id="mechanic" title="Locations" note={locationsNote(vending)}>

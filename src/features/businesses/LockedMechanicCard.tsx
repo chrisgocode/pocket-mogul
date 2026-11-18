@@ -3,14 +3,22 @@ import { ListRow } from '@/ui/ListRow';
 import { Section } from '@/ui/Section';
 
 import { stageName } from './businessFormat';
+import type { LockedText } from './lockedMechanicText';
 
-export function LockedVendingCard({ unlockStage }: { unlockStage: number }) {
+export function LockedMechanicCard({
+  text,
+  unlockStage,
+}: {
+  text: LockedText;
+  unlockStage: number;
+}) {
+  const { feature, summary, ...section } = text;
   return (
-    <Section title="Locations" note="Where your machines stand and what they sell">
+    <Section {...section}>
       <Card>
         <ListRow
-          title="Locations and stock"
-          subtitle="Place machines at five locations, pick what they sell and keep them stocked"
+          title={feature}
+          subtitle={summary}
           value={`Unlocks at ${stageName(unlockStage)}`}
           dimmed
         />

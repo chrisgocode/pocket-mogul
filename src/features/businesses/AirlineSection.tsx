@@ -5,7 +5,8 @@ import { AirlineCoachMark } from './AirlineCoachMark';
 import type { AirlineActions } from './airlineFormat';
 import { FuelCard } from './FuelCard';
 import { HubCard } from './HubCard';
-import { LockedAirlineCard } from './LockedAirlineCard';
+import { LockedMechanicCard } from './LockedMechanicCard';
+import { LOCKED_TEXT } from './lockedMechanicText';
 import { NetworkCard } from './NetworkCard';
 
 export function AirlineSection({
@@ -17,7 +18,8 @@ export function AirlineSection({
 }) {
   const { airline } = detail;
   if (airline === undefined) return null;
-  if (airline.status === 'locked') return <LockedAirlineCard unlockStage={airline.unlockStage} />;
+  if (airline.status === 'locked')
+    return <LockedMechanicCard text={LOCKED_TEXT.airline} unlockStage={airline.unlockStage} />;
   return (
     <Section id="mechanic" title="Operations" note="Fuel and the network your fleet flies">
       {airline.coachMark === 'show' ? (

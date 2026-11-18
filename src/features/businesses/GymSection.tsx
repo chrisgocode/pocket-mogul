@@ -6,7 +6,8 @@ import { GymClassesCard } from './GymClassesCard';
 import { GymCoachMark } from './GymCoachMark';
 import type { GymActions } from './gymFormat';
 import { GymMembersCard } from './GymMembersCard';
-import { LockedGymCard } from './LockedGymCard';
+import { LockedMechanicCard } from './LockedMechanicCard';
+import { LOCKED_TEXT } from './lockedMechanicText';
 
 export function GymSection({
   detail,
@@ -17,7 +18,8 @@ export function GymSection({
 }) {
   const { gym } = detail;
   if (gym === undefined) return null;
-  if (gym.status === 'locked') return <LockedGymCard unlockStage={gym.unlockStage} />;
+  if (gym.status === 'locked')
+    return <LockedMechanicCard text={LOCKED_TEXT.gym} unlockStage={gym.unlockStage} />;
   return (
     <Section id="mechanic" title="Members" note="Who pays every day and what keeps them">
       {gym.coachMark === 'show' ? (

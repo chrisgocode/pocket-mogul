@@ -4,7 +4,8 @@ import { Section } from '@/ui/Section';
 import { BakeryCoachMark } from './BakeryCoachMark';
 import type { BakeryActions } from './bakeryFormat';
 import { CentralKitchenCard } from './CentralKitchenCard';
-import { LockedBakeryCard } from './LockedBakeryCard';
+import { LockedMechanicCard } from './LockedMechanicCard';
+import { LOCKED_TEXT } from './lockedMechanicText';
 import { OvenScheduleCard } from './OvenScheduleCard';
 import { WholesaleCard } from './WholesaleCard';
 
@@ -17,7 +18,8 @@ export function BakerySection({
 }) {
   const { bakery } = detail;
   if (bakery === undefined) return null;
-  if (bakery.status === 'locked') return <LockedBakeryCard unlockStage={bakery.unlockStage} />;
+  if (bakery.status === 'locked')
+    return <LockedMechanicCard text={LOCKED_TEXT.bakery} unlockStage={bakery.unlockStage} />;
   return (
     <Section id="mechanic" title="Ovens" note="Your bake level and wholesale orders">
       {bakery.coachMark === 'show' ? (
