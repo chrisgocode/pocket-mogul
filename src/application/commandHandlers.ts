@@ -19,29 +19,12 @@ import {
   applyWithdrawFromTreasury,
 } from '@/domain/business/commands';
 import {
-  applyInstallDetailing,
-  applySetMemberCap,
-  applySetMembershipPrice,
-  applySetWashPackage,
-} from '@/domain/business/carWashCommands';
-import {
-  applyAcceptContract,
-  applyDeclineContract,
-  applyInstallSortingHub,
-} from '@/domain/business/deliveryCommands';
-import {
   applyFireStaff,
   applyHireStaff,
   applyUpgradeStage,
 } from '@/domain/business/growthCommands';
 import { applySetInsurance } from '@/domain/business/riskCommands';
 import { applyMakeTakeoverOffer } from '@/domain/business/takeoverCommands';
-import {
-  applyInstallCardReaders,
-  applyMoveVendingMachine,
-  applyRestockVending,
-  applySetVendingMix,
-} from '@/domain/business/vendingCommands';
 import {
   applyBuyCollectible,
   applySellCollectible,
@@ -78,7 +61,7 @@ import {
   tradeEconomy,
 } from './economy';
 import { tapMultiplier } from './purchaseEffects';
-import { MECHANIC_HANDLERS, MECHANIC_INVESTMENTS } from './mechanicHandlers';
+import { FLAGSHIP_HANDLERS, FLAGSHIP_INVESTMENTS, withEconomy } from './flagshipHandlers';
 
 type CommandsByType = { [Type in GameCommand['type']]: Extract<GameCommand, { type: Type }> };
 
@@ -110,47 +93,16 @@ const COMMAND_HANDLERS: CommandHandlers = {
   },
   UpgradeWallet: (state, command, content) =>
     applyWalletUpgrade(state, { fromLevel: command.fromLevel, rules: content.economy.tap }),
-  BuyBusiness: (state, command, content) =>
-    applyBuyBusiness(state, { ...command, economy: businessEconomy(content) }),
-  BuyUnit: (state, command, content) =>
-    applyBuyUnit(state, { ...command, economy: businessEconomy(content) }),
-  UpgradeBusiness: (state, command, content) =>
-    applyImproveBusiness(state, { ...command, economy: businessEconomy(content) }),
-  SetPriceLevel: (state, command, content) =>
-    applySetPriceLevel(state, { ...command, economy: businessEconomy(content) }),
-  HireStaff: (state, command, content) =>
-    applyHireStaff(state, { ...command, economy: businessEconomy(content) }),
-  FireStaff: (state, command, content) =>
-    applyFireStaff(state, { ...command, economy: businessEconomy(content) }),
-  UpgradeStage: (state, command, content) =>
-    applyUpgradeStage(state, { ...command, economy: businessEconomy(content) }),
-  SetInsurance: (state, command, content) =>
-    applySetInsurance(state, { ...command, economy: businessEconomy(content) }),
-  MoveVendingMachine: (state, command, content) =>
-    applyMoveVendingMachine(state, { ...command, economy: businessEconomy(content) }),
-  SetVendingMix: (state, command, content) =>
-    applySetVendingMix(state, { ...command, economy: businessEconomy(content) }),
-  RestockVending: (state, command, content) =>
-    applyRestockVending(state, { ...command, economy: businessEconomy(content) }),
-  InstallCardReaders: (state, command, content) =>
-    applyInstallCardReaders(state, { ...command, economy: businessEconomy(content) }),
-  SetWashPackage: (state, command, content) =>
-    applySetWashPackage(state, { ...command, economy: businessEconomy(content) }),
-  SetMembershipPrice: (state, command, content) =>
-    applySetMembershipPrice(state, { ...command, economy: businessEconomy(content) }),
-  SetMemberCap: (state, command, content) =>
-    applySetMemberCap(state, { ...command, economy: businessEconomy(content) }),
-  InstallDetailing: (state, command, content) =>
-    applyInstallDetailing(state, { ...command, economy: businessEconomy(content) }),
-  ...MECHANIC_HANDLERS,
-  AcceptContract: (state, command, content) =>
-    applyAcceptContract(state, { ...command, economy: businessEconomy(content) }),
-  DeclineContract: (state, command, content) =>
-    applyDeclineContract(state, { ...command, economy: businessEconomy(content) }),
-  InstallSortingHub: (state, command, content) =>
-    applyInstallSortingHub(state, { ...command, economy: businessEconomy(content) }),
-  MakeTakeoverOffer: (state, command, content) =>
-    applyMakeTakeoverOffer(state, { ...command, economy: businessEconomy(content) }),
+  BuyBusiness: withEconomy(applyBuyBusiness),
+  BuyUnit: withEconomy(applyBuyUnit),
+  UpgradeBusiness: withEconomy(applyImproveBusiness),
+  SetPriceLevel: withEconomy(applySetPriceLevel),
+  HireStaff: withEconomy(applyHireStaff),
+  FireStaff: withEconomy(applyFireStaff),
+  UpgradeStage: withEconomy(applyUpgradeStage),
+  SetInsurance: withEconomy(applySetInsurance),
+  ...FLAGSHIP_HANDLERS,
+  MakeTakeoverOffer: withEconomy(applyMakeTakeoverOffer),
   GoPublic: (state, command, content) =>
     applyGoPublic(state, {
       ...command,
@@ -164,14 +116,10 @@ const COMMAND_HANDLERS: CommandHandlers = {
       ],
     }),
   DismissCoachMark: (state, command) => applyDismissCoachMark(state, command.coachMark),
-  SetPayout: (state, command, content) =>
-    applySetPayout(state, { ...command, economy: businessEconomy(content) }),
-  DepositToTreasury: (state, command, content) =>
-    applyDepositToTreasury(state, { ...command, economy: businessEconomy(content) }),
-  WithdrawFromTreasury: (state, command, content) =>
-    applyWithdrawFromTreasury(state, { ...command, economy: businessEconomy(content) }),
-  SellBusiness: (state, command, content) =>
-    applySellBusiness(state, { ...command, economy: businessEconomy(content) }),
+  SetPayout: withEconomy(applySetPayout),
+  DepositToTreasury: withEconomy(applyDepositToTreasury),
+  WithdrawFromTreasury: withEconomy(applyWithdrawFromTreasury),
+  SellBusiness: withEconomy(applySellBusiness),
   BuyProperty: (state, command, content) =>
     applyBuyProperty(state, { ...command, economy: propertyEconomy(content) }),
   UpgradeProperty: (state, command, content) =>
@@ -251,10 +199,7 @@ const INVESTMENTS = new Set<GameCommand['type']>([
   'HireStaff',
   'GoPublic',
   'MakeTakeoverOffer',
-  'InstallCardReaders',
-  'InstallDetailing',
-  'InstallSortingHub',
-  ...MECHANIC_INVESTMENTS,
+  ...FLAGSHIP_INVESTMENTS,
 ]);
 
 function restrictedInvestment(command: GameCommand): boolean {
