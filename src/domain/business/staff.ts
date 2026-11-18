@@ -1,13 +1,11 @@
 import { moneyCents, type MoneyCents } from '@/domain/money';
 
-import { withBestRushPlan } from './coffeeKiosk';
 import { bestPriceLevel, profitPerDayCents } from './core';
 import { wageCents } from './runningCosts';
 import { stageRule, type BusinessPricing, type StaffRole } from './definition';
+import { flagshipLifecycle } from './flagshipLifecycle';
 import type { OwnedBusiness, PolicyStatus } from './owned';
-import { withBestJumboShare } from './laundromat';
 import { renewedInsurance } from './risks';
-import { withBestMixes } from './vending';
 
 export type StaffQuote =
   | { readonly status: 'locked'; readonly role: StaffRole; readonly unlockStage: number }
@@ -68,8 +66,7 @@ const MANAGER_RENEWS: readonly PolicyStatus[] = ['active', 'lapsed'];
 
 export function managerDecisions(business: OwnedBusiness, pricing: BusinessPricing): OwnedBusiness {
   if (business.staff.manager === 0 || business.status === 'closed') return business;
-  const planned = withBestRushPlan(withBestMixes(business, pricing), pricing);
-  const mixed = withBestJumboShare(planned, pricing);
-  const priced = { ...mixed, priceLevel: bestPriceLevel(mixed, pricing) };
+  const chosen = flagshipLifecycle(pricing).managerChoices(business, pricing);
+  const priced = { ...chosen, priceLevel: bestPriceLevel(chosen, pricing) };
   return renewedInsurance(priced, { pricing, renewing: MANAGER_RENEWS });
 }

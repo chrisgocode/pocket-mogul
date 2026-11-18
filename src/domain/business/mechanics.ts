@@ -11,6 +11,7 @@ import { foodCartDay, runningFoodCart } from './foodCartDemand';
 import { gymDay, runningGym } from './gymDemand';
 import { hotelDay, runningHotel } from './hotelDemand';
 import { laundromatDay, runningLaundromat } from './laundromatDemand';
+import type { BusinessMechanic } from './mechanicRules';
 import type { OwnedBusiness } from './owned';
 import { NO_RUSH, type RushDay } from './rush';
 import { synergyDay } from './synergies';
@@ -33,51 +34,47 @@ export type MechanicDay = {
 
 const NO_EFFECT_BPS = 10_000n;
 
-function travelDay(business: OwnedBusiness, pricing: BusinessPricing) {
-  const airline = runningAirline(business, pricing);
-  if (airline !== undefined) return airlineDay(airline);
-  const space = runningSpace(business, pricing);
-  return space === undefined ? {} : spaceDay(space);
+type FlagshipDay = (business: OwnedBusiness, pricing: BusinessPricing) => Partial<MechanicDay>;
+
+function running<Running>(
+  runningOf: (business: OwnedBusiness, pricing: BusinessPricing) => Running | undefined,
+  dayOf: (
+    running: Running,
+    business: OwnedBusiness,
+    pricing: BusinessPricing,
+  ) => Partial<MechanicDay>,
+): FlagshipDay {
+  return (business, pricing) => {
+    const operation = runningOf(business, pricing);
+    return operation === undefined ? {} : dayOf(operation, business, pricing);
+  };
 }
 
-function industryDay(business: OwnedBusiness, pricing: BusinessPricing) {
-  const factory = runningFactory(business, pricing);
-  if (factory !== undefined) return factoryDay(factory);
-  return travelDay(business, pricing);
-}
-
-function shopDay(business: OwnedBusiness, pricing: BusinessPricing) {
-  const bakery = runningBakery(business, pricing);
-  if (bakery !== undefined) return bakeryDay(bakery, pricing);
-  const gym = runningGym(business, pricing);
-  if (gym !== undefined) return gymDay(gym);
-  const hotel = runningHotel(business, pricing);
-  if (hotel !== undefined) return hotelDay(business, hotel);
-  return industryDay(business, pricing);
-}
-
-function streetDay(business: OwnedBusiness, pricing: BusinessPricing) {
-  const foodCart = runningFoodCart(business, pricing);
-  if (foodCart !== undefined) return foodCartDay(foodCart);
-  const coffeeKiosk = runningCoffeeKiosk(business, pricing);
-  if (coffeeKiosk !== undefined) return coffeeKioskDay(coffeeKiosk);
-  const running = runningLaundromat(business, pricing);
-  if (running !== undefined) return laundromatDay(business, { ...pricing, running });
-  return shopDay(business, pricing);
-}
-
-function flagshipDay(business: OwnedBusiness, pricing: BusinessPricing) {
-  const delivery = runningDelivery(business, pricing);
-  if (delivery !== undefined) return deliveryDay(business, delivery);
-  const carWash = runningCarWash(business, pricing);
-  if (carWash !== undefined) return carWashDay(carWash, pricing);
-  return streetDay(business, pricing);
-}
+const FLAGSHIP_DAYS: { readonly [Kind in BusinessMechanic['kind']]: FlagshipDay } = {
+  shared_core: () => ({}),
+  vending: (business, pricing) => ({
+    demandBps: vendingDemandBps(business, pricing),
+    capacityBps: vendingCapacityBps(business, pricing),
+  }),
+  car_wash: running(runningCarWash, (carWash, _, pricing) => carWashDay(carWash, pricing)),
+  delivery: running(runningDelivery, (delivery, business) => deliveryDay(business, delivery)),
+  food_cart: running(runningFoodCart, foodCartDay),
+  coffee_kiosk: running(runningCoffeeKiosk, coffeeKioskDay),
+  laundromat: running(runningLaundromat, (laundromat, business, pricing) =>
+    laundromatDay(business, { ...pricing, running: laundromat }),
+  ),
+  bakery: running(runningBakery, (bakery, _, pricing) => bakeryDay(bakery, pricing)),
+  gym: running(runningGym, gymDay),
+  hotel: running(runningHotel, (hotel, business) => hotelDay(business, hotel)),
+  factory: running(runningFactory, factoryDay),
+  airline: running(runningAirline, airlineDay),
+  space: running(runningSpace, spaceDay),
+};
 
 export function mechanicDay(business: OwnedBusiness, pricing: BusinessPricing): MechanicDay {
   const neutral = {
-    demandBps: vendingDemandBps(business, pricing),
-    capacityBps: vendingCapacityBps(business, pricing),
+    demandBps: NO_EFFECT_BPS,
+    capacityBps: NO_EFFECT_BPS,
     priceBps: NO_EFFECT_BPS,
     costBps: NO_EFFECT_BPS,
     unsoldCostBps: 0n,
@@ -89,7 +86,8 @@ export function mechanicDay(business: OwnedBusiness, pricing: BusinessPricing): 
     workingUnits: business.units,
     contracts: [],
   };
-  const day = { ...neutral, ...flagshipDay(business, pricing) };
+  const flagship = FLAGSHIP_DAYS[pricing.definition.mechanic.kind];
+  const day = { ...neutral, ...flagship(business, pricing) };
   const synergy = synergyDay(business, pricing);
   return {
     ...day,

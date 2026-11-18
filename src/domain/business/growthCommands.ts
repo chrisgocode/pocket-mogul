@@ -2,21 +2,10 @@ import type { CommandResult } from '@/domain/commands';
 import type { GameState } from '@/domain/gameState';
 
 import { changed, lookUpOwned, spendTreasury, type BusinessOrder } from './commands';
-import { withAirlineUnlocked } from './airline';
-import { withBakeryUnlocked } from './bakery';
-import { withCarWashUnlocked } from './carWash';
-import { withCoffeeKioskUnlocked } from './coffeeKiosk';
-import { withDeliveryUnlocked } from './delivery';
-import { withFactoryUnlocked } from './factory';
-import { withFoodCartUnlocked } from './foodCart';
-import { withGymUnlocked } from './gym';
-import { withHotelUnlocked } from './hotel';
-import { withLaundromatUnlocked } from './laundromat';
 import { businessDayOf, type StaffRole } from './definition';
+import { flagshipLifecycle } from './flagshipLifecycle';
 import { quoteStaff, withStaff } from './staff';
 import { quoteStage } from './stages';
-import { withSpaceUnlocked } from './space';
-import { withVendingUnlocked } from './vending';
 
 type StaffOrder = BusinessOrder & { readonly role: StaffRole; readonly fromCount: number };
 
@@ -61,18 +50,10 @@ export function applyUpgradeStage(
     seed: state.market.seed,
     day: businessDayOf(state.clock.simulationMs, pricing.rules),
   };
-  const staged = withVendingUnlocked({ ...owned, stage: quote.stage + 1 }, pricing);
-  const washing = withLaundromatUnlocked(withCoffeeKioskUnlocked(staged, pricing), pricing);
-  const training = withGymUnlocked(withBakeryUnlocked(washing, pricing), pricing);
-  const upgraded = withFactoryUnlocked(training, pricing);
-  const lodging = withHotelUnlocked(
-    withFoodCartUnlocked(withDeliveryUnlocked(withCarWashUnlocked(upgraded, start), start), start),
-    start,
-  );
   return spendTreasury(state, {
     owned,
     priceCents: quote.priceCents,
-    improved: withSpaceUnlocked(withAirlineUnlocked(lodging, start), start),
+    improved: flagshipLifecycle(pricing).unlocked({ ...owned, stage: quote.stage + 1 }, start),
     expense: 'capital',
   });
 }
