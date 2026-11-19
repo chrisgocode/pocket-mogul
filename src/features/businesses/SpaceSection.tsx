@@ -3,7 +3,8 @@ import { Section } from '@/ui/Section';
 
 import { BoostersCard } from './BoostersCard';
 import { LaunchCadenceCard } from './LaunchCadenceCard';
-import { LockedSpaceCard } from './LockedSpaceCard';
+import { LockedMechanicCard } from './LockedMechanicCard';
+import { LOCKED_TEXT } from './lockedMechanicText';
 import { PayloadContractsCard } from './PayloadContractsCard';
 import { SpaceCoachMark } from './SpaceCoachMark';
 import type { SpaceActions } from './spaceFormat';
@@ -17,7 +18,8 @@ export function SpaceSection({
 }) {
   const { space } = detail;
   if (space === undefined) return null;
-  if (space.status === 'locked') return <LockedSpaceCard unlockStage={space.unlockStage} />;
+  if (space.status === 'locked')
+    return <LockedMechanicCard text={LOCKED_TEXT.space} unlockStage={space.unlockStage} />;
   return (
     <Section id="mechanic" title="Mission control" note="Weather, cadence and payload contracts">
       {space.coachMark === 'show' ? (

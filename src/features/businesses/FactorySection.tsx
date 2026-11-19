@@ -5,7 +5,8 @@ import { AutomationCard } from './AutomationCard';
 import { BulkOrdersCard } from './BulkOrdersCard';
 import { FactoryCoachMark } from './FactoryCoachMark';
 import type { FactoryActions } from './factoryFormat';
-import { LockedFactoryCard } from './LockedFactoryCard';
+import { LockedMechanicCard } from './LockedMechanicCard';
+import { LOCKED_TEXT } from './lockedMechanicText';
 import { ProductLineCard } from './ProductLineCard';
 
 export function FactorySection({
@@ -17,7 +18,8 @@ export function FactorySection({
 }) {
   const { factory } = detail;
   if (factory === undefined) return null;
-  if (factory.status === 'locked') return <LockedFactoryCard unlockStage={factory.unlockStage} />;
+  if (factory.status === 'locked')
+    return <LockedMechanicCard text={LOCKED_TEXT.factory} unlockStage={factory.unlockStage} />;
   return (
     <Section id="mechanic" title="Factory floor" note="Your product and bulk orders">
       {factory.coachMark === 'show' ? (

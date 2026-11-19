@@ -4,7 +4,8 @@ import { Section } from '@/ui/Section';
 import { ContractsCard } from './ContractsCard';
 import { DeliveryCoachMark } from './DeliveryCoachMark';
 import type { DeliveryActions } from './deliveryFormat';
-import { LockedDeliveryCard } from './LockedDeliveryCard';
+import { LockedMechanicCard } from './LockedMechanicCard';
+import { lockedDeliveryText } from './lockedMechanicText';
 import { OffersCard } from './OffersCard';
 import { ReputationCard } from './ReputationCard';
 import { SortingHubCard } from './SortingHubCard';
@@ -20,10 +21,7 @@ export function DeliverySection({
   if (delivery === undefined) return null;
   if (delivery.status === 'locked') {
     return (
-      <LockedDeliveryCard
-        unlockStage={delivery.unlockStage}
-        vansPerDriver={delivery.vansPerDriver}
-      />
+      <LockedMechanicCard text={lockedDeliveryText(delivery)} unlockStage={delivery.unlockStage} />
     );
   }
   return (

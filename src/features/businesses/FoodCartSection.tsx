@@ -5,7 +5,8 @@ import { CartMenuCard } from './CartMenuCard';
 import { CartSpotsCard } from './CartSpotsCard';
 import { FoodCartCoachMark } from './FoodCartCoachMark';
 import type { FoodCartActions } from './foodCartFormat';
-import { LockedFoodCartCard } from './LockedFoodCartCard';
+import { LockedMechanicCard } from './LockedMechanicCard';
+import { LOCKED_TEXT } from './lockedMechanicText';
 import { SecondWindowCard } from './SecondWindowCard';
 
 export function FoodCartSection({
@@ -18,7 +19,7 @@ export function FoodCartSection({
   const { foodCart } = detail;
   if (foodCart === undefined) return null;
   if (foodCart.status === 'locked')
-    return <LockedFoodCartCard unlockStage={foodCart.unlockStage} />;
+    return <LockedMechanicCard text={LOCKED_TEXT.food_cart} unlockStage={foodCart.unlockStage} />;
   return (
     <Section id="mechanic" title="Street" note="Today's spot and menu">
       {foodCart.coachMark === 'show' ? (

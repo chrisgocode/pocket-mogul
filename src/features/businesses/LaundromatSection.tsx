@@ -3,7 +3,8 @@ import { Section } from '@/ui/Section';
 
 import { LaundromatCoachMark } from './LaundromatCoachMark';
 import type { LaundromatActions } from './laundromatFormat';
-import { LockedLaundromatCard } from './LockedLaundromatCard';
+import { LockedMechanicCard } from './LockedMechanicCard';
+import { LOCKED_TEXT } from './lockedMechanicText';
 import { MachineMixCard } from './MachineMixCard';
 import { PickupCard } from './PickupCard';
 import { ServiceWashCard } from './ServiceWashCard';
@@ -18,7 +19,9 @@ export function LaundromatSection({
   const { laundromat } = detail;
   if (laundromat === undefined) return null;
   if (laundromat.status === 'locked') {
-    return <LockedLaundromatCard unlockStage={laundromat.unlockStage} />;
+    return (
+      <LockedMechanicCard text={LOCKED_TEXT.laundromat} unlockStage={laundromat.unlockStage} />
+    );
   }
   return (
     <Section id="mechanic" title="Floor" note="Your machines and service washes">
