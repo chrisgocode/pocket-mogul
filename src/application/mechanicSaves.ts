@@ -1,3 +1,7 @@
+import { NO_CAR_WASH, type CarWashOperation } from '@/domain/business/carWashState';
+import { NO_DELIVERY, type DeliveryOperation } from '@/domain/business/deliveryState';
+import { NO_TAKEOVERS, type Takeovers } from '@/domain/business/takeoverState';
+import { NO_VENDING, type VendingOperation } from '@/domain/business/vendingRules';
 import { NO_BAKERY, type BakeryOperation } from '@/domain/business/bakeryRules';
 import { NO_COFFEE_KIOSK, type CoffeeKioskOperation } from '@/domain/business/coffeeKioskRules';
 import { NO_FACTORY, type FactoryOperation } from '@/domain/business/factoryRules';
@@ -14,6 +18,9 @@ import { NO_RUSH_DAY } from '@/domain/business/rushDay';
 type ByBusiness<Value> = Readonly<Record<string, Value>>;
 
 export type SavedMechanics = {
+  readonly vending: ByBusiness<VendingOperation>;
+  readonly carWash: ByBusiness<CarWashOperation>;
+  readonly delivery: ByBusiness<DeliveryOperation>;
   readonly foodCart: ByBusiness<FoodCartOperation>;
   readonly coffeeKiosk: ByBusiness<CoffeeKioskOperation>;
   readonly laundromat: ByBusiness<LaundromatOperation>;
@@ -25,6 +32,7 @@ export type SavedMechanics = {
   readonly space: ByBusiness<SpaceOperation>;
   readonly synergies: ByBusiness<readonly string[]>;
   readonly rushDay: ByBusiness<RushDay>;
+  readonly takeovers: ByBusiness<Takeovers>;
 };
 
 export type MechanicField = keyof SavedMechanics;
@@ -36,6 +44,9 @@ const byBusiness = <Value>(
 
 export function savedMechanics(businesses: readonly OwnedBusiness[]): SavedMechanics {
   return {
+    vending: byBusiness(businesses, (business) => business.vending),
+    carWash: byBusiness(businesses, (business) => business.carWash),
+    delivery: byBusiness(businesses, (business) => business.delivery),
     foodCart: byBusiness(businesses, (business) => business.foodCart),
     coffeeKiosk: byBusiness(businesses, (business) => business.coffeeKiosk),
     laundromat: byBusiness(businesses, (business) => business.laundromat),
@@ -47,6 +58,7 @@ export function savedMechanics(businesses: readonly OwnedBusiness[]): SavedMecha
     space: byBusiness(businesses, (business) => business.space),
     synergies: byBusiness(businesses, (business) => business.synergies),
     rushDay: byBusiness(businesses, (business) => business.rushDay),
+    takeovers: byBusiness(businesses, (business) => business.takeovers),
   };
 }
 
@@ -57,6 +69,9 @@ export function loadedMechanicFields(
   const saved = <Value>(record: ByBusiness<Value>, inactive: Value): Value =>
     record[businessId] ?? inactive;
   return {
+    vending: saved(document.vending, NO_VENDING),
+    carWash: saved(document.carWash, NO_CAR_WASH),
+    delivery: saved(document.delivery, NO_DELIVERY),
     foodCart: saved(document.foodCart, NO_FOOD_CART),
     coffeeKiosk: saved(document.coffeeKiosk, NO_COFFEE_KIOSK),
     laundromat: saved(document.laundromat, NO_LAUNDROMAT),
@@ -68,6 +83,7 @@ export function loadedMechanicFields(
     space: saved(document.space, NO_SPACE),
     synergies: saved(document.synergies, NO_SYNERGIES),
     rushDay: saved(document.rushDay, NO_RUSH_DAY),
+    takeovers: saved(document.takeovers, NO_TAKEOVERS),
   };
 }
 
@@ -75,6 +91,9 @@ export function withoutMechanicFields<Holder extends Record<MechanicField, unkno
   holder: Holder,
 ): Omit<Holder, MechanicField> {
   const {
+    vending: _vending,
+    carWash: _carWash,
+    delivery: _delivery,
     foodCart: _foodCart,
     coffeeKiosk: _coffeeKiosk,
     laundromat: _laundromat,
@@ -86,6 +105,7 @@ export function withoutMechanicFields<Holder extends Record<MechanicField, unkno
     space: _space,
     synergies: _synergies,
     rushDay: _rushDay,
+    takeovers: _takeovers,
     ...rest
   } = holder;
   return rest;
