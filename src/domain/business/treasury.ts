@@ -3,18 +3,8 @@ import { splitListedPayout } from './listingPayout';
 import type { ShareholderPayout } from './listingState';
 import { moneyCents, type MoneyCents } from '@/domain/money';
 
-import { startAirlineDay } from './airline';
-import { startBakeryDay } from './bakery';
-import { startCarWashDay } from './carWash';
-import { withCoffeeKioskUnlocked } from './coffeeKiosk';
 import { earnedPerDayCents, quoteBusinessDay } from './core';
-import { endedDeliveryDay, startDeliveryDay } from './delivery';
-import { startFactoryDay } from './factory';
-import { startFoodCartDay } from './foodCart';
-import { startGymDay } from './gym';
-import { startHotelDay } from './hotel';
-import { startSpaceDay } from './space';
-import { withLaundromatUnlocked } from './laundromat';
+import { flagshipLifecycle } from './flagshipLifecycle';
 import { findBusiness, type BusinessEconomy, type BusinessPricing } from './definition';
 import type { OwnedBusiness } from './owned';
 import { startBusinessDay, type StruckIncident } from './risks';
@@ -22,7 +12,6 @@ import { withoutEndedRushDay } from './rushDay';
 import { managerDecisions } from './staff';
 import { withSynergiesSynced } from './synergies';
 import { answerTakeover } from './takeovers';
-import { restockedByStaff, soldVendingDay, withVendingUnlocked } from './vending';
 
 export type BusinessClosure = { readonly businessId: string; readonly atMs: number };
 
@@ -156,22 +145,13 @@ type Settling = Settled & {
 function dayStarted(segment: Settled, boundary: { settlement: Settlement; endMs: number }) {
   const { pricing, seed, ownedIds } = boundary.settlement;
   const day = boundary.endMs / pricing.rules.dayMs;
+  const start = { pricing, seed, day };
+  const flagship = flagshipLifecycle(pricing);
   const calm = withoutEndedRushDay(segment.business, day);
   const synced = withSynergiesSynced(calm, { pricing, ownedIds });
-  const ended = endedDeliveryDay(soldVendingDay(synced, pricing), { pricing, day });
-  const brewing = withCoffeeKioskUnlocked(withVendingUnlocked(ended, pricing), pricing);
-  const opened = withLaundromatUnlocked(brewing, pricing);
-  const started = startBusinessDay(opened, { pricing, seed, day });
-  const restocked = restockedByStaff(started.business, pricing);
-  const washing = startCarWashDay(restocked, { pricing, seed, day });
-  const baking = startGymDay(startBakeryDay(washing, { pricing, day }), pricing);
-  const launching = startSpaceDay(baking, { pricing, seed, day });
-  const flying = startAirlineDay(launching, { pricing, seed, day });
-  const making = startFactoryDay(flying, { pricing, day });
-  const hosting = startHotelDay(making, { pricing, seed, day });
-  const parked = startFoodCartDay(hosting, { pricing, seed, day });
-  const managed = managerDecisions(parked, pricing);
-  const offered = startDeliveryDay(managed, { pricing, seed, day });
+  const started = startBusinessDay(flagship.dayEnded(synced, start), start);
+  const opened = flagship.dayOpened(started.business, start);
+  const offered = flagship.dayManaged(managerDecisions(opened, pricing), start);
   return { ...started, business: answerTakeover(offered, { pricing, seed, day }) };
 }
 
