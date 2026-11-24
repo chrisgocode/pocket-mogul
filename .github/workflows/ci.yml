@@ -40,6 +40,14 @@ jobs:
       - name: Install
         run: bun install --frozen-lockfile
 
+      - name: Restore Jest transform cache
+        if: ${{ matrix.check == 'test:screens' }}
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: node_modules/.cache/jest
+          key: jest-${{ runner.os }}-${{ hashFiles('bun.lock', 'jest.config.js') }}-${{ github.sha }}
+          restore-keys: jest-${{ runner.os }}-${{ hashFiles('bun.lock', 'jest.config.js') }}-
+
       - name: Run ${{ matrix.check }}
         run: bun run ${{ matrix.check }}
 
@@ -68,6 +76,13 @@ jobs:
 
       - name: Expo doctor
         run: bun run doctor
+
+      - name: Restore Metro cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: /tmp/metro-cache
+          key: metro-${{ runner.os }}-${{ hashFiles('bun.lock', 'app.json') }}-${{ github.sha }}
+          restore-keys: metro-${{ runner.os }}-${{ hashFiles('bun.lock', 'app.json') }}-
 
       - name: Bundle iOS and Android
         run: bunx expo export --platform ios --platform android --output-dir "$RUNNER_TEMP/export"
