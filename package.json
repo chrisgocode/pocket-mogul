@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "oxlint --deny-warnings --ignore-pattern 'lint-rules/fixtures/**'",
     "check": "bun run typecheck && bun run lint && bun run format:check && bun run knip:check && bun run test && bun run doctor",
-    "test:logic": "bun test ./src/domain ./src/content ./src/application ./lint-rules/rules.test.ts",
+    "test:logic": "bun test ./src/domain ./src/content ./src/application ./metro.config.test.ts ./lint-rules/rules.test.ts",
     "test:screens": "jest",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
@@ -73,7 +73,7 @@
     "uploadthing": "^7.7.4"
   },
   "engines": {
-    "node": ">=22.13"
+    "node": ">=22.18"
   },
   "packageManager": "bun@1.4.3"
 }
