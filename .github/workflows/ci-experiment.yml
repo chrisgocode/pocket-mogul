@@ -1,0 +1,84 @@
+name: CI experiment
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  screens:
+    name: screens ${{ matrix.variant.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        variant:
+          - { name: w2-baseline, args: "", cache: "no" }
+          - { name: w4, args: "--maxWorkers=4", cache: "no" }
+          - { name: w4-cached, args: "--maxWorkers=4 --cacheDirectory=.jest-cache", cache: "yes" }
+          - { name: w4-shard1of2, args: "--maxWorkers=4 --shard=1/2", cache: "no" }
+          - { name: w4-shard2of2, args: "--maxWorkers=4 --shard=2/2", cache: "no" }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - if: matrix.variant.cache == 'yes'
+        uses: actions/cache@v4
+        with:
+          path: .jest-cache
+          key: exp-jest-${{ github.run_id }}
+      - run: nproc && free -g
+      - run: bunx jest ${{ matrix.variant.args }}
+
+  bundle:
+    name: bundle ${{ matrix.variant.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        variant:
+          - { name: both-baseline, args: "--platform ios --platform android", cache: "no" }
+          - { name: ios-only, args: "--platform ios", cache: "no" }
+          - { name: android-only, args: "--platform android", cache: "no" }
+          - { name: both-nobytecode-nominify, args: "--platform ios --platform android --no-bytecode --no-minify", cache: "no" }
+          - { name: both-metro-cached, args: "--platform ios --platform android", cache: "yes" }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - if: matrix.variant.cache == 'yes'
+        uses: actions/cache@v4
+        with:
+          path: /tmp/metro-cache
+          key: exp-metro-${{ github.run_id }}
+      - run: bunx expo export ${{ matrix.variant.args }} --output-dir "$RUNNER_TEMP/export"
+
+  doctor:
+    name: expo doctor alone
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - run: bun run doctor
