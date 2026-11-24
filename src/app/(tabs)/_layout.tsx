@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router/js-tabs';
 
 import { useHomeBreak } from '@/features/ads/useHomeBreak';
+import { FrozenWhenHidden } from '@/features/navigation/FrozenWhenHidden';
 import type { IconName } from '@/ui/Icons';
 import { TabIcon } from '@/ui/TabIcon';
 import { colors, sectionColors, type, type SectionTone } from '@/ui/tokens';
@@ -17,6 +18,7 @@ export default function TabsLayout() {
   const leftHome = useHomeBreak();
   return (
     <Tabs
+      screenLayout={({ children }) => <FrozenWhenHidden>{children}</FrozenWhenHidden>}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.accent,
